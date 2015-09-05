@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+
+{% block header %}
+{% endblock %}
+
+{% block content %}
+    <div class="dashboard">
+        <div class="dashboard-title">社員状況</div>
+        <table cellspacing="0" cellpadding="0">
+            <tr class="row1">
+                <td colspan="6" class="subtitle">社員稼働状況：</td>
+            </tr>
+            <tr class="row2">
+                <th>社員数:</th>
+                <td class="num"><a href="{% url 'employee_list' %}"> {{ company.member_set.count }}</a></td>
+                <th>稼働中人数:</th>
+                <td class="num"><a href="{% url 'employee_list' %}?status=working"> {{ company.get_working_count }}</a></td>
+                <th>待機中人数:</th>
+                <td class="num"><a href="{% url 'employee_list' %}?status=waiting" class="red">{{ company.get_waiting_count }}</a></td>
+            </tr>
+            <tr class="row1">
+                <td colspan="6" class="subtitle">社員リリース状況：</td>
+            </tr>
+            <tr class="row2">
+                <th>今月リリース:</th>
+                <td class="num">
+                    <a href="{% url 'release_list' %}?period={{ filter_list.now_year }}{{ filter_list.now_month|stringformat:'02d' }}"
+                       class="red">{{ company.get_release_current_month.count }}</a></td>
+                <th>来月リリース:</th>
+                <td class="num">
+                    <a href="{% url 'release_list' %}?period={{ filter_list.next_month_year }}{{ filter_list.next_month_month|stringformat:'02d' }}">
+                        {{ company.get_release_next_month.count }}</a></td>
+                <th>再来月リリース:</th>
+                <td class="num">
+                    <a href="{% url 'release_list' %}?period={{ filter_list.next_2_months_year }}{{ filter_list.next_2_months_month|stringformat:'02d' }}">
+                        {{ company.get_release_next_2_month.count }}</a></td>
+            </tr>
+        </table>
+    </div>
+    <div class="dashboard">
+        <div class="dashboard-title">案件状況</div>
+        <table cellspacing="0" cellpadding="0">
+            <tr class="row1">
+                <td colspan="6" class="subtitle">案件ステータス：</td>
+            </tr>
+            <tr class="row2">
+                <th>案件数:</th>
+                <td class="num" colspan="5"><a href="{% url 'project_list' %}">{{ company.get_project_count }}</a></td>
+            </tr>
+            <tr class="row2">
+                {% for status, d in project_status_list %}
+                    {% if d.rtn %}
+                        </tr>
+                        <tr class="row2">
+                    {% endif %}
+                    <th>{{ status }}:</th>
+                    <td class="num"><a href="{% url 'project_list' %}?status={{ status }}">{{ d.cnt }}</a></td>
+                {% endfor %}
+            </tr>
+        </table>
+    </div>
+{% endblock %}

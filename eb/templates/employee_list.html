@@ -1,0 +1,116 @@
+{% extends "base.html" %}
+
+{% block header %}
+    <script type="text/javascript">
+        window.onload = function() {
+            init_select("status");
+            init_select("name");
+            init_select("business_status");
+            init_select("salesperson");
+        };
+    </script>
+{% endblock %}
+
+{% block content %}
+    <div class="dashboard">
+        <div class="dashboard-title">なにをしたいのですか？</div>
+        <form action="" method="get">
+            <span>名前: </span><input type="text" id="name" name="name" style="width: 100px;"/>
+            <span>稼働状態: </span>
+            <select id="status" name="status">
+                <option value="">すべて</option>
+                <option value="working">稼働中</option>
+                <option value="waiting">待機</option>
+            </select>
+            <span>営業状態:</span>
+            <select id="business_status" name="business_status">
+                <option value="">すべて</option>
+                <option value="未提案">未提案</option>
+                <option value="営業中">営業中</option>
+            </select>
+            <span>営業員: </span><input type="text" id="salesperson" name="salesperson" style="width: 100px;"/>
+            <input type="submit" value="Filter" />
+            <a href="/admin/eb/member/add/" target="_blank" class="button">要員を追加</a>
+        </form>
+    </div>
+    <table class="list" cellpadding="0" cellspacing="0">
+        <thead>
+            <tr>
+                <th>名称</th>
+                <th>メールアドレス</th>
+                <th>所属</th>
+                <th>稼働状態</th>
+                <th style="width: 120px;">リリース予定日</th>
+                <th>営業員</th>
+                <th>営業状態</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% if members %}
+                {% for member in members %}
+                    <tr class="{% cycle 'row1' 'row2' %}">
+                        <td><a href="{% url 'member_project_list' member.employee_id %}">{{ member.name }}</a></td>
+                        <td><a href="mailto:{{ member.email }}">{{ member.email }}</a></td>
+                        <td><a href="{% url 'section' member.section.name %}">{{ member.section.name }}</a></td>
+                        <td class="center">
+                            {% if member.get_project_end_date %}
+                                <a href="?status=working{{ params }}"><img width="12px" src="/static/img/icon-normal.png"/></a>
+                            {% else %}
+                                <a href="?status=waiting{{ params }}"><img width="12px" src="/static/img/icon-warn.png"/></a>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <a href="{% url 'release_list' %}?period={{ member.get_project_end_date|date:'Ym' }}">
+                                {{ member.get_project_end_date|date:"Y-m-d" }}
+                            </a>
+                        </td>
+                        <td>
+                            {% if member.salesperson %}
+                                <a href="?salesperson={{ member.salesperson }}">{{ member.salesperson }}</a>
+                            {% endif %}
+                        </td>
+                        <td class="center">
+                            {% ifequal member.get_business_status "営業中" %}
+                                <a href="{% url 'member_project_list' member.employee_id %}?status=1">営業中</a>
+                            {% else %}
+                                {{ member.get_business_status }}
+                            {% endifequal %}
+                        </td>
+                        <td class="center"><a href="/admin/eb/member/{{ member.id }}/" target="_blank">編集</a></td>
+                    </tr>
+                {% endfor %}
+            {% else %}
+                <tr class="row2"><td class="center red" colspan="8">該当する要員がいません。</td></tr>
+            {% endif %}
+        </tbody>
+        <tfoot>
+            <tr>
+                <td colspan="8">
+                    <div class="pagination">
+                        <span class="step-links">
+                            {% if members.has_previous %}
+                                <a href="?page={{ members.previous_page_number }}{{ params }}">&lt;</a>
+                            {% endif %}
+
+                            {% for page in paginator.page_range %}
+                                {% ifequal page members.number %}
+                                    <span class="current">
+                                        {{ page }}
+                                    </span>
+                                {% else %}
+                                    <a href="?page={{ page }}{{ params }}">{{ page }}</a>
+                                {% endifequal %}
+                            {% endfor %}
+
+                            {% if members.has_next %}
+                                <a href="?page={{ members.next_page_number }}{{ params }}">&gt;</a>
+                            {% endif %}
+                            <span>{{ paginator.count }} 件</span>
+                        </span>
+                    </div>
+                </td>
+            </tr>
+        </tfoot>
+    </table>
+{% endblock %}

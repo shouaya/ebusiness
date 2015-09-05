@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+{% load humanize %}
+
+{% block header %}
+    <script type="text/javascript">
+        window.onload = function() {
+            init_select("status");
+        };
+    </script>
+{% endblock %}
+
+{% block content %}
+    <div class="dashboard">
+        <div class="dashboard-title">なにをしたいのですか？</div>
+        <form action="" method="get">
+            <span>稼働状態: </span>
+            <select id="status" name="status">
+                <option value="">すべて</option>
+                <option value="working">稼働中</option>
+                <option value="waiting">待機</option>
+            </select>
+            <input type="submit" value="Filter" />
+            <a href="/admin/eb/projectmember/add/?project_id={{ project.project_id }}"
+               target="_blank" class="button">要員をアサイン</a>
+        </form>
+    </div>
+    <table class="list" cellpadding="0" cellspacing="0">
+        <thead>
+            <tr>
+                <th>名前</th>
+                <th>所属</th>
+                <th>稼働状態</th>
+                <th>稼働開始日</th>
+                <th>稼働終了日</th>
+                <th>単価</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% if project_members %}
+                {% for project_member in project_members %}
+                    <tr class="{% cycle 'row1' 'row2' %}">
+                        <td>{{ project_member.member.name }}</td>
+                        <td>{{ project_member.member.section.name }}</td>
+                        <td class="center">
+                            {% if project_member.member.get_project_end_date %}
+                                <img width="12px" src="/static/img/icon-normal.png"/>
+                            {% else %}
+                                <img width="12px" src="/static/img/icon-warn.png"/>
+                            {% endif %}
+                        </td>
+                        <td>{{ project_member.start_date|date:"Y-m-d" }}</td>
+                        <td>{{ project_member.end_date|date:"Y-m-d" }}</td>
+                        <td>{{ project_member.price|intcomma }}</td>
+                        <td class="center"><a href="/admin/eb/projectmember/{{ project_member.id }}/" target="_blank">編集</a></td>
+                    </tr>
+                {% endfor %}
+            {% else %}
+                <tr class="row2">
+                    <td class="center red" colspan="6">
+                        プロジェクト<b>「{{ project.name }}」</b>に誰もアサインしてありません。
+                    </td>
+                </tr>
+            {% endif %}
+        </tbody>
+        <tfoot>
+            <tr>
+                <td colspan="6">
+                    <div class="pagination">
+                        <span class="step-links">
+                            {% if project_members.has_previous %}
+                                <a href="?page={{ project_members.previous_page_number }}{{ params }}">&lt;</a>
+                            {% endif %}
+
+                            {% for page in paginator.page_range %}
+                                {% ifequal page project_members.number %}
+                                    <span class="current">
+                                        {{ page }}
+                                    </span>
+                                {% else %}
+                                    <a href="?page={{ page }}{{ params }}">{{ page }}</a>
+                                {% endifequal %}
+                            {% endfor %}
+
+                            {% if project_members.has_next %}
+                                <a href="?page={{ project_members.next_page_number }}{{ params }}">&gt;</a>
+                            {% endif %}
+                            <span>{{ paginator.count }} 件</span>
+                        </span>
+                    </div>
+                </td>
+            </tr>
+        </tfoot>
+    </table>
+{% endblock %}

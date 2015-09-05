@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+
+{% block header %}
+    <script type="text/javascript">
+        window.onload = function() {
+            init_select("status");
+            init_select("name");
+            init_select("client");
+            init_select("salesperson");
+        };
+    </script>
+{% endblock %}
+
+{% block content %}
+    <div class="dashboard">
+        <div class="dashboard-title">なにをしたいのですか？</div>
+        <form action="{% url 'project_list' %}" method="get">
+            <span>名前: </span><input type="text" id="name" name="name" style="width: 100px;"/>
+            <span>関連会社: </span><input type="text" id="client" name="client" style="width: 100px;"/>
+            <span>営業員: </span><input type="text" id="salesperson" name="salesperson" style="width: 100px;"/>
+            <span>ステータス: </span>
+            <select id="status" name="status">
+                <option value="">すべて</option>
+                {% for ps in project_status %}
+                    <option value="{{ ps.name }}">{{ ps.name }}</option>
+                {% endfor %}
+            </select>
+            <input type="submit" value="Filter" />
+            <a href="/admin/eb/project/add/" target="_blank" class="button">案件を追加</a>
+        </form>
+    </div>
+    <table class="list" cellpadding="0" cellspacing="0">
+        <thead>
+            <tr>
+                <th>案件名称</th>
+                <th>関連会社</th>
+                <th>営業員</th>
+                <th style="width: 45px; font-size: 10px;">アサイン<br/>人数</th>
+                <th>状態</th>
+                <th>顧客責任者</th>
+                <th>顧客連絡者</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% if projects %}
+                {% for project in projects %}
+                    <tr class="{% cycle 'row1' 'row2' %}">
+                        <td><a href="{% url 'project_detail' project.project_id %}">{{ project.name }}</a></td>
+                        <td>{{ project.client.name }}</td>
+                        <td>
+                            {% if project.salesperson %}
+                                <a href="?salesperson={{ project.salesperson }}">{{ project.salesperson }}</a>
+                            {% endif %}
+                        </td>
+                        <td class="center"><a href="{% url 'project_members' project.project_id %}">{{ project.get_project_members.count }}</a></td>
+                        <td class="center"><a href="?status={{ project.status.name }}">{{ project.status.name }}</a></td>
+                        <td>{{ project.boss.name }}</td>
+                        <td>{{ project.middleman.name }}</td>
+                        <td class="center"><a href="/admin/eb/project/{{ project.id }}/" target="_blank">編集</a></td>
+                    </tr>
+                {% endfor %}
+            {% else %}
+                <tr class="row2"><td class="center red" colspan="9">該当する案件がありません。</td></tr>
+            {% endif %}
+        </tbody>
+        <tfoot>
+            <tr>
+                <th>案件名称</th>
+                <th>関連会社</th>
+                <th>営業員</th>
+                <th style="width: 45px; font-size: 10px;">アサイン<br/>人数</th>
+                <th>状態</th>
+                <th>顧客責任者</th>
+                <th>顧客連絡者</th>
+                <th></th>
+            </tr>
+        </tfoot>
+    </table>
+{% endblock %}

@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+
+{% block header %}
+{% endblock %}
+
+{% block content %}
+    <div class="dashboard">
+        <div class="dashboard-title">なにをしたいのですか？</div>
+        <form action="" method="get">
+            <a href="/admin/eb/project/{{ project.id }}/"
+               target="_blank" class="button">案件を編集</a>
+        </form>
+    </div>
+    <table class="detail" cellpadding="0" cellspacing="0">
+        <tr>
+            <th>案件名称</th><td>{{ project.name }}</td>
+            <th>関連会社</th><td>{{ project.client.name }}</td>
+        </tr>
+        <tr>
+            <th>顧客責任者</th><td>{{ project.boss.name }}</td>
+            <th>顧客連絡者</th><td>{{ project.middleman.name }}</td>
+        </tr>
+        <tr>
+            <th>作業場所</th><td colspan="3">{{ project.address }}</td>
+        </tr>
+        <tr>
+            <th>開始日付</th><td>{{ project.start_date|date:"Y-m-d" }}</td>
+            <th>終了日付</th><td>{{ project.end_date|date:"Y-m-d" }}</td>
+        </tr>
+        <tr style="height: 70px;">
+            <th valign="top">概要</th><td colspan="3" valign="top">{{ project.description }}</td>
+        </tr>
+        <tr style="height: 70px;">
+            <th valign="top">スキル要求</th>
+            <td colspan="3" valign="top">
+                {% for project_skill in project.projectskill_set.all %}
+                    <div>{{ project_skill.skill.name }}, {{ project_skill.get_period_display }}, {{project_skill.description }}</div>
+                {% endfor %}
+            </td>
+        </tr>
+        <tr>
+            <th>アサイン人数</th>
+            <td><a href="{% url 'project_members' project.project_id %}">{{ project.get_project_members.count }}</a></td>
+            <th>状態</th><td>{{ project.status.name }}</td>
+        </tr>
+    </table>
+{% endblock %}

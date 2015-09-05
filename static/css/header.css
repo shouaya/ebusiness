@@ -1,0 +1,41 @@
+@CHARSET "utf-8";
+
+header {
+    background: url("/static/img/bg_navi.gif") repeat-x bottom left;
+	height: 120px;
+}
+
+header div.header-top {
+    height: 73px;
+}
+
+header div.header-nav ul {
+}
+
+header div.header-nav ul li {
+    float: left;
+    display: block;
+    width: 160px;
+    height: 48px;
+    overflow: hidden;
+    cursor: pointer;
+    text-align: center;
+    vertical-align: middle;
+}
+
+header div.header-nav ul li a {
+    display: block;
+    padding-top: 8px;
+    padding-bottom: 8px;
+    border: 1px solid #ffe;
+}
+
+header div.header-nav ul li a:hover {
+    background-color: #eeeeee;
+    border: 1px solid #EDF3FE;
+}
+
+header img.logo {
+    width: 100px;
+    margin-top: 18px;
+}

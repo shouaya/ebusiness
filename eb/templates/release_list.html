@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+
+{% block header %}
+    <script type="text/javascript">
+        window.onload = function() {
+            init_select("period");
+        };
+    </script>
+{% endblock %}
+
+{% block content %}
+    <div class="dashboard">
+        <div class="dashboard-title">なにをしたいのですか？</div>
+        <form action="{% url 'release_list' %}" method="get">
+            <select id="period" name="period">
+                {% for year, month in filter_list %}
+                    <option value="{{ year }}{{ month|stringformat:'02d' }}">{{ year }} 年 {{ month|stringformat:'02d' }} 月</option>
+                {% endfor %}
+            </select>
+            <input type="submit" value="Filter" />
+        </form>
+    </div>
+    <table class="list" cellpadding="0" cellspacing="0">
+        <thead>
+            <tr>
+                <th>名前</th>
+                <th>案件名称</th>
+                <th>開始日</th>
+                <th>終了日</th>
+                <th>営業状態</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% if project_members %}
+                {% for project_member in project_members %}
+                    <tr class="{% cycle 'row1' 'row2' %}">
+                        <td>{{ project_member.member.name }}</td>
+                        <td><a href="{% url 'project_detail' project_member.project.project_id %}">
+                                {{ project_member.project.name }}
+                            </a>
+                        </td>
+                        <td>{{ project_member.start_date|date:"Y-m-d" }}</td>
+                        <td>{{ project_member.end_date|date:"Y-m-d" }}</td>
+                        <td class="center">
+                            {% ifequal project_member.member.get_business_status "営業中" %}
+                                <a href="{% url 'member_project_list' project_member.member.employee_id %}?status=1">営業中</a>
+                            {% else %}
+                                {{ project_member.member.get_business_status }}
+                            {% endifequal %}
+                        </td>
+                    </tr>
+                {% endfor %}
+            {% else %}
+                <tr class="row2"><td class="center red" colspan="5">リリース予定がありません。</td></tr>
+            {% endif %}
+        </tbody>
+        <tfoot>
+            <tr>
+                <td colspan="5">
+                    <div class="pagination">
+                        <span class="step-links">
+                            {% if project_members.has_previous %}
+                                <a href="?page={{ project_members.previous_page_number }}{{ params }}">&lt;</a>
+                            {% endif %}
+
+                            {% for page in paginator.page_range %}
+                                {% ifequal page project_members.number %}
+                                    <span class="current">
+                                        {{ page }}
+                                    </span>
+                                {% else %}
+                                    <a href="?page={{ page }}{{ params }}">{{ page }}</a>
+                                {% endifequal %}
+                            {% endfor %}
+
+                            {% if project_members.has_next %}
+                                <a href="?page={{ project_members.next_page_number }}{{ params }}">&gt;</a>
+                            {% endif %}
+                            <span>{{ paginator.count }} 件</span>
+                        </span>
+                    </div>
+                </td>
+            </tr>
+        </tfoot>
+    </table>
+{% endblock %}

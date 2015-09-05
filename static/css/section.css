@@ -1,0 +1,120 @@
+@CHARSET "utf-8";
+
+section {
+    font-size: 13px;
+    background: url("/static/img/bg_section.gif") repeat-x top left;
+    min-height: 700px;
+    padding-top: 30px;
+}
+
+section table.list {
+    width: 100%;
+    color: #5b80b2;
+    border-left: 1px solid #eee;
+}
+
+section table.list th, section table.list tfoot td {
+    padding: 4px 4px;
+    border-right: 1px solid #eee;
+    background: linear-gradient(#fff, #eee)
+}
+
+section table.list td {
+    padding: 2px 4px;
+    border-top: 1px solid #eee;
+    border-right: 1px solid #eee;
+}
+
+section table.list th, section table.list tfoot td {
+    color: #666;
+    border-top: 1px solid #eee;
+    border-bottom: 1px solid #eee;
+}
+
+section table.detail {
+    width: 100%;
+    border: 1px solid rgb(198, 246, 204);
+}
+
+section table.detail th, section table.detail td {
+    border: 1px solid rgb(198, 246, 204);
+    padding: 2px 4px;
+}
+
+section table.detail th {
+    background-color: #D1EEEE;
+}
+
+section table.detail td {
+    background-color: #fff;
+}
+
+section .row1 {
+    background: #EDF3FE;
+}
+
+section .row2 {
+    background: #FFF;
+}
+
+section div.dashboard {
+    margin-bottom: 10px;
+    border: 1px solid #eee;
+    background-color: #fff;
+}
+
+section div.dashboard div.dashboard-title {
+    padding: 5px 5px;
+    background: linear-gradient(#fff, #eee)
+}
+
+section div.dashboard form, section div.dashboard table {
+    width: 100%;
+    padding: 10px 5px;
+    min-height: 20px;
+}
+
+section div.dashboard table .subtitle {
+    padding: 3px 10px;
+    font-weight: bold;
+}
+
+section div.dashboard table th {
+    padding: 4px 10px;
+    width: 120px;
+    text-align: left;
+    font-weight: normal;
+}
+
+section div.dashboard table .num {
+    text-align: left;
+    font-weight: bold;
+}
+
+section div.dashboard a.button{
+    float: right;
+    margin-right: 10px;
+}
+
+section input[type=submit] {
+    padding: 2px 8px;
+}
+
+section .pagination {
+    margin-top: 3px;
+    padding: 2px;
+}
+
+section .pagination a {
+    padding: 1px 8px;
+    border: solid 1px #ccc;
+    background: white;
+    color: #5b80b2;
+}
+
+section .pagination span.current {
+    padding: 1px 8px;
+    font-weight: bold;
+    font-size: 13px;
+    vertical-align: top;
+}

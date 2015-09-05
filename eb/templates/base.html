@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="utf-8"/>
+    <title>{{ title }}</title>
+
+    <link rel="stylesheet" type="text/css" href="/static/css/base.css">
+    <link rel="stylesheet" type="text/css" href="/static/css/header.css">
+    <link rel="stylesheet" type="text/css" href="/static/css/section.css">
+    <link rel="stylesheet" type="text/css" href="/static/css/footer.css">
+
+    <script type="text/javascript" src="/static/js/base.js"></script>
+	<!--[if lt IE 9]>
+	<script type="text/javascript" src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+	<![endif]-->
+
+    {% block header %}{% endblock %}
+</head>
+
+<body>
+	<header>
+        <div class="container">
+            <div class="header-top">
+                <img class="logo" src="/static/img/logo.gif" />
+                <span style="color: gray;">E-Business Inc.</span>
+            </div>
+            <div class="header-nav">
+                <ul>
+                    <li><a href="{% url 'index' %}">HOME</a></li>
+                    <li><a href="{% url 'employee_list' %}">要員一覧</a></li>
+                    <li><a href="{% url 'project_list' %}">案件一覧</a></li>
+                    <li><a href="{% url 'release_list' %}">リリース状況一覧</a></li>
+                    <li><a href="/admin/">管理サイト</a></li>
+                </ul>
+            </div>
+        </div>
+    </header>
+    <section>
+        <div class="container">
+        {% block content %}{% endblock %}
+        </div>
+    </section>
+	<footer>
+        Created by <b><i>Yang Wanjun</i></b> at 2015/08, any questions please contact with
+        <u><a href="mailto: yangwanjun@e-business.com">yangwanjun@e-business.com</a></u>.
+        <a href="{% url 'history' %}">Click here to see history</a>
+    </footer>
+</body>
+</html>
