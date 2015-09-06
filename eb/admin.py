@@ -9,7 +9,7 @@ from django.contrib import admin
 from django.utils.translation import ugettext_lazy as _
 
 from .models import Company, Section, Member, Salesperson, Project, Client, ClientMember, \
-    ProjectStatus, ProjectMember, Skill, ProjectSkill
+    ProjectStatus, ProjectMember, Skill, ProjectSkill, ProjectActivity
 
 
 class TextInputListFilter(admin.ListFilter):
@@ -179,6 +179,13 @@ class ProjectMemberAdmin(admin.ModelAdmin):
         return form
 
 
+class ProjectActivityAdmin(admin.ModelAdmin):
+
+    list_display = ['project', 'name', 'address', 'created_date']
+
+    filter_horizontal = ['members', 'salesperson']
+
+
 # Register your models here.
 admin.site.register(Company, CompanyAdmin)
 admin.site.register(Section, SectionAdmin)
@@ -191,6 +198,7 @@ admin.site.register(Client, ClientAdmin)
 admin.site.register(ClientMember, ClientMemberAdmin)
 admin.site.register(ProjectStatus)
 admin.site.register(ProjectMember, ProjectMemberAdmin)
+admin.site.register(ProjectActivity, ProjectActivityAdmin)
 
 admin.site.site_header = u'管理サイト'
 admin.site.site_title = u'管理サイト'

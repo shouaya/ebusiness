@@ -44,4 +44,25 @@
             <th>状態</th><td>{{ project.status.name }}</td>
         </tr>
     </table>
+    {% for skill_name, members in dict_skills.items %}
+        <div style="margin-top: 15px;">
+            下記メンバーズは <span class="red"><b>{{ skill_name }}</b></span> の経験者として推薦します(全{{ members|length }}名)：
+        </div>
+        <table class="list" cellpadding="0" cellspacing="0">
+            <tr>
+                <th>名前</th>
+                <th>所属</th>
+                <th>営業員</th>
+                <th>リリース予定日</th>
+            </tr>
+            {% for member in members %}
+                <tr class="{% cycle 'row1' 'row2' %}">
+                    <td>{{ member.name }}</td>
+                    <td>{{ member.section }}</td>
+                    <td>{{ member.salesperson.name }}</td>
+                    <td>{{ member.get_project_end_date|date:"Y-m-d" }}</td>
+                </tr>
+            {% endfor %}
+        </table>
+    {% endfor %}
 {% endblock %}

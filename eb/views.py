@@ -173,11 +173,13 @@ def project_list(request):
 
 def project_detail(request, project_id):
     project = Project.objects.get(project_id=project_id)
+    dict_skills = project.get_recommended_members()
 
     context = RequestContext(request, {
         'company': company,
         'title': u'%s - 案件詳細' % (project.name,),
         'project': project,
+        'dict_skills': dict_skills,
     })
     template = loader.get_template('project_detail.html')
     return HttpResponse(template.render(context))
