@@ -42,3 +42,11 @@ a {
 .red {
     color: red;
 }
+
+.right {
+    float: right;
+}
+
+input[type=button] {
+    padding: 1px 5px;
+}

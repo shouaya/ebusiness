@@ -7,8 +7,7 @@
     <div class="dashboard">
         <div class="dashboard-title">なにをしたいのですか？</div>
         <form action="" method="get">
-            <a href="/admin/eb/project/{{ project.id }}/"
-               target="_blank" class="button">案件を編集</a>
+            <a href="/admin/eb/project/{{ project.id }}/" target="_blank" class="button">案件を編集</a>
         </form>
     </div>
     <table class="detail" cellpadding="0" cellspacing="0">
@@ -41,28 +40,61 @@
         <tr>
             <th>アサイン人数</th>
             <td><a href="{% url 'project_members' project.project_id %}">{{ project.get_project_members.count }}</a></td>
-            <th>状態</th><td>{{ project.status.name }}</td>
+            <th>状態</th>
+            <td>
+                {% ifequal project.status.id 1 %}
+                    <span class="red">{{ project.status.name }}</span>
+                    <a href="{% url 'recommended_member' project.project_id %}" class="right">推薦されるメンバーズ</a>
+                {% else %}
+                    {{ project.status.name }}
+                {% endifequal %}
+            </td>
         </tr>
     </table>
-    {% for skill_name, members in dict_skills.items %}
-        <div style="margin-top: 15px;">
-            下記メンバーズは <span class="red"><b>{{ skill_name }}</b></span> の経験者として推薦します(全{{ members|length }}名)：
-        </div>
-        <table class="list" cellpadding="0" cellspacing="0">
-            <tr>
-                <th>名前</th>
-                <th>所属</th>
-                <th>営業員</th>
-                <th>リリース予定日</th>
-            </tr>
-            {% for member in members %}
+    <div class="dashboard">
+        <div class="dashboard-title">営業活動</div>
+        <form action="" method="get">
+            <a href="/admin/eb/projectactivity/add/?project_id={{ project.project_id }}"
+               target="_blank" class="button">活動を追加</a>
+        </form>
+    </div>
+    <table class="list" cellpadding="0" cellspacing="0">
+        <tr>
+            <th>活動名称</th>
+            <th style="width: 130px;">活動日時</th>
+            <th>活動場所</th>
+            <th>活動内容</th>
+            <th>参加者</th>
+        </tr>
+        {% if project.projectactivity_set.all %}
+            {% for project_activity in project.projectactivity_set.all %}
                 <tr class="{% cycle 'row1' 'row2' %}">
-                    <td>{{ member.name }}</td>
-                    <td>{{ member.section }}</td>
-                    <td>{{ member.salesperson.name }}</td>
-                    <td>{{ member.get_project_end_date|date:"Y-m-d" }}</td>
+                    <td>{{ project_activity.name }}</td>
+                    <td>{{ project_activity.open_date|date:"Y-m-d h:i" }}</td>
+                    <td>{{ project_activity.address }}</td>
+                    <td>{{ project_activity.content }}</td>
+                    <td>
+                        {% for client_member in project_activity.client_members.all %}
+                            {{ client_member.name }},
+                        {% endfor %}
+                        {% for salesperson in project_activity.salesperson.all %}
+                            {{ salesperson.name }},
+                        {% endfor %}
+                        {% for member in project_activity.members.all %}
+                            {{ member.name }},
+                        {% endfor %}
+                    </td>
                 </tr>
             {% endfor %}
-        </table>
-    {% endfor %}
+        {% else %}
+            <tr class="row1"><td colspan="5" class="center red">まだ何の活動情報もありません。</td></tr>
+        {% endif %}
+        <tr>
+            <th>活動名称</th>
+            <th>活動日時</th>
+            <th>活動場所</th>
+            <th>活動内容</th>
+            <th>参加者</th>
+        </tr>
+    </table>
 {% endblock %}

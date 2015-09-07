@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+
+{% block header %}
+{% endblock %}
+
+{% block content %}
+    <div>
+        <table class="detail" cellpadding="0" cellspacing="0">
+            <tr>
+                <th style="width: 100px;">名前：</th>
+                <td>{{ member.name }}</td>
+            </tr>
+            <tr>
+                <th valign="top">推薦理由：</th>
+                <td>
+                    {% if skills %}
+                        下記スキルに関して経験があります：<br/>
+                        {% for skill in skills %}
+                            {{ skill.name }},
+                        {% endfor %}
+                    {% else %}
+                        履歴が未入力なのか、かつてやった案件がないか、<br/>
+                        推薦できる案件がありません。
+                    {% endif %}
+                </td>
+            </tr>
+        </table>
+    </div>
+    {% if projects %}
+        <table class="list" cellpadding="0" cellspacing="0">
+            <tr>
+                <th>案件名称</th>
+                <th>関連会社</th>
+                <th>スキル要求</th>
+                <th>営業員</th>
+                <th>アサイン人数</th>
+                <th></th>
+            </tr>
+            {% for project in projects %}
+                <tr class="{% cycle 'row1' 'row2' %}">
+                    <td><a href="{% url 'project_detail' project.project_id %}">{{ project.name }}</a></td>
+                    <td>{{ project.client.name }}</td>
+                    <td>
+                        {% for skill in project.skills.all %}
+                            {{ skill.name }},
+                        {% endfor %}
+                    </td>
+                    <td>{{ project.salesperson }}</td>
+                    <td class="center"><a href="{% url 'project_members' project.project_id %}">{{ project.get_project_members.count }}</a></td>
+                    <td class="center">
+                        <a href="/admin/eb/projectmember/add/?project_id={{ project.project_id }}&employee_id={{ member.employee_id }}"
+                           target="_blank">アサイン</a>
+                    </td>
+                </tr>
+            {% endfor %}
+            <tr>
+                <th>案件名称</th>
+                <th>関連会社</th>
+                <th>スキル要求</th>
+                <th>営業員</th>
+                <th>アサイン人数</th>
+                <th></th>
+            </tr>
+        </table>
+    {% endif %}
+{% endblock %}

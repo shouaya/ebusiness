@@ -172,7 +172,10 @@ class ProjectMemberAdmin(admin.ModelAdmin):
         form = super(ProjectMemberAdmin, self).get_form(request, obj, **kwargs)
         project_id = request.GET.get('project_id', None)
         if project_id:
-            form.base_fields['project'].initial = Project.objects.get(project_id=project_id)
+            project = Project.objects.get(project_id=project_id)
+            form.base_fields['project'].initial = project
+            form.base_fields['start_date'].initial = project.start_date
+            form.base_fields['end_date'].initial = project.end_date
         employee_id = request.GET.get('employee_id', None)
         if employee_id:
             form.base_fields['member'].initial = Member.objects.get(employee_id=employee_id)
@@ -181,9 +184,36 @@ class ProjectMemberAdmin(admin.ModelAdmin):
 
 class ProjectActivityAdmin(admin.ModelAdmin):
 
-    list_display = ['project', 'name', 'address', 'created_date']
+    list_display = ['project', 'name', 'open_date', 'address', 'get_client_members', 'get_salesperson']
+    list_display_links = ['name']
+    list_filter = ['project']
 
-    filter_horizontal = ['members', 'salesperson']
+    filter_horizontal = ['client_members', 'salesperson', 'members']
+
+    def get_form(self, request, obj=None, **kwargs):
+        form = super(ProjectActivityAdmin, self).get_form(request, obj, **kwargs)
+        project_id = request.GET.get('project_id', None)
+        if project_id:
+            project = Project.objects.get(project_id=project_id)
+            form.base_fields['project'].initial = project
+        return form
+
+    def get_client_members(self, obj):
+        client_members = obj.client_members.all()
+        names = []
+        for client_member in client_members:
+            names.append(client_member.name)
+        return ", ".join(names)
+
+    def get_salesperson(self, obj):
+        salesperson_list = obj.salesperson.all()
+        names = []
+        for salesperson in salesperson_list:
+            names.append(salesperson.name)
+        return ", ".join(names)
+
+    get_client_members.short_description = u"参加しているお客様"
+    get_salesperson.short_description = u"参加している営業員"
 
 
 # Register your models here.
@@ -200,5 +230,5 @@ admin.site.register(ProjectStatus)
 admin.site.register(ProjectMember, ProjectMemberAdmin)
 admin.site.register(ProjectActivity, ProjectActivityAdmin)
 
-admin.site.site_header = u'管理サイト'
+admin.site.site_header = u'社員営業状況管理システム'
 admin.site.site_title = u'管理サイト'

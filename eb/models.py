@@ -129,6 +129,30 @@ class Member(models.Model):
         else:
             return u"-"
 
+    def get_skill_list(self):
+        query_set = Member.objects.raw(u"SELECT DISTINCT S.*"
+                                       u"  FROM EB_MEMBER M"
+                                       u"  JOIN EB_PROJECTMEMBER PM ON M.ID = PM.MEMBER_ID"
+                                       u"  JOIN EB_PROJECT P ON P.ID = PM.PROJECT_ID"
+                                       u"  JOIN EB_PROJECTSKILL PS ON PS.PROJECT_ID = P.ID"
+                                       u"  JOIN EB_SKILL S ON S.ID = PS.SKILL_ID"
+                                       u" WHERE M.EMPLOYEE_ID = %s"
+                                       u"   AND PM.END_DATE <= %s", [self.employee_id, datetime.date.today()])
+        return list(query_set)
+
+    def get_recommended_projects(self):
+        skill_list = self.get_skill_list()
+        skill_name_list = [str(skill.name) for skill in skill_list]
+        query_set = Member.objects.raw(u"SELECT DISTINCT P.*"
+                                       u"  FROM EB_MEMBER M"
+                                       u"  JOIN EB_PROJECTMEMBER PM ON M.ID = PM.MEMBER_ID"
+                                       u"  JOIN EB_PROJECT P ON P.ID = PM.PROJECT_ID"
+                                       u"  JOIN EB_PROJECTSKILL PS ON PS.PROJECT_ID = P.ID"
+                                       u"  JOIN EB_SKILL S ON S.ID = PS.SKILL_ID"
+                                       u" WHERE S.NAME IN %s"
+                                       u"   AND P.STATUS_ID <= 3" % (str(tuple(skill_name_list)),))
+        return [project.pk for project in query_set]
+
 
 class ProjectStatus(models.Model):
     name = models.CharField(blank=False, null=False, max_length=10, verbose_name=u"状態")
@@ -177,7 +201,7 @@ class Skill(models.Model):
 
 
 class Project(models.Model):
-    project_id = models.CharField(blank=False, null=False, max_length=30, verbose_name=u"案件ID")
+    project_id = models.CharField(blank=False, null=False, unique=True, max_length=30, verbose_name=u"案件ID")
     name = models.CharField(blank=False, null=False, max_length=50, verbose_name=u"案件名称")
     description = models.TextField(blank=True, null=True, verbose_name=u"案件概要")
     skills = models.ManyToManyField(Skill, through='ProjectSkill', blank=True, null=True, verbose_name=u"スキル要求")
@@ -230,7 +254,14 @@ class Project(models.Model):
                                        u"  JOIN EB_SKILL s ON s.ID = ps.SKILL_ID"
                                        u" WHERE s.NAME = %s"
                                        u"   AND pm.END_DATE < %s"
-                                       u"   AND pm.STATUS <> 1", [name, last_day_a_month_later])
+                                       u"   AND pm.STATUS <> 1"
+                                       u"   AND NOT EXISTS (SELECT 1 "
+                                       u"                     FROM EB_PROJECTMEMBER pm2"
+                                       u"                    WHERE pm2.START_DATE >= %s"
+                                       u"                      AND pm2.MEMBER_ID = m.ID"
+                                       u"                      AND pm2.PROJECT_ID = %s"
+                                       u"                      AND pm2.STATUS = 1)"
+                                       , [name, last_day_a_month_later, datetime.date.today(), self.pk])
         members = list(query_set)
         return members
 
@@ -238,14 +269,16 @@ class Project(models.Model):
 class ProjectActivity(models.Model):
     project = models.ForeignKey(Project, verbose_name=u"案件")
     name = models.CharField(max_length=30, verbose_name=u"活動名称")
+    open_date = models.DateTimeField(default=datetime.datetime.now(), verbose_name=u"開催日時")
     address = models.CharField(max_length=255, verbose_name=u"活動場所")
     content = models.TextField(verbose_name=u"活動内容")
+    client_members = models.ManyToManyField(ClientMember, blank=True, null=True, verbose_name=u"参加しているお客様")
     members = models.ManyToManyField(Member, blank=True, null=True, verbose_name=u"参加している社員")
     salesperson = models.ManyToManyField(Salesperson, blank=True, null=True, verbose_name=u"参加している営業員")
     created_date = models.DateTimeField(auto_now_add=True, editable=False)
 
     class Meta:
-        ordering = ['project', 'created_date']
+        ordering = ['project', 'open_date']
         verbose_name = verbose_name_plural = u"案件活動"
 
     def __unicode__(self):

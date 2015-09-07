@@ -4,13 +4,14 @@ section {
     font-size: 13px;
     background: url("/static/img/bg_section.gif") repeat-x top left;
     min-height: 700px;
-    padding-top: 30px;
+    padding-top: 10px;
 }
 
 section table.list {
     width: 100%;
     color: #5b80b2;
     border-left: 1px solid #eee;
+    margin-top: 10px;
 }
 
 section table.list th, section table.list tfoot td {
@@ -58,6 +59,7 @@ section .row2 {
 }
 
 section div.dashboard {
+    margin-top: 10px;
     margin-bottom: 10px;
     border: 1px solid #eee;
     background-color: #fff;
