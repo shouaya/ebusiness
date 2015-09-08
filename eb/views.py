@@ -11,7 +11,6 @@ import common
 
 from django.http import HttpResponse
 from django.template import RequestContext, loader
-from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 
 from .models import Company, Member, Section, Project, ProjectMember, ProjectStatus
@@ -173,11 +172,13 @@ def project_list(request):
 
 def project_detail(request, project_id):
     project = Project.objects.get(project_id=project_id)
+    dict_skills = project.get_recommended_members()
 
     context = RequestContext(request, {
         'company': company,
         'title': u'%s - 案件詳細' % (project.name,),
         'project': project,
+        'dict_skills': dict_skills,
     })
     template = loader.get_template('project_detail.html')
     return HttpResponse(template.render(context))
@@ -274,6 +275,37 @@ def member_project_list(request, employee_id):
     return HttpResponse(template.render(context))
 
 
+def recommended_member_list(request, project_id):
+    project = Project.objects.get(project_id=project_id)
+    dict_skills = project.get_recommended_members()
+
+    context = RequestContext(request, {
+        'company': company,
+        'title': u'%s - 推薦されるメンバーズ' % (project.name,),
+        'project': project,
+        'dict_skills': dict_skills,
+    })
+    template = loader.get_template('recommended_member.html')
+    return HttpResponse(template.render(context))
+
+
+def recommended_project_list(request, employee_id):
+    member = Member.objects.get(employee_id=employee_id)
+    skills = member.get_skill_list()
+    project_id_list = member.get_recommended_projects()
+    projects = Project.objects.filter(pk__in=project_id_list)
+
+    context = RequestContext(request, {
+        'company': company,
+        'title': u'%s - 推薦される案件' % (member.name,),
+        'member': member,
+        'skills': skills,
+        'projects': projects,
+    })
+    template = loader.get_template('recommended_project.html')
+    return HttpResponse(template.render(context))
+
+
 def history(request):
     context = RequestContext(request, {
         'company': company,
@@ -281,13 +313,3 @@ def history(request):
     })
     template = loader.get_template('history.html')
     return HttpResponse(template.render(context))
-
-
-@login_required
-def export_data(request):
-    pass
-
-
-@login_required
-def import_data(request):
-    pass

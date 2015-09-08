@@ -93,15 +93,17 @@
                                 <a href="?page={{ members.previous_page_number }}{{ params }}">&lt;</a>
                             {% endif %}
 
-                            {% for page in paginator.page_range %}
-                                {% ifequal page members.number %}
-                                    <span class="current">
-                                        {{ page }}
-                                    </span>
-                                {% else %}
-                                    <a href="?page={{ page }}{{ params }}">{{ page }}</a>
-                                {% endifequal %}
-                            {% endfor %}
+                            {% if paginator.page_range|length > 1 %}
+                                {% for page in paginator.page_range %}
+                                    {% ifequal page members.number %}
+                                        <span class="current">
+                                            {{ page }}
+                                        </span>
+                                    {% else %}
+                                        <a href="?page={{ page }}{{ params }}">{{ page }}</a>
+                                    {% endifequal %}
+                                {% endfor %}
+                            {% endif %}
 
                             {% if members.has_next %}
                                 <a href="?page={{ members.next_page_number }}{{ params }}">&gt;</a>

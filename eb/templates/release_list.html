@@ -28,6 +28,7 @@
                 <th>開始日</th>
                 <th>終了日</th>
                 <th>営業状態</th>
+                <th></th>
             </tr>
         </thead>
         <tbody>
@@ -48,30 +49,37 @@
                                 {{ project_member.member.get_business_status }}
                             {% endifequal %}
                         </td>
+                        <td class="center">
+                            {% ifequal project_member.member.get_business_status "未提案" %}
+                                <a href="{% url 'recommended_project' project_member.member.employee_id %}">推薦された案件</a>
+                            {% endifequal %}
+                        </td>
                     </tr>
                 {% endfor %}
             {% else %}
-                <tr class="row2"><td class="center red" colspan="5">リリース予定がありません。</td></tr>
+                <tr class="row2"><td class="center red" colspan="6">リリース予定がありません。</td></tr>
             {% endif %}
         </tbody>
         <tfoot>
             <tr>
-                <td colspan="5">
+                <td colspan="6">
                     <div class="pagination">
                         <span class="step-links">
                             {% if project_members.has_previous %}
                                 <a href="?page={{ project_members.previous_page_number }}{{ params }}">&lt;</a>
                             {% endif %}
 
-                            {% for page in paginator.page_range %}
-                                {% ifequal page project_members.number %}
-                                    <span class="current">
-                                        {{ page }}
-                                    </span>
-                                {% else %}
-                                    <a href="?page={{ page }}{{ params }}">{{ page }}</a>
-                                {% endifequal %}
-                            {% endfor %}
+                            {% if paginator.page_range|length > 1 %}
+                                {% for page in paginator.page_range %}
+                                    {% ifequal page project_members.number %}
+                                        <span class="current">
+                                            {{ page }}
+                                        </span>
+                                    {% else %}
+                                        <a href="?page={{ page }}{{ params }}">{{ page }}</a>
+                                    {% endifequal %}
+                                {% endfor %}
+                            {% endif %}
 
                             {% if project_members.has_next %}
                                 <a href="?page={{ project_members.next_page_number }}{{ params }}">&gt;</a>

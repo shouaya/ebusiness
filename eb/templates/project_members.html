@@ -57,7 +57,7 @@
                 {% endfor %}
             {% else %}
                 <tr class="row2">
-                    <td class="center red" colspan="6">
+                    <td class="center red" colspan="7">
                         プロジェクト<b>「{{ project.name }}」</b>に誰もアサインしてありません。
                     </td>
                 </tr>
@@ -65,22 +65,24 @@
         </tbody>
         <tfoot>
             <tr>
-                <td colspan="6">
+                <td colspan="7">
                     <div class="pagination">
                         <span class="step-links">
                             {% if project_members.has_previous %}
                                 <a href="?page={{ project_members.previous_page_number }}{{ params }}">&lt;</a>
                             {% endif %}
 
-                            {% for page in paginator.page_range %}
-                                {% ifequal page project_members.number %}
-                                    <span class="current">
-                                        {{ page }}
-                                    </span>
-                                {% else %}
-                                    <a href="?page={{ page }}{{ params }}">{{ page }}</a>
-                                {% endifequal %}
-                            {% endfor %}
+                            {% if paginator.page_range|length > 1 %}
+                                {% for page in paginator.page_range %}
+                                    {% ifequal page project_members.number %}
+                                        <span class="current">
+                                            {{ page }}
+                                        </span>
+                                    {% else %}
+                                        <a href="?page={{ page }}{{ params }}">{{ page }}</a>
+                                    {% endifequal %}
+                                {% endfor %}
+                            {% endif %}
 
                             {% if project_members.has_next %}
                                 <a href="?page={{ project_members.next_page_number }}{{ params }}">&gt;</a>
