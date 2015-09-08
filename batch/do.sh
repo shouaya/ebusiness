@@ -4,7 +4,7 @@
 source config.sh
 
 current_date=$(date "+%Y.%m.%d")
-LOGFILE=$EB_ROOT/log/$current_date.log
+LOGFILE=$EB_ROOT/log/$current_date.log.txt
 
 
 current_time=$(date "+%Y.%m.%d-%H.%M.%S")
