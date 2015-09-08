@@ -26,16 +26,16 @@
             </tr>
         </table>
     </div>
-    {% if projects %}
-        <table class="list" cellpadding="0" cellspacing="0">
-            <tr>
-                <th>案件名称</th>
-                <th>関連会社</th>
-                <th>スキル要求</th>
-                <th>営業員</th>
-                <th>アサイン人数</th>
-                <th></th>
-            </tr>
+    <table class="list" cellpadding="0" cellspacing="0">
+        <tr>
+            <th>案件名称</th>
+            <th>関連会社</th>
+            <th>スキル要求</th>
+            <th>営業員</th>
+            <th>アサイン人数</th>
+            <th></th>
+        </tr>
+        {% if projects %}
             {% for project in projects %}
                 <tr class="{% cycle 'row1' 'row2' %}">
                     <td><a href="{% url 'project_detail' project.project_id %}">{{ project.name }}</a></td>
@@ -53,14 +53,16 @@
                     </td>
                 </tr>
             {% endfor %}
-            <tr>
-                <th>案件名称</th>
-                <th>関連会社</th>
-                <th>スキル要求</th>
-                <th>営業員</th>
-                <th>アサイン人数</th>
-                <th></th>
-            </tr>
-        </table>
-    {% endif %}
+        {% else %}
+            <tr class="row1"><td colspan="6" class="center red">推薦できる案件がありません。</td></tr>
+        {% endif %}
+        <tr>
+            <th>案件名称</th>
+            <th>関連会社</th>
+            <th>スキル要求</th>
+            <th>営業員</th>
+            <th>アサイン人数</th>
+            <th></th>
+        </tr>
+    </table>
 {% endblock %}

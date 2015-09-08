@@ -15,9 +15,13 @@ section table.list {
 }
 
 section table.list th, section table.list tfoot td {
-    padding: 4px 4px;
+    padding: 1px 4px;
     border-right: 1px solid #eee;
     background: linear-gradient(#fff, #eee)
+}
+
+section table.list th div.text {
+    cursor: pointer;
 }
 
 section table.list td {

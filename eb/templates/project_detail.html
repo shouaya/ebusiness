@@ -59,13 +59,26 @@
         </form>
     </div>
     <table class="list" cellpadding="0" cellspacing="0">
-        <tr>
-            <th>活動名称</th>
-            <th style="width: 130px;">活動日時</th>
-            <th>活動場所</th>
-            <th>活動内容</th>
-            <th>参加者</th>
-        </tr>
+        <thead>
+            <tr>
+                <th>活動名称</th>
+                <th style="width: 130px;">活動日時</th>
+                <th>活動場所</th>
+                <th>活動内容</th>
+                <th>参加者</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tfoot>
+            <tr>
+                <th>活動名称</th>
+                <th>活動日時</th>
+                <th>活動場所</th>
+                <th>活動内容</th>
+                <th>参加者</th>
+                <th></th>
+            </tr>
+        </tfoot>
         {% if project.projectactivity_set.all %}
             {% for project_activity in project.projectactivity_set.all %}
                 <tr class="{% cycle 'row1' 'row2' %}">
@@ -84,17 +97,13 @@
                             {{ member.name }},
                         {% endfor %}
                     </td>
+                    <td class="center">
+                        <a href="/admin/eb/projectactivity/{{ project_activity.pk }}/" target="_blank">編集</a>
+                    </td>
                 </tr>
             {% endfor %}
         {% else %}
             <tr class="row1"><td colspan="5" class="center red">まだ何の活動情報もありません。</td></tr>
         {% endif %}
-        <tr>
-            <th>活動名称</th>
-            <th>活動日時</th>
-            <th>活動場所</th>
-            <th>活動内容</th>
-            <th>参加者</th>
-        </tr>
     </table>
 {% endblock %}

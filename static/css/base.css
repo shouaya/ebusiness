@@ -47,6 +47,10 @@ a {
     float: right;
 }
 
+.clear {
+    clear: both;
+}
+
 input[type=button] {
     padding: 1px 5px;
 }

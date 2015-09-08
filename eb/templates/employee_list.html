@@ -44,6 +44,7 @@
                 <th>営業員</th>
                 <th>営業状態</th>
                 <th></th>
+                <th></th>
             </tr>
         </thead>
         <tbody>
@@ -77,16 +78,21 @@
                                 {{ member.get_business_status }}
                             {% endifequal %}
                         </td>
+                        <td class="center">
+                            {% ifequal member.get_business_status "未提案" %}
+                                <a href="{% url 'recommended_project' member.employee_id %}">推薦された案件</a>
+                            {% endifequal %}
+                        </td>
                         <td class="center"><a href="/admin/eb/member/{{ member.id }}/" target="_blank">編集</a></td>
                     </tr>
                 {% endfor %}
             {% else %}
-                <tr class="row2"><td class="center red" colspan="8">該当する要員がいません。</td></tr>
+                <tr class="row2"><td class="center red" colspan="9">該当する要員がいません。</td></tr>
             {% endif %}
         </tbody>
         <tfoot>
             <tr>
-                <td colspan="8">
+                <td colspan="9">
                     <div class="pagination">
                         <span class="step-links">
                             {% if members.has_previous %}

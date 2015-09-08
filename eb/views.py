@@ -6,6 +6,8 @@ Created on 2015/08/21
 """
 import datetime
 import re
+import io
+import xlwt
 
 import common
 
@@ -147,27 +149,76 @@ def project_list(request):
     name = request.GET.get('name', None)
     client = request.GET.get('client', None)
     salesperson = request.GET.get('salesperson', None)
+    download = request.GET.get('download', None)
+    params = ""
     if status:
         projects = Project.objects.filter(status__name=status)
+        params += "&status=%s" % (status,)
     else:
         projects = Project.objects.all()
     if name:
         projects = projects.filter(name__contains=name)
+        params += "&name=%s" % (name,)
     if client:
         projects = [project for project in projects if client in project.client.name]
+        params += "&client=%s" % (client,)
     if salesperson:
         projects = [project for project in projects if project.salesperson and salesperson in project.salesperson.name]
+        params += "&salesperson=%s" % (salesperson,)
 
-    project_status = ProjectStatus.objects.all()
+    if download == "download":
+        output = io.BytesIO()
+        wb = xlwt.Workbook()
+        is_save = False
+        for project in projects:
+            project_members = project.projectmember_set.all()  # start_date__lte=now, end_date__gte=now
+            if project_members.count() > 0:
+                is_save = True
+                ws = wb.add_sheet(project.name)
+                ws.write(2, 1, u"案件名称")
+                ws.write(2, 2, project.name)
+                ws.write(2, 3, u"関連会社")
+                ws.write(2, 4, project.client.name)
+                ws.write(3, 1, u"営業員")
+                ws.write(3, 2, project.salesperson.name)
+                ws.write(4, 1, u"顧客責任者")
+                ws.write(4, 2, project.boss.name)
+                ws.write(4, 3, u"顧客連絡者")
+                ws.write(4, 4, project.middleman.name)
+                ws.write(5, 1, u"案件概要")
+                ws.write(5, 2, project.description)
 
-    context = RequestContext(request, {
-        'company': company,
-        'title': u'案件一覧',
-        'projects': projects,
-        'project_status': project_status,
-    })
-    template = loader.get_template('project_list.html')
-    return HttpResponse(template.render(context))
+                # テーブル構造
+                ws.write(9, 1, u"名前")
+                ws.write(9, 2, u"開始日")
+                ws.write(9, 3, u"終了日")
+                ws.write(9, 4, u"単価")
+                for i, project_member in enumerate(project_members):
+                    ws.write(i + 10, 1, project_member.member.name)
+                    if project_member.start_date:
+                        ws.write(i + 10, 2, project_member.start_date.strftime("%Y-%m-%d"))
+                    if project_member.end_date:
+                        ws.write(i + 10, 3, project_member.end_date.strftime("%Y-%m-%d"))
+                    ws.write(i + 10, 4, project_member.price)
+        if is_save:
+            wb.save(output)
+
+        filename = "案件情報_%s.xls" % (datetime.datetime.now().strftime("%Y%m%d_%H%M%S"),)
+        response = HttpResponse(output.getvalue(), content_type="application/excel")
+        response['Content-Disposition'] = "filename=" + filename
+        return response
+    else:
+        project_status = ProjectStatus.objects.all()
+
+        context = RequestContext(request, {
+            'company': company,
+            'title': u'案件一覧',
+            'projects': projects,
+            'params': params,
+            'project_status': project_status,
+        })
+        template = loader.get_template('project_list.html')
+        return HttpResponse(template.render(context))
 
 
 def project_detail(request, project_id):

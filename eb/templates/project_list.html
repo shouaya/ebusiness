@@ -26,13 +26,14 @@
                 {% endfor %}
             </select>
             <input type="submit" value="Filter" />
+            <a href="?download=download{{ params }}" target="_blank" class="button">ダウンロード</a>
             <a href="/admin/eb/project/add/" target="_blank" class="button">案件を追加</a>
         </form>
     </div>
     <table class="list" cellpadding="0" cellspacing="0">
         <thead>
             <tr>
-                <th>案件名称</th>
+                <th><div class="sortoptions"></div><div class="text">案件名称</div><div class="clear"></div></th>
                 <th>関連会社</th>
                 <th>営業員</th>
                 <th style="width: 45px; font-size: 10px;">アサイン<br/>人数</th>

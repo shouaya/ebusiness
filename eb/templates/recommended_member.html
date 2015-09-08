@@ -15,6 +15,14 @@
                 <td>{{ project.status.name }}</td>
             </tr>
             <tr>
+                <th>スキル要求：</th>
+                <td>
+                    {% for project_skill in project.projectskill_set.all %}
+                        <div>{{ project_skill.skill.name }}, {{ project_skill.get_period_display }}, {{project_skill.description }}</div>
+                    {% endfor %}
+                </td>
+            </tr>
+            <tr>
                 <th valign="top">推薦理由：</th>
                 <td>今回案件のスキル要求に基づき、現在待機中の要員または今月リリース予定の要員から、<br/>
                     かつてやっていた案件のスキル要求を分析し、その結果を下記に挙げます。<br/>

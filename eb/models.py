@@ -11,14 +11,31 @@ import common
 from django.db import models
 
 
-ProjectMemberStatus = ((1, u"提案中"), (2, u"作業中"), (3, u"作業終了"))
-ReleaseMonthCount = ((3, u"三ヵ月以内"), (4, u"四ヶ月以内"), (5, u"五ヶ月以内"), (6, u"半年以内"))
-DisplayCount = ((50, u"50件"), (100, u"100件"), (150, u"150件"), (200, u"200件"), (300, u"300件"))
-SkillTime = ((0, u"未経験者可"), (1, u"１年以上"), (2, u"２年以上"), (3, u"３年以上"), (5, u"５年以上"), (10, u"１０年以上"))
+ProjectMemberStatus = ((1, u"提案中"),
+                       (2, u"作業中"),
+                       (3, u"作業終了"))
+ReleaseMonthCount = ((3, u"三ヵ月以内"),
+                     (4, u"四ヶ月以内"),
+                     (5, u"五ヶ月以内"),
+                     (6, u"半年以内"))
+DisplayCount = ((50, u"50件"),
+                (100, u"100件"),
+                (150, u"150件"),
+                (200, u"200件"),
+                (300, u"300件"))
+SkillTime = ((0, u"未経験者可"),
+             (1, u"１年以上"),
+             (2, u"２年以上"),
+             (3, u"３年以上"),
+             (5, u"５年以上"),
+             (10, u"１０年以上"))
 
 
 class Company(models.Model):
     name = models.CharField(blank=False, null=False, max_length=30, verbose_name=u"会社名")
+    post_code = models.CharField(blank=True, null=True, max_length=8, verbose_name=u"郵便番号")
+    address = models.CharField(blank=True, null=True, max_length=250, verbose_name=u"住所")
+    tel = models.CharField(blank=True, null=True, max_length=15, verbose_name=u"電話番号")
     release_month_count = models.IntegerField(blank=False, null=False, default=3,
                                               choices=ReleaseMonthCount, verbose_name=u"何か月確認",
                                               help_text=u"何か月以内のリリース状況を確認したいですか？")
@@ -38,9 +55,14 @@ class Company(models.Model):
 
     def get_waiting_members(self):
         now = datetime.date.today()
-        query_set = Member.objects.raw("SELECT M.*"
-                                       "  FROM EB_MEMBER M LEFT JOIN EB_PROJECTMEMBER PM ON M.ID = PM.MEMBER_ID"
-                                       " WHERE PM.START_DATE IS NULL OR PM.END_DATE < %s", [now])
+        Member.objects.filter()
+        query_set = Member.objects.raw("SELECT DISTINCT M.*"
+                                       "  FROM EB_MEMBER M"
+                                       " WHERE NOT EXISTS (SELECT 1 "
+                                       "                     FROM EB_PROJECTMEMBER PM"
+                                       "                    WHERE PM.MEMBER_ID = M.ID"
+                                       "                      AND PM.START_DATE <= %s"
+                                       "                      AND PM.END_DATE >= %s)", [now, now])
         return list(query_set)
 
     def get_release_members_by_month(self, date):
@@ -166,6 +188,22 @@ class ProjectStatus(models.Model):
 
 class Client(models.Model):
     name = models.CharField(blank=False, null=False, max_length=30, verbose_name=u"会社名")
+    japanese_spell = models.CharField(blank=True, null=True, max_length=30, verbose_name=u"フリカナ")
+    president = models.CharField(blank=True, null=True, max_length=30, verbose_name=u"代表者名")
+    found_date = models.DateField(blank=True, null=True, verbose_name=u"設立年月日")
+    capital = models.BigIntegerField(blank=True, null=True, verbose_name=u"資本金")
+    employee_count = models.IntegerField(blank=True, null=True, verbose_name=u"従業員数")
+    sale_amount = models.BigIntegerField(blank=True, null=True, verbose_name=u"売上高")
+    post_code = models.CharField(blank=True, null=True, max_length=8, verbose_name=u"郵便番号")
+    address1 = models.CharField(blank=True, null=True, max_length=200, verbose_name=u"住所１")
+    address2 = models.CharField(blank=True, null=True, max_length=200, verbose_name=u"住所２")
+    tel = models.CharField(blank=True, null=True, max_length=15, verbose_name=u"電話番号")
+    fax = models.CharField(blank=True, null=True, max_length=15, verbose_name=u"ファックス")
+    payment_type = models.CharField(blank=True, null=True, max_length=2, verbose_name=u"支払方法")
+    payment_day = models.CharField(blank=True, null=True, max_length=2, verbose_name=u"支払日")
+    comment = models.TextField(blank=True, null=True, verbose_name=u"備考")
+    created_date = models.DateTimeField(auto_now_add=True, default=datetime.datetime.now(), editable=False)
+    updated_date = models.DateTimeField(auto_now=True, default=datetime.datetime.now(), editable=False)
 
     class Meta:
         ordering = ['name']
