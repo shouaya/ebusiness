@@ -37,7 +37,7 @@ echo "restore start : $current_time" >> $LOGFILE
 
 if [ "$?" -eq 0 ]
 then
-  echo 'backup success' >> $LOGFILE
+  echo 'restore success' >> $LOGFILE
 else
   echo 'restore error' >> $LOGFILE
   exit
