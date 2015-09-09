@@ -349,4 +349,3 @@ class ProjectMember(models.Model):
 
     def __unicode__(self):
         return "%s - %s" % (self.project.name, self.member.name)
-

@@ -55,11 +55,17 @@ def employee_list(request):
     business_status = request.GET.get('business_status', None)
     salesperson = request.GET.get('salesperson', None)
     params = ""
+    o = request.GET.get('o', None)
+    dict_order = common.get_ordering_dict(o, ['name', 'section', 'salesperson__name'])
+    order_list = common.get_ordering_list(o)
+
     if name:
         all_members = Member.objects.filter(name__contains=name)
         params += u"&name=%s" % (name,)
     else:
         all_members = Member.objects.all()
+    if order_list:
+        all_members = all_members.order_by(*order_list)
 
     if status == "working":
         all_members = [member for member in all_members if member.get_project_end_date()]
@@ -92,6 +98,7 @@ def employee_list(request):
         'members': members,
         'paginator': paginator,
         'params': params,
+        'dict_order': dict_order,
     })
     template = loader.get_template('employee_list.html')
     return HttpResponse(template.render(context))
@@ -151,6 +158,11 @@ def project_list(request):
     salesperson = request.GET.get('salesperson', None)
     download = request.GET.get('download', None)
     params = ""
+    o = request.GET.get('o', None)
+    dict_order = common.get_ordering_dict(o, ['name', 'client__name', 'salesperson__name', 'boss__name',
+                                              'middleman__name'])
+    order_list = common.get_ordering_list(o)
+
     if status:
         projects = Project.objects.filter(status__name=status)
         params += "&status=%s" % (status,)
@@ -159,6 +171,10 @@ def project_list(request):
     if name:
         projects = projects.filter(name__contains=name)
         params += "&name=%s" % (name,)
+
+    if order_list:
+        projects = projects.order_by(*order_list)
+
     if client:
         projects = [project for project in projects if client in project.client.name]
         params += "&client=%s" % (client,)
@@ -215,6 +231,7 @@ def project_list(request):
             'title': u'案件一覧',
             'projects': projects,
             'params': params,
+            'dict_order': dict_order,
             'project_status': project_status,
         })
         template = loader.get_template('project_list.html')

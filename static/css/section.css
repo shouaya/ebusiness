@@ -20,8 +20,64 @@ section table.list th, section table.list tfoot td {
     background: linear-gradient(#fff, #eee)
 }
 
+section table.list th {
+    font-size: .9em;
+}
+
+section table.list th div.sortoptions {
+    float: right;
+}
+
+section table.list th div.sortoptions a.sortremove {
+    background: url(/static/img/sorting-icons.gif) -4px -2px no-repeat;
+    width: 14px;
+    height: 12px;
+    display: inline-block;
+    cursor: pointer;
+}
+
+section table.list th div.sortoptions a.sortremove:hover {
+    background: url(/static/img/sorting-icons.gif) -4px -24px no-repeat;
+}
+
+section table.list th div.sortoptions .sortpriority {
+    font-size: .8em;
+}
+
+section table.list th div.sortoptions a.ascending {
+    background: url(/static/img/sorting-icons.gif) -5px -47px no-repeat;
+    display: inline-block;
+    width: 14px;
+    height: 12px;
+    cursor: pointer;
+}
+
+section table.list th div.sortoptions a.ascending:hover {
+    background: url(/static/img/sorting-icons.gif) -5px -69px no-repeat;
+}
+
+section table.list th div.sortoptions a.descending {
+    background: url(/static/img/sorting-icons.gif) -5px -91px no-repeat;
+    display: inline-block;
+    width: 14px;
+    height: 12px;
+    cursor: pointer;
+}
+
+section table.list th div.sortoptions a.descending:hover {
+    background: url(/static/img/sorting-icons.gif) -5px -112px no-repeat;
+}
+
 section table.list th div.text {
     cursor: pointer;
+}
+
+section table.list th div.text:hover {
+    background: linear-gradient(#eee, #fff)
+}
+
+section table.list th div.text a {
+    display: block;
 }
 
 section table.list td {
