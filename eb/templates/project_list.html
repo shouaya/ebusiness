@@ -34,16 +34,77 @@
         <thead>
             <tr>
                 <th>
-                    <div class="sortoptions"></div>
-                    <div class="text">案件名称</div>
+                    {% if dict_order.name.is_in_ordering %}
+                        <div class="sortoptions">
+                            <a class="sortremove" href="?o={{ dict_order.name.url_list_removed }}{{ params }}"></a>
+                            <span class="sortpriority">{{ dict_order.name.priority }}</span>
+                            <a class="{% if dict_order.name.is_asc %}descending{% else %}ascending{% endif %}"
+                               href="?o={{ dict_order.name.url }}{{ params }}"></a>
+                        </div>
+                    {% endif %}
+                    <div class="text">
+                        <a href="?o={{ dict_order.name.url }}{{ params }}">案件名称</a>
+                    </div>
                     <div class="clear"></div>
                 </th>
-                <th>関連会社</th>
-                <th>営業員</th>
-                <th style="width: 45px; font-size: 10px;">アサイン<br/>人数</th>
+                <th>
+                    {% if dict_order.client__name.is_in_ordering %}
+                        <div class="sortoptions">
+                            <a class="sortremove" href="?o={{ dict_order.client__name.url_list_removed }}{{ params }}"></a>
+                            <span class="sortpriority">{{ dict_order.client__name.priority }}</span>
+                            <a class="{% if dict_order.client__name.is_asc %}descending{% else %}ascending{% endif %}"
+                               href="?o={{ dict_order.client__name.url }}{{ params }}"></a>
+                        </div>
+                    {% endif %}
+                    <div class="text">
+                        <a href="?o={{ dict_order.client__name.url }}{{ params }}">関連会社</a>
+                    </div>
+                    <div class="clear"></div>
+                </th>
+                <th>
+                    {% if dict_order.salesperson__name.is_in_ordering %}
+                        <div class="sortoptions">
+                            <a class="sortremove" href="?o={{ dict_order.salesperson__name.url_list_removed }}{{ params }}"></a>
+                            <span class="sortpriority">{{ dict_order.salesperson__name.priority }}</span>
+                            <a class="{% if dict_order.salesperson__name.is_asc %}descending{% else %}ascending{% endif %}"
+                               href="?o={{ dict_order.salesperson__name.url }}{{ params }}"></a>
+                        </div>
+                    {% endif %}
+                    <div class="text">
+                        <a href="?o={{ dict_order.salesperson__name.url }}{{ params }}">営業員</a>
+                    </div>
+                    <div class="clear"></div>
+                </th>
+                <th style="width: 75px;">アサイン人数</th>
                 <th>状態</th>
-                <th>顧客責任者</th>
-                <th>顧客連絡者</th>
+                <th>
+                    {% if dict_order.boss__name.is_in_ordering %}
+                        <div class="sortoptions">
+                            <a class="sortremove" href="?o={{ dict_order.boss__name.url_list_removed }}{{ params }}"></a>
+                            <span class="sortpriority">{{ dict_order.boss__name.priority }}</span>
+                            <a class="{% if dict_order.boss__name.is_asc %}descending{% else %}ascending{% endif %}"
+                               href="?o={{ dict_order.boss__name.url }}{{ params }}"></a>
+                        </div>
+                    {% endif %}
+                    <div class="text">
+                        <a href="?o={{ dict_order.boss__name.url }}{{ params }}">顧客責任者</a>
+                    </div>
+                    <div class="clear"></div>
+                </th>
+                <th>
+                    {% if dict_order.middleman__name.is_in_ordering %}
+                        <div class="sortoptions">
+                            <a class="sortremove" href="?o={{ dict_order.middleman__name.url_list_removed }}{{ params }}"></a>
+                            <span class="sortpriority">{{ dict_order.middleman__name.priority }}</span>
+                            <a class="{% if dict_order.middleman__name.is_asc %}descending{% else %}ascending{% endif %}"
+                               href="?o={{ dict_order.middleman__name.url }}{{ params }}"></a>
+                        </div>
+                    {% endif %}
+                    <div class="text">
+                        <a href="?o={{ dict_order.middleman__name.url }}{{ params }}">顧客連絡者</a>
+                    </div>
+                    <div class="clear"></div>
+                </th>
                 <th></th>
             </tr>
         </thead>
@@ -71,13 +132,78 @@
         </tbody>
         <tfoot>
             <tr>
-                <th>案件名称</th>
-                <th>関連会社</th>
-                <th>営業員</th>
-                <th style="width: 45px; font-size: 10px;">アサイン<br/>人数</th>
+                <th>
+                    {% if dict_order.name.is_in_ordering %}
+                        <div class="sortoptions">
+                            <a class="sortremove" href="?o={{ dict_order.name.url_list_removed }}{{ params }}"></a>
+                            <span class="sortpriority">{{ dict_order.name.priority }}</span>
+                            <a class="{% if dict_order.name.is_asc %}descending{% else %}ascending{% endif %}"
+                               href="?o={{ dict_order.name.url }}{{ params }}"></a>
+                        </div>
+                    {% endif %}
+                    <div class="text">
+                        <a href="?o={{ dict_order.name.url }}{{ params }}">案件名称</a>
+                    </div>
+                    <div class="clear"></div>
+                </th>
+                <th>
+                    {% if dict_order.client__name.is_in_ordering %}
+                        <div class="sortoptions">
+                            <a class="sortremove" href="?o={{ dict_order.client__name.url_list_removed }}{{ params }}"></a>
+                            <span class="sortpriority">{{ dict_order.client__name.priority }}</span>
+                            <a class="{% if dict_order.client__name.is_asc %}descending{% else %}ascending{% endif %}"
+                               href="?o={{ dict_order.client__name.url }}{{ params }}"></a>
+                        </div>
+                    {% endif %}
+                    <div class="text">
+                        <a href="?o={{ dict_order.client__name.url }}{{ params }}">関連会社</a>
+                    </div>
+                    <div class="clear"></div>
+                </th>
+                <th>
+                    {% if dict_order.salesperson__name.is_in_ordering %}
+                        <div class="sortoptions">
+                            <a class="sortremove" href="?o={{ dict_order.salesperson__name.url_list_removed }}{{ params }}"></a>
+                            <span class="sortpriority">{{ dict_order.salesperson__name.priority }}</span>
+                            <a class="{% if dict_order.salesperson__name.is_asc %}descending{% else %}ascending{% endif %}"
+                               href="?o={{ dict_order.salesperson__name.url }}{{ params }}"></a>
+                        </div>
+                    {% endif %}
+                    <div class="text">
+                        <a href="?o={{ dict_order.salesperson__name.url }}{{ params }}">営業員</a>
+                    </div>
+                    <div class="clear"></div>
+                </th>
+                <th style="width: 75px;">アサイン人数</th>
                 <th>状態</th>
-                <th>顧客責任者</th>
-                <th>顧客連絡者</th>
+                <th>
+                    {% if dict_order.boss__name.is_in_ordering %}
+                        <div class="sortoptions">
+                            <a class="sortremove" href="?o={{ dict_order.boss__name.url_list_removed }}{{ params }}"></a>
+                            <span class="sortpriority">{{ dict_order.boss__name.priority }}</span>
+                            <a class="{% if dict_order.boss__name.is_asc %}descending{% else %}ascending{% endif %}"
+                               href="?o={{ dict_order.boss__name.url }}{{ params }}"></a>
+                        </div>
+                    {% endif %}
+                    <div class="text">
+                        <a href="?o={{ dict_order.boss__name.url }}{{ params }}">顧客責任者</a>
+                    </div>
+                    <div class="clear"></div>
+                </th>
+                <th>
+                    {% if dict_order.middleman__name.is_in_ordering %}
+                        <div class="sortoptions">
+                            <a class="sortremove" href="?o={{ dict_order.middleman__name.url_list_removed }}{{ params }}"></a>
+                            <span class="sortpriority">{{ dict_order.middleman__name.priority }}</span>
+                            <a class="{% if dict_order.middleman__name.is_asc %}descending{% else %}ascending{% endif %}"
+                               href="?o={{ dict_order.middleman__name.url }}{{ params }}"></a>
+                        </div>
+                    {% endif %}
+                    <div class="text">
+                        <a href="?o={{ dict_order.middleman__name.url }}{{ params }}">顧客連絡者</a>
+                    </div>
+                    <div class="clear"></div>
+                </th>
                 <th></th>
             </tr>
         </tfoot>

@@ -15,13 +15,14 @@ section table.list {
 }
 
 section table.list th, section table.list tfoot td {
-    padding: 1px 4px;
     border-right: 1px solid #eee;
     background: linear-gradient(#fff, #eee)
 }
 
 section table.list th {
     font-size: .9em;
+    padding-left: 4px;
+    text-align: left;
 }
 
 section table.list th div.sortoptions {

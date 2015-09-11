@@ -255,8 +255,15 @@ def project_detail(request, project_id):
 def project_member_list(request, project_id):
     status = request.GET.get('status', None)
     project = Project.objects.get(project_id=project_id)
-    all_project_members = project.projectmember_set.all()
     params = ""
+    o = request.GET.get('o', None)
+    dict_order = common.get_ordering_dict(o, ['member__name', 'member__section', 'start_date', 'end_date', 'price'])
+    order_list = common.get_ordering_list(o)
+
+    all_project_members = project.projectmember_set.all()
+    if order_list:
+        all_project_members = all_project_members.order_by(*order_list)
+
     if status == "working":
         all_project_members = [member for member in all_project_members if member.member.get_project_end_date()]
         params += u"&status=%s" % (status,)
@@ -280,6 +287,7 @@ def project_member_list(request, project_id):
         'project_members': project_members,
         'paginator': paginator,
         'params': params,
+        'dict_order': dict_order,
     })
     template = loader.get_template('project_members.html')
     return HttpResponse(template.render(context))
@@ -297,9 +305,15 @@ def release_list(request):
         month = datetime.datetime.now().month
     start_date = datetime.datetime(year, month, 1)
     end_date = common.add_months(start_date, 1)
+    o = request.GET.get('o', None)
+    dict_order = common.get_ordering_dict(o, ['member__name', 'project__name', 'start_date', 'end_date'])
+    order_list = common.get_ordering_list(o)
 
     all_project_members = ProjectMember.objects.filter(end_date__gte=start_date,
                                                        end_date__lt=end_date).order_by('end_date')
+    if order_list:
+        all_project_members = all_project_members.order_by(*order_list)
+
     filter_list = common.get_release_months(company.release_month_count)
 
     paginator = Paginator(all_project_members, company.display_count)
@@ -317,6 +331,7 @@ def release_list(request):
         'project_members': project_members,
         'paginator': paginator,
         'params': params,
+        'dict_order': dict_order,
         'filter_list': filter_list,
     })
     template = loader.get_template('release_list.html')

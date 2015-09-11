@@ -9,6 +9,7 @@ import datetime
 import common
 
 from django.db import models
+from django.contrib.auth.models import User
 
 
 ProjectMemberStatus = ((1, u"提案中"),
@@ -107,6 +108,7 @@ class Salesperson(models.Model):
     phone = models.CharField(blank=True, null=True, max_length=11, verbose_name=u"電話番号")
     section = models.ForeignKey(Section, verbose_name=u"部署")
     company = models.ForeignKey(Company, blank=False, null=False, verbose_name=u"会社")
+    user = models.OneToOneField(User, blank=True, null=True)
 
     class Meta:
         ordering = ['name']
@@ -124,6 +126,7 @@ class Member(models.Model):
     section = models.ForeignKey(Section, verbose_name=u"部署")
     company = models.ForeignKey(Company, blank=False, null=False, verbose_name=u"会社")
     salesperson = models.ForeignKey(Salesperson, blank=True, null=True, verbose_name=u"営業員")
+    user = models.OneToOneField(User, blank=True, null=True)
 
     class Meta:
         ordering = ['name']

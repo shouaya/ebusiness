@@ -95,7 +95,7 @@ class SectionAdmin(admin.ModelAdmin):
 class MemberAdmin(admin.ModelAdmin):
 
     form = forms.MemberForm
-    list_display = ['employee_id', 'name', 'section', 'salesperson']
+    list_display = ['employee_id', 'name', 'section', 'salesperson', 'user']
     list_display_links = ['name']
     list_filter = [MemberNameListFilter, 'section', 'salesperson']
     search_fields = ['name']
@@ -111,7 +111,7 @@ class MemberAdmin(admin.ModelAdmin):
 class SalespersonAdmin(admin.ModelAdmin):
 
     form = forms.SalespersonForm
-    list_display = ['employee_id', 'name', 'section']
+    list_display = ['employee_id', 'name', 'section', 'user']
     list_display_links = ['name']
     search_fields = ['name']
     list_filter = ['section']
