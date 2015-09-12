@@ -15,6 +15,7 @@ from django.contrib.auth.models import User
 ProjectMemberStatus = ((1, u"提案中"),
                        (2, u"作業中"),
                        (3, u"作業終了"))
+PROJECT_STATUS = ((1, u"提案"), (2, u"予算審査"), (3, u"予算確定"), (4, u"実施中"), (5, u"完了"))
 ReleaseMonthCount = ((3, u"三ヵ月以内"),
                      (4, u"四ヶ月以内"),
                      (5, u"五ヶ月以内"),
@@ -30,25 +31,66 @@ SkillTime = ((0, u"未経験者可"),
              (3, u"３年以上"),
              (5, u"５年以上"),
              (10, u"１０年以上"))
+DEGREE_TYPE = ((1, u"小・中学校"),
+               (2, u"高等学校"),
+               (3, u"専門学校"),
+               (4, u"高等専門学校"),
+               (5, u"短期大学"),
+               (6, u"大学学部"),
+               (7, u"大学大学院"))
+MEMBER_TYPE = ((0, u"正社員"), (1, u"契約社員"), (3, u"派遣社員"), (4, u"個人事業所"))
 
 
-class Company(models.Model):
+class AbstractCompany(models.Model):
     name = models.CharField(blank=False, null=False, max_length=30, verbose_name=u"会社名")
+    japanese_spell = models.CharField(blank=True, null=True, max_length=30, verbose_name=u"フリカナ")
+    found_date = models.DateField(blank=True, null=True, verbose_name=u"設立年月日")
+    capital = models.BigIntegerField(blank=True, null=True, verbose_name=u"資本金")
     post_code = models.CharField(blank=True, null=True, max_length=8, verbose_name=u"郵便番号")
-    address = models.CharField(blank=True, null=True, max_length=250, verbose_name=u"住所")
+    address1 = models.CharField(blank=True, null=True, max_length=200, verbose_name=u"住所１")
+    address2 = models.CharField(blank=True, null=True, max_length=200, verbose_name=u"住所２")
     tel = models.CharField(blank=True, null=True, max_length=15, verbose_name=u"電話番号")
-    release_month_count = models.IntegerField(blank=False, null=False, default=3,
-                                              choices=ReleaseMonthCount, verbose_name=u"何か月確認",
-                                              help_text=u"何か月以内のリリース状況を確認したいですか？")
-    display_count = models.IntegerField(blank=False, null=False, default=50,
-                                        choices=DisplayCount,
-                                        verbose_name=u"１頁に表示するデータ件数")
+    fax = models.CharField(blank=True, null=True, max_length=15, verbose_name=u"ファックス")
 
     class Meta:
-        verbose_name = verbose_name_plural = u"会社"
+        abstract = True
 
     def __unicode__(self):
         return self.name
+
+
+class AbstractMember(models.Model):
+    employee_id = models.CharField(blank=False, null=False, unique=True, max_length=30, verbose_name=u"社員ID")
+    name = models.CharField(blank=False, null=False, max_length=30, verbose_name=u"名前")
+    japanese_spell = models.CharField(blank=True, null=True, max_length=30, verbose_name=u"フリカナ")
+    english_spell = models.CharField(blank=True, null=True, max_length=30, verbose_name=u"ローマ字")
+    birthday = models.DateField(blank=True, null=True, verbose_name=u"生年月日")
+    graduate_date = models.DateField(blank=True, null=True, verbose_name=u"卒業年月日")
+    degree = models.IntegerField(blank=True, null=True, choices=DEGREE_TYPE, verbose_name=u"学歴")
+    email = models.EmailField(blank=False, null=False, verbose_name=u"メールアドレス")
+    post_code = models.CharField(blank=True, null=True, max_length=8, verbose_name=u"郵便番号")
+    address1 = models.CharField(blank=True, null=True, max_length=200, verbose_name=u"住所１")
+    address2 = models.CharField(blank=True, null=True, max_length=200, verbose_name=u"住所２")
+    phone = models.CharField(blank=True, null=True, max_length=11, verbose_name=u"電話番号")
+    member_type = models.IntegerField(default=0, choices=MEMBER_TYPE, verbose_name=u"社員区分")
+    section = models.ForeignKey('Section', blank=True, null=True, verbose_name=u"部署")
+    company = models.ForeignKey('Company', blank=True, null=True, verbose_name=u"会社")
+    user = models.OneToOneField(User, blank=True, null=True)
+
+    class Meta:
+        abstract = True
+
+
+class Company(AbstractCompany):
+    # release_month_count = models.IntegerField(blank=False, null=False, default=3,
+    #                                           choices=ReleaseMonthCount, verbose_name=u"何か月確認",
+    #                                           help_text=u"何か月以内のリリース状況を確認したいですか？")
+    # display_count = models.IntegerField(blank=False, null=False, default=50,
+    #                                     choices=DisplayCount,
+    #                                     verbose_name=u"１頁に表示するデータ件数")
+
+    class Meta:
+        verbose_name = verbose_name_plural = u"会社"
 
     def get_working_members(self):
         now = datetime.date.today()
@@ -89,8 +131,24 @@ class Company(models.Model):
         return Project.objects.all().count()
 
 
+class Subcontractor(AbstractCompany):
+    president = models.CharField(blank=True, null=True, max_length=30, verbose_name=u"代表者名")
+    employee_count = models.IntegerField(blank=True, null=True, verbose_name=u"従業員数")
+    sale_amount = models.BigIntegerField(blank=True, null=True, verbose_name=u"売上高")
+    payment_type = models.CharField(blank=True, null=True, max_length=2, verbose_name=u"支払方法")
+    payment_day = models.CharField(blank=True, null=True, max_length=2, verbose_name=u"支払日")
+    comment = models.TextField(blank=True, null=True, verbose_name=u"備考")
+    created_date = models.DateTimeField(auto_now_add=True, default=datetime.datetime.now(), editable=False)
+    updated_date = models.DateTimeField(auto_now=True, default=datetime.datetime.now(), editable=False)
+
+    class Meta:
+        ordering = ['name']
+        verbose_name = verbose_name_plural = u"協力会社"
+
+
 class Section(models.Model):
     name = models.CharField(blank=False, null=False, max_length=30, verbose_name=u"部署名")
+    description = models.CharField(blank=True, null=True, max_length=200, verbose_name=u"概要")
     company = models.ForeignKey(Company, blank=False, null=False, verbose_name=u"会社")
 
     class Meta:
@@ -98,17 +156,14 @@ class Section(models.Model):
         verbose_name = verbose_name_plural = u"部署"
 
     def __unicode__(self):
-        return self.name
+        if not self.description:
+            return self.name
+        else:
+            desc = self.description[:7] + "..." if len(self.description) > 10 else self.description
+            return u"%s(%s)" % (self.name, desc)
 
 
-class Salesperson(models.Model):
-    employee_id = models.CharField(blank=False, null=False, unique=True, max_length=30, verbose_name=u"社員ID")
-    name = models.CharField(blank=False, null=False, max_length=30, verbose_name=u"名前")
-    email = models.EmailField(blank=False, null=False, verbose_name=u"メールアドレス")
-    phone = models.CharField(blank=True, null=True, max_length=11, verbose_name=u"電話番号")
-    section = models.ForeignKey(Section, verbose_name=u"部署")
-    company = models.ForeignKey(Company, blank=False, null=False, verbose_name=u"会社")
-    user = models.OneToOneField(User, blank=True, null=True)
+class Salesperson(AbstractMember):
 
     class Meta:
         ordering = ['name']
@@ -118,15 +173,10 @@ class Salesperson(models.Model):
         return self.name
 
 
-class Member(models.Model):
-    employee_id = models.CharField(blank=False, null=False, unique=True, max_length=30, verbose_name=u"社員ID")
-    name = models.CharField(blank=False, null=False, max_length=30, verbose_name=u"名前")
-    email = models.EmailField(blank=False, null=False, verbose_name=u"メールアドレス")
-    phone = models.CharField(blank=True, null=True, max_length=11, verbose_name=u"電話番号")
-    section = models.ForeignKey(Section, verbose_name=u"部署")
-    company = models.ForeignKey(Company, blank=False, null=False, verbose_name=u"会社")
+class Member(AbstractMember):
     salesperson = models.ForeignKey(Salesperson, blank=True, null=True, verbose_name=u"営業員")
-    user = models.OneToOneField(User, blank=True, null=True)
+    subcontractor = models.ForeignKey(Subcontractor, blank=True, null=True, verbose_name=u"協力会社")
+    position = models.ManyToManyField('Position', through='PositionShip', verbose_name=u"職位")
 
     class Meta:
         ordering = ['name']
@@ -175,33 +225,38 @@ class Member(models.Model):
                                        u"  JOIN EB_PROJECTSKILL PS ON PS.PROJECT_ID = P.ID"
                                        u"  JOIN EB_SKILL S ON S.ID = PS.SKILL_ID"
                                        u" WHERE S.NAME IN %s"
-                                       u"   AND P.STATUS_ID <= 3" % (str(tuple(skill_name_list)),))
+                                       u"   AND P.STATUS <= 3" % (str(tuple(skill_name_list)),))
         return [project.pk for project in query_set]
 
 
-class ProjectStatus(models.Model):
-    name = models.CharField(blank=False, null=False, max_length=10, verbose_name=u"状態")
+class Position(models.Model):
+    name = models.CharField(max_length=20, verbose_name=u"名称")
 
     class Meta:
-        verbose_name = verbose_name_plural = u"案件状態"
+        ordering = ['pk']
+        verbose_name = verbose_name_plural = u"職位"
 
     def __unicode__(self):
         return self.name
 
 
-class Client(models.Model):
-    name = models.CharField(blank=False, null=False, max_length=30, verbose_name=u"会社名")
-    japanese_spell = models.CharField(blank=True, null=True, max_length=30, verbose_name=u"フリカナ")
+class PositionShip(models.Model):
+    member = models.ForeignKey(Member, verbose_name=u"社員名")
+    position = models.ForeignKey(Position, verbose_name=u"職位")
+    section = models.ForeignKey(Section, verbose_name=u"部署")
+    is_part_time = models.BooleanField(default=False, verbose_name=u"兼任")
+
+    class Meta:
+        verbose_name = verbose_name_plural = u"職位関係"
+
+    def __unicode__(self):
+        return "%s - %s" % (self.position.name, self.member.name)
+
+
+class Client(AbstractCompany):
     president = models.CharField(blank=True, null=True, max_length=30, verbose_name=u"代表者名")
-    found_date = models.DateField(blank=True, null=True, verbose_name=u"設立年月日")
-    capital = models.BigIntegerField(blank=True, null=True, verbose_name=u"資本金")
     employee_count = models.IntegerField(blank=True, null=True, verbose_name=u"従業員数")
     sale_amount = models.BigIntegerField(blank=True, null=True, verbose_name=u"売上高")
-    post_code = models.CharField(blank=True, null=True, max_length=8, verbose_name=u"郵便番号")
-    address1 = models.CharField(blank=True, null=True, max_length=200, verbose_name=u"住所１")
-    address2 = models.CharField(blank=True, null=True, max_length=200, verbose_name=u"住所２")
-    tel = models.CharField(blank=True, null=True, max_length=15, verbose_name=u"電話番号")
-    fax = models.CharField(blank=True, null=True, max_length=15, verbose_name=u"ファックス")
     payment_type = models.CharField(blank=True, null=True, max_length=2, verbose_name=u"支払方法")
     payment_day = models.CharField(blank=True, null=True, max_length=2, verbose_name=u"支払日")
     comment = models.TextField(blank=True, null=True, verbose_name=u"備考")
@@ -211,9 +266,6 @@ class Client(models.Model):
     class Meta:
         ordering = ['name']
         verbose_name = verbose_name_plural = u"取引先"
-
-    def __unicode__(self):
-        return self.name
 
 
 class ClientMember(models.Model):
@@ -242,19 +294,20 @@ class Skill(models.Model):
 
 
 class Project(models.Model):
-    project_id = models.CharField(blank=False, null=False, unique=True, max_length=30, verbose_name=u"案件ID")
     name = models.CharField(blank=False, null=False, max_length=50, verbose_name=u"案件名称")
     description = models.TextField(blank=True, null=True, verbose_name=u"案件概要")
     skills = models.ManyToManyField(Skill, through='ProjectSkill', blank=True, null=True, verbose_name=u"スキル要求")
     start_date = models.DateField(blank=True, null=True, verbose_name=u"開始日")
     end_date = models.DateField(blank=True, null=True, verbose_name=u"終了日")
     address = models.CharField(blank=True, null=True, max_length=255, verbose_name=u"作業場所")
-    status = models.ForeignKey(ProjectStatus, null=False, verbose_name=u"ステータス")
+    status = models.IntegerField(choices=PROJECT_STATUS, verbose_name=u"ステータス")
     client = models.ForeignKey(Client, blank=True, null=True, verbose_name=u"会社")
     boss = models.ForeignKey(ClientMember, blank=True, null=True, related_name="boss_set", verbose_name=u"案件責任者")
     middleman = models.ForeignKey(ClientMember, blank=True, null=True,
                                   related_name="middleman_set", verbose_name=u"案件連絡者")
     salesperson = models.ForeignKey(Salesperson, blank=True, null=True, verbose_name=u"営業員")
+    project_manager = models.ForeignKey(Member, blank=True, null=True, related_name='pm_set', verbose_name=u"ＰＭ")
+    project_leader = models.ForeignKey(Member, blank=True, null=True, related_name='pl_set', verbose_name=u"ＰＬ")
     members = models.ManyToManyField(Member, through='ProjectMember', blank=True, null=True)
 
     class Meta:
@@ -272,7 +325,7 @@ class Project(models.Model):
         # 如果案件为提案状态则自动推荐待机中的人员及即将待机的人
         members = []
 
-        if self.status.id != 1:
+        if self.status != 1:
             return members
 
         dict_skills = {}

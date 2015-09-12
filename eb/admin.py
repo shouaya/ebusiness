@@ -9,7 +9,7 @@ from django.contrib import admin
 from django.utils.translation import ugettext_lazy as _
 
 from .models import Company, Section, Member, Salesperson, Project, Client, ClientMember, \
-    ProjectStatus, ProjectMember, Skill, ProjectSkill, ProjectActivity
+    ProjectMember, Skill, ProjectSkill, ProjectActivity, Subcontractor, Position, PositionShip
 
 
 class TextInputListFilter(admin.ListFilter):
@@ -47,15 +47,6 @@ class TextInputListFilter(admin.ListFilter):
         }, )
 
 
-class MemberNameListFilter(TextInputListFilter):
-    title = u"名前"
-    parameter_name = "name"
-
-    def queryset(self, request, queryset):
-        if self.value():
-            return queryset.filter(name__contains=self.value())
-
-
 class ProjectNameListFilter(TextInputListFilter):
 
     title = u"案件名称"
@@ -64,6 +55,21 @@ class ProjectNameListFilter(TextInputListFilter):
     def queryset(self, request, queryset):
         if self.value():
             return queryset.filter(name__contains=self.value())
+
+
+class ProjectSkillInline(admin.TabularInline):
+    model = ProjectSkill
+    extra = 1
+
+
+class ProjectMemberInline(admin.TabularInline):
+    model = ProjectMember
+    extra = 1
+
+
+class PositionShipInline(admin.TabularInline):
+    model = PositionShip
+    extra = 1
 
 
 class CompanyAdmin(admin.ModelAdmin):
@@ -95,10 +101,11 @@ class SectionAdmin(admin.ModelAdmin):
 class MemberAdmin(admin.ModelAdmin):
 
     form = forms.MemberForm
-    list_display = ['employee_id', 'name', 'section', 'salesperson', 'user']
+    list_display = ['employee_id', 'name', 'section', 'subcontractor', 'salesperson', 'user']
     list_display_links = ['name']
-    list_filter = [MemberNameListFilter, 'section', 'salesperson']
+    list_filter = ['member_type', 'section', 'subcontractor', 'salesperson']
     search_fields = ['name']
+    inlines = (PositionShipInline,)
 
     def get_form(self, request, obj=None, **kwargs):
         form = super(MemberAdmin, self).get_form(request, obj, **kwargs)
@@ -124,18 +131,8 @@ class SalespersonAdmin(admin.ModelAdmin):
         return form
 
 
-class ProjectSkillInline(admin.TabularInline):
-    model = ProjectSkill
-    extra = 1
-
-
-class ProjectMemberInline(admin.TabularInline):
-    model = ProjectMember
-    extra = 1
-
-
 class ProjectAdmin(admin.ModelAdmin):
-    list_display = ['project_id', 'name', 'start_date', 'end_date', 'status', 'salesperson']
+    list_display = ['name', 'start_date', 'end_date', 'status', 'salesperson']
     list_display_links = ['name']
     list_filter = [ProjectNameListFilter, 'status', 'salesperson']
     search_fields = ['name']
@@ -172,7 +169,7 @@ class ProjectMemberAdmin(admin.ModelAdmin):
         form = super(ProjectMemberAdmin, self).get_form(request, obj, **kwargs)
         project_id = request.GET.get('project_id', None)
         if project_id:
-            project = Project.objects.get(project_id=project_id)
+            project = Project.objects.get(pk=project_id)
             form.base_fields['project'].initial = project
             form.base_fields['start_date'].initial = project.start_date
             form.base_fields['end_date'].initial = project.end_date
@@ -194,7 +191,7 @@ class ProjectActivityAdmin(admin.ModelAdmin):
         form = super(ProjectActivityAdmin, self).get_form(request, obj, **kwargs)
         project_id = request.GET.get('project_id', None)
         if project_id:
-            project = Project.objects.get(project_id=project_id)
+            project = Project.objects.get(pk=project_id)
             form.base_fields['project'].initial = project
         return form
 
@@ -226,9 +223,11 @@ admin.site.register(ProjectSkill)
 admin.site.register(Project, ProjectAdmin)
 admin.site.register(Client, ClientAdmin)
 admin.site.register(ClientMember, ClientMemberAdmin)
-admin.site.register(ProjectStatus)
 admin.site.register(ProjectMember, ProjectMemberAdmin)
 admin.site.register(ProjectActivity, ProjectActivityAdmin)
+admin.site.register(Subcontractor)
+admin.site.register(Position)
+admin.site.register(PositionShip)
 
 admin.site.site_header = u'社員営業状況管理システム'
 admin.site.site_title = u'管理サイト'

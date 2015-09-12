@@ -15,9 +15,9 @@ from django.http import HttpResponse
 from django.template import RequestContext, loader
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 
-from .models import Company, Member, Section, Project, ProjectMember, ProjectStatus
+from .models import Company, Member, Section, Project, ProjectMember
 
-
+PAGE_SIZE = 50
 try:
     company = Company.objects.all()[0]
 except:
@@ -25,10 +25,6 @@ except:
 
 
 def index(request):
-    project_status_list = []
-    for i, status in enumerate(ProjectStatus.objects.all()):
-        rtn = False if i == 0 else (i % 3 == 0)
-        project_status_list.append((status.name, {'cnt': Project.objects.filter(status=status).count(), 'rtn': rtn}))
     now = datetime.date.today()
     next_month = common.add_months(now, 1)
     next_2_months = common.add_months(now, 2)
@@ -42,7 +38,6 @@ def index(request):
     context = RequestContext(request, {
         'company': company,
         'title': 'Home',
-        'project_status_list': project_status_list,
         'filter_list': filter_list,
     })
     template = loader.get_template('home.html')
@@ -83,7 +78,7 @@ def employee_list(request):
                        if member.salesperson and salesperson in member.salesperson.name]
         params += u"&salesperson=%s" % (salesperson,)
 
-    paginator = Paginator(all_members, company.display_count)
+    paginator = Paginator(all_members, PAGE_SIZE)
     page = request.GET.get('page')
     try:
         members = paginator.page(page)
@@ -131,7 +126,7 @@ def section_members(request, name):
                        if member.salesperson and salesperson in member.salesperson.name]
         params += u"&salesperson=%s" % (salesperson,)
 
-    paginator = Paginator(all_members, company.display_count)
+    paginator = Paginator(all_members, PAGE_SIZE)
     page = request.GET.get('page')
     try:
         members = paginator.page(page)
@@ -224,15 +219,12 @@ def project_list(request):
         response['Content-Disposition'] = "filename=" + filename
         return response
     else:
-        project_status = ProjectStatus.objects.all()
-
         context = RequestContext(request, {
             'company': company,
             'title': u'案件一覧',
             'projects': projects,
             'params': params,
             'dict_order': dict_order,
-            'project_status': project_status,
         })
         template = loader.get_template('project_list.html')
         return HttpResponse(template.render(context))
@@ -271,7 +263,7 @@ def project_member_list(request, project_id):
         all_project_members = [member for member in all_project_members if not member.member.get_project_end_date()]
         params += u"&status=%s" % (status,)
 
-    paginator = Paginator(all_project_members, company.display_count)
+    paginator = Paginator(all_project_members, PAGE_SIZE)
     page = request.GET.get('page')
     try:
         project_members = paginator.page(page)
@@ -314,9 +306,9 @@ def release_list(request):
     if order_list:
         all_project_members = all_project_members.order_by(*order_list)
 
-    filter_list = common.get_release_months(company.release_month_count)
+    filter_list = common.get_release_months(3)
 
-    paginator = Paginator(all_project_members, company.display_count)
+    paginator = Paginator(all_project_members, PAGE_SIZE)
     page = request.GET.get('page')
     try:
         project_members = paginator.page(page)

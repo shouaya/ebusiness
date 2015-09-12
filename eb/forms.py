@@ -12,19 +12,23 @@ from django import forms
 class SectionForm(forms.ModelForm):
     class Meta:
         model = models.Section
-        fields = ['name', 'company']
+        fields = ['name', 'description', 'company']
 
 
 class MemberForm(forms.ModelForm):
     class Meta:
         model = models.Member
-        fields = ['employee_id', 'name', 'email', 'phone', 'section', 'company', 'salesperson']
+        fields = ['employee_id', 'name', 'japanese_spell', 'english_spell', 'birthday', 'graduate_date',
+                  'degree', 'email', 'post_code', 'address1', 'address2', 'phone', 'member_type',
+                  'section', 'company', 'salesperson', 'subcontractor']
 
 
 class SalespersonForm(forms.ModelForm):
     class Meta:
         model = models.Salesperson
-        fields = ['employee_id', 'name', 'email', 'phone', 'section', 'company']
+        fields = ['employee_id', 'name', 'japanese_spell', 'english_spell', 'birthday', 'graduate_date',
+                  'degree', 'email', 'post_code', 'address1', 'address2', 'phone', 'member_type',
+                  'section', 'company']
 
 
 class ProjectMemberAdminForm(forms.ModelForm):

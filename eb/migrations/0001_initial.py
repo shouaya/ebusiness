@@ -3,11 +3,13 @@ from __future__ import unicode_literals
 
 from django.db import models, migrations
 import datetime
+from django.conf import settings
 
 
 class Migration(migrations.Migration):
 
     dependencies = [
+        migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
@@ -17,21 +19,21 @@ class Migration(migrations.Migration):
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('name', models.CharField(max_length=30, verbose_name='\u4f1a\u793e\u540d')),
                 ('japanese_spell', models.CharField(max_length=30, null=True, verbose_name='\u30d5\u30ea\u30ab\u30ca', blank=True)),
-                ('president', models.CharField(max_length=30, null=True, verbose_name='\u4ee3\u8868\u8005\u540d', blank=True)),
                 ('found_date', models.DateField(null=True, verbose_name='\u8a2d\u7acb\u5e74\u6708\u65e5', blank=True)),
                 ('capital', models.BigIntegerField(null=True, verbose_name='\u8cc7\u672c\u91d1', blank=True)),
-                ('employee_count', models.IntegerField(null=True, verbose_name='\u5f93\u696d\u54e1\u6570', blank=True)),
-                ('sale_amount', models.BigIntegerField(null=True, verbose_name='\u58f2\u4e0a\u9ad8', blank=True)),
                 ('post_code', models.CharField(max_length=8, null=True, verbose_name='\u90f5\u4fbf\u756a\u53f7', blank=True)),
                 ('address1', models.CharField(max_length=200, null=True, verbose_name='\u4f4f\u6240\uff11', blank=True)),
                 ('address2', models.CharField(max_length=200, null=True, verbose_name='\u4f4f\u6240\uff12', blank=True)),
                 ('tel', models.CharField(max_length=15, null=True, verbose_name='\u96fb\u8a71\u756a\u53f7', blank=True)),
                 ('fax', models.CharField(max_length=15, null=True, verbose_name='\u30d5\u30a1\u30c3\u30af\u30b9', blank=True)),
+                ('president', models.CharField(max_length=30, null=True, verbose_name='\u4ee3\u8868\u8005\u540d', blank=True)),
+                ('employee_count', models.IntegerField(null=True, verbose_name='\u5f93\u696d\u54e1\u6570', blank=True)),
+                ('sale_amount', models.BigIntegerField(null=True, verbose_name='\u58f2\u4e0a\u9ad8', blank=True)),
                 ('payment_type', models.CharField(max_length=2, null=True, verbose_name='\u652f\u6255\u65b9\u6cd5', blank=True)),
                 ('payment_day', models.CharField(max_length=2, null=True, verbose_name='\u652f\u6255\u65e5', blank=True)),
                 ('comment', models.TextField(null=True, verbose_name='\u5099\u8003', blank=True)),
-                ('created_date', models.DateTimeField(default=datetime.datetime(2015, 9, 8, 20, 49, 11, 831925), auto_now_add=True)),
-                ('updated_date', models.DateTimeField(default=datetime.datetime(2015, 9, 8, 20, 49, 11, 831950), auto_now=True)),
+                ('created_date', models.DateTimeField(default=datetime.datetime(2015, 9, 12, 16, 48, 26, 611467), auto_now_add=True)),
+                ('updated_date', models.DateTimeField(default=datetime.datetime(2015, 9, 12, 16, 48, 26, 611490), auto_now=True)),
             ],
             options={
                 'ordering': ['name'],
@@ -61,11 +63,14 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('name', models.CharField(max_length=30, verbose_name='\u4f1a\u793e\u540d')),
+                ('japanese_spell', models.CharField(max_length=30, null=True, verbose_name='\u30d5\u30ea\u30ab\u30ca', blank=True)),
+                ('found_date', models.DateField(null=True, verbose_name='\u8a2d\u7acb\u5e74\u6708\u65e5', blank=True)),
+                ('capital', models.BigIntegerField(null=True, verbose_name='\u8cc7\u672c\u91d1', blank=True)),
                 ('post_code', models.CharField(max_length=8, null=True, verbose_name='\u90f5\u4fbf\u756a\u53f7', blank=True)),
-                ('address', models.CharField(max_length=250, null=True, verbose_name='\u4f4f\u6240', blank=True)),
+                ('address1', models.CharField(max_length=200, null=True, verbose_name='\u4f4f\u6240\uff11', blank=True)),
+                ('address2', models.CharField(max_length=200, null=True, verbose_name='\u4f4f\u6240\uff12', blank=True)),
                 ('tel', models.CharField(max_length=15, null=True, verbose_name='\u96fb\u8a71\u756a\u53f7', blank=True)),
-                ('release_month_count', models.IntegerField(default=3, help_text='\u4f55\u304b\u6708\u4ee5\u5185\u306e\u30ea\u30ea\u30fc\u30b9\u72b6\u6cc1\u3092\u78ba\u8a8d\u3057\u305f\u3044\u3067\u3059\u304b\uff1f', verbose_name='\u4f55\u304b\u6708\u78ba\u8a8d', choices=[(3, '\u4e09\u30f5\u6708\u4ee5\u5185'), (4, '\u56db\u30f6\u6708\u4ee5\u5185'), (5, '\u4e94\u30f6\u6708\u4ee5\u5185'), (6, '\u534a\u5e74\u4ee5\u5185')])),
-                ('display_count', models.IntegerField(default=50, verbose_name='\uff11\u9801\u306b\u8868\u793a\u3059\u308b\u30c7\u30fc\u30bf\u4ef6\u6570', choices=[(50, '50\u4ef6'), (100, '100\u4ef6'), (150, '150\u4ef6'), (200, '200\u4ef6'), (300, '300\u4ef6')])),
+                ('fax', models.CharField(max_length=15, null=True, verbose_name='\u30d5\u30a1\u30c3\u30af\u30b9', blank=True)),
             ],
             options={
                 'verbose_name': '\u4f1a\u793e',
@@ -79,9 +84,18 @@ class Migration(migrations.Migration):
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('employee_id', models.CharField(unique=True, max_length=30, verbose_name='\u793e\u54e1ID')),
                 ('name', models.CharField(max_length=30, verbose_name='\u540d\u524d')),
+                ('japanese_spell', models.CharField(max_length=30, null=True, verbose_name='\u30d5\u30ea\u30ab\u30ca', blank=True)),
+                ('english_spell', models.CharField(max_length=30, null=True, verbose_name='\u30ed\u30fc\u30de\u5b57', blank=True)),
+                ('birthday', models.DateField(null=True, verbose_name='\u751f\u5e74\u6708\u65e5', blank=True)),
+                ('graduate_date', models.DateField(null=True, verbose_name='\u5352\u696d\u5e74\u6708\u65e5', blank=True)),
+                ('degree', models.IntegerField(blank=True, null=True, verbose_name='\u5b66\u6b74', choices=[(1, '\u5c0f\u30fb\u4e2d\u5b66\u6821'), (2, '\u9ad8\u7b49\u5b66\u6821'), (3, '\u5c02\u9580\u5b66\u6821'), (4, '\u9ad8\u7b49\u5c02\u9580\u5b66\u6821'), (5, '\u77ed\u671f\u5927\u5b66'), (6, '\u5927\u5b66\u5b66\u90e8'), (7, '\u5927\u5b66\u5927\u5b66\u9662')])),
                 ('email', models.EmailField(max_length=75, verbose_name='\u30e1\u30fc\u30eb\u30a2\u30c9\u30ec\u30b9')),
+                ('post_code', models.CharField(max_length=8, null=True, verbose_name='\u90f5\u4fbf\u756a\u53f7', blank=True)),
+                ('address1', models.CharField(max_length=200, null=True, verbose_name='\u4f4f\u6240\uff11', blank=True)),
+                ('address2', models.CharField(max_length=200, null=True, verbose_name='\u4f4f\u6240\uff12', blank=True)),
                 ('phone', models.CharField(max_length=11, null=True, verbose_name='\u96fb\u8a71\u756a\u53f7', blank=True)),
-                ('company', models.ForeignKey(verbose_name='\u4f1a\u793e', to='eb.Company')),
+                ('member_type', models.IntegerField(default=0, verbose_name='\u793e\u54e1\u533a\u5206', choices=[(0, '\u6b63\u793e\u54e1'), (1, '\u5951\u7d04\u793e\u54e1'), (3, '\u6d3e\u9063\u793e\u54e1'), (4, '\u500b\u4eba\u4e8b\u696d\u6240')])),
+                ('company', models.ForeignKey(verbose_name='\u4f1a\u793e', blank=True, to='eb.Company', null=True)),
             ],
             options={
                 'ordering': ['name'],
@@ -94,12 +108,12 @@ class Migration(migrations.Migration):
             name='Project',
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
-                ('project_id', models.CharField(unique=True, max_length=30, verbose_name='\u6848\u4ef6ID')),
                 ('name', models.CharField(max_length=50, verbose_name='\u6848\u4ef6\u540d\u79f0')),
                 ('description', models.TextField(null=True, verbose_name='\u6848\u4ef6\u6982\u8981', blank=True)),
                 ('start_date', models.DateField(null=True, verbose_name='\u958b\u59cb\u65e5', blank=True)),
                 ('end_date', models.DateField(null=True, verbose_name='\u7d42\u4e86\u65e5', blank=True)),
                 ('address', models.CharField(max_length=255, null=True, verbose_name='\u4f5c\u696d\u5834\u6240', blank=True)),
+                ('status', models.IntegerField(verbose_name='\u30b9\u30c6\u30fc\u30bf\u30b9', choices=[(1, '\u63d0\u6848'), (2, '\u4e88\u7b97\u5be9\u67fb'), (3, '\u4e88\u7b97\u78ba\u5b9a'), (4, '\u5b9f\u65bd\u4e2d'), (5, '\u5b8c\u4e86')])),
                 ('boss', models.ForeignKey(related_name='boss_set', verbose_name='\u6848\u4ef6\u8cac\u4efb\u8005', blank=True, to='eb.ClientMember', null=True)),
                 ('client', models.ForeignKey(verbose_name='\u4f1a\u793e', blank=True, to='eb.Client', null=True)),
             ],
@@ -115,7 +129,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('name', models.CharField(max_length=30, verbose_name='\u6d3b\u52d5\u540d\u79f0')),
-                ('open_date', models.DateTimeField(default=datetime.datetime(2015, 9, 8, 20, 49, 11, 834427), verbose_name='\u958b\u50ac\u65e5\u6642')),
+                ('open_date', models.DateTimeField(default=datetime.datetime(2015, 9, 12, 16, 48, 26, 614021), verbose_name='\u958b\u50ac\u65e5\u6642')),
                 ('address', models.CharField(max_length=255, verbose_name='\u6d3b\u52d5\u5834\u6240')),
                 ('content', models.TextField(verbose_name='\u6d3b\u52d5\u5185\u5bb9')),
                 ('created_date', models.DateTimeField(auto_now_add=True)),
@@ -158,18 +172,6 @@ class Migration(migrations.Migration):
             options={
                 'verbose_name': '\u6848\u4ef6\u306e\u30b9\u30ad\u30eb\u8981\u6c42',
                 'verbose_name_plural': '\u6848\u4ef6\u306e\u30b9\u30ad\u30eb\u8981\u6c42',
-            },
-            bases=(models.Model,),
-        ),
-        migrations.CreateModel(
-            name='ProjectStatus',
-            fields=[
-                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
-                ('name', models.CharField(max_length=10, verbose_name='\u72b6\u614b')),
-            ],
-            options={
-                'verbose_name': '\u6848\u4ef6\u72b6\u614b',
-                'verbose_name_plural': '\u6848\u4ef6\u72b6\u614b',
             },
             bases=(models.Model,),
         ),
@@ -217,10 +219,45 @@ class Migration(migrations.Migration):
             },
             bases=(models.Model,),
         ),
+        migrations.CreateModel(
+            name='Subcontractor',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('name', models.CharField(max_length=30, verbose_name='\u4f1a\u793e\u540d')),
+                ('japanese_spell', models.CharField(max_length=30, null=True, verbose_name='\u30d5\u30ea\u30ab\u30ca', blank=True)),
+                ('found_date', models.DateField(null=True, verbose_name='\u8a2d\u7acb\u5e74\u6708\u65e5', blank=True)),
+                ('capital', models.BigIntegerField(null=True, verbose_name='\u8cc7\u672c\u91d1', blank=True)),
+                ('post_code', models.CharField(max_length=8, null=True, verbose_name='\u90f5\u4fbf\u756a\u53f7', blank=True)),
+                ('address1', models.CharField(max_length=200, null=True, verbose_name='\u4f4f\u6240\uff11', blank=True)),
+                ('address2', models.CharField(max_length=200, null=True, verbose_name='\u4f4f\u6240\uff12', blank=True)),
+                ('tel', models.CharField(max_length=15, null=True, verbose_name='\u96fb\u8a71\u756a\u53f7', blank=True)),
+                ('fax', models.CharField(max_length=15, null=True, verbose_name='\u30d5\u30a1\u30c3\u30af\u30b9', blank=True)),
+                ('president', models.CharField(max_length=30, null=True, verbose_name='\u4ee3\u8868\u8005\u540d', blank=True)),
+                ('employee_count', models.IntegerField(null=True, verbose_name='\u5f93\u696d\u54e1\u6570', blank=True)),
+                ('sale_amount', models.BigIntegerField(null=True, verbose_name='\u58f2\u4e0a\u9ad8', blank=True)),
+                ('payment_type', models.CharField(max_length=2, null=True, verbose_name='\u652f\u6255\u65b9\u6cd5', blank=True)),
+                ('payment_day', models.CharField(max_length=2, null=True, verbose_name='\u652f\u6255\u65e5', blank=True)),
+                ('comment', models.TextField(null=True, verbose_name='\u5099\u8003', blank=True)),
+                ('created_date', models.DateTimeField(default=datetime.datetime(2015, 9, 12, 16, 48, 26, 608631), auto_now_add=True)),
+                ('updated_date', models.DateTimeField(default=datetime.datetime(2015, 9, 12, 16, 48, 26, 608656), auto_now=True)),
+            ],
+            options={
+                'ordering': ['name'],
+                'verbose_name': '\u5354\u529b\u4f1a\u793e',
+                'verbose_name_plural': '\u5354\u529b\u4f1a\u793e',
+            },
+            bases=(models.Model,),
+        ),
         migrations.AddField(
             model_name='salesperson',
             name='section',
             field=models.ForeignKey(verbose_name='\u90e8\u7f72', to='eb.Section'),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='salesperson',
+            name='user',
+            field=models.OneToOneField(null=True, blank=True, to=settings.AUTH_USER_MODEL),
             preserve_default=True,
         ),
         migrations.AddField(
@@ -260,12 +297,6 @@ class Migration(migrations.Migration):
             preserve_default=True,
         ),
         migrations.AddField(
-            model_name='project',
-            name='status',
-            field=models.ForeignKey(verbose_name='\u30b9\u30c6\u30fc\u30bf\u30b9', to='eb.ProjectStatus'),
-            preserve_default=True,
-        ),
-        migrations.AddField(
             model_name='member',
             name='salesperson',
             field=models.ForeignKey(verbose_name='\u55b6\u696d\u54e1', blank=True, to='eb.Salesperson', null=True),
@@ -275,6 +306,12 @@ class Migration(migrations.Migration):
             model_name='member',
             name='section',
             field=models.ForeignKey(verbose_name='\u90e8\u7f72', to='eb.Section'),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='member',
+            name='user',
+            field=models.OneToOneField(null=True, blank=True, to=settings.AUTH_USER_MODEL),
             preserve_default=True,
         ),
     ]
