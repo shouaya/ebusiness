@@ -32,8 +32,8 @@ class Migration(migrations.Migration):
                 ('payment_type', models.CharField(max_length=2, null=True, verbose_name='\u652f\u6255\u65b9\u6cd5', blank=True)),
                 ('payment_day', models.CharField(max_length=2, null=True, verbose_name='\u652f\u6255\u65e5', blank=True)),
                 ('comment', models.TextField(null=True, verbose_name='\u5099\u8003', blank=True)),
-                ('created_date', models.DateTimeField(default=datetime.datetime(2015, 9, 12, 16, 48, 26, 611467), auto_now_add=True)),
-                ('updated_date', models.DateTimeField(default=datetime.datetime(2015, 9, 12, 16, 48, 26, 611490), auto_now=True)),
+                ('created_date', models.DateTimeField(default=datetime.datetime(2015, 9, 13, 11, 53, 25, 18000), auto_now_add=True)),
+                ('updated_date', models.DateTimeField(default=datetime.datetime(2015, 9, 13, 11, 53, 25, 18000), auto_now=True)),
             ],
             options={
                 'ordering': ['name'],
@@ -83,9 +83,12 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('employee_id', models.CharField(unique=True, max_length=30, verbose_name='\u793e\u54e1ID')),
-                ('name', models.CharField(max_length=30, verbose_name='\u540d\u524d')),
-                ('japanese_spell', models.CharField(max_length=30, null=True, verbose_name='\u30d5\u30ea\u30ab\u30ca', blank=True)),
-                ('english_spell', models.CharField(max_length=30, null=True, verbose_name='\u30ed\u30fc\u30de\u5b57', blank=True)),
+                ('first_name', models.CharField(max_length=30, verbose_name='\u59d3')),
+                ('last_name', models.CharField(max_length=30, verbose_name='\u540d')),
+                ('first_name_ja', models.CharField(max_length=30, null=True, verbose_name='\u59d3(\u30d5\u30ea\u30ab\u30ca)', blank=True)),
+                ('last_name_ja', models.CharField(max_length=30, null=True, verbose_name='\u540d(\u30d5\u30ea\u30ab\u30ca)', blank=True)),
+                ('first_name_en', models.CharField(max_length=30, null=True, verbose_name='\u59d3(\u30ed\u30fc\u30de\u5b57)', blank=True)),
+                ('last_name_en', models.CharField(max_length=30, null=True, verbose_name='\u540d(\u30ed\u30fc\u30de\u5b57)', blank=True)),
                 ('birthday', models.DateField(null=True, verbose_name='\u751f\u5e74\u6708\u65e5', blank=True)),
                 ('graduate_date', models.DateField(null=True, verbose_name='\u5352\u696d\u5e74\u6708\u65e5', blank=True)),
                 ('degree', models.IntegerField(blank=True, null=True, verbose_name='\u5b66\u6b74', choices=[(1, '\u5c0f\u30fb\u4e2d\u5b66\u6821'), (2, '\u9ad8\u7b49\u5b66\u6821'), (3, '\u5c02\u9580\u5b66\u6821'), (4, '\u9ad8\u7b49\u5c02\u9580\u5b66\u6821'), (5, '\u77ed\u671f\u5927\u5b66'), (6, '\u5927\u5b66\u5b66\u90e8'), (7, '\u5927\u5b66\u5927\u5b66\u9662')])),
@@ -98,9 +101,36 @@ class Migration(migrations.Migration):
                 ('company', models.ForeignKey(verbose_name='\u4f1a\u793e', blank=True, to='eb.Company', null=True)),
             ],
             options={
-                'ordering': ['name'],
+                'ordering': ['first_name', 'last_name'],
                 'verbose_name': '\u793e\u54e1',
                 'verbose_name_plural': '\u793e\u54e1',
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='Position',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('name', models.CharField(max_length=20, verbose_name='\u540d\u79f0')),
+            ],
+            options={
+                'ordering': ['pk'],
+                'verbose_name': '\u8077\u4f4d',
+                'verbose_name_plural': '\u8077\u4f4d',
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='PositionShip',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('is_part_time', models.BooleanField(default=False, verbose_name='\u517c\u4efb')),
+                ('member', models.ForeignKey(verbose_name='\u793e\u54e1\u540d', to='eb.Member')),
+                ('position', models.ForeignKey(verbose_name='\u8077\u4f4d', to='eb.Position')),
+            ],
+            options={
+                'verbose_name': '\u8077\u4f4d\u95a2\u4fc2',
+                'verbose_name_plural': '\u8077\u4f4d\u95a2\u4fc2',
             },
             bases=(models.Model,),
         ),
@@ -129,7 +159,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('name', models.CharField(max_length=30, verbose_name='\u6d3b\u52d5\u540d\u79f0')),
-                ('open_date', models.DateTimeField(default=datetime.datetime(2015, 9, 12, 16, 48, 26, 614021), verbose_name='\u958b\u50ac\u65e5\u6642')),
+                ('open_date', models.DateTimeField(default=datetime.datetime(2015, 9, 13, 11, 53, 25, 20000), verbose_name='\u958b\u50ac\u65e5\u6642')),
                 ('address', models.CharField(max_length=255, verbose_name='\u6d3b\u52d5\u5834\u6240')),
                 ('content', models.TextField(verbose_name='\u6d3b\u52d5\u5185\u5bb9')),
                 ('created_date', models.DateTimeField(auto_now_add=True)),
@@ -180,13 +210,25 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('employee_id', models.CharField(unique=True, max_length=30, verbose_name='\u793e\u54e1ID')),
-                ('name', models.CharField(max_length=30, verbose_name='\u540d\u524d')),
+                ('first_name', models.CharField(max_length=30, verbose_name='\u59d3')),
+                ('last_name', models.CharField(max_length=30, verbose_name='\u540d')),
+                ('first_name_ja', models.CharField(max_length=30, null=True, verbose_name='\u59d3(\u30d5\u30ea\u30ab\u30ca)', blank=True)),
+                ('last_name_ja', models.CharField(max_length=30, null=True, verbose_name='\u540d(\u30d5\u30ea\u30ab\u30ca)', blank=True)),
+                ('first_name_en', models.CharField(max_length=30, null=True, verbose_name='\u59d3(\u30ed\u30fc\u30de\u5b57)', blank=True)),
+                ('last_name_en', models.CharField(max_length=30, null=True, verbose_name='\u540d(\u30ed\u30fc\u30de\u5b57)', blank=True)),
+                ('birthday', models.DateField(null=True, verbose_name='\u751f\u5e74\u6708\u65e5', blank=True)),
+                ('graduate_date', models.DateField(null=True, verbose_name='\u5352\u696d\u5e74\u6708\u65e5', blank=True)),
+                ('degree', models.IntegerField(blank=True, null=True, verbose_name='\u5b66\u6b74', choices=[(1, '\u5c0f\u30fb\u4e2d\u5b66\u6821'), (2, '\u9ad8\u7b49\u5b66\u6821'), (3, '\u5c02\u9580\u5b66\u6821'), (4, '\u9ad8\u7b49\u5c02\u9580\u5b66\u6821'), (5, '\u77ed\u671f\u5927\u5b66'), (6, '\u5927\u5b66\u5b66\u90e8'), (7, '\u5927\u5b66\u5927\u5b66\u9662')])),
                 ('email', models.EmailField(max_length=75, verbose_name='\u30e1\u30fc\u30eb\u30a2\u30c9\u30ec\u30b9')),
+                ('post_code', models.CharField(max_length=8, null=True, verbose_name='\u90f5\u4fbf\u756a\u53f7', blank=True)),
+                ('address1', models.CharField(max_length=200, null=True, verbose_name='\u4f4f\u6240\uff11', blank=True)),
+                ('address2', models.CharField(max_length=200, null=True, verbose_name='\u4f4f\u6240\uff12', blank=True)),
                 ('phone', models.CharField(max_length=11, null=True, verbose_name='\u96fb\u8a71\u756a\u53f7', blank=True)),
-                ('company', models.ForeignKey(verbose_name='\u4f1a\u793e', to='eb.Company')),
+                ('member_type', models.IntegerField(default=0, verbose_name='\u793e\u54e1\u533a\u5206', choices=[(0, '\u6b63\u793e\u54e1'), (1, '\u5951\u7d04\u793e\u54e1'), (3, '\u6d3e\u9063\u793e\u54e1'), (4, '\u500b\u4eba\u4e8b\u696d\u6240')])),
+                ('company', models.ForeignKey(verbose_name='\u4f1a\u793e', blank=True, to='eb.Company', null=True)),
             ],
             options={
-                'ordering': ['name'],
+                'ordering': ['first_name', 'last_name'],
                 'verbose_name': '\u55b6\u696d\u54e1',
                 'verbose_name_plural': '\u55b6\u696d\u54e1',
             },
@@ -197,6 +239,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('name', models.CharField(max_length=30, verbose_name='\u90e8\u7f72\u540d')),
+                ('description', models.CharField(max_length=200, null=True, verbose_name='\u6982\u8981', blank=True)),
                 ('company', models.ForeignKey(verbose_name='\u4f1a\u793e', to='eb.Company')),
             ],
             options={
@@ -238,8 +281,8 @@ class Migration(migrations.Migration):
                 ('payment_type', models.CharField(max_length=2, null=True, verbose_name='\u652f\u6255\u65b9\u6cd5', blank=True)),
                 ('payment_day', models.CharField(max_length=2, null=True, verbose_name='\u652f\u6255\u65e5', blank=True)),
                 ('comment', models.TextField(null=True, verbose_name='\u5099\u8003', blank=True)),
-                ('created_date', models.DateTimeField(default=datetime.datetime(2015, 9, 12, 16, 48, 26, 608631), auto_now_add=True)),
-                ('updated_date', models.DateTimeField(default=datetime.datetime(2015, 9, 12, 16, 48, 26, 608656), auto_now=True)),
+                ('created_date', models.DateTimeField(default=datetime.datetime(2015, 9, 13, 11, 53, 25, 14000), auto_now_add=True)),
+                ('updated_date', models.DateTimeField(default=datetime.datetime(2015, 9, 13, 11, 53, 25, 14000), auto_now=True)),
             ],
             options={
                 'ordering': ['name'],
@@ -251,7 +294,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='salesperson',
             name='section',
-            field=models.ForeignKey(verbose_name='\u90e8\u7f72', to='eb.Section'),
+            field=models.ForeignKey(verbose_name='\u90e8\u7f72', blank=True, to='eb.Section', null=True),
             preserve_default=True,
         ),
         migrations.AddField(
@@ -286,6 +329,18 @@ class Migration(migrations.Migration):
         ),
         migrations.AddField(
             model_name='project',
+            name='project_leader',
+            field=models.ForeignKey(related_name='pl_set', verbose_name='\uff30\uff2c', blank=True, to='eb.Member', null=True),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='project',
+            name='project_manager',
+            field=models.ForeignKey(related_name='pm_set', verbose_name='\uff30\uff2d', blank=True, to='eb.Member', null=True),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='project',
             name='salesperson',
             field=models.ForeignKey(verbose_name='\u55b6\u696d\u54e1', blank=True, to='eb.Salesperson', null=True),
             preserve_default=True,
@@ -297,6 +352,18 @@ class Migration(migrations.Migration):
             preserve_default=True,
         ),
         migrations.AddField(
+            model_name='positionship',
+            name='section',
+            field=models.ForeignKey(verbose_name='\u90e8\u7f72', to='eb.Section'),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='member',
+            name='position',
+            field=models.ManyToManyField(to='eb.Position', verbose_name='\u8077\u4f4d', through='eb.PositionShip'),
+            preserve_default=True,
+        ),
+        migrations.AddField(
             model_name='member',
             name='salesperson',
             field=models.ForeignKey(verbose_name='\u55b6\u696d\u54e1', blank=True, to='eb.Salesperson', null=True),
@@ -305,7 +372,13 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='member',
             name='section',
-            field=models.ForeignKey(verbose_name='\u90e8\u7f72', to='eb.Section'),
+            field=models.ForeignKey(verbose_name='\u90e8\u7f72', blank=True, to='eb.Section', null=True),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='member',
+            name='subcontractor',
+            field=models.ForeignKey(verbose_name='\u5354\u529b\u4f1a\u793e', blank=True, to='eb.Subcontractor', null=True),
             preserve_default=True,
         ),
         migrations.AddField(

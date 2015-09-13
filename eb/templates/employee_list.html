@@ -92,7 +92,15 @@
                     <tr class="{% cycle 'row1' 'row2' %}">
                         <td><a href="{% url 'member_project_list' member.employee_id %}">{{ member.name }}</a></td>
                         <td><a href="mailto:{{ member.email }}">{{ member.email }}</a></td>
-                        <td><a href="{% url 'section' member.section.name %}">{{ member.section.name }}</a></td>
+                        <td>
+                            {% if member.section %}
+                                <a href="{% url 'section' member.section.name %}">
+                                    {{ member.section.name }}
+                                </a>
+                            {% else %}
+                                {{ member.subcontractor }}
+                            {% endif %}
+                        </td>
                         <td class="center">
                             {% if member.get_project_end_date %}
                                 <a href="?status=working{{ params }}"><img width="12px" src="/static/img/icon-normal.png"/></a>

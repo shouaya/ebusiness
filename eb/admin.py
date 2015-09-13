@@ -101,10 +101,10 @@ class SectionAdmin(admin.ModelAdmin):
 class MemberAdmin(admin.ModelAdmin):
 
     form = forms.MemberForm
-    list_display = ['employee_id', 'name', 'section', 'subcontractor', 'salesperson', 'user']
-    list_display_links = ['name']
+    list_display = ['employee_id', 'first_name', 'last_name', 'section', 'subcontractor', 'salesperson', 'user']
+    list_display_links = ['first_name', 'last_name']
     list_filter = ['member_type', 'section', 'subcontractor', 'salesperson']
-    search_fields = ['name']
+    search_fields = ['first_name', 'last_name']
     inlines = (PositionShipInline,)
 
     def get_form(self, request, obj=None, **kwargs):
@@ -118,9 +118,9 @@ class MemberAdmin(admin.ModelAdmin):
 class SalespersonAdmin(admin.ModelAdmin):
 
     form = forms.SalespersonForm
-    list_display = ['employee_id', 'name', 'section', 'user']
-    list_display_links = ['name']
-    search_fields = ['name']
+    list_display = ['employee_id', 'first_name', 'last_name', 'section', 'user']
+    list_display_links = ['first_name', 'last_name']
+    search_fields = ['first_name', 'last_name']
     list_filter = ['section']
 
     def get_form(self, request, obj=None, **kwargs):

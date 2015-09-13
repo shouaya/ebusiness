@@ -38,7 +38,7 @@ DEGREE_TYPE = ((1, u"小・中学校"),
                (5, u"短期大学"),
                (6, u"大学学部"),
                (7, u"大学大学院"))
-MEMBER_TYPE = ((0, u"正社員"), (1, u"契約社員"), (3, u"派遣社員"), (4, u"個人事業所"))
+MEMBER_TYPE = ((0, u"正社員"), (1, u"契約社員"), (3, u"派遣社員"), (4, u"個人事業主"))
 
 
 class AbstractCompany(models.Model):
@@ -61,9 +61,12 @@ class AbstractCompany(models.Model):
 
 class AbstractMember(models.Model):
     employee_id = models.CharField(blank=False, null=False, unique=True, max_length=30, verbose_name=u"社員ID")
-    name = models.CharField(blank=False, null=False, max_length=30, verbose_name=u"名前")
-    japanese_spell = models.CharField(blank=True, null=True, max_length=30, verbose_name=u"フリカナ")
-    english_spell = models.CharField(blank=True, null=True, max_length=30, verbose_name=u"ローマ字")
+    first_name = models.CharField(blank=False, null=False, max_length=30, verbose_name=u"姓")
+    last_name = models.CharField(blank=False, null=False, max_length=30, verbose_name=u"名")
+    first_name_ja = models.CharField(blank=True, null=True, max_length=30, verbose_name=u"姓(フリカナ)")
+    last_name_ja = models.CharField(blank=True, null=True, max_length=30, verbose_name=u"名(フリカナ)")
+    first_name_en = models.CharField(blank=True, null=True, max_length=30, verbose_name=u"姓(ローマ字)")
+    last_name_en = models.CharField(blank=True, null=True, max_length=30, verbose_name=u"名(ローマ字)")
     birthday = models.DateField(blank=True, null=True, verbose_name=u"生年月日")
     graduate_date = models.DateField(blank=True, null=True, verbose_name=u"卒業年月日")
     degree = models.IntegerField(blank=True, null=True, choices=DEGREE_TYPE, verbose_name=u"学歴")
@@ -166,11 +169,11 @@ class Section(models.Model):
 class Salesperson(AbstractMember):
 
     class Meta:
-        ordering = ['name']
+        ordering = ['first_name', 'last_name']
         verbose_name = verbose_name_plural = u"営業員"
 
     def __unicode__(self):
-        return self.name
+        return u"%s %s" % (self.first_name, self.last_name)
 
 
 class Member(AbstractMember):
@@ -179,11 +182,11 @@ class Member(AbstractMember):
     position = models.ManyToManyField('Position', through='PositionShip', verbose_name=u"職位")
 
     class Meta:
-        ordering = ['name']
+        ordering = ['first_name', 'last_name']
         verbose_name = verbose_name_plural = u"社員"
 
     def __unicode__(self):
-        return self.name
+        return u"%s %s" % (self.first_name, self.last_name)
 
     def get_project_end_date(self):
         # 稼働状態を取得する（待機・稼働中）

@@ -18,7 +18,10 @@ class SectionForm(forms.ModelForm):
 class MemberForm(forms.ModelForm):
     class Meta:
         model = models.Member
-        fields = ['employee_id', 'name', 'japanese_spell', 'english_spell', 'birthday', 'graduate_date',
+        fields = ['employee_id', 'first_name', 'last_name',
+                  'first_name_ja', 'last_name_ja',
+                  'first_name_en', 'last_name_en',
+                  'birthday', 'graduate_date',
                   'degree', 'email', 'post_code', 'address1', 'address2', 'phone', 'member_type',
                   'section', 'company', 'salesperson', 'subcontractor']
 
@@ -26,7 +29,10 @@ class MemberForm(forms.ModelForm):
 class SalespersonForm(forms.ModelForm):
     class Meta:
         model = models.Salesperson
-        fields = ['employee_id', 'name', 'japanese_spell', 'english_spell', 'birthday', 'graduate_date',
+        fields = ['employee_id', 'first_name', 'last_name',
+                  'first_name_ja', 'last_name_ja',
+                  'first_name_en', 'last_name_en',
+                  'birthday', 'graduate_date',
                   'degree', 'email', 'post_code', 'address1', 'address2', 'phone', 'member_type',
                   'section', 'company']
 
