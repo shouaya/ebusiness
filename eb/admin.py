@@ -72,6 +72,12 @@ class PositionShipInline(admin.TabularInline):
     extra = 1
 
 
+def get_full_name(obj):
+    return "%s %s" % (obj.first_name, obj.last_name)
+get_full_name.short_description = u"名前"
+get_full_name.admin_order_field = "first_name"
+
+
 class CompanyAdmin(admin.ModelAdmin):
 
     def has_delete_permission(self, request, obj=None):
@@ -101,8 +107,8 @@ class SectionAdmin(admin.ModelAdmin):
 class MemberAdmin(admin.ModelAdmin):
 
     form = forms.MemberForm
-    list_display = ['employee_id', 'first_name', 'last_name', 'section', 'subcontractor', 'salesperson', 'user']
-    list_display_links = ['first_name', 'last_name']
+    list_display = ['employee_id', get_full_name, 'section', 'subcontractor', 'salesperson', 'user']
+    list_display_links = [get_full_name]
     list_filter = ['member_type', 'section', 'subcontractor', 'salesperson']
     search_fields = ['first_name', 'last_name']
     inlines = (PositionShipInline,)
@@ -118,8 +124,8 @@ class MemberAdmin(admin.ModelAdmin):
 class SalespersonAdmin(admin.ModelAdmin):
 
     form = forms.SalespersonForm
-    list_display = ['employee_id', 'first_name', 'last_name', 'section', 'user']
-    list_display_links = ['first_name', 'last_name']
+    list_display = ['employee_id', get_full_name, 'section', 'user']
+    list_display_links = [get_full_name]
     search_fields = ['first_name', 'last_name']
     list_filter = ['section']
 
