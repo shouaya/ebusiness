@@ -24,16 +24,16 @@
         <thead>
             <tr>
                 <th>
-                    {% if dict_order.member__name.is_in_ordering %}
+                    {% if dict_order.member__first_name.is_in_ordering %}
                         <div class="sortoptions">
-                            <a class="sortremove" href="?o={{ dict_order.member__name.url_list_removed }}{{ params }}"></a>
-                            <span class="sortpriority">{{ dict_order.member__name.priority }}</span>
-                            <a class="{% if dict_order.member__name.is_asc %}descending{% else %}ascending{% endif %}"
-                               href="?o={{ dict_order.member__name.url }}{{ params }}"></a>
+                            <a class="sortremove" href="?o={{ dict_order.member__first_name.url_list_removed }}{{ params }}"></a>
+                            <span class="sortpriority">{{ dict_order.member__first_name.priority }}</span>
+                            <a class="{% if dict_order.member__first_name.is_asc %}descending{% else %}ascending{% endif %}"
+                               href="?o={{ dict_order.member__first_name.url }}{{ params }}"></a>
                         </div>
                     {% endif %}
                     <div class="text">
-                        <a href="?o={{ dict_order.member__name.url }}{{ params }}">名称</a>
+                        <a href="?o={{ dict_order.member__first_name.url }}{{ params }}">名称</a>
                     </div>
                     <div class="clear"></div>
                 </th>
@@ -87,8 +87,8 @@
             {% if project_members %}
                 {% for project_member in project_members %}
                     <tr class="{% cycle 'row1' 'row2' %}">
-                        <td>{{ project_member.member.name }}</td>
-                        <td><a href="{% url 'project_detail' project_member.project.project_id %}">
+                        <td>{{ project_member.member }}</td>
+                        <td><a href="{% url 'project_detail' project_member.project.pk %}">
                                 {{ project_member.project.name }}
                             </a>
                         </td>
@@ -96,7 +96,7 @@
                         <td>{{ project_member.end_date|date:"Y-m-d" }}</td>
                         <td class="center">
                             {% ifequal project_member.member.get_business_status "営業中" %}
-                                <a href="{% url 'member_project_list' project_member.member.employee_id %}?status=1">営業中</a>
+                                <a href="{% url 'member_detail' project_member.member.employee_id %}?status=1">営業中</a>
                             {% else %}
                                 {{ project_member.member.get_business_status }}
                             {% endifequal %}

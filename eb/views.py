@@ -7,6 +7,7 @@ Created on 2015/08/21
 import datetime
 import re
 import io
+import os
 import xlwt
 
 import common
@@ -15,7 +16,7 @@ from django.http import HttpResponse
 from django.template import RequestContext, loader
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 
-from .models import Company, Member, Section, Project, ProjectMember
+from .models import Company, Member, Section, Project, ProjectMember, Salesperson
 
 PAGE_SIZE = 50
 try:
@@ -39,6 +40,7 @@ def index(request):
         'company': company,
         'title': 'Home',
         'filter_list': filter_list,
+        'member_count': Member.objects.all().count(),
     })
     template = loader.get_template('home.html')
     return HttpResponse(template.render(context))
@@ -46,19 +48,28 @@ def index(request):
 
 def employee_list(request):
     status = request.GET.get('status', None)
-    name = request.GET.get('name', None)
+    first_name = request.GET.get('first_name', None)
+    last_name = request.GET.get('last_name', None)
     business_status = request.GET.get('business_status', None)
     salesperson = request.GET.get('salesperson', None)
     params = ""
     o = request.GET.get('o', None)
-    dict_order = common.get_ordering_dict(o, ['name', 'section', 'salesperson__name'])
+    dict_order = common.get_ordering_dict(o, ['first_name', 'section', 'salesperson__first_name'])
     order_list = common.get_ordering_list(o)
 
-    if name:
-        all_members = Member.objects.filter(name__contains=name)
-        params += u"&name=%s" % (name,)
-    else:
-        all_members = Member.objects.all()
+    all_members = Member.objects.all()
+
+    if salesperson:
+        salesperson_obj = Salesperson.objects.get(employee_id=salesperson)
+        all_members = salesperson_obj.member_set.all()
+        params += u"&salesperson=%s" % (salesperson,)
+    if first_name:
+        all_members = Member.objects.filter(first_name__contains=first_name)
+        params += u"&first_name=%s" % (first_name,)
+    if last_name:
+        all_members = all_members.filter(last_name__contains=last_name)
+        params += u"&last_name=%s" % (last_name,)
+
     if order_list:
         all_members = all_members.order_by(*order_list)
 
@@ -68,15 +79,9 @@ def employee_list(request):
     elif status == "waiting":
         all_members = [member for member in all_members if not member.get_project_end_date()]
         params += u"&status=%s" % (status,)
-
     if business_status:
         all_members = [member for member in all_members if member.get_business_status() == business_status]
         params += u"&business_status=%s" % (business_status,)
-
-    if salesperson:
-        all_members = [member for member in all_members
-                       if member.salesperson and salesperson in member.salesperson.name]
-        params += u"&salesperson=%s" % (salesperson,)
 
     paginator = Paginator(all_members, PAGE_SIZE)
     page = request.GET.get('page')
@@ -91,6 +96,7 @@ def employee_list(request):
         'company': company,
         'title': u'要員一覧',
         'members': members,
+        'salesperson': Salesperson.objects.all(),
         'paginator': paginator,
         'params': params,
         'dict_order': dict_order,
@@ -154,15 +160,19 @@ def project_list(request):
     download = request.GET.get('download', None)
     params = ""
     o = request.GET.get('o', None)
-    dict_order = common.get_ordering_dict(o, ['name', 'client__name', 'salesperson__name', 'boss__name',
+    dict_order = common.get_ordering_dict(o, ['name', 'client__name', 'salesperson__first_name', 'boss__name',
                                               'middleman__name'])
     order_list = common.get_ordering_list(o)
 
+    projects = Project.objects.all()
+
+    if salesperson:
+        salesperson_obj = Salesperson.objects.get(employee_id=salesperson)
+        projects = salesperson_obj.project_set.all()
+        params += "&salesperson=%s" % (salesperson,)
     if status:
-        projects = Project.objects.filter(status__name=status)
+        projects = Project.objects.filter(status=status)
         params += "&status=%s" % (status,)
-    else:
-        projects = Project.objects.all()
     if name:
         projects = projects.filter(name__contains=name)
         params += "&name=%s" % (name,)
@@ -173,9 +183,6 @@ def project_list(request):
     if client:
         projects = [project for project in projects if client in project.client.name]
         params += "&client=%s" % (client,)
-    if salesperson:
-        projects = [project for project in projects if project.salesperson and salesperson in project.salesperson.name]
-        params += "&salesperson=%s" % (salesperson,)
 
     if download == "download":
         output = io.BytesIO()
@@ -205,7 +212,7 @@ def project_list(request):
                 ws.write(9, 3, u"終了日")
                 ws.write(9, 4, u"単価")
                 for i, project_member in enumerate(project_members):
-                    ws.write(i + 10, 1, project_member.member.name)
+                    ws.write(i + 10, 1, project_member.member)
                     if project_member.start_date:
                         ws.write(i + 10, 2, project_member.start_date.strftime("%Y-%m-%d"))
                     if project_member.end_date:
@@ -223,6 +230,7 @@ def project_list(request):
             'company': company,
             'title': u'案件一覧',
             'projects': projects,
+            'salesperson': Salesperson.objects.all(),
             'params': params,
             'dict_order': dict_order,
         })
@@ -231,25 +239,32 @@ def project_list(request):
 
 
 def project_detail(request, project_id):
-    project = Project.objects.get(project_id=project_id)
-    dict_skills = project.get_recommended_members()
+    project = Project.objects.get(pk=project_id)
+    download = request.GET.get("download", None)
 
-    context = RequestContext(request, {
-        'company': company,
-        'title': u'%s - 案件詳細' % (project.name,),
-        'project': project,
-        'dict_skills': dict_skills,
-    })
-    template = loader.get_template('project_detail.html')
-    return HttpResponse(template.render(context))
+    if download == common.DOWNLOAD_REQUEST:
+        path = common.generate_request(project, company)
+        now = datetime.datetime.now()
+        filename = "請求書（%s年%02s月）.xls" % (now.year, now.month)
+        response = HttpResponse(open(path, 'rb'), content_type="application/excel")
+        response['Content-Disposition'] = "filename=" + filename
+        return response
+    else:
+        context = RequestContext(request, {
+            'company': company,
+            'title': u'%s - 案件詳細' % (project.name,),
+            'project': project,
+        })
+        template = loader.get_template('project_detail.html')
+        return HttpResponse(template.render(context))
 
 
 def project_member_list(request, project_id):
     status = request.GET.get('status', None)
-    project = Project.objects.get(project_id=project_id)
+    project = Project.objects.get(pk=project_id)
     params = ""
     o = request.GET.get('o', None)
-    dict_order = common.get_ordering_dict(o, ['member__name', 'member__section', 'start_date', 'end_date', 'price'])
+    dict_order = common.get_ordering_dict(o, ['member__first_name', 'member__section', 'start_date', 'end_date', 'price'])
     order_list = common.get_ordering_list(o)
 
     all_project_members = project.projectmember_set.all()
@@ -298,7 +313,7 @@ def release_list(request):
     start_date = datetime.datetime(year, month, 1)
     end_date = common.add_months(start_date, 1)
     o = request.GET.get('o', None)
-    dict_order = common.get_ordering_dict(o, ['member__name', 'project__name', 'start_date', 'end_date'])
+    dict_order = common.get_ordering_dict(o, ['member__first_name', 'project__name', 'start_date', 'end_date'])
     order_list = common.get_ordering_list(o)
 
     all_project_members = ProjectMember.objects.filter(end_date__gte=start_date,
@@ -330,6 +345,26 @@ def release_list(request):
     return HttpResponse(template.render(context))
 
 
+def member_detail(request, employee_id):
+    status = request.GET.get('status', None)
+    member = Member.objects.get(employee_id=employee_id)
+    if status and status != '0':
+        project_members = ProjectMember.objects.filter(member=member, status=status)\
+            .order_by('-status', 'end_date')
+    else:
+        project_members = ProjectMember.objects.filter(member=member)\
+            .order_by('-status', 'end_date')
+
+    context = RequestContext(request, {
+        'company': company,
+        'member': member,
+        'title': u'%s の詳細情報' % (member,),
+        'project_members': project_members,
+    })
+    template = loader.get_template('member_detail.html')
+    return HttpResponse(template.render(context))
+
+
 def member_project_list(request, employee_id):
     status = request.GET.get('status', None)
     member = Member.objects.get(employee_id=employee_id)
@@ -343,7 +378,7 @@ def member_project_list(request, employee_id):
     context = RequestContext(request, {
         'company': company,
         'member': member,
-        'title': u'%s の案件一覧' % (member.name,),
+        'title': u'%s の案件一覧' % (member,),
         'project_members': project_members,
     })
     template = loader.get_template('member_project_list.html')
@@ -351,7 +386,7 @@ def member_project_list(request, employee_id):
 
 
 def recommended_member_list(request, project_id):
-    project = Project.objects.get(project_id=project_id)
+    project = Project.objects.get(pk=project_id)
     dict_skills = project.get_recommended_members()
 
     context = RequestContext(request, {
@@ -372,7 +407,7 @@ def recommended_project_list(request, employee_id):
 
     context = RequestContext(request, {
         'company': company,
-        'title': u'%s - 推薦される案件' % (member.name,),
+        'title': u'%s - 推薦される案件' % (member,),
         'member': member,
         'skills': skills,
         'projects': projects,

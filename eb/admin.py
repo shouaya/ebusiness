@@ -9,7 +9,7 @@ from django.contrib import admin
 from django.utils.translation import ugettext_lazy as _
 
 from .models import Company, Section, Member, Salesperson, Project, Client, ClientMember, \
-    ProjectMember, Skill, ProjectSkill, ProjectActivity, Subcontractor, Position, PositionShip
+    ProjectMember, Skill, ProjectSkill, ProjectActivity, Subcontractor, PositionShip
 
 
 class TextInputListFilter(admin.ListFilter):
@@ -67,11 +67,6 @@ class ProjectMemberInline(admin.TabularInline):
     extra = 1
 
 
-class PositionShipInline(admin.TabularInline):
-    model = PositionShip
-    extra = 1
-
-
 def get_full_name(obj):
     return "%s %s" % (obj.first_name, obj.last_name)
 get_full_name.short_description = u"名前"
@@ -111,14 +106,6 @@ class MemberAdmin(admin.ModelAdmin):
     list_display_links = [get_full_name]
     list_filter = ['member_type', 'section', 'subcontractor', 'salesperson']
     search_fields = ['first_name', 'last_name']
-    inlines = (PositionShipInline,)
-
-    def get_form(self, request, obj=None, **kwargs):
-        form = super(MemberAdmin, self).get_form(request, obj, **kwargs)
-        company = Company.objects.all()[0]
-        if company:
-            form.base_fields['company'].initial = company
-        return form
 
 
 class SalespersonAdmin(admin.ModelAdmin):
@@ -212,7 +199,7 @@ class ProjectActivityAdmin(admin.ModelAdmin):
         salesperson_list = obj.salesperson.all()
         names = []
         for salesperson in salesperson_list:
-            names.append(salesperson.name)
+            names.append(u"%s %s" % (salesperson.first_name, salesperson.last_name))
         return ", ".join(names)
 
     get_client_members.short_description = u"参加しているお客様"
@@ -232,7 +219,6 @@ admin.site.register(ClientMember, ClientMemberAdmin)
 admin.site.register(ProjectMember, ProjectMemberAdmin)
 admin.site.register(ProjectActivity, ProjectActivityAdmin)
 admin.site.register(Subcontractor)
-admin.site.register(Position)
 admin.site.register(PositionShip)
 
 admin.site.site_header = u'社員営業状況管理システム'

@@ -4,9 +4,22 @@ Created on 2015/08/25
 
 @author: Yang Wanjun
 """
+import io
+import os
 import re
 import datetime
 import calendar
+
+import pythoncom
+import win32com.client
+
+
+EXCEL_APPLICATION = "Excel.Application"
+EXCEL_FORMAT_EXCEL2003 = 56
+
+MARK_POST_CODE = u"〒"
+
+DOWNLOAD_REQUEST = "request"
 
 
 def add_months(source_date, months=1):
@@ -15,6 +28,11 @@ def add_months(source_date, months=1):
     month = month % 12 + 1
     day = min(source_date.day, calendar.monthrange(year, month)[1])
     return datetime.date(year, month, day)
+
+
+def get_last_day_by_month(source_date):
+    next_month = add_months(source_date, 1)
+    return next_month + datetime.timedelta(days=-source_date.day)
 
 
 def get_release_months(cnt):
@@ -135,6 +153,96 @@ def get_ordering_list(data, field=None):
                 new_orders.append(n1)
                 k += 1
             return new_orders
+
+
+def generate_request(project, company):
+    """請求書を出力する。
+
+    Arguments：
+      data: 解析対象の引数の内容
+
+    Returns：
+      dict
+
+    Raises：
+      なし
+    """
+    pythoncom.CoInitializeEx(pythoncom.COINIT_MULTITHREADED)
+    template_book = get_excel_template(DOWNLOAD_REQUEST)
+    template_sheet = template_book.Worksheets(1)
+    book = get_new_book()
+    cnt = book.Sheets.Count
+    # テンプレートを生成対象ワークブックにコピーする。
+    template_sheet.Copy(None, book.Worksheets(cnt))
+    template_book.Close()
+    sheet = book.Worksheets(cnt + 1)
+
+    sheet.Range("POS_CLIENT_POST_CODE").Value = MARK_POST_CODE + project.client.post_code
+    sheet.Range("POS_CLIENT_ADDRESS").Value = project.client.address1 + project.client.address2
+    sheet.Range("POS_CLIENT_TEL").Value = "Tel: " + project.client.tel
+    sheet.Range("POS_CLIENT_COMPANY").Value = project.client.name
+    now = datetime.date.today()
+    first_day = datetime.date(now.year, now.month, 1)
+    last_day = get_last_day_by_month(now)
+    period = u"%s年%s月%s日 ～ %s年%s月%s日" % (first_day.year, first_day.month, first_day.day,
+                                         last_day.year, last_day.month, last_day.day)
+    sheet.Range("POS_WORK_PERIOD").Value = period
+    sheet.Range("POS_REQUEST_DATE").Value = last_day
+    sheet.Range("POS_CONTRACT_NAME").Value = project.name
+    next_month = add_months(now, 1)
+    sheet.Range("POS_REMIT_DATE").Value = get_last_day_by_month(next_month)
+    sheet.Range("POS_PUBLISH_DATE").Value = now
+    sheet.Range("POS_POST_CODE").Value = MARK_POST_CODE + company.post_code
+    sheet.Range("POS_ADDRESS").Value = company.address1 + company.address2
+    sheet.Range("POS_COMPANY_NAME").Value = company.name
+    member = company.get_master()
+    sheet.Range("POS_MASTER").Value = u"%s %s" % (member.first_name, member.last_name) if member else ""
+    sheet.Range("POS_TEL").Value = company.tel
+
+    project_members = project.get_project_members_current_month()
+    members_amount = 0
+    for project_member in project_members:
+        members_amount += project_member.price
+    sheet.Range("POS_MEMBERS_AMOUNT").Value = members_amount
+
+    for i in range(cnt, 0, -1):
+        book.Worksheets(i).Delete()
+    return save_and_close_book(book, DOWNLOAD_REQUEST)
+
+
+def get_excel_template(name):
+    path_file = os.path.join(get_template_folder(), "%s.xls" % (name,))
+    if not os.path.exists(path_file):
+        return None
+
+    xl_app = win32com.client.dynamic.Dispatch(EXCEL_APPLICATION)
+    xl_app.DisplayAlerts = False
+    xl_app.Visible = 0
+    book = xl_app.Workbooks.Open(path_file)
+    return book
+
+
+def get_new_book():
+    xl_app = win32com.client.dynamic.Dispatch(EXCEL_APPLICATION)
+    xl_app.DisplayAlerts = False
+    xl_app.Visible = 0
+    book = xl_app.Workbooks.Add()
+    return book
+
+
+def get_template_folder():
+    path_root = os.path.dirname(os.path.abspath(__file__))
+    path_folder = os.path.join(path_root, "templates")
+    return path_folder
+
+
+def save_and_close_book(book, name):
+    file_folder = get_template_folder()
+    file_name = "tmp_%s_%s.xls" % (name, datetime.datetime.now().strftime("%Y%m%d_%H%M%S%f"))
+    path = os.path.join(file_folder, file_name)
+    # 保存
+    book.SaveAs(path, FileFormat=EXCEL_FORMAT_EXCEL2003)
+    return path
 
 
 if __name__ == "__main__":

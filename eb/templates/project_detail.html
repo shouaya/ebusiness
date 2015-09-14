@@ -7,6 +7,7 @@
     <div class="dashboard">
         <div class="dashboard-title">なにをしたいのですか？</div>
         <form action="" method="get">
+            <a href="?download=request" target="_blank" class="button">請求書生成</a>
             <a href="/admin/eb/project/{{ project.id }}/" target="_blank" class="button">案件を編集</a>
         </form>
     </div>
@@ -39,14 +40,14 @@
         </tr>
         <tr>
             <th>アサイン人数</th>
-            <td><a href="{% url 'project_members' project.project_id %}">{{ project.get_project_members.count }}</a></td>
+            <td><a href="{% url 'project_members' project.pk %}">{{ project.get_project_members.count }}</a></td>
             <th>状態</th>
             <td>
-                {% ifequal project.status.id 1 %}
-                    <span class="red">{{ project.status.name }}</span>
-                    <a href="{% url 'recommended_member' project.project_id %}" class="right">推薦されるメンバーズ</a>
+                {% ifequal project.status 1 %}
+                    <span class="red">{{ project.get_status_display }}</span>
+                    <a href="{% url 'recommended_member' project.pk %}" class="right">推薦されるメンバーズ</a>
                 {% else %}
-                    {{ project.status.name }}
+                    {{ project.get_status_display }}
                 {% endifequal %}
             </td>
         </tr>
@@ -54,7 +55,7 @@
     <div class="dashboard">
         <div class="dashboard-title">営業活動</div>
         <form action="" method="get">
-            <a href="/admin/eb/projectactivity/add/?project_id={{ project.project_id }}"
+            <a href="/admin/eb/projectactivity/add/?project_id={{ project.pk }}"
                target="_blank" class="button">活動を追加</a>
         </form>
     </div>
@@ -83,7 +84,7 @@
             {% for project_activity in project.projectactivity_set.all %}
                 <tr class="{% cycle 'row1' 'row2' %}">
                     <td>{{ project_activity.name }}</td>
-                    <td>{{ project_activity.open_date|date:"Y-m-d h:i" }}</td>
+                    <td>{{ project_activity.open_date|date:"Y-m-d H:i" }}</td>
                     <td>{{ project_activity.address }}</td>
                     <td>{{ project_activity.content }}</td>
                     <td>
@@ -91,10 +92,10 @@
                             {{ client_member.name }},
                         {% endfor %}
                         {% for salesperson in project_activity.salesperson.all %}
-                            {{ salesperson.name }},
+                            {{ salesperson }},
                         {% endfor %}
                         {% for member in project_activity.members.all %}
-                            {{ member.name }},
+                            {{ member }},
                         {% endfor %}
                     </td>
                     <td class="center">
@@ -103,7 +104,7 @@
                 </tr>
             {% endfor %}
         {% else %}
-            <tr class="row1"><td colspan="5" class="center red">まだ何の活動情報もありません。</td></tr>
+            <tr class="row1"><td colspan="6" class="center red">まだ何の活動情報もありません。</td></tr>
         {% endif %}
     </table>
 {% endblock %}

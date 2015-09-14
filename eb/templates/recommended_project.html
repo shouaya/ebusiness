@@ -8,7 +8,7 @@
         <table class="detail" cellpadding="0" cellspacing="0">
             <tr>
                 <th style="width: 100px;">名前：</th>
-                <td>{{ member.name }}</td>
+                <td>{{ member }}</td>
             </tr>
             <tr>
                 <th valign="top">推薦理由：</th>
@@ -19,7 +19,7 @@
                             {{ skill.name }},
                         {% endfor %}
                     {% else %}
-                        履歴が未入力なのか、かつてやった案件がないか、<br/>
+                        履歴が未入力なのか、又はかつてやった案件がないので、<br/>
                         推薦できる案件がありません。
                     {% endif %}
                 </td>
@@ -38,7 +38,7 @@
         {% if projects %}
             {% for project in projects %}
                 <tr class="{% cycle 'row1' 'row2' %}">
-                    <td><a href="{% url 'project_detail' project.project_id %}">{{ project.name }}</a></td>
+                    <td><a href="{% url 'project_detail' project.pk %}">{{ project.name }}</a></td>
                     <td>{{ project.client.name }}</td>
                     <td>
                         {% for skill in project.skills.all %}
@@ -46,9 +46,9 @@
                         {% endfor %}
                     </td>
                     <td>{{ project.salesperson }}</td>
-                    <td class="center"><a href="{% url 'project_members' project.project_id %}">{{ project.get_project_members.count }}</a></td>
+                    <td class="center"><a href="{% url 'project_members' project.pk %}">{{ project.get_project_members.count }}</a></td>
                     <td class="center">
-                        <a href="/admin/eb/projectmember/add/?project_id={{ project.project_id }}&employee_id={{ member.employee_id }}"
+                        <a href="/admin/eb/projectmember/add/?project_id={{ project.pk }}&employee_id={{ member.employee_id }}"
                            target="_blank">アサイン</a>
                     </td>
                 </tr>

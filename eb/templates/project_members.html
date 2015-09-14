@@ -20,7 +20,7 @@
                 <option value="waiting">待機</option>
             </select>
             <input type="submit" value="Filter" />
-            <a href="/admin/eb/projectmember/add/?project_id={{ project.project_id }}"
+            <a href="/admin/eb/projectmember/add/?project_id={{ project.pk }}"
                target="_blank" class="button">要員をアサイン</a>
         </form>
     </div>
@@ -29,16 +29,16 @@
             <tr>
                 <th>案件名称</th>
                 <th>
-                    {% if dict_order.member__name.is_in_ordering %}
+                    {% if dict_order.member__first_name.is_in_ordering %}
                         <div class="sortoptions">
-                            <a class="sortremove" href="?o={{ dict_order.member__name.url_list_removed }}{{ params }}"></a>
-                            <span class="sortpriority">{{ dict_order.member__name.priority }}</span>
-                            <a class="{% if dict_order.member__name.is_asc %}descending{% else %}ascending{% endif %}"
-                               href="?o={{ dict_order.member__name.url }}{{ params }}"></a>
+                            <a class="sortremove" href="?o={{ dict_order.member__first_name.url_list_removed }}{{ params }}"></a>
+                            <span class="sortpriority">{{ dict_order.member__first_name.priority }}</span>
+                            <a class="{% if dict_order.member__first_name.is_asc %}descending{% else %}ascending{% endif %}"
+                               href="?o={{ dict_order.member__first_name.url }}{{ params }}"></a>
                         </div>
                     {% endif %}
                     <div class="text">
-                        <a href="?o={{ dict_order.member__name.url }}{{ params }}">名称</a>
+                        <a href="?o={{ dict_order.member__first_name.url }}{{ params }}">名称</a>
                     </div>
                     <div class="clear"></div>
                 </th>
@@ -93,9 +93,9 @@
             {% if project_members %}
                 {% for project_member in project_members %}
                     <tr class="{% cycle 'row1' 'row2' %}">
-                        <td><a href="{% url 'project_detail' project.project_id %}">{{ project_member.project.name }}</a></td>
-                        <td>{{ project_member.member.name }}</td>
-                        <td>{{ project_member.member.section.name }}</td>
+                        <td><a href="{% url 'project_detail' project.pk%}">{{ project_member.project }}</a></td>
+                        <td>{{ project_member.member }}</td>
+                        <td>{{ project_member.member.section }}</td>
                         <td class="center">
                             {% if project_member.member.get_project_end_date %}
                                 <img width="12px" src="/static/img/icon-normal.png"/>

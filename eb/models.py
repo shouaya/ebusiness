@@ -39,6 +39,8 @@ DEGREE_TYPE = ((1, u"小・中学校"),
                (6, u"大学学部"),
                (7, u"大学大学院"))
 MEMBER_TYPE = ((0, u"正社員"), (1, u"契約社員"), (3, u"派遣社員"), (4, u"個人事業主"))
+PROJECT_ROLE = ((1, u"ＰＧ"), (2, u"ＳＥ"), (3, u"ＢＳＥ"), (4, u"ＰＬ"), (5, u"ＰＭ"))
+POSITION = ((1, u"代表取締役"), (2, u"社長"), (3, u"取締役"), (4, u"部長"), (5, u"担当部長"), (6, u"課長"), (7, u"担当課長"))
 
 
 class AbstractCompany(models.Model):
@@ -133,6 +135,14 @@ class Company(AbstractCompany):
     def get_project_count(self):
         return Project.objects.all().count()
 
+    def get_master(self):
+        # 代表取締役を取得する。
+        position = PositionShip.objects.filter(position=1)
+        if position.count() == 1:
+            return position[0].member
+        else:
+            return None
+
 
 class Subcontractor(AbstractCompany):
     president = models.CharField(blank=True, null=True, max_length=30, verbose_name=u"代表者名")
@@ -179,7 +189,6 @@ class Salesperson(AbstractMember):
 class Member(AbstractMember):
     salesperson = models.ForeignKey(Salesperson, blank=True, null=True, verbose_name=u"営業員")
     subcontractor = models.ForeignKey(Subcontractor, blank=True, null=True, verbose_name=u"協力会社")
-    position = models.ManyToManyField('Position', through='PositionShip', verbose_name=u"職位")
 
     class Meta:
         ordering = ['first_name', 'last_name']
@@ -220,40 +229,29 @@ class Member(AbstractMember):
 
     def get_recommended_projects(self):
         skill_list = self.get_skill_list()
-        skill_name_list = [str(skill.name) for skill in skill_list]
+        skill_id_list = [str(skill.pk) for skill in skill_list]
         query_set = Member.objects.raw(u"SELECT DISTINCT P.*"
                                        u"  FROM EB_MEMBER M"
                                        u"  JOIN EB_PROJECTMEMBER PM ON M.ID = PM.MEMBER_ID"
                                        u"  JOIN EB_PROJECT P ON P.ID = PM.PROJECT_ID"
                                        u"  JOIN EB_PROJECTSKILL PS ON PS.PROJECT_ID = P.ID"
                                        u"  JOIN EB_SKILL S ON S.ID = PS.SKILL_ID"
-                                       u" WHERE S.NAME IN %s"
-                                       u"   AND P.STATUS <= 3" % (str(tuple(skill_name_list)),))
+                                       u" WHERE S.ID IN (%s)"
+                                       u"   AND P.STATUS <= 3" % (",".join(skill_id_list),))
         return [project.pk for project in query_set]
-
-
-class Position(models.Model):
-    name = models.CharField(max_length=20, verbose_name=u"名称")
-
-    class Meta:
-        ordering = ['pk']
-        verbose_name = verbose_name_plural = u"職位"
-
-    def __unicode__(self):
-        return self.name
 
 
 class PositionShip(models.Model):
     member = models.ForeignKey(Member, verbose_name=u"社員名")
-    position = models.ForeignKey(Position, verbose_name=u"職位")
+    position = models.IntegerField(blank=True, null=True, choices=POSITION, verbose_name=u"職位")
     section = models.ForeignKey(Section, verbose_name=u"部署")
     is_part_time = models.BooleanField(default=False, verbose_name=u"兼任")
 
     class Meta:
-        verbose_name = verbose_name_plural = u"職位関係"
+        verbose_name = verbose_name_plural = u"職位"
 
     def __unicode__(self):
-        return "%s - %s" % (self.position.name, self.member.name)
+        return "%s - %s %s" % (self.get_position_display(), self.member.first_name, self.member.last_name)
 
 
 class Client(AbstractCompany):
@@ -304,13 +302,11 @@ class Project(models.Model):
     end_date = models.DateField(blank=True, null=True, verbose_name=u"終了日")
     address = models.CharField(blank=True, null=True, max_length=255, verbose_name=u"作業場所")
     status = models.IntegerField(choices=PROJECT_STATUS, verbose_name=u"ステータス")
-    client = models.ForeignKey(Client, blank=True, null=True, verbose_name=u"会社")
+    client = models.ForeignKey(Client, blank=True, null=True, verbose_name=u"関連会社")
     boss = models.ForeignKey(ClientMember, blank=True, null=True, related_name="boss_set", verbose_name=u"案件責任者")
     middleman = models.ForeignKey(ClientMember, blank=True, null=True,
                                   related_name="middleman_set", verbose_name=u"案件連絡者")
     salesperson = models.ForeignKey(Salesperson, blank=True, null=True, verbose_name=u"営業員")
-    project_manager = models.ForeignKey(Member, blank=True, null=True, related_name='pm_set', verbose_name=u"ＰＭ")
-    project_leader = models.ForeignKey(Member, blank=True, null=True, related_name='pl_set', verbose_name=u"ＰＬ")
     members = models.ManyToManyField(Member, through='ProjectMember', blank=True, null=True)
 
     class Meta:
@@ -362,6 +358,12 @@ class Project(models.Model):
         members = list(query_set)
         return members
 
+    def get_project_members_current_month(self):
+        now = datetime.date.today()
+        first_day = datetime.date(now.year, now.month, 1)
+        last_day = common.get_last_day_by_month(now)
+        return self.projectmember_set.filter(start_date__lte=last_day, end_date__gte=first_day)
+
 
 class ProjectActivity(models.Model):
     project = models.ForeignKey(Project, verbose_name=u"案件")
@@ -402,9 +404,10 @@ class ProjectMember(models.Model):
     end_date = models.DateField(blank=True, null=True, verbose_name=u"終了日")
     price = models.IntegerField(null=False, default=0, verbose_name=u"単価")
     status = models.IntegerField(null=False, default=1, choices=ProjectMemberStatus, verbose_name=u"ステータス")
+    role = models.IntegerField(default=1, choices=PROJECT_ROLE, verbose_name=u"役割分担")
 
     class Meta:
         verbose_name = verbose_name_plural = u"案件メンバー"
 
     def __unicode__(self):
-        return "%s - %s" % (self.project.name, self.member.name)
+        return "%s - %s %s" % (self.project.name, self.member.first_name, self.member.last_name)

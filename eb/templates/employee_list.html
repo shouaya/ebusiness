@@ -4,7 +4,8 @@
     <script type="text/javascript">
         window.onload = function() {
             init_select("status");
-            init_select("name");
+            init_select("first_name");
+            init_select("last_name");
             init_select("business_status");
             init_select("salesperson");
         };
@@ -15,7 +16,8 @@
     <div class="dashboard">
         <div class="dashboard-title">なにをしたいのですか？</div>
         <form action="" method="get">
-            <span>名前: </span><input type="text" id="name" name="name" style="width: 100px;"/>
+            <span>姓: </span><input type="text" id="first_name" name="first_name" style="width: 50px;"/>
+            <span>名: </span><input type="text" id="last_name" name="last_name" style="width: 50px;"/>
             <span>稼働状態: </span>
             <select id="status" name="status">
                 <option value="">すべて</option>
@@ -28,7 +30,13 @@
                 <option value="未提案">未提案</option>
                 <option value="営業中">営業中</option>
             </select>
-            <span>営業員: </span><input type="text" id="salesperson" name="salesperson" style="width: 100px;"/>
+            <span>営業員:</span>
+            <select id="salesperson" name="salesperson">
+                <option value="">すべて</option>
+                {% for sales in salesperson %}
+                    <option value="{{ sales.employee_id }}">{{ sales }}</option>
+                {% endfor %}
+            </select>
             <input type="submit" value="Filter" />
             <a href="/admin/eb/member/add/" target="_blank" class="button">要員を追加</a>
         </form>
@@ -37,20 +45,19 @@
         <thead>
             <tr>
                 <th>
-                    {% if dict_order.name.is_in_ordering %}
+                    {% if dict_order.first_name.is_in_ordering %}
                         <div class="sortoptions">
-                            <a class="sortremove" href="?o={{ dict_order.name.url_list_removed }}{{ params }}"></a>
-                            <span class="sortpriority">{{ dict_order.name.priority }}</span>
-                            <a class="{% if dict_order.name.is_asc %}descending{% else %}ascending{% endif %}"
-                               href="?o={{ dict_order.name.url }}{{ params }}"></a>
+                            <a class="sortremove" href="?o={{ dict_order.first_name.url_list_removed }}{{ params }}"></a>
+                            <span class="sortpriority">{{ dict_order.first_name.priority }}</span>
+                            <a class="{% if dict_order.first_name.is_asc %}descending{% else %}ascending{% endif %}"
+                               href="?o={{ dict_order.first_name.url }}{{ params }}"></a>
                         </div>
                     {% endif %}
                     <div class="text">
-                        <a href="?o={{ dict_order.name.url }}{{ params }}">名称</a>
+                        <a href="?o={{ dict_order.first_name.url }}{{ params }}">名前</a>
                     </div>
                     <div class="clear"></div>
                 </th>
-                <th>メールアドレス</th>
                 <th>
                     {% if dict_order.section.is_in_ordering %}
                         <div class="sortoptions">
@@ -65,19 +72,20 @@
                     </div>
                     <div class="clear"></div>
                 </th>
-                <th>稼働状態</th>
+                <th>協力会社</th>
+                <th style="width: 50px;">稼働状態</th>
                 <th style="width: 120px;">リリース予定日</th>
                 <th style="width: 90px;">
-                    {% if dict_order.salesperson__name.is_in_ordering %}
+                    {% if dict_order.salesperson__first_name.is_in_ordering %}
                         <div class="sortoptions">
-                            <a class="sortremove" href="?o={{ dict_order.salesperson__name.url_list_removed }}{{ params }}"></a>
-                            <span class="sortpriority">{{ dict_order.salesperson__name.priority }}</span>
-                            <a class="{% if dict_order.salesperson__name.is_asc %}descending{% else %}ascending{% endif %}"
-                               href="?o={{ dict_order.salesperson__name.url }}{{ params }}"></a>
+                            <a class="sortremove" href="?o={{ dict_order.salesperson__first_name.url_list_removed }}{{ params }}"></a>
+                            <span class="sortpriority">{{ dict_order.salesperson__first_name.priority }}</span>
+                            <a class="{% if dict_order.salesperson__first_name.is_asc %}descending{% else %}ascending{% endif %}"
+                               href="?o={{ dict_order.salesperson__first_name.url }}{{ params }}"></a>
                         </div>
                     {% endif %}
                     <div class="text">
-                        <a href="?o={{ dict_order.salesperson__name.url }}{{ params }}">営業員</a>
+                        <a href="?o={{ dict_order.salesperson__first_name.url }}{{ params }}">営業員</a>
                     </div>
                     <div class="clear"></div>
                 </th>
@@ -90,17 +98,19 @@
             {% if members %}
                 {% for member in members %}
                     <tr class="{% cycle 'row1' 'row2' %}">
-                        <td><a href="{% url 'member_project_list' member.employee_id %}">{{ member.name }}</a></td>
-                        <td><a href="mailto:{{ member.email }}">{{ member.email }}</a></td>
+                        <td>
+                            <a href="{% url 'member_detail' member.employee_id %}">
+                                {{ member.first_name }}&nbsp;{{ member.last_name }}
+                            </a>
+                        </td>
                         <td>
                             {% if member.section %}
                                 <a href="{% url 'section' member.section.name %}">
                                     {{ member.section.name }}
                                 </a>
-                            {% else %}
-                                {{ member.subcontractor }}
                             {% endif %}
                         </td>
+                        <td>{{ member.subcontractor|default:"" }}</td>
                         <td class="center">
                             {% if member.get_project_end_date %}
                                 <a href="?status=working{{ params }}"><img width="12px" src="/static/img/icon-normal.png"/></a>
@@ -115,7 +125,7 @@
                         </td>
                         <td>
                             {% if member.salesperson %}
-                                <a href="?salesperson={{ member.salesperson }}">{{ member.salesperson }}</a>
+                                <a href="?salesperson={{ member.salesperson.employee_id }}">{{ member.salesperson }}</a>
                             {% endif %}
                         </td>
                         <td class="center">

@@ -12,7 +12,7 @@
             </tr>
             <tr>
                 <th>案件状態：</th>
-                <td>{{ project.status.name }}</td>
+                <td>{{ project.get_status_display }}</td>
             </tr>
             <tr>
                 <th>スキル要求：</th>
@@ -43,21 +43,25 @@
                 <th></th>
                 <th></th>
             </tr>
-            {% for member in members %}
-                <tr class="{% cycle 'row1' 'row2' %}">
-                    <td>{{ member.name }}</td>
-                    <td>{{ member.section }}</td>
-                    <td>{{ member.salesperson.name }}</td>
-                    <td>{{ member.get_project_end_date|date:"Y-m-d" }}</td>
-                    <td class="center">
-                        <a href="{% url 'member_project_list' member.employee_id %}?skill={{ skill_name }}">経験した案件</a>
-                    </td>
-                    <td class="center">
-                        <a href="/admin/eb/projectmember/add/?project_id={{ project.project_id }}&employee_id={{ member.employee_id }}"
-                           target="_blank">提案</a>
-                    </td>
-                </tr>
-            {% endfor %}
+            {% if members %}
+                {% for member in members %}
+                    <tr class="{% cycle 'row1' 'row2' %}">
+                        <td>{{ member }}</td>
+                        <td>{{ member.section }}</td>
+                        <td>{{ member.salesperson }}</td>
+                        <td>{{ member.get_project_end_date|date:"Y-m-d" }}</td>
+                        <td class="center">
+                            <a href="{% url 'member_project_list' member.employee_id %}?skill={{ skill_name }}">経験した案件</a>
+                        </td>
+                        <td class="center">
+                            <a href="/admin/eb/projectmember/add/?project_id={{ project.pk }}&employee_id={{ member.employee_id }}"
+                               target="_blank">提案</a>
+                        </td>
+                    </tr>
+                {% endfor %}
+            {% else %}
+                <tr class="row1"><td colspan="6" class="red center">推薦できるメンバーがいません。</td></tr>
+            {% endif %}
         </table>
     {% endfor %}
 {% endblock %}
