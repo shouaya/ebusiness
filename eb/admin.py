@@ -75,6 +75,11 @@ get_full_name.admin_order_field = "first_name"
 
 class CompanyAdmin(admin.ModelAdmin):
 
+    form = forms.CompanyForm
+
+    class Media:
+        js = ('http://ajaxzip3.googlecode.com/svn/trunk/ajaxzip3/ajaxzip3.js',)
+
     def has_delete_permission(self, request, obj=None):
         # 削除禁止
         return False
@@ -107,6 +112,9 @@ class MemberAdmin(admin.ModelAdmin):
     list_filter = ['member_type', 'section', 'subcontractor', 'salesperson']
     search_fields = ['first_name', 'last_name']
 
+    class Media:
+        js = ('http://ajaxzip3.googlecode.com/svn/trunk/ajaxzip3/ajaxzip3.js',)
+
 
 class SalespersonAdmin(admin.ModelAdmin):
 
@@ -134,6 +142,11 @@ class ProjectAdmin(admin.ModelAdmin):
 
 class ClientAdmin(admin.ModelAdmin):
 
+    form = forms.ClientForm
+
+    class Media:
+        js = ('http://ajaxzip3.googlecode.com/svn/trunk/ajaxzip3/ajaxzip3.js',)
+
     def has_delete_permission(self, request, obj=None):
         # 削除禁止
         return False
@@ -147,9 +160,10 @@ class ClientMemberAdmin(admin.ModelAdmin):
 class ProjectMemberAdmin(admin.ModelAdmin):
 
     form = forms.ProjectMemberAdminForm
-    search_fields = ['project__name']
+    search_fields = ['project__name', 'member__first_name', 'member__last_name']
 
     list_display = ['project', 'display_project_client', 'member', 'start_date', 'end_date', 'status']
+    list_display_links = ['member']
     list_filter = ['project__client', 'status']
 
     def display_project_client(self, obj):

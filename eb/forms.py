@@ -4,9 +4,47 @@ Created on 2015/08/26
 
 @author: Yang Wanjun
 """
+import re
 import models
 
 from django import forms
+
+
+class CompanyForm(forms.ModelForm):
+    class Meta:
+        models = models.Company
+        fields = ['name', 'japanese_spell', 'found_date', 'capital', 'post_code', 'address1', 'address2', 'tel', 'fax']
+
+    post_code = forms.CharField(max_length=7,
+                                widget=forms.TextInput(
+                                    attrs={'onKeyUp': "AjaxZip3.zip2addr(this,'','address1','address1');"}),
+                                label=u"郵便番号",
+                                required=False)
+
+    def clean(self):
+        cleaned_data = super(CompanyForm, self).clean()
+        post_code = cleaned_data.get("post_code")
+        if post_code and not re.match(r"^\d{7}$", post_code):
+            self.add_error('post_code', u"正しい郵便番号を入力してください。")
+
+
+class ClientForm(forms.ModelForm):
+    class Meta:
+        models = models.Company
+        fields = ['name', 'japanese_spell', 'found_date', 'capital', 'post_code', 'address1', 'address2', 'tel', 'fax',
+                  'president', 'employee_count', 'sale_amount', 'payment_type', 'payment_day', 'comment', ]
+
+    post_code = forms.CharField(max_length=7,
+                                widget=forms.TextInput(
+                                    attrs={'onKeyUp': "AjaxZip3.zip2addr(this,'','address1','address1');"}),
+                                label=u"郵便番号",
+                                required=False)
+
+    def clean(self):
+        cleaned_data = super(ClientForm, self).clean()
+        post_code = cleaned_data.get("post_code")
+        if post_code and not re.match(r"^\d{7}$", post_code):
+            self.add_error('post_code', u"正しい郵便番号を入力してください。")
 
 
 class SectionForm(forms.ModelForm):
@@ -25,12 +63,20 @@ class MemberForm(forms.ModelForm):
                   'degree', 'email', 'post_code', 'address1', 'address2', 'phone', 'salesperson',
                   'member_type', 'section', 'company', 'subcontractor']
 
+    post_code = forms.CharField(max_length=7,
+                                widget=forms.TextInput(
+                                    attrs={'onKeyUp': "AjaxZip3.zip2addr(this,'','address1','address1');"}),
+                                label=u"郵便番号",
+                                required=False)
+
     def clean(self):
         cleaned_data = super(MemberForm, self).clean()
         member_type = cleaned_data.get("member_type")
         company = cleaned_data.get("company")
-        section = cleaned_data.get("section")
         subcontractor = cleaned_data.get("subcontractor")
+        post_code = cleaned_data.get("post_code")
+        if post_code and not re.match(r"^\d{7}$", post_code):
+            self.add_error('post_code', u"正しい郵便番号を入力してください。")
         if member_type == 3:
             # 派遣社員の場合
             if not subcontractor:
@@ -38,8 +84,6 @@ class MemberForm(forms.ModelForm):
         else:
             if not company:
                 self.add_error('company', u"派遣社員以外の場合、会社を選択してください。")
-            if not section:
-                self.add_error('section', u"派遣社員以外の場合、部署を選択してください。")
 
         if company and subcontractor:
             self.add_error('company', u"会社と協力会社が同時に選択されてはいけません。")

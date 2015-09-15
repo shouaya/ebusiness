@@ -6,9 +6,8 @@ Created on 2015/08/21
 """
 import datetime
 import re
-import io
-import os
 import xlwt
+import urllib
 
 import common
 
@@ -164,7 +163,10 @@ def project_list(request):
                                               'middleman__name'])
     order_list = common.get_ordering_list(o)
 
-    projects = Project.objects.all()
+    if download == common.DOWNLOAD_BUSINESS_PLAN:
+        projects = Project.objects.filter(status=4)
+    else:
+        projects = Project.objects.all()
 
     if salesperson:
         salesperson_obj = Salesperson.objects.get(employee_id=salesperson)
@@ -184,46 +186,11 @@ def project_list(request):
         projects = [project for project in projects if client in project.client.name]
         params += "&client=%s" % (client,)
 
-    if download == "download":
-        output = io.BytesIO()
-        wb = xlwt.Workbook()
-        is_save = False
-        for project in projects:
-            project_members = project.projectmember_set.all()  # start_date__lte=now, end_date__gte=now
-            if project_members.count() > 0:
-                is_save = True
-                ws = wb.add_sheet(project.name)
-                ws.write(2, 1, u"案件名称")
-                ws.write(2, 2, project.name)
-                ws.write(2, 3, u"関連会社")
-                ws.write(2, 4, project.client.name)
-                ws.write(3, 1, u"営業員")
-                ws.write(3, 2, project.salesperson.name)
-                ws.write(4, 1, u"顧客責任者")
-                ws.write(4, 2, project.boss.name)
-                ws.write(4, 3, u"顧客連絡者")
-                ws.write(4, 4, project.middleman.name)
-                ws.write(5, 1, u"案件概要")
-                ws.write(5, 2, project.description)
-
-                # テーブル構造
-                ws.write(9, 1, u"名前")
-                ws.write(9, 2, u"開始日")
-                ws.write(9, 3, u"終了日")
-                ws.write(9, 4, u"単価")
-                for i, project_member in enumerate(project_members):
-                    ws.write(i + 10, 1, project_member.member)
-                    if project_member.start_date:
-                        ws.write(i + 10, 2, project_member.start_date.strftime("%Y-%m-%d"))
-                    if project_member.end_date:
-                        ws.write(i + 10, 3, project_member.end_date.strftime("%Y-%m-%d"))
-                    ws.write(i + 10, 4, project_member.price)
-        if is_save:
-            wb.save(output)
-
-        filename = "案件情報_%s.xls" % (datetime.datetime.now().strftime("%Y%m%d_%H%M%S"),)
-        response = HttpResponse(output.getvalue(), content_type="application/excel")
-        response['Content-Disposition'] = "filename=" + filename
+    if download == common.DOWNLOAD_BUSINESS_PLAN:
+        filename = common.NAME_BUSINESS_PLAN % (datetime.date.today().month,)
+        output = common.generate_business_plan(projects, filename)
+        response = HttpResponse(output.read(), content_type="application/ms-excel")
+        response['Content-Disposition'] = "filename=" + urllib.quote(filename.encode('utf-8')) + ".xlsx"
         return response
     else:
         context = RequestContext(request, {
@@ -247,7 +214,7 @@ def project_detail(request, project_id):
         now = datetime.datetime.now()
         filename = "請求書（%s年%02s月）.xls" % (now.year, now.month)
         response = HttpResponse(open(path, 'rb'), content_type="application/excel")
-        response['Content-Disposition'] = "filename=" + filename
+        response['Content-Disposition'] = "filename=" + urllib.quote(filename)
         return response
     else:
         context = RequestContext(request, {

@@ -4,11 +4,13 @@ Created on 2015/08/25
 
 @author: Yang Wanjun
 """
-import io
 import os
 import re
+import sys
 import datetime
 import calendar
+import xlsxwriter
+import StringIO
 
 import pythoncom
 import win32com.client
@@ -16,10 +18,12 @@ import win32com.client
 
 EXCEL_APPLICATION = "Excel.Application"
 EXCEL_FORMAT_EXCEL2003 = 56
+NAME_BUSINESS_PLAN = u"%02d月営業企画"
 
 MARK_POST_CODE = u"〒"
 
 DOWNLOAD_REQUEST = "request"
+DOWNLOAD_BUSINESS_PLAN = "business_plan"
 
 
 def add_months(source_date, months=1):
@@ -245,8 +249,165 @@ def save_and_close_book(book, name):
     return path
 
 
+def generate_business_plan(projects, filename):
+    # create a workbook in memory
+    output = StringIO.StringIO()
+    row = 1
+    col = 1
+
+    book = xlsxwriter.Workbook(output)
+    sheet = book.add_worksheet()
+    # 見出しを書き込む
+    title_format = book.add_format({'bold': True,
+                                    'font_color': 'white',
+                                    'bg_color': '#8db4e2',
+                                    'border': 1})
+    sheet.write(row + 1, col, u"顧客", title_format)
+    sheet.set_column(get_excel_col_entire(col), 11)
+    sheet.write(row + 1, col + 1, u"窓口", title_format)
+    sheet.set_column(get_excel_col_entire(col + 1), 11)
+    sheet.write(row + 1, col + 2, u"現場", title_format)
+    sheet.set_column(get_excel_col_entire(col + 2), 11)
+    sheet.write(row + 1, col + 3, u"部門", title_format)
+    sheet.set_column(get_excel_col_entire(col + 3), 12)
+    sheet.write(row + 1, col + 4, u"リーダー", title_format)
+    sheet.set_column(get_excel_col_entire(col + 4), 12)
+    sheet.write(row + 1, col + 5, u"メンバー", title_format)
+    sheet.set_column(get_excel_col_entire(col + 5), 12)
+    sheet.write(row + 1, col + 6, u"所属", title_format)
+    sheet.set_column(get_excel_col_entire(col + 6), 6)
+    sheet.write(row + 1, col + 7, u"入場時期", title_format)
+    sheet.set_column(get_excel_col_entire(col + 7), 16)
+    sheet.write(row + 1, col + 8, u"終了予定", title_format)
+    sheet.set_column(get_excel_col_entire(col + 8), 16)
+    sheet.write(row + 1, col + 9, u"現状・確認点", title_format)
+    sheet.set_column(get_excel_col_entire(col + 9), 12)
+    sheet.write(row + 1, col + 10, u"担当", title_format)
+    sheet.set_column(get_excel_col_entire(col + 10), 12)
+    sheet.write(row + 1, col + 11, u"進み状況", title_format)
+    sheet.set_column(get_excel_col_entire(col + 11), 12)
+    sheet.write(row + 1, col + 12, u"解決", title_format)
+    sheet.set_column(get_excel_col_entire(col + 12), 12)
+
+    # 詳細を書き込む
+    cell_format = book.add_format({'bold': True,
+                                   'border': 1})
+    bp_format = book.add_format({'bold': True,
+                                 'bg_color': 'yellow',
+                                 'border': 1})
+    date_format = book.add_format({'num_format': u'yyyy年mm月dd日',
+                                   'bold': True,
+                                   'border': 1})
+    i = 0
+    for project in projects:
+        if project.members.all().count() == 0:
+            continue
+        sheet.write(row + 2 + i, col + 0, project.name, cell_format)
+        sheet.write(row + 2 + i, col + 1, project.middleman.name, cell_format)
+        sheet.write(row + 2 + i, col + 2, project.address, cell_format)
+        first_project_member = project.get_first_project_member()
+        sheet.write(row + 2 + i, col + 3, first_project_member.member.section.name, cell_format)
+        member_name = first_project_member.member.__unicode__()
+        position_ship = first_project_member.member.get_position_ship()
+        member_name = u"%s(%s)" % (member_name, position_ship.get_position_display()) if position_ship else member_name
+        if first_project_member.role >= 4:
+            sheet.write(row + 2 + i, col + 4, member_name,
+                        bp_format if first_project_member.member.subcontractor else cell_format)
+            sheet.write(row + 2 + i, col + 5, "", cell_format)
+        else:
+            sheet.write(row + 2 + i, col + 4, "", cell_format)
+            sheet.write(row + 2 + i, col + 5, member_name,
+                        bp_format if first_project_member.member.subcontractor else cell_format)
+        if first_project_member.member.subcontractor:
+            sheet.write(row + 2 + i, col + 6, "BP", bp_format)
+        else:
+            sheet.write(row + 2 + i, col + 6, "", cell_format)
+        sheet.write_datetime(row + 2 + i, col + 7, first_project_member.start_date, date_format)
+        sheet.write_datetime(row + 2 + i, col + 8, first_project_member.end_date, date_format)
+        sheet.write(row + 2 + i, col + 9, "", cell_format)
+        sheet.write(row + 2 + i, col + 10, "", cell_format)
+        sheet.write(row + 2 + i, col + 11, "", cell_format)
+        sheet.write(row + 2 + i, col + 12, "", cell_format)
+        i += 1
+
+        for project_member in project.get_working_project_members():
+            if project_member.pk == first_project_member.pk:
+                continue
+            sheet.write(row + 2 + i, col + 0, "", cell_format)
+            sheet.write(row + 2 + i, col + 1, "", cell_format)
+            sheet.write(row + 2 + i, col + 2, "", cell_format)
+            sheet.write(row + 2 + i, col + 3, project_member.member.section.name, cell_format)
+            member_name = project_member.member.__unicode__()
+            position_ship = project_member.member.get_position_ship()
+            member_name = u"%s(%s)" % (member_name, position_ship.get_position_display()) if position_ship else member_name
+            if project_member.role >= 4:
+                sheet.write(row + 2 + i, col + 4, member_name,
+                            bp_format if project_member.member.subcontractor else cell_format)
+                sheet.write(row + 2 + i, col + 5, "", cell_format)
+            else:
+                sheet.write(row + 2 + i, col + 4, "", cell_format)
+                sheet.write(row + 2 + i, col + 5, member_name,
+                            bp_format if project_member.member.subcontractor else cell_format)
+            if project_member.member.subcontractor:
+                sheet.write(row + 2 + i, col + 6, "BP", bp_format)
+            else:
+                sheet.write(row + 2 + i, col + 6, "", cell_format)
+            sheet.write_datetime(row + 2 + i, col + 7, project_member.start_date, date_format)
+            sheet.write_datetime(row + 2 + i, col + 8, project_member.end_date, date_format)
+            sheet.write(row + 2 + i, col + 9, "", cell_format)
+            sheet.write(row + 2 + i, col + 10, "", cell_format)
+            sheet.write(row + 2 + i, col + 11, "", cell_format)
+            sheet.write(row + 2 + i, col + 12, "", cell_format)
+            i += 1
+
+    # ページ設定
+    sheet.set_landscape()
+    sheet.set_paper(9)
+    sheet.set_header('&L' + filename)
+    sheet.set_margins(0, 0, 0.3, 0.1)
+    sheet.set_print_scale(80)
+
+    book.close()
+    output.seek(0)
+    return output
+
+
+def get_excel_col_by_index(col):
+    # col は０から
+    if (col + 65 >= 65) and (col + 65 <= 90):
+        return chr(col + 65)
+
+
+def get_excel_col_entire(col):
+    c = get_excel_col_by_index(col)
+    return "%s:%s" % (c, c)
+
+
+def line_counter():
+
+    def get_line_count(p):
+        cnt = 0
+        if os.path.exists(p):
+            for line in open(p, 'r'):
+                if not re.match(r"^\s*#", line) and not re.match(r"^\s*$", line):
+                    cnt += 1
+        return cnt
+
+    path = os.path.abspath(os.path.dirname(os.path.dirname(sys.argv[0])))
+    all_count = 0
+    for root, dirs, files in os.walk(path):
+        for f in files:
+            name, ext = os.path.splitext(f)
+            path_file = os.path.join(root, f)
+            if ext == ".py" and os.path.dirname(path_file).split("\\")[-1] != "migrations":
+                count = get_line_count(path_file)
+                all_count += count
+                print path_file.ljust(80), count
+    print "Total line count: %s" % (all_count,)
+
+
 if __name__ == "__main__":
     # ls = get_ordering_list("-name.age.-second", "-aaa_3")
     # print ".".join(ls)
 
-    print get_ordering_dict("name", ['name', 'first'])
+    line_counter()

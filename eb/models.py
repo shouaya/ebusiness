@@ -48,7 +48,7 @@ class AbstractCompany(models.Model):
     japanese_spell = models.CharField(blank=True, null=True, max_length=30, verbose_name=u"フリカナ")
     found_date = models.DateField(blank=True, null=True, verbose_name=u"設立年月日")
     capital = models.BigIntegerField(blank=True, null=True, verbose_name=u"資本金")
-    post_code = models.CharField(blank=True, null=True, max_length=8, verbose_name=u"郵便番号")
+    post_code = models.CharField(blank=True, null=True, max_length=7, verbose_name=u"郵便番号")
     address1 = models.CharField(blank=True, null=True, max_length=200, verbose_name=u"住所１")
     address2 = models.CharField(blank=True, null=True, max_length=200, verbose_name=u"住所２")
     tel = models.CharField(blank=True, null=True, max_length=15, verbose_name=u"電話番号")
@@ -73,7 +73,7 @@ class AbstractMember(models.Model):
     graduate_date = models.DateField(blank=True, null=True, verbose_name=u"卒業年月日")
     degree = models.IntegerField(blank=True, null=True, choices=DEGREE_TYPE, verbose_name=u"学歴")
     email = models.EmailField(blank=False, null=False, verbose_name=u"メールアドレス")
-    post_code = models.CharField(blank=True, null=True, max_length=8, verbose_name=u"郵便番号")
+    post_code = models.CharField(blank=True, null=True, max_length=7, verbose_name=u"郵便番号")
     address1 = models.CharField(blank=True, null=True, max_length=200, verbose_name=u"住所１")
     address2 = models.CharField(blank=True, null=True, max_length=200, verbose_name=u"住所２")
     phone = models.CharField(blank=True, null=True, max_length=11, verbose_name=u"電話番号")
@@ -240,6 +240,24 @@ class Member(AbstractMember):
                                        u"   AND P.STATUS <= 3" % (",".join(skill_id_list),))
         return [project.pk for project in query_set]
 
+    def get_position_ship(self):
+        """該当メンバーの職位を取得する。
+
+        Arguments：
+          なし
+
+        Returns：
+          Position のインスタンス
+
+        Raises：
+          なし
+        """
+        positions = self.positionship_set.filter(is_part_time=False)
+        if positions.count() > 0:
+            return positions[0]
+        else:
+            return None
+
 
 class PositionShip(models.Model):
     member = models.ForeignKey(Member, verbose_name=u"社員名")
@@ -359,6 +377,37 @@ class Project(models.Model):
         return members
 
     def get_project_members_current_month(self):
+        now = datetime.date.today()
+        first_day = datetime.date(now.year, now.month, 1)
+        last_day = common.get_last_day_by_month(now)
+        return self.projectmember_set.filter(start_date__lte=last_day, end_date__gte=first_day)
+
+    def get_first_project_member(self):
+        """営業企画書を出すとき、1つ目に表示するメンバー。
+
+        Arguments：
+          なし
+
+        Returns：
+          Member のインスタンス
+
+        Raises：
+          なし
+        """
+        now = datetime.date.today()
+        first_day = datetime.date(now.year, now.month, 1)
+        last_day = common.get_last_day_by_month(now)
+        project_members = self.projectmember_set.filter(start_date__lte=last_day, end_date__gte=first_day, role=5)
+        if project_members.count() == 0:
+            project_members = self.projectmember_set.filter(start_date__lte=last_day, end_date__gte=first_day, role=4)
+        if project_members.count() == 0:
+            project_members = self.projectmember_set.filter(start_date__lte=last_day, end_date__gte=first_day)
+        if project_members.count() > 0:
+            return project_members[0]
+        else:
+            return None
+
+    def get_working_project_members(self):
         now = datetime.date.today()
         first_day = datetime.date(now.year, now.month, 1)
         last_day = common.get_last_day_by_month(now)
