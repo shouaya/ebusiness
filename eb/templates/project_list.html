@@ -3,10 +3,10 @@
 {% block header %}
     <script type="text/javascript">
         window.onload = function() {
-            init_select("status");
             init_select("name");
             init_select("client");
             init_select("salesperson");
+            init_select("status");
         };
     </script>
 {% endblock %}
@@ -135,7 +135,7 @@
                     </tr>
                 {% endfor %}
             {% else %}
-                <tr class="row2"><td class="center red" colspan="9">該当する案件がありません。</td></tr>
+                <tr class="row1"><td class="center red" colspan="9">該当する案件がありません。</td></tr>
             {% endif %}
         </tbody>
         <tfoot>

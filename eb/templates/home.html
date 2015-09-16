@@ -45,17 +45,21 @@
             </tr>
             <tr class="row2">
                 <th>案件数:</th>
-                <td class="num" colspan="5"><a href="{% url 'project_list' %}">{{ company.get_project_count }}</a></td>
+                <td class="num" colspan="5"><a href="{% url 'project_list' %}">{{ company.get_projects.count }}</a></td>
             </tr>
             <tr class="row2">
-                {% for status, d in project_status_list %}
-                    {% if d.rtn %}
-                        </tr>
-                        <tr class="row2">
-                    {% endif %}
-                    <th>{{ status }}:</th>
-                    <td class="num"><a href="{% url 'project_list' %}?status={{ status }}">{{ d.cnt }}</a></td>
-                {% endfor %}
+                <th>提案中:</th>
+                <td class="num"><a href="{% url 'project_list' %}?status=1">{{ company.get_proposal_projects.count }}</a></td>
+                <th>予算審査:</th>
+                <td class="num"><a href="{% url 'project_list' %}?status=2">{{ company.get_examination_projects.count }}</a></td>
+                <th>予算確定:</th>
+                <td class="num"><a href="{% url 'project_list' %}?status=3">{{ company.get_confirmed_projects.count }}</a></td>
+            </tr>
+            <tr>
+                <th>実施中:</th>
+                <td class="num"><a href="{% url 'project_list' %}?status=4">{{ company.get_working_projects.count }}</a></td>
+                <th>完了:</th>
+                <td class="num"><a href="{% url 'project_list' %}?status=5">{{ company.get_finished_projects.count }}</a></td>
             </tr>
         </table>
     </div>

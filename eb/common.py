@@ -302,7 +302,7 @@ def generate_business_plan(projects, filename):
     for project in projects:
         if project.members.all().count() == 0:
             continue
-        sheet.write(row + 2 + i, col + 0, project.name, cell_format)
+        sheet.write(row + 2 + i, col + 0, project.client.name, cell_format)
         sheet.write(row + 2 + i, col + 1, project.middleman.name, cell_format)
         sheet.write(row + 2 + i, col + 2, project.address, cell_format)
         first_project_member = project.get_first_project_member()

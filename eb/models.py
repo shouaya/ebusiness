@@ -110,15 +110,15 @@ class Company(AbstractCompany):
                                        "                     FROM EB_PROJECTMEMBER PM"
                                        "                    WHERE PM.MEMBER_ID = M.ID"
                                        "                      AND PM.START_DATE <= %s"
-                                       "                      AND PM.END_DATE >= %s)", [now, now])
+                                       "                      AND PM.END_DATE >= %s)"
+                                       "   AND M.SECTION_ID IS NOT NULL", [now, now])
         return list(query_set)
 
     def get_release_members_by_month(self, date):
         date_first_day = datetime.date(date.year, date.month, 1)
         next_month = common.add_months(date, 1)
         date_next_month = datetime.date(next_month.year, next_month.month, 1)
-        return ProjectMember.objects.filter(start_date__lte=datetime.date.today(),
-                                            end_date__gte=date_first_day,
+        return ProjectMember.objects.filter(end_date__gte=date_first_day,
                                             end_date__lt=date_next_month)
 
     def get_release_current_month(self):
@@ -132,8 +132,92 @@ class Company(AbstractCompany):
         next_2_month = common.add_months(datetime.date.today(), 2)
         return self.get_release_members_by_month(next_2_month)
 
-    def get_project_count(self):
-        return Project.objects.all().count()
+    def get_projects(self, status=0):
+        """ステータスによって、該当する全ての案件を取得する。
+
+        Arguments：
+          status: 案件の状態
+
+        Returns：
+          案件のリスト
+
+        Raises：
+          なし
+        """
+        if status == 0:
+            return Project.objects.all()
+        else:
+            return Project.objects.filter(status=status)
+
+    def get_proposal_projects(self):
+        """提案中の案件を取得する。
+
+        Arguments：
+          なし
+
+        Returns：
+          案件のリスト
+
+        Raises：
+          なし
+        """
+        return self.get_projects(1)
+
+    def get_examination_projects(self):
+        """予算審査中の案件を取得する。
+
+        Arguments：
+          なし
+
+        Returns：
+          案件のリスト
+
+        Raises：
+          なし
+        """
+        return self.get_projects(2)
+
+    def get_confirmed_projects(self):
+        """予算確定の案件を取得する。
+
+        Arguments：
+          なし
+
+        Returns：
+          案件のリスト
+
+        Raises：
+          なし
+        """
+        return self.get_projects(3)
+
+    def get_working_projects(self):
+        """実施中の案件を取得する。
+
+        Arguments：
+          なし
+
+        Returns：
+          案件のリスト
+
+        Raises：
+          なし
+        """
+        return self.get_projects(4)
+
+    def get_finished_projects(self):
+        """終了の案件を取得する。
+
+        Arguments：
+          なし
+
+        Returns：
+          案件のリスト
+
+        Raises：
+          なし
+        """
+        return self.get_projects(5)
 
     def get_master(self):
         # 代表取締役を取得する。

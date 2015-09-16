@@ -124,6 +124,9 @@ class SalespersonAdmin(admin.ModelAdmin):
     search_fields = ['first_name', 'last_name']
     list_filter = ['section']
 
+    class Media:
+        js = ('http://ajaxzip3.googlecode.com/svn/trunk/ajaxzip3/ajaxzip3.js',)
+
     def get_form(self, request, obj=None, **kwargs):
         form = super(SalespersonAdmin, self).get_form(request, obj, **kwargs)
         company = Company.objects.all()[0]

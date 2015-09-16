@@ -100,6 +100,18 @@ class SalespersonForm(forms.ModelForm):
                   'degree', 'email', 'post_code', 'address1', 'address2', 'phone', 'member_type',
                   'section', 'company']
 
+    post_code = forms.CharField(max_length=7,
+                                widget=forms.TextInput(
+                                    attrs={'onKeyUp': "AjaxZip3.zip2addr(this,'','address1','address1');"}),
+                                label=u"郵便番号",
+                                required=False)
+
+    def clean(self):
+        cleaned_data = super(SalespersonForm, self).clean()
+        post_code = cleaned_data.get("post_code")
+        if post_code and not re.match(r"^\d{7}$", post_code):
+            self.add_error('post_code', u"正しい郵便番号を入力してください。")
+
 
 class ProjectMemberAdminForm(forms.ModelForm):
     class Meta:
