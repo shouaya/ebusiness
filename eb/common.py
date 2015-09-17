@@ -12,8 +12,11 @@ import calendar
 import xlsxwriter
 import StringIO
 
-import pythoncom
-import win32com.client
+try:
+    import pythoncom
+    import win32com.client
+except:
+    pass
 
 
 EXCEL_APPLICATION = "Excel.Application"
@@ -310,7 +313,7 @@ def generate_business_plan(projects, filename):
         member_name = first_project_member.member.__unicode__()
         position_ship = first_project_member.member.get_position_ship()
         member_name = u"%s(%s)" % (member_name, position_ship.get_position_display()) if position_ship else member_name
-        if first_project_member.role >= 4:
+        if first_project_member.role >= 6:
             sheet.write(row + 2 + i, col + 4, member_name,
                         bp_format if first_project_member.member.subcontractor else cell_format)
             sheet.write(row + 2 + i, col + 5, "", cell_format)
@@ -340,7 +343,7 @@ def generate_business_plan(projects, filename):
             member_name = project_member.member.__unicode__()
             position_ship = project_member.member.get_position_ship()
             member_name = u"%s(%s)" % (member_name, position_ship.get_position_display()) if position_ship else member_name
-            if project_member.role >= 4:
+            if project_member.role >= 6:
                 sheet.write(row + 2 + i, col + 4, member_name,
                             bp_format if project_member.member.subcontractor else cell_format)
                 sheet.write(row + 2 + i, col + 5, "", cell_format)
@@ -374,8 +377,11 @@ def generate_business_plan(projects, filename):
 
 def get_excel_col_by_index(col):
     # col は０から
-    if (col + 65 >= 65) and (col + 65 <= 90):
+    if (col >= 0) and (col <= 25):
         return chr(col + 65)
+    elif (col > 25) and (col < 702):
+        a, b = divmod(col, 26)
+        return chr(a + 64) + chr(b + 65)
 
 
 def get_excel_col_entire(col):
@@ -407,7 +413,6 @@ def line_counter():
 
 
 if __name__ == "__main__":
-    # ls = get_ordering_list("-name.age.-second", "-aaa_3")
-    # print ".".join(ls)
-
-    line_counter()
+    # line_counter()
+    for i in range(703):
+        print get_excel_col_by_index(i)

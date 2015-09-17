@@ -39,8 +39,12 @@ DEGREE_TYPE = ((1, u"小・中学校"),
                (6, u"大学学部"),
                (7, u"大学大学院"))
 MEMBER_TYPE = ((0, u"正社員"), (1, u"契約社員"), (3, u"派遣社員"), (4, u"個人事業主"))
-PROJECT_ROLE = ((1, u"ＰＧ"), (2, u"ＳＥ"), (3, u"ＢＳＥ"), (4, u"ＰＬ"), (5, u"ＰＭ"))
-POSITION = ((1, u"代表取締役"), (2, u"社長"), (3, u"取締役"), (4, u"部長"), (5, u"担当部長"), (6, u"課長"), (7, u"担当課長"))
+PROJECT_ROLE = ((1, u"OP：ｵﾍﾟﾚｰﾀｰ"), (2, u"PG：ﾌﾟﾛｸﾞﾗﾏｰ"), (3, u"SP：ｼｽﾃﾑﾌﾟﾛｸﾞﾗﾏｰ"), (4, u"SE：.ｼｽﾃﾑｴﾝｼﾞﾆｱ"),
+                (5, u"SL：ｻﾌﾞﾘｰﾀﾞｰ"), (6, u"L：ﾘｰﾀﾞｰ"), (7, u"M：ﾏﾈｰｼﾞｬｰ"))
+POSITION = ((1, u"代表取締役"), (2, u"社長"), (3, u"取締役"), (4, u"部長"), (5, u"担当部長"),
+            (6, u"課長"), (7, u"担当課長"))
+SEX = ((1, u"男"), (2, u"女"))
+MARRIED = (('', u"------"), ('0', u"未婚"), ('1', u"既婚"))
 
 
 class AbstractCompany(models.Model):
@@ -67,19 +71,26 @@ class AbstractMember(models.Model):
     last_name = models.CharField(blank=False, null=False, max_length=30, verbose_name=u"名")
     first_name_ja = models.CharField(blank=True, null=True, max_length=30, verbose_name=u"姓(フリカナ)")
     last_name_ja = models.CharField(blank=True, null=True, max_length=30, verbose_name=u"名(フリカナ)")
-    first_name_en = models.CharField(blank=True, null=True, max_length=30, verbose_name=u"姓(ローマ字)")
-    last_name_en = models.CharField(blank=True, null=True, max_length=30, verbose_name=u"名(ローマ字)")
-    birthday = models.DateField(blank=True, null=True, verbose_name=u"生年月日")
+    first_name_en = models.CharField(blank=False, null=False, max_length=30, verbose_name=u"姓(ローマ字)")
+    last_name_en = models.CharField(blank=False, null=False, max_length=30, verbose_name=u"名(ローマ字)")
+    sex = models.CharField(blank=True, null=True, max_length=1, choices=SEX, verbose_name=u"性別")
+    country = models.CharField(blank=True, null=True, max_length=20, verbose_name=u"国籍・地域")
+    birthday = models.DateField(blank=False, null=False, verbose_name=u"生年月日")
     graduate_date = models.DateField(blank=True, null=True, verbose_name=u"卒業年月日")
     degree = models.IntegerField(blank=True, null=True, choices=DEGREE_TYPE, verbose_name=u"学歴")
     email = models.EmailField(blank=False, null=False, verbose_name=u"メールアドレス")
     post_code = models.CharField(blank=True, null=True, max_length=7, verbose_name=u"郵便番号")
     address1 = models.CharField(blank=True, null=True, max_length=200, verbose_name=u"住所１")
     address2 = models.CharField(blank=True, null=True, max_length=200, verbose_name=u"住所２")
+    nearest_station = models.CharField(blank=True, null=True, max_length=15, verbose_name=u"最寄駅")
     phone = models.CharField(blank=True, null=True, max_length=11, verbose_name=u"電話番号")
+    is_married = models.CharField(blank=True, null=True, max_length=1, choices=MARRIED, verbose_name=u"婚姻状況")
     member_type = models.IntegerField(default=0, choices=MEMBER_TYPE, verbose_name=u"社員区分")
     section = models.ForeignKey('Section', blank=True, null=True, verbose_name=u"部署")
     company = models.ForeignKey('Company', blank=True, null=True, verbose_name=u"会社")
+    japanese_description = models.TextField(blank=True, null=True, verbose_name=u"日本語能力の説明")
+    certificate = models.TextField(blank=True, null=True, verbose_name=u"資格の説明")
+    comment = models.TextField(blank=True, null=True, verbose_name=u"備考")
     user = models.OneToOneField(User, blank=True, null=True)
 
     class Meta:
@@ -481,9 +492,9 @@ class Project(models.Model):
         now = datetime.date.today()
         first_day = datetime.date(now.year, now.month, 1)
         last_day = common.get_last_day_by_month(now)
-        project_members = self.projectmember_set.filter(start_date__lte=last_day, end_date__gte=first_day, role=5)
+        project_members = self.projectmember_set.filter(start_date__lte=last_day, end_date__gte=first_day, role=7)
         if project_members.count() == 0:
-            project_members = self.projectmember_set.filter(start_date__lte=last_day, end_date__gte=first_day, role=4)
+            project_members = self.projectmember_set.filter(start_date__lte=last_day, end_date__gte=first_day, role=6)
         if project_members.count() == 0:
             project_members = self.projectmember_set.filter(start_date__lte=last_day, end_date__gte=first_day)
         if project_members.count() > 0:

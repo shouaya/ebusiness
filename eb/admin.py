@@ -6,6 +6,8 @@ Created on 2015/08/21
 """
 import forms
 from django.contrib import admin
+from django.contrib import messages
+from django.contrib.auth.models import User
 from django.utils.translation import ugettext_lazy as _
 
 from .models import Company, Section, Member, Salesperson, Project, Client, ClientMember, \
@@ -55,6 +57,23 @@ class ProjectNameListFilter(TextInputListFilter):
     def queryset(self, request, queryset):
         if self.value():
             return queryset.filter(name__contains=self.value())
+
+
+class NoUserFilter(admin.SimpleListFilter):
+    title = u"ユーザ"
+    parameter_name = 'user__isnull'
+
+    def lookups(self, request, model_admin):
+        return (
+            ('False', u"ユーザあり"),
+            ('True', u"ユーザなし")
+        )
+
+    def queryset(self, request, queryset):
+        if self.value() == 'True':
+            return queryset.filter(user__isnull=True)
+        if self.value() == 'False':
+            return queryset.filter(user__isnull=False)
 
 
 class ProjectSkillInline(admin.TabularInline):
@@ -111,6 +130,20 @@ class MemberAdmin(admin.ModelAdmin):
     list_display_links = [get_full_name]
     list_filter = ['member_type', 'section', 'subcontractor', 'salesperson']
     search_fields = ['first_name', 'last_name']
+    fieldsets = (
+        (None, {'fields': ('employee_id',
+                           ('first_name', 'last_name'),
+                           ('first_name_en', 'last_name_en'),
+                           ('first_name_ja', 'last_name_ja'),
+                           'birthday')}),
+        (u'詳細情報',
+         {'classes': ('collapse',),
+          'fields': (('sex', 'is_married'),
+                     'post_code',
+                     ('address1', 'address2'),
+                     'country', 'graduate_date', 'phone', 'japanese_description', 'certificate', 'comment')}),
+        (u"勤務情報", {'fields': ('member_type', 'email', 'section', 'company', 'subcontractor', 'salesperson')})
+    )
 
     class Media:
         js = ('http://ajaxzip3.googlecode.com/svn/trunk/ajaxzip3/ajaxzip3.js',)
@@ -119,10 +152,25 @@ class MemberAdmin(admin.ModelAdmin):
 class SalespersonAdmin(admin.ModelAdmin):
 
     form = forms.SalespersonForm
-    list_display = ['employee_id', get_full_name, 'section', 'user']
+    list_display = ['employee_id', get_full_name, 'section', 'is_user_created']
     list_display_links = [get_full_name]
     search_fields = ['first_name', 'last_name']
-    list_filter = ['section']
+    list_filter = ['section', NoUserFilter]
+    fieldsets = (
+        (None, {'fields': ('employee_id',
+                           ('first_name', 'last_name'),
+                           ('first_name_en', 'last_name_en'),
+                           ('first_name_ja', 'last_name_ja'),
+                           'birthday')}),
+        (u'詳細情報',
+         {'classes': ('collapse',),
+          'fields': (('sex', 'is_married'),
+                     'post_code',
+                     ('address1', 'address2'),
+                     'country', 'graduate_date', 'phone', 'japanese_description', 'certificate', 'comment')}),
+        (u"勤務情報", {'fields': ('member_type', 'email', 'section', 'company')})
+    )
+    actions = ['create_users']
 
     class Media:
         js = ('http://ajaxzip3.googlecode.com/svn/trunk/ajaxzip3/ajaxzip3.js',)
@@ -133,6 +181,29 @@ class SalespersonAdmin(admin.ModelAdmin):
         if company:
             form.base_fields['company'].initial = company
         return form
+
+    def is_user_created(self, obj):
+        return obj.user is not None
+
+    def create_users(self, request, queryset):
+        cnt = 0
+        for member in queryset.filter(user__isnull=True):
+            name = member.first_name_en.lower() + member.last_name_en.lower()
+            pwd = "%s@%s" % (member.first_name_en, member.birthday.strftime("%Y%m%d"))
+            user = User.objects.create_user(name, member.email, pwd)
+            user.is_staff = True
+            member.user = user
+            member.save()
+            cnt += 1
+        if cnt:
+            self.message_user(request, u"選択された営業員にユーザが作成されました。")
+        else:
+            self.message_user(request, u"すでに作成済みなので、再作成する必要がありません。", messages.WARNING)
+
+    is_user_created.short_description = u"ユーザ作成"
+    is_user_created.admin_order_field = "user"
+    is_user_created.boolean = True
+    create_users.short_description = u"ユーザを作成する"
 
 
 class ProjectAdmin(admin.ModelAdmin):

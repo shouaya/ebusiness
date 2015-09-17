@@ -59,9 +59,11 @@ class MemberForm(forms.ModelForm):
         fields = ['employee_id', 'first_name', 'last_name',
                   'first_name_ja', 'last_name_ja',
                   'first_name_en', 'last_name_en',
+                  'sex', 'country', 'is_married',
                   'birthday', 'graduate_date',
                   'degree', 'email', 'post_code', 'address1', 'address2', 'phone', 'salesperson',
-                  'member_type', 'section', 'company', 'subcontractor']
+                  'member_type', 'section', 'company', 'subcontractor',
+                  'japanese_description', 'certificate', 'comment']
 
     post_code = forms.CharField(max_length=7,
                                 widget=forms.TextInput(
@@ -96,9 +98,11 @@ class SalespersonForm(forms.ModelForm):
         fields = ['employee_id', 'first_name', 'last_name',
                   'first_name_ja', 'last_name_ja',
                   'first_name_en', 'last_name_en',
+                  'sex', 'country',
                   'birthday', 'graduate_date',
                   'degree', 'email', 'post_code', 'address1', 'address2', 'phone', 'member_type',
-                  'section', 'company']
+                  'section', 'company',
+                  'japanese_description', 'certificate', 'comment']
 
     post_code = forms.CharField(max_length=7,
                                 widget=forms.TextInput(
