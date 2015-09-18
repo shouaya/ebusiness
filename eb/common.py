@@ -389,6 +389,10 @@ def get_excel_col_entire(col):
     return "%s:%s" % (c, c)
 
 
+def get_default_password(member):
+    return "%s@%s" % (member.first_name_en, member.birthday.strftime("%Y%m%d"))
+
+
 def line_counter():
 
     def get_line_count(p):

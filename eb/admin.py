@@ -5,6 +5,7 @@ Created on 2015/08/21
 @author: Yang Wanjun
 """
 import forms
+import common
 from django.contrib import admin
 from django.contrib import messages
 from django.contrib.auth.models import User
@@ -128,7 +129,7 @@ class MemberAdmin(admin.ModelAdmin):
     form = forms.MemberForm
     list_display = ['employee_id', get_full_name, 'section', 'subcontractor', 'salesperson', 'user']
     list_display_links = [get_full_name]
-    list_filter = ['member_type', 'section', 'subcontractor', 'salesperson']
+    list_filter = ['member_type', 'section', 'subcontractor', 'salesperson', NoUserFilter]
     search_fields = ['first_name', 'last_name']
     fieldsets = (
         (None, {'fields': ('employee_id',
@@ -189,7 +190,7 @@ class SalespersonAdmin(admin.ModelAdmin):
         cnt = 0
         for member in queryset.filter(user__isnull=True):
             name = member.first_name_en.lower() + member.last_name_en.lower()
-            pwd = "%s@%s" % (member.first_name_en, member.birthday.strftime("%Y%m%d"))
+            pwd = common.get_default_password(member)
             user = User.objects.create_user(name, member.email, pwd)
             user.is_staff = True
             member.user = user
