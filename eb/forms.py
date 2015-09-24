@@ -9,6 +9,9 @@ import models
 
 from django import forms
 
+REG_POST_CODE = r"^\d{7}$"
+REG_UPPER_CAMEL = r"^([A-Z][a-z]+)+$"
+
 
 class CompanyForm(forms.ModelForm):
     class Meta:
@@ -24,7 +27,7 @@ class CompanyForm(forms.ModelForm):
     def clean(self):
         cleaned_data = super(CompanyForm, self).clean()
         post_code = cleaned_data.get("post_code")
-        if post_code and not re.match(r"^\d{7}$", post_code):
+        if post_code and not re.match(REG_POST_CODE, post_code):
             self.add_error('post_code', u"正しい郵便番号を入力してください。")
 
 
@@ -43,7 +46,7 @@ class ClientForm(forms.ModelForm):
     def clean(self):
         cleaned_data = super(ClientForm, self).clean()
         post_code = cleaned_data.get("post_code")
-        if post_code and not re.match(r"^\d{7}$", post_code):
+        if post_code and not re.match(REG_POST_CODE, post_code):
             self.add_error('post_code', u"正しい郵便番号を入力してください。")
 
 
@@ -77,7 +80,9 @@ class MemberForm(forms.ModelForm):
         company = cleaned_data.get("company")
         subcontractor = cleaned_data.get("subcontractor")
         post_code = cleaned_data.get("post_code")
-        if post_code and not re.match(r"^\d{7}$", post_code):
+        first_name_en = cleaned_data.get("first_name_en")
+        last_name_en = cleaned_data.get("last_name_en")
+        if post_code and not re.match(REG_POST_CODE, post_code):
             self.add_error('post_code', u"正しい郵便番号を入力してください。")
         if member_type == 3:
             # 派遣社員の場合
@@ -86,6 +91,12 @@ class MemberForm(forms.ModelForm):
         else:
             if not company:
                 self.add_error('company', u"派遣社員以外の場合、会社を選択してください。")
+
+        # ローマ名のチェック
+        if first_name_en and not re.match(REG_UPPER_CAMEL, first_name_en):
+            self.add_error('first_name_en', u"先頭文字は大文字にしてください（例：Zhang）")
+        if last_name_en and not re.match(REG_UPPER_CAMEL, last_name_en):
+            self.add_error('last_name_en', u"漢字ごとに先頭文字は大文字にしてください（例：XiaoWang）")
 
         if company and subcontractor:
             self.add_error('company', u"会社と協力会社が同時に選択されてはいけません。")
@@ -113,8 +124,15 @@ class SalespersonForm(forms.ModelForm):
     def clean(self):
         cleaned_data = super(SalespersonForm, self).clean()
         post_code = cleaned_data.get("post_code")
-        if post_code and not re.match(r"^\d{7}$", post_code):
+        first_name_en = cleaned_data.get("first_name_en")
+        last_name_en = cleaned_data.get("last_name_en")
+        if post_code and not re.match(REG_POST_CODE, post_code):
             self.add_error('post_code', u"正しい郵便番号を入力してください。")
+        # ローマ名のチェック
+        if first_name_en and not re.match(REG_UPPER_CAMEL, first_name_en):
+            self.add_error('first_name_en', u"先頭文字は大文字にしてください（例：Zhang）")
+        if last_name_en and not re.match(REG_UPPER_CAMEL, last_name_en):
+            self.add_error('last_name_en', u"漢字ごとに先頭文字は大文字にしてください（例：XiaoWang）")
 
 
 class ProjectMemberAdminForm(forms.ModelForm):

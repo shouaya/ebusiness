@@ -71,8 +71,10 @@ class AbstractMember(models.Model):
     last_name = models.CharField(blank=False, null=False, max_length=30, verbose_name=u"名")
     first_name_ja = models.CharField(blank=True, null=True, max_length=30, verbose_name=u"姓(フリカナ)")
     last_name_ja = models.CharField(blank=True, null=True, max_length=30, verbose_name=u"名(フリカナ)")
-    first_name_en = models.CharField(blank=False, null=False, max_length=30, verbose_name=u"姓(ローマ字)")
-    last_name_en = models.CharField(blank=False, null=False, max_length=30, verbose_name=u"名(ローマ字)")
+    first_name_en = models.CharField(blank=False, null=False, max_length=30, verbose_name=u"姓(ローマ字)",
+                                     help_text=u"先頭文字は大文字にしてください（例：Zhang）")
+    last_name_en = models.CharField(blank=False, null=False, max_length=30, verbose_name=u"名(ローマ字)",
+                                    help_text=u"漢字ごとに先頭文字は大文字にしてください（例：XiaoWang）")
     sex = models.CharField(blank=True, null=True, max_length=1, choices=SEX, verbose_name=u"性別")
     country = models.CharField(blank=True, null=True, max_length=20, verbose_name=u"国籍・地域")
     birthday = models.DateField(blank=False, null=False, verbose_name=u"生年月日")
