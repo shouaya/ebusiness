@@ -51,6 +51,8 @@ def employee_list(request):
     last_name = request.GET.get('last_name', None)
     business_status = request.GET.get('business_status', None)
     salesperson = request.GET.get('salesperson', None)
+    download = request.GET.get('download', None)
+
     params = ""
     o = request.GET.get('o', None)
     dict_order = common.get_ordering_dict(o, ['first_name', 'section', 'salesperson__first_name'])
@@ -82,26 +84,33 @@ def employee_list(request):
         all_members = [member for member in all_members if member.get_business_status() == business_status]
         params += u"&business_status=%s" % (business_status,)
 
-    paginator = Paginator(all_members, PAGE_SIZE)
-    page = request.GET.get('page')
-    try:
-        members = paginator.page(page)
-    except PageNotAnInteger:
-        members = paginator.page(1)
-    except EmptyPage:
-        members = paginator.page(paginator.num_pages)
+    if download == common.DOWNLOAD_MEMBER_LIST:
+        filename = common.NAME_MEMBER_LIST
+        output = common.generate_member_list(all_members, filename)
+        response = HttpResponse(output.read(), content_type="application/ms-excel")
+        response['Content-Disposition'] = "filename=" + urllib.quote(filename.encode('utf-8')) + ".xlsx"
+        return response
+    else:
+        paginator = Paginator(all_members, PAGE_SIZE)
+        page = request.GET.get('page')
+        try:
+            members = paginator.page(page)
+        except PageNotAnInteger:
+            members = paginator.page(1)
+        except EmptyPage:
+            members = paginator.page(paginator.num_pages)
 
-    context = RequestContext(request, {
-        'company': company,
-        'title': u'要員一覧',
-        'members': members,
-        'salesperson': Salesperson.objects.all(),
-        'paginator': paginator,
-        'params': params,
-        'dict_order': dict_order,
-    })
-    template = loader.get_template('employee_list.html')
-    return HttpResponse(template.render(context))
+        context = RequestContext(request, {
+            'company': company,
+            'title': u'要員一覧',
+            'members': members,
+            'salesperson': Salesperson.objects.all(),
+            'paginator': paginator,
+            'params': params,
+            'dict_order': dict_order,
+        })
+        template = loader.get_template('employee_list.html')
+        return HttpResponse(template.render(context))
 
 
 def section_members(request, name):

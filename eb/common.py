@@ -22,11 +22,13 @@ except:
 EXCEL_APPLICATION = "Excel.Application"
 EXCEL_FORMAT_EXCEL2003 = 56
 NAME_BUSINESS_PLAN = u"%02d月営業企画"
+NAME_MEMBER_LIST = u"最新要員一覧"
 
 MARK_POST_CODE = u"〒"
 
 DOWNLOAD_REQUEST = "request"
 DOWNLOAD_BUSINESS_PLAN = "business_plan"
+DOWNLOAD_MEMBER_LIST = "member_list"
 
 
 def add_months(source_date, months=1):
@@ -305,7 +307,9 @@ def generate_business_plan(projects, filename):
     for project in projects:
         if project.members.all().count() == 0:
             continue
+        # 顧客
         sheet.write(row + 2 + i, col + 0, project.client.name, cell_format)
+        # 窓口
         sheet.write(row + 2 + i, col + 1, project.middleman.name, cell_format)
         sheet.write(row + 2 + i, col + 2, project.address, cell_format)
         first_project_member = project.get_first_project_member()
@@ -375,6 +379,115 @@ def generate_business_plan(projects, filename):
     return output
 
 
+def generate_member_list(members, filename):
+    output = StringIO.StringIO()
+    row = 0
+    col = 0
+
+    book = xlsxwriter.Workbook(output)
+    sheet = book.add_worksheet()
+    # 見出しを書き込む
+    title_format_top = book.add_format({'bold': True,
+                                        'font_size': 20})
+    title_format = book.add_format({'bold': True,
+                                    'right': 1,
+                                    'top': 2,
+                                    'bg_color': '#b7dee8',
+                                    'align': 'center',
+                                    'text_wrap': True,
+                                    'valign': 'vcenter'})
+    title_format_left = book.add_format({'bold': True,
+                                         'right': 1,
+                                         'top': 2,
+                                         'left': 2,
+                                         'bg_color': '#b7dee8',
+                                         'align': 'center',
+                                         'valign': 'vcenter'})
+    title_format_right = book.add_format({'bold': True,
+                                          'right': 2,
+                                          'top': 2,
+                                          'bg_color': '#b7dee8',
+                                          'align': 'center',
+                                          'valign': 'vcenter'})
+    sheet.write(row, col + 5, filename, title_format_top)
+    row += 2
+    sheet.set_row(row, 33)
+    sheet.write(row, col, u"No.", title_format_left)
+    sheet.set_column(get_excel_col_entire(col), 3.5)
+    sheet.write(row, col + 1, u"名前", title_format)
+    sheet.set_column(get_excel_col_entire(col + 1), 10)
+    sheet.write(row, col + 2, u"スキル", title_format)
+    sheet.set_column(get_excel_col_entire(col + 2), 26)
+    sheet.write(row, col + 3, u"年齢", title_format)
+    sheet.set_column(get_excel_col_entire(col + 3), 7)
+    sheet.write(row, col + 4, u"性別", title_format)
+    sheet.set_column(get_excel_col_entire(col + 4), 7)
+    sheet.write(row, col + 5, u"レベル", title_format)
+    sheet.set_column(get_excel_col_entire(col + 5), 9)
+    sheet.write(row, col + 6, u"役割", title_format)
+    sheet.write(row, col + 7, u"IT業界\r\n経験年数", title_format)
+    sheet.set_column(get_excel_col_entire(col + 7), 9.13)
+    sheet.write(row, col + 8, u"最寄駅", title_format)
+    sheet.set_column(get_excel_col_entire(col + 8), 11)
+    sheet.write(row, col + 9, u"得意業務", title_format)
+    sheet.set_column(get_excel_col_entire(col + 9), 12)
+    sheet.write(row, col + 10, u"日本語", title_format)
+    sheet.set_column(get_excel_col_entire(col + 10), 12)
+    sheet.write(row, col + 11, u"参加可能日", title_format)
+    sheet.set_column(get_excel_col_entire(col + 11), 11)
+    sheet.write(row, col + 12, u"備考", title_format_right)
+    sheet.set_column(get_excel_col_entire(col + 12), 20)
+
+    # 詳細を書き込む
+    cell_format_center = book.add_format({'align': 'center',
+                                          'valign': 'vcenter',
+                                          'border': 1})
+    cell_format_left = book.add_format({'valign': 'vcenter',
+                                        'text_wrap': True,
+                                        'border': 1})
+    row += 1
+    for i, member in enumerate(members):
+        sheet.set_row(row + i, 27)
+        # No.
+        sheet.write(row + i, col, i + 1, cell_format_center)
+        # 名前
+        sheet.write(row + i, col + 1, member.__unicode__(), cell_format_center)
+        # スキル
+        skill_list = member.get_skill_list()
+        sheet.write(row + i, col + 2, ",".join([skill.name for skill in skill_list]), cell_format_center)
+        # 年齢
+        sheet.write(row + i, col + 3, member.get_age(), cell_format_center)
+        # 性別
+        sheet.write(row + i, col + 4, member.get_sex_display(), cell_format_center)
+        # レベル
+        sheet.write(row + i, col + 5, ",".join(member.get_project_role_list()), cell_format_center)
+        # 役割
+        position_ship = member.get_position_ship(is_min=True)
+        position_name = position_ship.get_position_display() if position_ship else u"メンバー"
+        sheet.write(row + i, col + 6, position_name, cell_format_center)
+        # IT業界経験年数
+        sheet.write(row + i, col + 7, "", cell_format_center)
+        # 最寄駅
+        sheet.write(row + i, col + 8, member.nearest_station, cell_format_center)
+        # 得意業務
+        sheet.write(row + i, col + 9, "", cell_format_center)
+        # 日本語
+        sheet.write(row + i, col + 10, member.japanese_description, cell_format_center)
+        # 参加可能日
+        sheet.write(row + i, col + 11, "", cell_format_center)
+        # 備考
+        sheet.write(row + i, col + 12, member.comment, cell_format_left)
+
+    # ページ設定
+    sheet.set_landscape()
+    sheet.set_paper(9)  # 印刷用紙：A4
+    sheet.set_print_scale(85)
+
+    book.close()
+    output.seek(0)
+    return output
+
+
 def get_excel_col_by_index(col):
     # col は０から
     if (col >= 0) and (col <= 25):
@@ -417,6 +530,6 @@ def line_counter():
 
 
 if __name__ == "__main__":
-    # line_counter()
-    for i in range(703):
-        print get_excel_col_by_index(i)
+    line_counter()
+    # for l in range(703):
+    #     print get_excel_col_by_index(l)

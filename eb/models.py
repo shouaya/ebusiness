@@ -39,11 +39,11 @@ DEGREE_TYPE = ((1, u"小・中学校"),
                (6, u"大学学部"),
                (7, u"大学大学院"))
 MEMBER_TYPE = ((0, u"正社員"), (1, u"契約社員"), (3, u"派遣社員"), (4, u"個人事業主"))
-PROJECT_ROLE = ((1, u"OP：ｵﾍﾟﾚｰﾀｰ"), (2, u"PG：ﾌﾟﾛｸﾞﾗﾏｰ"), (3, u"SP：ｼｽﾃﾑﾌﾟﾛｸﾞﾗﾏｰ"), (4, u"SE：.ｼｽﾃﾑｴﾝｼﾞﾆｱ"),
+PROJECT_ROLE = ((1, u"OP：ｵﾍﾟﾚｰﾀｰ"), (2, u"PG：ﾌﾟﾛｸﾞﾗﾏｰ"), (3, u"SP：ｼｽﾃﾑﾌﾟﾛｸﾞﾗﾏｰ"), (4, u"SE：ｼｽﾃﾑｴﾝｼﾞﾆｱ"),
                 (5, u"SL：ｻﾌﾞﾘｰﾀﾞｰ"), (6, u"L：ﾘｰﾀﾞｰ"), (7, u"M：ﾏﾈｰｼﾞｬｰ"))
 POSITION = ((1, u"代表取締役"), (2, u"社長"), (3, u"取締役"), (4, u"部長"), (5, u"担当部長"),
-            (6, u"課長"), (7, u"担当課長"))
-SEX = ((1, u"男"), (2, u"女"))
+            (6, u"課長"), (7, u"担当課長"), (8, u"PM"), (9, u"リーダー"), (10, u"サブリーダー"))
+SEX = (('1', u"男"), ('2', u"女"))
 MARRIED = (('', u"------"), ('0', u"未婚"), ('1', u"既婚"))
 
 
@@ -294,6 +294,17 @@ class Member(AbstractMember):
     def __unicode__(self):
         return u"%s %s" % (self.first_name, self.last_name)
 
+    def get_age(self):
+        birthday = self.birthday
+        today = datetime.date.today()
+        years = today.year - birthday.year
+        if today.month < birthday.month:
+            years -= 1
+        elif today.month == birthday.month:
+            if today.day <= birthday.day:
+                years -= 1
+        return years
+
     def get_project_end_date(self):
         # 稼働状態を取得する（待機・稼働中）
         now = datetime.datetime.now()
@@ -337,7 +348,27 @@ class Member(AbstractMember):
                                        u"   AND P.STATUS <= 3" % (",".join(skill_id_list),))
         return [project.pk for project in query_set]
 
-    def get_position_ship(self):
+    def get_project_role_list(self):
+        """かつてのプロジェクト中の役割担当を取得する。。
+
+        Arguments：
+          なし
+
+        Returns：
+          役割担当のリスト
+
+        Raises：
+          なし
+        """
+        project_member_list = self.projectmember_set.all()
+        role_list = []
+        for project_member in project_member_list:
+            role = project_member.get_role_display().split(u"：")[0]
+            if role not in role_list:
+                role_list.append(role)
+        return role_list
+
+    def get_position_ship(self, is_min=False):
         """該当メンバーの職位を取得する。
 
         Arguments：
@@ -349,7 +380,10 @@ class Member(AbstractMember):
         Raises：
           なし
         """
-        positions = self.positionship_set.filter(is_part_time=False)
+        if is_min:
+            positions = self.positionship_set.filter(is_part_time=False).order_by('-position')
+        else:
+            positions = self.positionship_set.filter(is_part_time=False)
         if positions.count() > 0:
             return positions[0]
         else:
@@ -363,6 +397,7 @@ class PositionShip(models.Model):
     is_part_time = models.BooleanField(default=False, verbose_name=u"兼任")
 
     class Meta:
+        ordering = ['position']
         verbose_name = verbose_name_plural = u"職位"
 
     def __unicode__(self):
