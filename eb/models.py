@@ -248,8 +248,8 @@ class Subcontractor(AbstractCompany):
     payment_type = models.CharField(blank=True, null=True, max_length=2, verbose_name=u"支払方法")
     payment_day = models.CharField(blank=True, null=True, max_length=2, verbose_name=u"支払日")
     comment = models.TextField(blank=True, null=True, verbose_name=u"備考")
-    created_date = models.DateTimeField(auto_now_add=True, default=datetime.datetime.now(), editable=False)
-    updated_date = models.DateTimeField(auto_now=True, default=datetime.datetime.now(), editable=False)
+    created_date = models.DateTimeField(auto_now_add=True, editable=False)
+    updated_date = models.DateTimeField(auto_now=True, editable=False)
 
     class Meta:
         ordering = ['name']
@@ -411,8 +411,8 @@ class Client(AbstractCompany):
     payment_type = models.CharField(blank=True, null=True, max_length=2, verbose_name=u"支払方法")
     payment_day = models.CharField(blank=True, null=True, max_length=2, verbose_name=u"支払日")
     comment = models.TextField(blank=True, null=True, verbose_name=u"備考")
-    created_date = models.DateTimeField(auto_now_add=True, default=datetime.datetime.now(), editable=False)
-    updated_date = models.DateTimeField(auto_now=True, default=datetime.datetime.now(), editable=False)
+    created_date = models.DateTimeField(auto_now_add=True, editable=False)
+    updated_date = models.DateTimeField(auto_now=True, editable=False)
 
     class Meta:
         ordering = ['name']
