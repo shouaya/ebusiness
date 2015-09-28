@@ -6,16 +6,15 @@ Created on 2015/08/21
 """
 import datetime
 import re
-import xlwt
 import urllib
-
-import common
 
 from django.http import HttpResponse
 from django.template import RequestContext, loader
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 
+from utils import constants, common
 from .models import Company, Member, Section, Project, ProjectMember, Salesperson
+
 
 PAGE_SIZE = 50
 try:
@@ -84,8 +83,8 @@ def employee_list(request):
         all_members = [member for member in all_members if member.get_business_status() == business_status]
         params += u"&business_status=%s" % (business_status,)
 
-    if download == common.DOWNLOAD_MEMBER_LIST:
-        filename = common.NAME_MEMBER_LIST
+    if download == constants.DOWNLOAD_MEMBER_LIST:
+        filename = constants.NAME_MEMBER_LIST
         output = common.generate_member_list(all_members, filename)
         response = HttpResponse(output.read(), content_type="application/ms-excel")
         response['Content-Disposition'] = "filename=" + urllib.quote(filename.encode('utf-8')) + ".xlsx"
@@ -172,7 +171,7 @@ def project_list(request):
                                               'middleman__name'])
     order_list = common.get_ordering_list(o)
 
-    if download == common.DOWNLOAD_BUSINESS_PLAN:
+    if download == constants.DOWNLOAD_BUSINESS_PLAN:
         projects = Project.objects.filter(status=4)
     else:
         projects = Project.objects.all()
@@ -195,8 +194,8 @@ def project_list(request):
         projects = [project for project in projects if client in project.client.name]
         params += "&client=%s" % (client,)
 
-    if download == common.DOWNLOAD_BUSINESS_PLAN:
-        filename = common.NAME_BUSINESS_PLAN % (datetime.date.today().month,)
+    if download == constants.DOWNLOAD_BUSINESS_PLAN:
+        filename = constants.NAME_BUSINESS_PLAN % (datetime.date.today().month,)
         output = common.generate_business_plan(projects, filename)
         response = HttpResponse(output.read(), content_type="application/ms-excel")
         response['Content-Disposition'] = "filename=" + urllib.quote(filename.encode('utf-8')) + ".xlsx"
@@ -218,7 +217,7 @@ def project_detail(request, project_id):
     project = Project.objects.get(pk=project_id)
     download = request.GET.get("download", None)
 
-    if download == common.DOWNLOAD_REQUEST:
+    if download == constants.DOWNLOAD_REQUEST:
         path = common.generate_request(project, company)
         now = datetime.datetime.now()
         filename = "請求書（%s年%02s月）.xls" % (now.year, now.month)
@@ -240,7 +239,8 @@ def project_member_list(request, project_id):
     project = Project.objects.get(pk=project_id)
     params = ""
     o = request.GET.get('o', None)
-    dict_order = common.get_ordering_dict(o, ['member__first_name', 'member__section', 'start_date', 'end_date', 'price'])
+    dict_order = common.get_ordering_dict(o, ['member__first_name',
+                                              'member__section', 'start_date', 'end_date', 'price'])
     order_list = common.get_ordering_list(o)
 
     all_project_members = project.projectmember_set.all()

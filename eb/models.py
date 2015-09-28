@@ -6,45 +6,10 @@ Created on 2015/08/20
 """
 import datetime
 
-import common
-
 from django.db import models
 from django.contrib.auth.models import User
 
-
-ProjectMemberStatus = ((1, u"提案中"),
-                       (2, u"作業中"),
-                       (3, u"作業終了"))
-PROJECT_STATUS = ((1, u"提案"), (2, u"予算審査"), (3, u"予算確定"), (4, u"実施中"), (5, u"完了"))
-ReleaseMonthCount = ((3, u"三ヵ月以内"),
-                     (4, u"四ヶ月以内"),
-                     (5, u"五ヶ月以内"),
-                     (6, u"半年以内"))
-DisplayCount = ((50, u"50件"),
-                (100, u"100件"),
-                (150, u"150件"),
-                (200, u"200件"),
-                (300, u"300件"))
-SkillTime = ((0, u"未経験者可"),
-             (1, u"１年以上"),
-             (2, u"２年以上"),
-             (3, u"３年以上"),
-             (5, u"５年以上"),
-             (10, u"１０年以上"))
-DEGREE_TYPE = ((1, u"小・中学校"),
-               (2, u"高等学校"),
-               (3, u"専門学校"),
-               (4, u"高等専門学校"),
-               (5, u"短期大学"),
-               (6, u"大学学部"),
-               (7, u"大学大学院"))
-MEMBER_TYPE = ((0, u"正社員"), (1, u"契約社員"), (3, u"派遣社員"), (4, u"個人事業主"))
-PROJECT_ROLE = ((1, u"OP：ｵﾍﾟﾚｰﾀｰ"), (2, u"PG：ﾌﾟﾛｸﾞﾗﾏｰ"), (3, u"SP：ｼｽﾃﾑﾌﾟﾛｸﾞﾗﾏｰ"), (4, u"SE：ｼｽﾃﾑｴﾝｼﾞﾆｱ"),
-                (5, u"SL：ｻﾌﾞﾘｰﾀﾞｰ"), (6, u"L：ﾘｰﾀﾞｰ"), (7, u"M：ﾏﾈｰｼﾞｬｰ"))
-POSITION = ((1, u"代表取締役"), (2, u"社長"), (3, u"取締役"), (4, u"部長"), (5, u"担当部長"),
-            (6, u"課長"), (7, u"担当課長"), (8, u"PM"), (9, u"リーダー"), (10, u"サブリーダー"))
-SEX = (('1', u"男"), ('2', u"女"))
-MARRIED = (('', u"------"), ('0', u"未婚"), ('1', u"既婚"))
+from utils import common, constants
 
 
 class AbstractCompany(models.Model):
@@ -75,19 +40,20 @@ class AbstractMember(models.Model):
                                      help_text=u"先頭文字は大文字にしてください（例：Zhang）")
     last_name_en = models.CharField(blank=False, null=False, max_length=30, verbose_name=u"名(ローマ字)",
                                     help_text=u"漢字ごとに先頭文字は大文字にしてください（例：XiaoWang）")
-    sex = models.CharField(blank=True, null=True, max_length=1, choices=SEX, verbose_name=u"性別")
+    sex = models.CharField(blank=True, null=True, max_length=1, choices=constants.CHOICE_SEX, verbose_name=u"性別")
     country = models.CharField(blank=True, null=True, max_length=20, verbose_name=u"国籍・地域")
     birthday = models.DateField(blank=False, null=False, verbose_name=u"生年月日")
     graduate_date = models.DateField(blank=True, null=True, verbose_name=u"卒業年月日")
-    degree = models.IntegerField(blank=True, null=True, choices=DEGREE_TYPE, verbose_name=u"学歴")
+    degree = models.IntegerField(blank=True, null=True, choices=constants.CHOICE_DEGREE_TYPE, verbose_name=u"学歴")
     email = models.EmailField(blank=False, null=False, verbose_name=u"メールアドレス")
     post_code = models.CharField(blank=True, null=True, max_length=7, verbose_name=u"郵便番号")
     address1 = models.CharField(blank=True, null=True, max_length=200, verbose_name=u"住所１")
     address2 = models.CharField(blank=True, null=True, max_length=200, verbose_name=u"住所２")
     nearest_station = models.CharField(blank=True, null=True, max_length=15, verbose_name=u"最寄駅")
     phone = models.CharField(blank=True, null=True, max_length=11, verbose_name=u"電話番号")
-    is_married = models.CharField(blank=True, null=True, max_length=1, choices=MARRIED, verbose_name=u"婚姻状況")
-    member_type = models.IntegerField(default=0, choices=MEMBER_TYPE, verbose_name=u"社員区分")
+    is_married = models.CharField(blank=True, null=True, max_length=1,
+                                  choices=constants.CHOICE_MARRIED, verbose_name=u"婚姻状況")
+    member_type = models.IntegerField(default=0, choices=constants.CHOICE_MEMBER_TYPE, verbose_name=u"社員区分")
     section = models.ForeignKey('Section', blank=True, null=True, verbose_name=u"部署")
     company = models.ForeignKey('Company', blank=True, null=True, verbose_name=u"会社")
     japanese_description = models.TextField(blank=True, null=True, verbose_name=u"日本語能力の説明")
@@ -100,12 +66,6 @@ class AbstractMember(models.Model):
 
 
 class Company(AbstractCompany):
-    # release_month_count = models.IntegerField(blank=False, null=False, default=3,
-    #                                           choices=ReleaseMonthCount, verbose_name=u"何か月確認",
-    #                                           help_text=u"何か月以内のリリース状況を確認したいですか？")
-    # display_count = models.IntegerField(blank=False, null=False, default=50,
-    #                                     choices=DisplayCount,
-    #                                     verbose_name=u"１頁に表示するデータ件数")
 
     class Meta:
         verbose_name = verbose_name_plural = u"会社"
@@ -392,7 +352,7 @@ class Member(AbstractMember):
 
 class PositionShip(models.Model):
     member = models.ForeignKey(Member, verbose_name=u"社員名")
-    position = models.IntegerField(blank=True, null=True, choices=POSITION, verbose_name=u"職位")
+    position = models.IntegerField(blank=True, null=True, choices=constants.CHOICE_POSITION, verbose_name=u"職位")
     section = models.ForeignKey(Section, verbose_name=u"部署")
     is_part_time = models.BooleanField(default=False, verbose_name=u"兼任")
 
@@ -444,14 +404,26 @@ class Skill(models.Model):
         return self.name
 
 
+class OS(models.Model):
+    name = models.CharField(max_length=15, verbose_name=u"名称")
+
+    class Meta:
+        ordering = ['name']
+        verbose_name = verbose_name_plural = u"機種／OS"
+
+    def __unicode__(self):
+        return self.name
+
+
 class Project(models.Model):
     name = models.CharField(blank=False, null=False, max_length=50, verbose_name=u"案件名称")
     description = models.TextField(blank=True, null=True, verbose_name=u"案件概要")
     skills = models.ManyToManyField(Skill, through='ProjectSkill', blank=True, null=True, verbose_name=u"スキル要求")
+    os = models.ManyToManyField(OS, blank=True, null=True, verbose_name=u"機種／OS")
     start_date = models.DateField(blank=True, null=True, verbose_name=u"開始日")
     end_date = models.DateField(blank=True, null=True, verbose_name=u"終了日")
     address = models.CharField(blank=True, null=True, max_length=255, verbose_name=u"作業場所")
-    status = models.IntegerField(choices=PROJECT_STATUS, verbose_name=u"ステータス")
+    status = models.IntegerField(choices=constants.CHOICE_PROJECT_STATUS, verbose_name=u"ステータス")
     client = models.ForeignKey(Client, blank=True, null=True, verbose_name=u"関連会社")
     boss = models.ForeignKey(ClientMember, blank=True, null=True, related_name="boss_set", verbose_name=u"案件責任者")
     middleman = models.ForeignKey(ClientMember, blank=True, null=True,
@@ -568,7 +540,7 @@ class ProjectActivity(models.Model):
 class ProjectSkill(models.Model):
     project = models.ForeignKey(Project, verbose_name=u"案件")
     skill = models.ForeignKey(Skill, verbose_name=u"スキル")
-    period = models.IntegerField(blank=True, null=True, choices=SkillTime, verbose_name=u"経験年数")
+    period = models.IntegerField(blank=True, null=True, choices=constants.CHOICE_SKILL_TIME, verbose_name=u"経験年数")
     description = models.TextField(blank=True, null=True, verbose_name=u"備考")
 
     class Meta:
@@ -578,17 +550,47 @@ class ProjectSkill(models.Model):
         return "%s - %s" % (self.project.name, self.skill.name)
 
 
+class ProjectStage(models.Model):
+    name = models.CharField(max_length=15, verbose_name=u"作業工程名称")
+
+    class Meta:
+        verbose_name = verbose_name_plural = u"作業工程"
+
+    def __unicode__(self):
+        return self.name
+
+
 class ProjectMember(models.Model):
     project = models.ForeignKey(Project, verbose_name=u'案件名称')
     member = models.ForeignKey(Member, verbose_name=u"名前")
     start_date = models.DateField(blank=True, null=True, verbose_name=u"開始日")
     end_date = models.DateField(blank=True, null=True, verbose_name=u"終了日")
     price = models.IntegerField(null=False, default=0, verbose_name=u"単価")
-    status = models.IntegerField(null=False, default=1, choices=ProjectMemberStatus, verbose_name=u"ステータス")
-    role = models.IntegerField(default=1, choices=PROJECT_ROLE, verbose_name=u"役割分担")
+    status = models.IntegerField(null=False, default=1,
+                                 choices=constants.CHOICE_PROJECT_MEMBER_STATUS, verbose_name=u"ステータス")
+    role = models.IntegerField(default=1, choices=constants.CHOICE_PROJECT_ROLE, verbose_name=u"作業区分")
+    stages = models.ManyToManyField(ProjectStage, blank=True, null=True, verbose_name=u"作業工程")
 
     class Meta:
         verbose_name = verbose_name_plural = u"案件メンバー"
 
     def __unicode__(self):
         return "%s - %s %s" % (self.project.name, self.member.first_name, self.member.last_name)
+
+
+class HistoryProject(models.Model):
+    name = models.CharField(max_length=50, verbose_name=u"案件名称")
+    member = models.ForeignKey(Member, verbose_name=u"名前")
+    location = models.CharField(max_length=20, blank=True, null=True, verbose_name=u"作業場所")
+    description = models.TextField(blank=True, null=True, verbose_name=u"案件概要")
+    start_date = models.DateField(blank=True, null=True, verbose_name=u"開始日")
+    end_date = models.DateField(blank=True, null=True, verbose_name=u"終了日")
+    os = models.ManyToManyField(OS, blank=True, null=True, verbose_name=u"機種／OS")
+    role = models.IntegerField(default=1, choices=constants.CHOICE_PROJECT_ROLE, verbose_name=u"作業区分")
+    stages = models.ManyToManyField(ProjectStage, blank=True, null=True, verbose_name=u"作業工程")
+
+    class Meta:
+        verbose_name = verbose_name_plural = u"以前やっていた案件"
+
+    def __unicode__(self):
+        return "%s - %s %s" % (self.name, self.member.first_name, self.member.last_name)

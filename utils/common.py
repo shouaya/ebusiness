@@ -12,23 +12,13 @@ import calendar
 import xlsxwriter
 import StringIO
 
+from . import constants
+
 try:
     import pythoncom
     import win32com.client
 except:
     pass
-
-
-EXCEL_APPLICATION = "Excel.Application"
-EXCEL_FORMAT_EXCEL2003 = 56
-NAME_BUSINESS_PLAN = u"%02d月営業企画"
-NAME_MEMBER_LIST = u"最新要員一覧"
-
-MARK_POST_CODE = u"〒"
-
-DOWNLOAD_REQUEST = "request"
-DOWNLOAD_BUSINESS_PLAN = "business_plan"
-DOWNLOAD_MEMBER_LIST = "member_list"
 
 
 def add_months(source_date, months=1):
@@ -177,7 +167,7 @@ def generate_request(project, company):
       なし
     """
     pythoncom.CoInitializeEx(pythoncom.COINIT_MULTITHREADED)
-    template_book = get_excel_template(DOWNLOAD_REQUEST)
+    template_book = get_excel_template(constants.DOWNLOAD_REQUEST)
     template_sheet = template_book.Worksheets(1)
     book = get_new_book()
     cnt = book.Sheets.Count
@@ -186,7 +176,7 @@ def generate_request(project, company):
     template_book.Close()
     sheet = book.Worksheets(cnt + 1)
 
-    sheet.Range("POS_CLIENT_POST_CODE").Value = MARK_POST_CODE + project.client.post_code
+    sheet.Range("POS_CLIENT_POST_CODE").Value = constants.MARK_POST_CODE + project.client.post_code
     sheet.Range("POS_CLIENT_ADDRESS").Value = project.client.address1 + project.client.address2
     sheet.Range("POS_CLIENT_TEL").Value = "Tel: " + project.client.tel
     sheet.Range("POS_CLIENT_COMPANY").Value = project.client.name
@@ -201,7 +191,7 @@ def generate_request(project, company):
     next_month = add_months(now, 1)
     sheet.Range("POS_REMIT_DATE").Value = get_last_day_by_month(next_month)
     sheet.Range("POS_PUBLISH_DATE").Value = now
-    sheet.Range("POS_POST_CODE").Value = MARK_POST_CODE + company.post_code
+    sheet.Range("POS_POST_CODE").Value = constants.MARK_POST_CODE + company.post_code
     sheet.Range("POS_ADDRESS").Value = company.address1 + company.address2
     sheet.Range("POS_COMPANY_NAME").Value = company.name
     member = company.get_master()
@@ -216,7 +206,7 @@ def generate_request(project, company):
 
     for i in range(cnt, 0, -1):
         book.Worksheets(i).Delete()
-    return save_and_close_book(book, DOWNLOAD_REQUEST)
+    return save_and_close_book(book, constants.DOWNLOAD_REQUEST)
 
 
 def get_excel_template(name):
@@ -224,7 +214,7 @@ def get_excel_template(name):
     if not os.path.exists(path_file):
         return None
 
-    xl_app = win32com.client.dynamic.Dispatch(EXCEL_APPLICATION)
+    xl_app = win32com.client.dynamic.Dispatch(constants.EXCEL_APPLICATION)
     xl_app.DisplayAlerts = False
     xl_app.Visible = 0
     book = xl_app.Workbooks.Open(path_file)
@@ -232,7 +222,7 @@ def get_excel_template(name):
 
 
 def get_new_book():
-    xl_app = win32com.client.dynamic.Dispatch(EXCEL_APPLICATION)
+    xl_app = win32com.client.dynamic.Dispatch(constants.EXCEL_APPLICATION)
     xl_app.DisplayAlerts = False
     xl_app.Visible = 0
     book = xl_app.Workbooks.Add()
@@ -250,7 +240,7 @@ def save_and_close_book(book, name):
     file_name = "tmp_%s_%s.xls" % (name, datetime.datetime.now().strftime("%Y%m%d_%H%M%S%f"))
     path = os.path.join(file_folder, file_name)
     # 保存
-    book.SaveAs(path, FileFormat=EXCEL_FORMAT_EXCEL2003)
+    book.SaveAs(path, FileFormat=constants.EXCEL_FORMAT_EXCEL2003)
     return path
 
 

@@ -4,15 +4,16 @@ Created on 2015/08/21
 
 @author: Yang Wanjun
 """
-import forms
-import common
 from django.contrib import admin
 from django.contrib import messages
 from django.contrib.auth.models import User
 from django.utils.translation import ugettext_lazy as _
 
+import forms
 from .models import Company, Section, Member, Salesperson, Project, Client, ClientMember, \
-    ProjectMember, Skill, ProjectSkill, ProjectActivity, Subcontractor, PositionShip
+    ProjectMember, Skill, ProjectSkill, ProjectActivity, Subcontractor, PositionShip,\
+    ProjectStage, OS, HistoryProject
+from utils import common
 
 
 class TextInputListFilter(admin.ListFilter):
@@ -295,6 +296,10 @@ class ProjectActivityAdmin(admin.ModelAdmin):
     get_salesperson.short_description = u"参加している営業員"
 
 
+class HistoryProjectAdmin(admin.ModelAdmin):
+    filter_horizontal = ['os', 'stages']
+
+
 # Register your models here.
 admin.site.register(Company, CompanyAdmin)
 admin.site.register(Section, SectionAdmin)
@@ -309,6 +314,9 @@ admin.site.register(ProjectMember, ProjectMemberAdmin)
 admin.site.register(ProjectActivity, ProjectActivityAdmin)
 admin.site.register(Subcontractor)
 admin.site.register(PositionShip)
+admin.site.register(ProjectStage)
+admin.site.register(OS)
+admin.site.register(HistoryProject, HistoryProjectAdmin)
 
 admin.site.site_header = u'社員営業状況管理システム'
 admin.site.site_title = u'管理サイト'
