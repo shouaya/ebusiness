@@ -13,8 +13,8 @@ EB_DB_PORT=3306
 EB_DB_NAME=eb
 
 #HR DB CONFIG
-HR_DB_HOST=localhost
-HR_DB_USER=quanpin_db
-HR_DB_PASS=quanpin_db
+HR_DB_HOST=103.3.189.18
+HR_DB_USER=sslclient
+HR_DB_PASS=eb2012
 HR_DB_PORT=3306
-HR_DB_NAME=hr
+HR_DB_NAME=SaleManagement
