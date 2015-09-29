@@ -12,7 +12,7 @@ import calendar
 import xlsxwriter
 import StringIO
 
-from . import constants
+import constants
 
 try:
     import pythoncom
@@ -519,7 +519,32 @@ def line_counter():
     print "Total line count: %s" % (all_count,)
 
 
+def get_insert_sql():
+    path = r"C:\Github\ebusiness\data.sql"
+    sql_list = []
+    for line in open(path, 'r'):
+        if line.startswith('CREATE TABLE "eb_') or line.startswith("INSERT INTO `eb_"):
+            sql_list.append(line)
+    if not sql_list:
+        return
+
+    lst = []
+    items = []
+    for i in sql_list:
+        i = i.strip()
+        if i.startswith("CREATE TABLE"):
+            del lst[:]
+            for item in re.findall(r'"([a-z_0-9]+)"', i):
+                if (item == "id") or lst:
+                    if not item.startswith("eb_") and not item.startswith("auth_") and item not in lst:
+                        lst.append(item)
+            items = ",".join(lst)
+        else:
+            print i.replace("VALUES", "(%s) VALUES" % (items,))
+
+
 if __name__ == "__main__":
+    # get_insert_sql()
     line_counter()
     # for l in range(703):
     #     print get_excel_col_by_index(l)

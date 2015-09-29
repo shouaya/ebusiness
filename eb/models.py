@@ -36,16 +36,16 @@ class AbstractMember(models.Model):
     last_name = models.CharField(blank=False, null=False, max_length=30, verbose_name=u"名")
     first_name_ja = models.CharField(blank=True, null=True, max_length=30, verbose_name=u"姓(フリカナ)")
     last_name_ja = models.CharField(blank=True, null=True, max_length=30, verbose_name=u"名(フリカナ)")
-    first_name_en = models.CharField(blank=False, null=False, max_length=30, verbose_name=u"姓(ローマ字)",
+    first_name_en = models.CharField(blank=True, null=True, max_length=30, verbose_name=u"姓(ローマ字)",
                                      help_text=u"先頭文字は大文字にしてください（例：Zhang）")
-    last_name_en = models.CharField(blank=False, null=False, max_length=30, verbose_name=u"名(ローマ字)",
+    last_name_en = models.CharField(blank=True, null=True, max_length=30, verbose_name=u"名(ローマ字)",
                                     help_text=u"漢字ごとに先頭文字は大文字にしてください（例：XiaoWang）")
     sex = models.CharField(blank=True, null=True, max_length=1, choices=constants.CHOICE_SEX, verbose_name=u"性別")
     country = models.CharField(blank=True, null=True, max_length=20, verbose_name=u"国籍・地域")
-    birthday = models.DateField(blank=False, null=False, verbose_name=u"生年月日")
+    birthday = models.DateField(blank=True, null=True, verbose_name=u"生年月日")
     graduate_date = models.DateField(blank=True, null=True, verbose_name=u"卒業年月日")
     degree = models.IntegerField(blank=True, null=True, choices=constants.CHOICE_DEGREE_TYPE, verbose_name=u"学歴")
-    email = models.EmailField(blank=False, null=False, verbose_name=u"メールアドレス")
+    email = models.EmailField(blank=True, null=True, verbose_name=u"メールアドレス")
     post_code = models.CharField(blank=True, null=True, max_length=7, verbose_name=u"郵便番号")
     address1 = models.CharField(blank=True, null=True, max_length=200, verbose_name=u"住所１")
     address2 = models.CharField(blank=True, null=True, max_length=200, verbose_name=u"住所２")
@@ -368,9 +368,13 @@ class Client(AbstractCompany):
     president = models.CharField(blank=True, null=True, max_length=30, verbose_name=u"代表者名")
     employee_count = models.IntegerField(blank=True, null=True, verbose_name=u"従業員数")
     sale_amount = models.BigIntegerField(blank=True, null=True, verbose_name=u"売上高")
+    undertaker = models.CharField(blank=True, null=True, max_length=30, verbose_name=u"担当者")
+    undertaker_mail = models.EmailField(blank=True, null=True, verbose_name=u"担当者メール")
     payment_type = models.CharField(blank=True, null=True, max_length=2, verbose_name=u"支払方法")
     payment_day = models.CharField(blank=True, null=True, max_length=2, verbose_name=u"支払日")
+    remark = models.TextField(blank=True, null=True, verbose_name=u"評価")
     comment = models.TextField(blank=True, null=True, verbose_name=u"備考")
+    salesperson = models.ForeignKey(Salesperson, blank=True, null=True, verbose_name=u"営業担当")
     created_date = models.DateTimeField(auto_now_add=True, editable=False)
     updated_date = models.DateTimeField(auto_now=True, editable=False)
 
