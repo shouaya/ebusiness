@@ -1,0 +1,14 @@
+#念のため既存のmod_wsgiを削除(base on python2.6)
+yum remove mod_wsgi
+
+#mod_wsgiインストール(base on python2.7)
+wget https://github.com/GrahamDumpleton/mod_wsgi/archive/4.2.8.tar.gz -O mod_wsgi-4.2.8.tar.gz
+tar xzf mod_wsgi-4.2.8.tar.gz
+cd mod_wsgi-4.2.8
+./configure --with-python=/usr/local/bin/python2.7
+yum install httpd-devel
+make
+make install
+
+# vim /etc/httpd/conf.d/wsgi.conf
+LoadModule wsgi_module modules/mod_wsgi.so
