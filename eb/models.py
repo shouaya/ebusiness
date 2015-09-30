@@ -78,9 +78,9 @@ class Company(AbstractCompany):
         now = datetime.date.today()
         Member.objects.filter()
         query_set = Member.objects.raw("SELECT DISTINCT M.*"
-                                       "  FROM EB_MEMBER M"
+                                       "  FROM eb_member M"
                                        " WHERE NOT EXISTS (SELECT 1 "
-                                       "                     FROM EB_PROJECTMEMBER PM"
+                                       "                     FROM eb_projectmember PM"
                                        "                    WHERE PM.MEMBER_ID = M.ID"
                                        "                      AND PM.START_DATE <= %s"
                                        "                      AND PM.END_DATE >= %s)"
@@ -286,11 +286,11 @@ class Member(AbstractMember):
 
     def get_skill_list(self):
         query_set = Member.objects.raw(u"SELECT DISTINCT S.*"
-                                       u"  FROM EB_MEMBER M"
-                                       u"  JOIN EB_PROJECTMEMBER PM ON M.ID = PM.MEMBER_ID"
-                                       u"  JOIN EB_PROJECT P ON P.ID = PM.PROJECT_ID"
-                                       u"  JOIN EB_PROJECTSKILL PS ON PS.PROJECT_ID = P.ID"
-                                       u"  JOIN EB_SKILL S ON S.ID = PS.SKILL_ID"
+                                       u"  FROM eb_member M"
+                                       u"  JOIN eb_projectmember PM ON M.ID = PM.MEMBER_ID"
+                                       u"  JOIN eb_project P ON P.ID = PM.PROJECT_ID"
+                                       u"  JOIN eb_projectskill PS ON PS.PROJECT_ID = P.ID"
+                                       u"  JOIN eb_skill S ON S.ID = PS.SKILL_ID"
                                        u" WHERE M.EMPLOYEE_ID = %s"
                                        u"   AND PM.END_DATE <= %s", [self.employee_id, datetime.date.today()])
         return list(query_set)
@@ -299,11 +299,11 @@ class Member(AbstractMember):
         skill_list = self.get_skill_list()
         skill_id_list = [str(skill.pk) for skill in skill_list]
         query_set = Member.objects.raw(u"SELECT DISTINCT P.*"
-                                       u"  FROM EB_MEMBER M"
-                                       u"  JOIN EB_PROJECTMEMBER PM ON M.ID = PM.MEMBER_ID"
-                                       u"  JOIN EB_PROJECT P ON P.ID = PM.PROJECT_ID"
-                                       u"  JOIN EB_PROJECTSKILL PS ON PS.PROJECT_ID = P.ID"
-                                       u"  JOIN EB_SKILL S ON S.ID = PS.SKILL_ID"
+                                       u"  FROM eb_member M"
+                                       u"  JOIN eb_projectmember PM ON M.ID = PM.MEMBER_ID"
+                                       u"  JOIN eb_project P ON P.ID = PM.PROJECT_ID"
+                                       u"  JOIN eb_projectskill PS ON PS.PROJECT_ID = P.ID"
+                                       u"  JOIN eb_skill S ON S.ID = PS.SKILL_ID"
                                        u" WHERE S.ID IN (%s)"
                                        u"   AND P.STATUS <= 3" % (",".join(skill_id_list),))
         return [project.pk for project in query_set]
@@ -467,15 +467,15 @@ class Project(models.Model):
         next_2_month = common.add_months(datetime.date.today(), 2)
         last_day_a_month_later = datetime.date(next_2_month.year, next_2_month.month, 1)
         query_set = Member.objects.raw(u"SELECT DISTINCT m.* "
-                                       u"  FROM EB_MEMBER m "
-                                       u"  JOIN EB_PROJECTMEMBER pm ON m.ID = pm.MEMBER_ID "
-                                       u"  JOIN EB_PROJECTSKILL ps ON ps.PROJECT_ID = pm.PROJECT_ID"
-                                       u"  JOIN EB_SKILL s ON s.ID = ps.SKILL_ID"
+                                       u"  FROM eb_member m "
+                                       u"  JOIN eb_projectmember pm ON m.ID = pm.MEMBER_ID "
+                                       u"  JOIN eb_projectskill ps ON ps.PROJECT_ID = pm.PROJECT_ID"
+                                       u"  JOIN eb_skill s ON s.ID = ps.SKILL_ID"
                                        u" WHERE s.NAME = %s"
                                        u"   AND pm.END_DATE < %s"
                                        u"   AND pm.STATUS <> 1"
                                        u"   AND NOT EXISTS (SELECT 1 "
-                                       u"                     FROM EB_PROJECTMEMBER pm2"
+                                       u"                     FROM eb_projectmember pm2"
                                        u"                    WHERE pm2.START_DATE >= %s"
                                        u"                      AND pm2.MEMBER_ID = m.ID"
                                        u"                      AND pm2.PROJECT_ID = %s"
