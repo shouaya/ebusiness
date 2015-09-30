@@ -1,7 +1,7 @@
 #!/bin/bash
 # 機能  :  sync hr datatables to eb
 # 作成  :  shoushou
-source config.sh
+source /usr/local/src/ebusiness/batch/config.sh
 
 current_date=$(date "+%Y.%m.%d")
 LOGFILE=$EB_ROOT/log/$current_date.log.txt
