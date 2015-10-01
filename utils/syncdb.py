@@ -4,19 +4,33 @@ Created on 2015/09/30
 
 @author: Yang Wanjun
 """
+import re
 import datetime
 
 from django.db import connection
 
 from eb import models
-from utils import common
 
 
 class SyncDb():
 
     def __init__(self):
         self.cursor = None
-        self.company = models.Company.objects.all()[0]
+        self.company = self.sync_company()
+
+    def sync_company(self):
+        lst = models.Company.objects.all()
+        if lst.count() == 0:
+            company = models.Company()
+            company.name = u"株式会社イー・ビジネス"
+            company.post_code = "1050014"
+            company.address1 = u"東京都港区芝２丁目"
+            company.address2 = u"28-8芝2丁目ビル10階"
+            company.tel = "03-6809-3235"
+            company.save()
+            return company
+        else:
+            return lst[0]
 
     def sync_subcontractor(self):
         # 協力会社
@@ -142,23 +156,41 @@ class SyncDb():
             payment_type, payment_day, remark, comment, salesperson_id in self.cursor.fetchall():
             client = models.Client()
             client.name = name
-            client.japanese_spell = japanese_spell
-            client.found_date = found_date
-            client.capital = capital
+            client.japanese_spell = japanese_spell if japanese_spell else None
+            if found_date and found_date.strip():
+                found_date = found_date.strip()
+                dt = datetime.datetime.strptime(found_date, "%Y/%m/%d")
+                client.found_date = datetime.date(dt.year, dt.month, dt.day)
+            if capital and capital.strip() and re.match(r"^[0-9.,]+$", capital):
+                capital = capital.strip().replace(",", "")
+                client.capital = long(float(capital))
             client.post_code = post_code.strip().replace("-", "") if post_code and post_code.strip() else None
             client.address1 = address1.strip() if address1 and address1.strip() else None
             client.address2 = address2.strip() if address2 and address2.strip() else None
-            client.tel = tel
-            client.fax = fax
-            client.president = president
-            client.employee_count = employee_count
-            client.sale_amount = sale_amount
-            client.payment_type = payment_type
-            client.payment_day = payment_day
-            client.remark = remark
-            client.comment = comment
+            client.tel = tel if tel else None
+            client.fax = fax if fax else None
+            client.president = president if president else None
+            if employee_count and employee_count.strip():
+                employee_count = employee_count.strip().replace(",", "")
+                client.employee_count = int(employee_count)
+            if sale_amount and sale_amount.strip():
+                sale_amount = sale_amount.strip().replace(",", "")
+                client.sale_amount = long(sale_amount)
+            client.payment_type = payment_type if payment_type else None
+            client.payment_day = payment_day if payment_day else None
+            client.remark = remark if remark else None
+            client.comment = comment if comment else None
             if salesperson_id and salesperson_id.strip():
                 salesperson_id = salesperson_id.strip()
                 salesperson = models.Salesperson.objects.get(employee_id=salesperson_id)
                 client.salesperson = salesperson
             client.save()
+            if undertaker and undertaker.strip():
+                undertaker = undertaker.strip()
+                lst = models.ClientMember.objects.filter(client=client, name=undertaker)
+                if lst.count() == 0:
+                    client_member = models.ClientMember()
+                    client_member.name = undertaker
+                    client_member.email = undertaker_mail if undertaker_mail and undertaker_mail.strip() else None
+                    client_member.client = client
+                    client_member.save()

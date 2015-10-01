@@ -17,13 +17,18 @@ from .models import Company, Member, Section, Project, ProjectMember, Salesperso
 
 
 PAGE_SIZE = 50
-try:
-    company = Company.objects.all()[0]
-except:
-    company = None
+
+
+def get_company():
+    company_list = Company.objects.all()
+    if company_list.count() == 0:
+        return None
+    else:
+        return company_list[0]
 
 
 def index(request):
+    company = get_company()
     now = datetime.date.today()
     next_month = common.add_months(now, 1)
     next_2_months = common.add_months(now, 2)
@@ -45,6 +50,7 @@ def index(request):
 
 
 def employee_list(request):
+    company = get_company()
     status = request.GET.get('status', None)
     first_name = request.GET.get('first_name', None)
     last_name = request.GET.get('last_name', None)
@@ -113,6 +119,7 @@ def employee_list(request):
 
 
 def section_members(request, name):
+    company = get_company()
     section = Section.objects.get(name=name)
     status = request.GET.get('status', None)
     name = request.GET.get('name', None)
@@ -160,6 +167,7 @@ def section_members(request, name):
 
 
 def project_list(request):
+    company = get_company()
     status = request.GET.get('status', None)
     name = request.GET.get('name', None)
     client = request.GET.get('client', None)
@@ -214,6 +222,7 @@ def project_list(request):
 
 
 def project_detail(request, project_id):
+    company = get_company()
     project = Project.objects.get(pk=project_id)
     download = request.GET.get("download", None)
 
@@ -235,6 +244,7 @@ def project_detail(request, project_id):
 
 
 def project_member_list(request, project_id):
+    company = get_company()
     status = request.GET.get('status', None)
     project = Project.objects.get(pk=project_id)
     params = ""
@@ -277,6 +287,7 @@ def project_member_list(request, project_id):
 
 
 def release_list(request):
+    company = get_company()
     period = request.GET.get('period', None)
     params = ""
     if period and re.match(r'[12][0-9]{5}', period):
@@ -323,6 +334,7 @@ def release_list(request):
 
 def member_detail(request, employee_id):
     status = request.GET.get('status', None)
+    company = get_company()
     member = Member.objects.get(employee_id=employee_id)
     if status and status != '0':
         project_members = ProjectMember.objects.filter(member=member, status=status)\
@@ -343,6 +355,7 @@ def member_detail(request, employee_id):
 
 def member_project_list(request, employee_id):
     status = request.GET.get('status', None)
+    company = get_company()
     member = Member.objects.get(employee_id=employee_id)
     if status and status != '0':
         project_members = ProjectMember.objects.filter(member=member, status=status)\
@@ -363,6 +376,7 @@ def member_project_list(request, employee_id):
 
 def recommended_member_list(request, project_id):
     project = Project.objects.get(pk=project_id)
+    company = get_company()
     dict_skills = project.get_recommended_members()
 
     context = RequestContext(request, {
@@ -376,6 +390,7 @@ def recommended_member_list(request, project_id):
 
 
 def recommended_project_list(request, employee_id):
+    company = get_company()
     member = Member.objects.get(employee_id=employee_id)
     skills = member.get_skill_list()
     project_id_list = member.get_recommended_projects()
@@ -393,6 +408,7 @@ def recommended_project_list(request, employee_id):
 
 
 def history(request):
+    company = get_company()
     context = RequestContext(request, {
         'company': company,
         'title': u'更新履歴',

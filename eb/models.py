@@ -209,7 +209,8 @@ class Subcontractor(AbstractCompany):
     employee_count = models.IntegerField(blank=True, null=True, verbose_name=u"従業員数")
     sale_amount = models.BigIntegerField(blank=True, null=True, verbose_name=u"売上高")
     payment_type = models.CharField(blank=True, null=True, max_length=2, verbose_name=u"支払方法")
-    payment_day = models.CharField(blank=True, null=True, max_length=2, verbose_name=u"支払日")
+    payment_day = models.CharField(blank=True, null=True, max_length=2, choices=constants.CHOICE_PAYMENT_DAY,
+                                   verbose_name=u"支払日")
     comment = models.TextField(blank=True, null=True, verbose_name=u"備考")
     created_date = models.DateTimeField(auto_now_add=True, editable=False)
     updated_date = models.DateTimeField(auto_now=True, editable=False)
@@ -376,7 +377,8 @@ class Client(AbstractCompany):
     undertaker = models.CharField(blank=True, null=True, max_length=30, verbose_name=u"担当者")
     undertaker_mail = models.EmailField(blank=True, null=True, verbose_name=u"担当者メール")
     payment_type = models.CharField(blank=True, null=True, max_length=2, verbose_name=u"支払方法")
-    payment_day = models.CharField(blank=True, null=True, max_length=2, verbose_name=u"支払日")
+    payment_day = models.CharField(blank=True, null=True, max_length=2,
+                                   choices=constants.CHOICE_PAYMENT_DAY, verbose_name=u"支払日")
     remark = models.TextField(blank=True, null=True, verbose_name=u"評価")
     comment = models.TextField(blank=True, null=True, verbose_name=u"備考")
     salesperson = models.ForeignKey(Salesperson, blank=True, null=True, verbose_name=u"営業担当")
@@ -389,10 +391,10 @@ class Client(AbstractCompany):
 
 
 class ClientMember(models.Model):
-    name = models.CharField(blank=False, null=False, max_length=30, verbose_name=u"名前")
-    email = models.EmailField(blank=False, null=False, verbose_name=u"メールアドレス")
+    name = models.CharField(max_length=30, verbose_name=u"名前")
+    email = models.EmailField(blank=True, null=True, verbose_name=u"メールアドレス")
     phone = models.CharField(blank=True, null=True, max_length=11, verbose_name=u"電話番号")
-    client = models.ForeignKey(Client, blank=False, null=False, verbose_name=u"所属会社")
+    client = models.ForeignKey(Client, verbose_name=u"所属会社")
 
     class Meta:
         ordering = ['name']
