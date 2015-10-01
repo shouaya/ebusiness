@@ -38,7 +38,7 @@ def index(request):
         'company': company,
         'title': 'Home',
         'filter_list': filter_list,
-        'member_count': Member.objects.filter(section__isnull=False).count(),
+        'member_count': company.get_all_members().count(),
     })
     template = loader.get_template('home.html')
     return HttpResponse(template.render(context))
@@ -57,7 +57,7 @@ def employee_list(request):
     dict_order = common.get_ordering_dict(o, ['first_name', 'section', 'salesperson__first_name'])
     order_list = common.get_ordering_list(o)
 
-    all_members = Member.objects.filter(section__isnull=False)
+    all_members = company.get_all_members()
 
     if salesperson:
         salesperson_obj = Salesperson.objects.get(employee_id=salesperson)
@@ -399,3 +399,14 @@ def history(request):
     })
     template = loader.get_template('history.html')
     return HttpResponse(template.render(context))
+
+
+def sync_db(request):
+    message = "成功しました！"
+    from utils.syncdb import SyncDb
+    sync = SyncDb()
+    sync.sync_subcontractor()
+    sync.sync_section()
+    sync.sync_member()
+    sync.sync_client()
+    return HttpResponse(message)

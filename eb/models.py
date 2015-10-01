@@ -70,6 +70,9 @@ class Company(AbstractCompany):
     class Meta:
         verbose_name = verbose_name_plural = u"会社"
 
+    def get_all_members(self):
+        return Member.objects.filter(member_type__lte=4)
+
     def get_working_members(self):
         now = datetime.date.today()
         return ProjectMember.objects.filter(end_date__gte=now, start_date__lte=now)
@@ -298,6 +301,8 @@ class Member(AbstractMember):
     def get_recommended_projects(self):
         skill_list = self.get_skill_list()
         skill_id_list = [str(skill.pk) for skill in skill_list]
+        if not skill_id_list:
+            return []
         query_set = Member.objects.raw(u"SELECT DISTINCT P.*"
                                        u"  FROM eb_member M"
                                        u"  JOIN eb_projectmember PM ON M.ID = PM.MEMBER_ID"
