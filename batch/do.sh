@@ -1,7 +1,7 @@
 #!/bin/bash
 # 機能  :  sync hr datatables to eb
 # 作成  :  shoushou
-source config.sh
+source /usr/local/src/ebusiness/batch/config.sh
 
 current_date=$(date "+%Y.%m.%d")
 LOGFILE=$EB_ROOT/log/$current_date.log.txt
@@ -9,7 +9,7 @@ LOGFILE=$EB_ROOT/log/$current_date.log.txt
 
 current_time=$(date "+%Y.%m.%d-%H.%M.%S")
 echo "backup start : $current_time" >> $LOGFILE
-./backup.sh
+$EB_ROOT/backup.sh
 
 if [ "$?" -eq 0 ]
 then
@@ -21,7 +21,7 @@ fi
 
 current_time=$(date "+%Y.%m.%d-%H.%M.%S")
 echo "download start : $current_time" >> $LOGFILE
-./download.sh
+$EB_ROOT/download.sh
 
 if [ "$?" -eq 0 ]
 then
@@ -33,7 +33,7 @@ fi
 
 current_time=$(date "+%Y.%m.%d-%H.%M.%S")
 echo "restore start : $current_time" >> $LOGFILE
-./restore.sh
+$EB_ROOT/restore.sh
 
 if [ "$?" -eq 0 ]
 then
