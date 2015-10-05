@@ -86,8 +86,7 @@ class Company(AbstractCompany):
                                        "                     FROM eb_projectmember PM"
                                        "                    WHERE PM.MEMBER_ID = M.ID"
                                        "                      AND PM.START_DATE <= %s"
-                                       "                      AND PM.END_DATE >= %s)"
-                                       "   AND M.SECTION_ID IS NOT NULL", [now, now])
+                                       "                      AND PM.END_DATE >= %s)", [now, now])
         return list(query_set)
 
     def get_release_members_by_month(self, date):
@@ -384,6 +383,8 @@ class Client(AbstractCompany):
     salesperson = models.ForeignKey(Salesperson, blank=True, null=True, verbose_name=u"営業担当")
     created_date = models.DateTimeField(auto_now_add=True, editable=False)
     updated_date = models.DateTimeField(auto_now=True, editable=False)
+    saletest_customer_id = models.IntegerField(blank=True, null=True, editable=False,
+                                               help_text=u"売上ＤＢからデータを導入するために使う、売上ＤＢの顧客ＩＤ")
 
     class Meta:
         ordering = ['name']
@@ -441,6 +442,8 @@ class Project(models.Model):
                                   related_name="middleman_set", verbose_name=u"案件連絡者")
     salesperson = models.ForeignKey(Salesperson, blank=True, null=True, verbose_name=u"営業員")
     members = models.ManyToManyField(Member, through='ProjectMember', blank=True, null=True)
+    saletest_contract_id = models.IntegerField(blank=True, null=True, editable=False,
+                                               help_text=u"売上ＤＢからデータを導入するために使う、売上ＤＢの契約ＩＤ")
 
     class Meta:
         ordering = ['name']

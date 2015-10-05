@@ -172,7 +172,7 @@ class SalespersonAdmin(admin.ModelAdmin):
                      'country', 'graduate_date', 'phone', 'japanese_description', 'certificate', 'comment')}),
         (u"勤務情報", {'fields': ('member_type', 'email', 'section', 'company')})
     )
-    actions = ['create_users']
+    # actions = ['create_users']
 
     class Media:
         js = ('http://ajaxzip3.googlecode.com/svn/trunk/ajaxzip3/ajaxzip3.js',)
@@ -215,6 +215,13 @@ class ProjectAdmin(admin.ModelAdmin):
     search_fields = ['name']
     inlines = (ProjectSkillInline, ProjectMemberInline)
 
+    def get_form(self, request, obj=None, **kwargs):
+        form = super(ProjectAdmin, self).get_form(request, obj, **kwargs)
+        if obj and obj.client:
+            form.base_fields['boss'].queryset = ClientMember.objects.filter(client=obj.client)
+            form.base_fields['middleman'].queryset = ClientMember.objects.filter(client=obj.client)
+        return form
+
 
 class ClientAdmin(admin.ModelAdmin):
 
@@ -231,6 +238,7 @@ class ClientAdmin(admin.ModelAdmin):
 class ClientMemberAdmin(admin.ModelAdmin):
 
     list_display = ['name', 'email', 'client']
+    search_fields = ['name']
 
 
 class ProjectMemberAdmin(admin.ModelAdmin):
@@ -240,7 +248,7 @@ class ProjectMemberAdmin(admin.ModelAdmin):
 
     list_display = ['project', 'display_project_client', 'member', 'start_date', 'end_date', 'status']
     list_display_links = ['member']
-    list_filter = ['project__client', 'status']
+    list_filter = ['status']
 
     def display_project_client(self, obj):
         return obj.project.client.name
@@ -266,7 +274,6 @@ class ProjectActivityAdmin(admin.ModelAdmin):
 
     list_display = ['project', 'name', 'open_date', 'address', 'get_client_members', 'get_salesperson']
     list_display_links = ['name']
-    list_filter = ['project']
 
     filter_horizontal = ['client_members', 'salesperson', 'members']
 
@@ -306,7 +313,7 @@ admin.site.register(Section, SectionAdmin)
 admin.site.register(Member, MemberAdmin)
 admin.site.register(Salesperson, SalespersonAdmin)
 admin.site.register(Skill)
-admin.site.register(ProjectSkill)
+# admin.site.register(ProjectSkill)
 admin.site.register(Project, ProjectAdmin)
 admin.site.register(Client, ClientAdmin)
 admin.site.register(ClientMember, ClientMemberAdmin)

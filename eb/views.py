@@ -180,39 +180,49 @@ def project_list(request):
     order_list = common.get_ordering_list(o)
 
     if download == constants.DOWNLOAD_BUSINESS_PLAN:
-        projects = Project.objects.filter(status=4)
+        all_projects = Project.objects.filter(status=4)
     else:
-        projects = Project.objects.all()
+        all_projects = Project.objects.all()
 
     if salesperson:
         salesperson_obj = Salesperson.objects.get(employee_id=salesperson)
-        projects = salesperson_obj.project_set.all()
+        all_projects = salesperson_obj.project_set.all()
         params += "&salesperson=%s" % (salesperson,)
     if status:
-        projects = Project.objects.filter(status=status)
+        all_projects = Project.objects.filter(status=status)
         params += "&status=%s" % (status,)
     if name:
-        projects = projects.filter(name__contains=name)
+        all_projects = all_projects.filter(name__contains=name)
         params += "&name=%s" % (name,)
 
     if order_list:
-        projects = projects.order_by(*order_list)
+        all_projects = all_projects.order_by(*order_list)
 
     if client:
-        projects = [project for project in projects if client in project.client.name]
+        all_projects = [project for project in all_projects if client in project.client.name]
         params += "&client=%s" % (client,)
 
     if download == constants.DOWNLOAD_BUSINESS_PLAN:
         filename = constants.NAME_BUSINESS_PLAN % (datetime.date.today().month,)
-        output = common.generate_business_plan(projects, filename)
+        output = common.generate_business_plan(all_projects, filename)
         response = HttpResponse(output.read(), content_type="application/ms-excel")
         response['Content-Disposition'] = "filename=" + urllib.quote(filename.encode('utf-8')) + ".xlsx"
         return response
     else:
+        paginator = Paginator(all_projects, PAGE_SIZE)
+        page = request.GET.get('page')
+        try:
+            projects = paginator.page(page)
+        except PageNotAnInteger:
+            projects = paginator.page(1)
+        except EmptyPage:
+            projects = paginator.page(paginator.num_pages)
+
         context = RequestContext(request, {
             'company': company,
             'title': u'案件一覧',
             'projects': projects,
+            'paginator': paginator,
             'salesperson': Salesperson.objects.all(),
             'params': params,
             'dict_order': dict_order,
@@ -425,4 +435,5 @@ def sync_db(request):
     sync.sync_section()
     sync.sync_member()
     sync.sync_client()
+    sync.sync_project()
     return HttpResponse(message)

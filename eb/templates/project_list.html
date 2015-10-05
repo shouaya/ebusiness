@@ -162,7 +162,7 @@
                             {% if projects.has_next %}
                                 <a href="?page={{ projects.next_page_number }}{{ params }}">&gt;</a>
                             {% endif %}
-                            <span>{{ projects|length }} 件</span>
+                            <span>{{ paginator.count }} 件</span>
                         </span>
                     </div>
                 </td>
