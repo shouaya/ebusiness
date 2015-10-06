@@ -86,7 +86,8 @@ class Company(AbstractCompany):
                                        "                     FROM eb_projectmember PM"
                                        "                    WHERE PM.MEMBER_ID = M.ID"
                                        "                      AND PM.START_DATE <= %s"
-                                       "                      AND PM.END_DATE >= %s)", [now, now])
+                                       "                      AND PM.END_DATE >= %s)"
+                                       "   and M.member_type <= 4", [now, now])
         return list(query_set)
 
     def get_release_members_by_month(self, date):

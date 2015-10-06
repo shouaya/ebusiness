@@ -42,7 +42,7 @@
                             </a>
                         </td>
                         <td class="center">
-                            <a href="/admin/eb/projectmember/{{ project_member.id }}/" target="_blank">編集</a>
+                            <a href="{% url 'admin:eb_projectmember_change' project_member.id %}" target="_blank">編集</a>
                         </td>
                     </tr>
                 {% endfor %}

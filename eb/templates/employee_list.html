@@ -39,7 +39,7 @@
             </select>
             <input type="submit" value="Filter" />
             <a href="?download=member_list{{ params }}" target="_blank" class="button">要員一覧ダウンロード</a>
-            <a href="/admin/eb/member/add/" target="_blank" class="button">要員を追加</a>
+            <a href="{% url 'admin:eb_member_add' %}" target="_blank" class="button">要員を追加</a>
         </form>
     </div>
     <table class="list" cellpadding="0" cellspacing="0">
@@ -141,7 +141,7 @@
                                 <a href="{% url 'recommended_project' member.employee_id %}">推薦された案件</a>
                             {% endifequal %}
                         </td>
-                        <td class="center"><a href="/admin/eb/member/{{ member.id }}/" target="_blank">編集</a></td>
+                        <td class="center"><a href="{% url 'admin:eb_member_change' member.pk %}" target="_blank">編集</a></td>
                     </tr>
                 {% endfor %}
             {% else %}
