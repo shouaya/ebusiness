@@ -37,7 +37,7 @@ class SyncDb():
         # 協力会社
         self.cursor = connection.cursor()
         self.cursor.execute(u"select distinct Company"
-                            u"  from t_employee t1 "
+                            u"  from T_Employee t1 "
                             u" where not exists( select 1 from eb_subcontractor t2 where t2.name = t1.Company)"
                             u"   and t1.Company is not null"
                             u"   and trim(t1.Company) <> ''"
@@ -54,7 +54,7 @@ class SyncDb():
         # 部署
         self.cursor = connection.cursor()
         self.cursor.execute(u"select distinct DeptName"
-                            u"  from t_dept t1"
+                            u"  from T_Dept t1"
                             u" where not exists( select 1 from eb_section t2 where t2.name = t1.DeptName);")
         for name, in self.cursor.fetchall():
             try:
@@ -80,7 +80,7 @@ class SyncDb():
                             u"     , Company as CompanyName"
                             u"     , Certificate"
                             u"     , Note"
-                            u"  from t_employee t1"
+                            u"  from T_Employee t1"
                             u" where not exists( select 1 "
                             u"                     from eb_member t2 "
                             u"                    where cast(t2.employee_id as unsigned) = t1.EmployeeID)"
@@ -156,7 +156,7 @@ class SyncDb():
                             u"     , Remark"
                             u"     , Note"
                             u"     , EBSalesID"
-                            u"  from t_customer t1"
+                            u"  from T_Customer t1"
                             u" where not exists(select 1 "
                             u"                    from eb_client t2 "
                             u"				     where t2.saletest_customer_id = t1.CustomerID) "
@@ -214,7 +214,7 @@ class SyncDb():
                             u"     , min(StartDate) as StartDate"
                             u"     , max(EndDate) as EndDate"
                             u"     , Salesman1ID"
-                            u"  FROM t_managementbook t1 "
+                            u"  FROM T_ManagementBook t1 "
                             u" where not exists ( select 1"
                             u"                      from eb_project t2"
                             u"                      join eb_client t3 on t3.id = t2.client_id"
@@ -246,7 +246,7 @@ class SyncDb():
                            u"     , min(StartDate)"
                            u"     , max(EndDate)"
                            u"     , Price"
-                           u"  from t_managementbook t1"
+                           u"  from T_ManagementBook t1"
                            u" where t1.CustomerID = %s"
                            u"   and t1.ContractName = %s"
                            u" group by EmployeeID;", [client_id, name])
