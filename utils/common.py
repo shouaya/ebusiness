@@ -13,6 +13,7 @@ import xlsxwriter
 import StringIO
 
 import constants
+import errors
 
 try:
     import pythoncom
@@ -164,10 +165,13 @@ def generate_request(project, company):
       dict
 
     Raises：
-      なし
+      FileNotExistException
     """
     pythoncom.CoInitializeEx(pythoncom.COINIT_MULTITHREADED)
-    template_book = get_excel_template(constants.DOWNLOAD_REQUEST)
+    if not project.client.request_file:
+        raise errors.FileNotExistException(constants.ERROR_TEMPLATE_NOT_EXISTS)
+
+    template_book = get_excel_template(project.client.request_file.path)
     template_sheet = template_book.Worksheets(1)
     book = get_new_book()
     cnt = book.Sheets.Count
@@ -206,13 +210,20 @@ def generate_request(project, company):
 
     for i in range(cnt, 0, -1):
         book.Worksheets(i).Delete()
-    return save_and_close_book(book, constants.DOWNLOAD_REQUEST)
+
+    file_folder = os.path.join(os.path.dirname(project.client.request_file.path), "temp")
+    if not os.path.exists(file_folder):
+        os.mkdir(file_folder)
+    file_name = "tmp_%s_%s.xls" % (constants.DOWNLOAD_REQUEST, datetime.datetime.now().strftime("%Y%m%d_%H%M%S%f"))
+    path = os.path.join(file_folder, file_name)
+    book.SaveAs(path, FileFormat=constants.EXCEL_FORMAT_EXCEL2003)
+
+    return path
 
 
-def get_excel_template(name):
-    path_file = os.path.join(get_template_folder(), "%s.xls" % (name,))
+def get_excel_template(path_file):
     if not os.path.exists(path_file):
-        return None
+        raise errors.FileNotExistException(constants.ERROR_TEMPLATE_NOT_EXISTS)
 
     xl_app = win32com.client.dynamic.Dispatch(constants.EXCEL_APPLICATION)
     xl_app.DisplayAlerts = False
@@ -227,21 +238,6 @@ def get_new_book():
     xl_app.Visible = 0
     book = xl_app.Workbooks.Add()
     return book
-
-
-def get_template_folder():
-    path_root = os.path.dirname(os.path.abspath(__file__))
-    path_folder = os.path.join(path_root, "templates")
-    return path_folder
-
-
-def save_and_close_book(book, name):
-    file_folder = get_template_folder()
-    file_name = "tmp_%s_%s.xls" % (name, datetime.datetime.now().strftime("%Y%m%d_%H%M%S%f"))
-    path = os.path.join(file_folder, file_name)
-    # 保存
-    book.SaveAs(path, FileFormat=constants.EXCEL_FORMAT_EXCEL2003)
-    return path
 
 
 def generate_business_plan(projects, filename):

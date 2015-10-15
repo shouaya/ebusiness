@@ -12,7 +12,7 @@ from django.http import HttpResponse
 from django.template import RequestContext, loader
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 
-from utils import constants, common
+from utils import constants, common, errors
 from .models import Company, Member, Section, Project, ProjectMember, Salesperson
 
 
@@ -237,12 +237,15 @@ def project_detail(request, project_id):
     download = request.GET.get("download", None)
 
     if download == constants.DOWNLOAD_REQUEST:
-        path = common.generate_request(project, company)
-        now = datetime.datetime.now()
-        filename = "請求書（%s年%02s月）.xls" % (now.year, now.month)
-        response = HttpResponse(open(path, 'rb'), content_type="application/excel")
-        response['Content-Disposition'] = "filename=" + urllib.quote(filename)
-        return response
+        try:
+            path = common.generate_request(project, company)
+            now = datetime.datetime.now()
+            filename = "請求書（%s年%02d月）.xls" % (now.year, now.month)
+            response = HttpResponse(open(path, 'rb'), content_type="application/excel")
+            response['Content-Disposition'] = "filename=" + urllib.quote(filename)
+            return response
+        except errors.FileNotExistException, ex:
+            return HttpResponse(u"<script>alert('%s');window.close();</script>" % (ex.message,))
     else:
         context = RequestContext(request, {
             'company': company,

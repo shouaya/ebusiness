@@ -6,7 +6,9 @@ Created on 2015/08/26
 """
 import re
 import models
+import datetime
 
+from utils import common
 from django import forms
 
 REG_POST_CODE = r"^\d{7}$"
@@ -35,7 +37,8 @@ class ClientForm(forms.ModelForm):
     class Meta:
         models = models.Company
         fields = ['name', 'japanese_spell', 'found_date', 'capital', 'post_code', 'address1', 'address2', 'tel', 'fax',
-                  'president', 'employee_count', 'sale_amount', 'payment_type', 'payment_day', 'comment', ]
+                  'president', 'employee_count', 'sale_amount', 'payment_type', 'payment_day', 'remark', 'comment',
+                  'salesperson', 'request_file']
 
     post_code = forms.CharField(max_length=7,
                                 widget=forms.TextInput(
@@ -135,9 +138,28 @@ class SalespersonForm(forms.ModelForm):
             self.add_error('last_name_en', u"漢字ごとに先頭文字は大文字にしてください（例：XiaoWang）")
 
 
-class ProjectMemberAdminForm(forms.ModelForm):
+class ProjectMemberForm(forms.ModelForm):
     class Meta:
         model = models.ProjectMember
         fields = ['project', 'member', 'start_date', 'end_date', 'price', 'status', 'role']
 
 
+class MemberAttendanceForm(forms.ModelForm):
+    class Meta:
+        models = models.MemberAttendance
+        fields = ['project_member', 'year', 'month', 'total_hours', 'extra_hours']
+
+    def clean(self):
+        cleaned_data = super(MemberAttendanceForm, self).clean()
+        project_member = cleaned_data.get("project_member")
+        year = cleaned_data.get("year")
+        month = cleaned_data.get("month")
+        d = datetime.date(int(year), int(month), 1)
+        if project_member.start_date:
+            if str(project_member.start_date.year) + "%02d" % (project_member.start_date.month,) > year + month:
+                self.add_error('year', u"対象年月は案件開始日以前になっています！")
+                self.add_error('month', u"対象年月は案件開始日以前になっています！")
+        if project_member.end_date:
+            if str(project_member.end_date.year) + "%02d" % (project_member.end_date.month,) < year + month:
+                self.add_error('year', u"対象年月は案件終了日以降になっています！")
+                self.add_error('month', u"対象年月は案件終了日以降になっています！")

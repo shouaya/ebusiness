@@ -16,6 +16,8 @@ DOWNLOAD_REQUEST = "request"
 DOWNLOAD_BUSINESS_PLAN = "business_plan"
 DOWNLOAD_MEMBER_LIST = "member_list"
 
+ERROR_TEMPLATE_NOT_EXISTS = u"テンプレートファイルが存在しません。"
+
 CHOICE_PROJECT_MEMBER_STATUS = ((1, u"提案中"),
                                 (2, u"作業中"),
                                 (3, u"作業終了"))
@@ -77,3 +79,15 @@ CHOICE_PAYMENT_DAY = (('01', u'1日'),
                       ('29', u'29日'),
                       ('30', u'30日'),
                       ('99', u'月末'))
+CHOICE_ATTENDANCE_MONTH = (('01', u'1月'),
+                           ('02', u'2月'),
+                           ('03', u'3月'),
+                           ('04', u'4月'),
+                           ('05', u'5月'),
+                           ('06', u'6月'),
+                           ('07', u'7月'),
+                           ('08', u'8月'),
+                           ('09', u'9月'),
+                           ('10', u'10月'),
+                           ('11', u'11月'),
+                           ('12', u'12月'))

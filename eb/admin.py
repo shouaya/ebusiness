@@ -4,6 +4,8 @@ Created on 2015/08/21
 
 @author: Yang Wanjun
 """
+import datetime
+
 from django.contrib import admin
 from django.contrib import messages
 from django.contrib.auth.models import User
@@ -12,7 +14,7 @@ from django.utils.translation import ugettext_lazy as _
 import forms
 from .models import Company, Section, Member, Salesperson, Project, Client, ClientMember, \
     ProjectMember, Skill, ProjectSkill, ProjectActivity, Subcontractor, PositionShip,\
-    ProjectStage, OS, HistoryProject
+    ProjectStage, OS, HistoryProject, MemberAttendance
 from utils import common
 
 
@@ -85,6 +87,12 @@ class ProjectSkillInline(admin.TabularInline):
 
 class ProjectMemberInline(admin.TabularInline):
     model = ProjectMember
+    extra = 1
+
+
+class MemberAttendanceInline(admin.TabularInline):
+    form = forms.MemberAttendanceForm
+    model = MemberAttendance
     extra = 1
 
 
@@ -232,7 +240,7 @@ class ClientAdmin(admin.ModelAdmin):
 
     def has_delete_permission(self, request, obj=None):
         # 削除禁止
-        return False
+        return True
 
 
 class ClientMemberAdmin(admin.ModelAdmin):
@@ -243,13 +251,14 @@ class ClientMemberAdmin(admin.ModelAdmin):
 
 class ProjectMemberAdmin(admin.ModelAdmin):
 
-    form = forms.ProjectMemberAdminForm
+    form = forms.ProjectMemberForm
     search_fields = ['project__name', 'member__first_name', 'member__last_name']
 
     list_display = ['project', 'display_project_client', 'member', 'start_date', 'end_date', 'status']
     list_display_links = ['member']
     list_filter = ['status']
-
+    inlines = (MemberAttendanceInline,)
+    #
     def display_project_client(self, obj):
         return obj.project.client.name
 
@@ -268,6 +277,11 @@ class ProjectMemberAdmin(admin.ModelAdmin):
         if employee_id:
             form.base_fields['member'].initial = Member.objects.get(employee_id=employee_id)
         return form
+
+
+class MemberAttendanceAdmin(admin.ModelAdmin):
+    forms = forms.MemberAttendanceForm
+    list_display = ['project_member', 'year', 'month', 'total_hours', 'extra_hours']
 
 
 class ProjectActivityAdmin(admin.ModelAdmin):
@@ -318,6 +332,7 @@ admin.site.register(Project, ProjectAdmin)
 admin.site.register(Client, ClientAdmin)
 admin.site.register(ClientMember, ClientMemberAdmin)
 admin.site.register(ProjectMember, ProjectMemberAdmin)
+admin.site.register(MemberAttendance, MemberAttendanceAdmin)
 admin.site.register(ProjectActivity, ProjectActivityAdmin)
 admin.site.register(Subcontractor)
 admin.site.register(PositionShip)

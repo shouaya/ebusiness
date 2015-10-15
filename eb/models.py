@@ -197,9 +197,9 @@ class Company(AbstractCompany):
 
     def get_master(self):
         # 代表取締役を取得する。
-        position = PositionShip.objects.filter(position=1)
-        if position.count() == 1:
-            return position[0].member
+        members = Member.objects.filter(member_type=7)
+        if members.count() == 1:
+            return members[0]
         else:
             return None
 
@@ -386,6 +386,7 @@ class Client(AbstractCompany):
     updated_date = models.DateTimeField(auto_now=True, editable=False)
     saletest_customer_id = models.IntegerField(blank=True, null=True, editable=False,
                                                help_text=u"売上ＤＢからデータを導入するために使う、売上ＤＢの顧客ＩＤ")
+    request_file = models.FileField(blank=True, null=True, upload_to="./request", verbose_name=u"請求書テンプレート")
 
     class Meta:
         ordering = ['name']
@@ -437,7 +438,7 @@ class Project(models.Model):
     end_date = models.DateField(blank=True, null=True, verbose_name=u"終了日")
     address = models.CharField(blank=True, null=True, max_length=255, verbose_name=u"作業場所")
     status = models.IntegerField(choices=constants.CHOICE_PROJECT_STATUS, verbose_name=u"ステータス")
-    client = models.ForeignKey(Client, blank=True, null=True, verbose_name=u"関連会社")
+    client = models.ForeignKey(Client, null=True, verbose_name=u"関連会社")
     boss = models.ForeignKey(ClientMember, blank=True, null=True, related_name="boss_set", verbose_name=u"案件責任者")
     middleman = models.ForeignKey(ClientMember, blank=True, null=True,
                                   related_name="middleman_set", verbose_name=u"案件連絡者")
@@ -591,6 +592,21 @@ class ProjectMember(models.Model):
 
     def __unicode__(self):
         return "%s - %s %s" % (self.project.name, self.member.first_name, self.member.last_name)
+
+
+class MemberAttendance(models.Model):
+    project_member = models.ForeignKey(ProjectMember, verbose_name=u"要員")
+    year = models.CharField(max_length=4, default=str(datetime.date.today().year), verbose_name=u"対象年")
+    month = models.CharField(max_length=2, choices=constants.CHOICE_ATTENDANCE_MONTH, verbose_name=u"対象月")
+    total_hours = models.DecimalField(max_digits=5, decimal_places=2, verbose_name=u"合計時間")
+    extra_hours = models.DecimalField(max_digits=5, decimal_places=2, default=0, verbose_name=u"残業時間")
+
+    class Meta:
+        ordering = ['project_member', 'year', 'month']
+        verbose_name = verbose_name_plural = u"勤務時間"
+
+    def __unicode__(self):
+        return u"%s %s年 %s" % (self.project_member, self.year, self.get_month_display())
 
 
 class HistoryProject(models.Model):
