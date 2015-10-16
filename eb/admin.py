@@ -14,7 +14,7 @@ from django.utils.translation import ugettext_lazy as _
 import forms
 from .models import Company, Section, Member, Salesperson, Project, Client, ClientMember, \
     ProjectMember, Skill, ProjectSkill, ProjectActivity, Subcontractor, PositionShip,\
-    ProjectStage, OS, HistoryProject, MemberAttendance
+    ProjectStage, OS, HistoryProject, MemberAttendance, create_group_salesperson
 from utils import common
 
 
@@ -158,6 +158,13 @@ class MemberAdmin(admin.ModelAdmin):
     class Media:
         js = ('http://ajaxzip3.googlecode.com/svn/trunk/ajaxzip3/ajaxzip3.js',)
 
+    def get_queryset(self, request):
+        query_set = admin.ModelAdmin.get_queryset(self, request)
+        if request.user.is_superuser:
+            return query_set
+        else:
+            return query_set.filter(salesperson=request.user.salesperson)
+
 
 class SalespersonAdmin(admin.ModelAdmin):
 
@@ -180,7 +187,7 @@ class SalespersonAdmin(admin.ModelAdmin):
                      'country', 'graduate_date', 'phone', 'japanese_description', 'certificate', 'comment')}),
         (u"勤務情報", {'fields': ('member_type', 'email', 'section', 'company')})
     )
-    # actions = ['create_users']
+    actions = ['create_users']
 
     class Media:
         js = ('http://ajaxzip3.googlecode.com/svn/trunk/ajaxzip3/ajaxzip3.js',)
@@ -195,20 +202,37 @@ class SalespersonAdmin(admin.ModelAdmin):
     def is_user_created(self, obj):
         return obj.user is not None
 
-    def create_users(self, request, queryset):
-        cnt = 0
-        for member in queryset.filter(user__isnull=True):
-            name = member.first_name_en.lower() + member.last_name_en.lower()
-            pwd = common.get_default_password(member)
-            user = User.objects.create_user(name, member.email, pwd)
-            user.is_staff = True
-            member.user = user
-            member.save()
-            cnt += 1
-        if cnt:
-            self.message_user(request, u"選択された営業員にユーザが作成されました。")
+    def get_queryset(self, request):
+        query_set = admin.ModelAdmin.get_queryset(self, request)
+        salesperson = request.user.salesperson
+        if request.user.is_superuser:
+            return query_set
+        elif salesperson.member_type == 0 and salesperson.section:
+            # 営業部長の場合は該当部署のすべての営業員が変更できる。
+            return query_set.filter(section=salesperson.section)
         else:
-            self.message_user(request, u"すでに作成済みなので、再作成する必要がありません。", messages.WARNING)
+            return query_set.filter(pk=salesperson.pk)
+
+    def create_users(self, request, queryset):
+        if request.user.is_superuser:
+            cnt = 0
+            for member in queryset.filter(user__isnull=True):
+                name = member.first_name_en.lower() + member.last_name_en.lower()
+                pwd = common.get_default_password(member)
+                user = User.objects.create_user(name, member.email, pwd)
+                user.is_staff = True
+                group = create_group_salesperson()
+                user.groups.add(group)
+                user.save()
+                member.user = user
+                member.save()
+                cnt += 1
+            if cnt:
+                self.message_user(request, u"選択された営業員にユーザが作成されました。")
+            else:
+                self.message_user(request, u"すでに作成済みなので、再作成する必要がありません。", messages.WARNING)
+        else:
+            self.message_user(request, u"権限がありません！", messages.ERROR)
 
     is_user_created.short_description = u"ユーザ作成"
     is_user_created.admin_order_field = "user"
@@ -230,6 +254,13 @@ class ProjectAdmin(admin.ModelAdmin):
             form.base_fields['middleman'].queryset = ClientMember.objects.filter(client=obj.client)
         return form
 
+    def get_queryset(self, request):
+        query_set = admin.ModelAdmin.get_queryset(self, request)
+        if request.user.is_superuser:
+            return query_set
+        else:
+            return query_set.filter(salesperson=request.user.salesperson)
+
 
 class ClientAdmin(admin.ModelAdmin):
 
@@ -237,10 +268,6 @@ class ClientAdmin(admin.ModelAdmin):
 
     class Media:
         js = ('http://ajaxzip3.googlecode.com/svn/trunk/ajaxzip3/ajaxzip3.js',)
-
-    def has_delete_permission(self, request, obj=None):
-        # 削除禁止
-        return True
 
 
 class ClientMemberAdmin(admin.ModelAdmin):

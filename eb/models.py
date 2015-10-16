@@ -7,7 +7,7 @@ Created on 2015/08/20
 import datetime
 
 from django.db import models
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User, Group, Permission
 
 from utils import common, constants
 
@@ -36,13 +36,13 @@ class AbstractMember(models.Model):
     last_name = models.CharField(blank=False, null=False, max_length=30, verbose_name=u"名")
     first_name_ja = models.CharField(blank=True, null=True, max_length=30, verbose_name=u"姓(フリカナ)")
     last_name_ja = models.CharField(blank=True, null=True, max_length=30, verbose_name=u"名(フリカナ)")
-    first_name_en = models.CharField(blank=True, null=True, max_length=30, verbose_name=u"姓(ローマ字)",
+    first_name_en = models.CharField(blank=False, null=False, max_length=30, verbose_name=u"姓(ローマ字)",
                                      help_text=u"先頭文字は大文字にしてください（例：Zhang）")
-    last_name_en = models.CharField(blank=True, null=True, max_length=30, verbose_name=u"名(ローマ字)",
+    last_name_en = models.CharField(blank=False, null=False, max_length=30, verbose_name=u"名(ローマ字)",
                                     help_text=u"漢字ごとに先頭文字は大文字にしてください（例：XiaoWang）")
     sex = models.CharField(blank=True, null=True, max_length=1, choices=constants.CHOICE_SEX, verbose_name=u"性別")
     country = models.CharField(blank=True, null=True, max_length=20, verbose_name=u"国籍・地域")
-    birthday = models.DateField(blank=True, null=True, verbose_name=u"生年月日")
+    birthday = models.DateField(blank=False, null=False, default=datetime.date.today(), verbose_name=u"生年月日")
     graduate_date = models.DateField(blank=True, null=True, verbose_name=u"卒業年月日")
     degree = models.IntegerField(blank=True, null=True, choices=constants.CHOICE_DEGREE_TYPE, verbose_name=u"学歴")
     email = models.EmailField(blank=True, null=True, verbose_name=u"メールアドレス")
@@ -53,7 +53,6 @@ class AbstractMember(models.Model):
     phone = models.CharField(blank=True, null=True, max_length=11, verbose_name=u"電話番号")
     is_married = models.CharField(blank=True, null=True, max_length=1,
                                   choices=constants.CHOICE_MARRIED, verbose_name=u"婚姻状況")
-    member_type = models.IntegerField(default=0, choices=constants.CHOICE_MEMBER_TYPE, verbose_name=u"社員区分")
     section = models.ForeignKey('Section', blank=True, null=True, verbose_name=u"部署")
     company = models.ForeignKey('Company', blank=True, null=True, verbose_name=u"会社")
     japanese_description = models.TextField(blank=True, null=True, verbose_name=u"日本語能力の説明")
@@ -197,7 +196,7 @@ class Company(AbstractCompany):
 
     def get_master(self):
         # 代表取締役を取得する。
-        members = Member.objects.filter(member_type=7)
+        members = Salesperson.objects.filter(member_type=7)
         if members.count() == 1:
             return members[0]
         else:
@@ -239,6 +238,8 @@ class Section(models.Model):
 
 class Salesperson(AbstractMember):
 
+    member_type = models.IntegerField(default=0, choices=constants.CHOICE_SALESPERSON_TYPE, verbose_name=u"社員区分")
+
     class Meta:
         ordering = ['first_name', 'last_name']
         verbose_name = verbose_name_plural = u"営業員"
@@ -248,6 +249,7 @@ class Salesperson(AbstractMember):
 
 
 class Member(AbstractMember):
+    member_type = models.IntegerField(default=0, choices=constants.CHOICE_MEMBER_TYPE, verbose_name=u"社員区分")
     salesperson = models.ForeignKey(Salesperson, blank=True, null=True, verbose_name=u"営業員")
     subcontractor = models.ForeignKey(Subcontractor, blank=True, null=True, verbose_name=u"協力会社")
 
@@ -625,3 +627,27 @@ class HistoryProject(models.Model):
 
     def __unicode__(self):
         return "%s - %s %s" % (self.name, self.member.first_name, self.member.last_name)
+
+
+def create_group_salesperson():
+    group_salesperson, created = Group.objects.get_or_create(name="Salesperson")
+    if created:
+        for codename in ('add_subcontractor', 'change_subcontractor',
+                         'add_section', 'change_section',
+                         'add_member', 'change_member',
+                         'add_positionship', 'change_positionship',
+                         'add_client', 'change_client',
+                         'add_clientmember', 'change_clientmember',
+                         'add_skill', 'change_skill', 'delete_skill',
+                         'add_os', 'change_os', 'delete_os',
+                         'add_project', 'change_project',
+                         'add_projectactivity', 'change_projectactivity', 'delete_projectactivity',
+                         'add_projectskill', 'change_projectskill',
+                         'add_projectstage', 'change_projectstage',
+                         'add_projectmember', 'change_projectmember', 'delete_projectmember',
+                         'add_memberattendance', 'change_memberattendance', 'delete_memberattendance',
+                         'add_historyproject', 'change_historyproject', 'delete_historyproject'):
+            permission = Permission.objects.get(codename=codename)
+            group_salesperson.permissions.add(permission)
+
+    return group_salesperson

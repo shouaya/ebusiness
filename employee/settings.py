@@ -69,7 +69,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'eb',
         'USER': 'root',
-        'PASSWORD': 'eb2015',
+        'PASSWORD': 'root',
         'HOST': '',
         'PORT': '',
     }
@@ -100,3 +100,8 @@ STATICFILES_DIRS = (
 )
 
 MEDIA_ROOT = os.path.join(BASE_DIR, "media")
+
+AUTHENTICATION_BACKENDS = (
+    'eb.backends.MyBackend',
+    'django.contrib.auth.backends.ModelBackend',
+)
