@@ -39,3 +39,10 @@ header img.logo {
     width: 100px;
     margin-top: 18px;
 }
+
+header .login-info {
+    float: right;
+    margin-top: 25px;
+    color: #555555;
+    font-size: 13px;
+}

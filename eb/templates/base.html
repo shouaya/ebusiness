@@ -23,6 +23,12 @@
             <div class="header-top">
                 <img class="logo" src="/static/img/logo.gif" />
                 <span style="color: gray;">E-Business Inc.</span>
+                <div class="login-info">
+                    {% if not user.is_anonymous %}
+                        ようこそ　{{ user }}
+                        <a href="{% url 'logout_view' %}">Logout</a>
+                    {% endif %}
+                </div>
             </div>
             <div class="header-nav">
                 <ul>

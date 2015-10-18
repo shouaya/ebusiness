@@ -23,5 +23,6 @@ urlpatterns = [
     url(r'^member/(?P<employee_id>[^,/]+)/recommended_project.html$', views.recommended_project_list,
         name='recommended_project'),
     url(r'^history.html$', views.history, name='history'),
+    url(r'^logout/$', views.logout_view, name='logout_view'),
     url(r"^syncdb.html", views.sync_db, name="syncdb"),
 ]

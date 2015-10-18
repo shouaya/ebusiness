@@ -69,25 +69,67 @@ class Company(AbstractCompany):
     class Meta:
         verbose_name = verbose_name_plural = u"会社"
 
-    def get_all_members(self):
-        return Member.objects.filter(member_type__lte=4)
+    def get_all_members(self, user=None):
+        if user:
+            if user.is_superuser:
+                return Member.objects.all()
+            elif common.is_salesperson_director(user) and user.salesperson.section:
+                salesperson_list = user.salesperson.section.salesperson_set.all()
+                return Member.objects.filter(salesperson__in=salesperson_list)
+            elif common.is_salesperson(user):
+                return Member.objects.filter(salesperson=user.salesperson)
+            else:
+                return Member.objects.filter(pk=-1)
+        return Member.objects.all()
 
-    def get_working_members(self):
+    def get_working_members(self, user=None):
         now = datetime.date.today()
-        return ProjectMember.objects.filter(end_date__gte=now, start_date__lte=now)
+        if user:
+            if user.is_superuser:
+                query_set = Member.objects.raw("select distinct m.*"
+                                               "  from eb_member m"
+                                               "  join eb_projectmember pm on pm.member_id = m.id"
+                                               " where pm.start_date <= %s"
+                                               "   and pm.end_date >= %s", [now, now])
+                return list(query_set)
+            elif common.is_salesperson_director(user) and user.salesperson.section:
+                salesperson_list = user.salesperson.section.salesperson_set.all()
+                id_list = [salesperson.id for salesperson in salesperson_list]
+                query_set = Member.objects.raw("select distinct m.*"
+                                               "  from eb_member m"
+                                               "  join eb_projectmember pm on pm.member_id = m.id"
+                                               " where pm.start_date <= %s"
+                                               "   and pm.end_date >= %s"
+                                               "   and m.salesperson_id in (" + ",".join(id_list) + ")",
+                                               [now, now])
+                return list(query_set)
+            elif common.is_salesperson(user):
+                query_set = Member.objects.raw("select distinct m.*"
+                                               "  from eb_member m"
+                                               "  join eb_projectmember pm on pm.member_id = m.id"
+                                               " where pm.start_date <= %s"
+                                               "   and pm.end_date >= %s"
+                                               "   and m.salesperson_id = %s", [now, now, user.salesperson.id])
+                return list(query_set)
 
-    def get_waiting_members(self):
+        return []
+
+    def get_waiting_members(self, user=None):
         now = datetime.date.today()
-        Member.objects.filter()
-        query_set = Member.objects.raw("SELECT DISTINCT M.*"
-                                       "  FROM eb_member M"
-                                       " WHERE NOT EXISTS (SELECT 1 "
-                                       "                     FROM eb_projectmember PM"
-                                       "                    WHERE PM.MEMBER_ID = M.ID"
-                                       "                      AND PM.START_DATE <= %s"
-                                       "                      AND PM.END_DATE >= %s)"
-                                       "   and M.member_type <= 4", [now, now])
-        return list(query_set)
+        if user:
+            if user.is_superuser:
+                query_set = Member.objects.raw("SELECT DISTINCT M.*"
+                                               "  FROM eb_member M"
+                                               " WHERE NOT EXISTS (SELECT 1 "
+                                               "                     FROM eb_projectmember PM"
+                                               "                    WHERE PM.MEMBER_ID = M.ID"
+                                               "                      AND PM.START_DATE <= %s"
+                                               "                      AND PM.END_DATE >= %s)", [now, now])
+                return list(query_set)
+            elif common.is_salesperson_director(user) and user.salesperson.section:
+                pass
+
+        return []
 
     def get_release_members_by_month(self, date):
         date_first_day = datetime.date(date.year, date.month, 1)

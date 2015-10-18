@@ -87,7 +87,7 @@ class MemberForm(forms.ModelForm):
         last_name_en = cleaned_data.get("last_name_en")
         if post_code and not re.match(REG_POST_CODE, post_code):
             self.add_error('post_code', u"正しい郵便番号を入力してください。")
-        if member_type == 3:
+        if member_type == 4:
             # 派遣社員の場合
             if not subcontractor:
                 self.add_error('subcontractor', u"派遣社員の場合、協力会社を選択してください。")

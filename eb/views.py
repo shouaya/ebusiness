@@ -11,6 +11,8 @@ import urllib
 from django.http import HttpResponse
 from django.template import RequestContext, loader
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from django.contrib.auth import logout
+from django.shortcuts import redirect
 
 from utils import constants, common, errors
 from .models import Company, Member, Section, Project, ProjectMember, Salesperson
@@ -39,11 +41,16 @@ def index(request):
                    'next_2_months_year': next_2_months.year,
                    'next_2_months_month': next_2_months.month}
 
+    member_count = company.get_all_members(request.user).count()
+    working_members = company.get_working_members(request.user)
+    waiting_members = company.get_waiting_members(request.user)
     context = RequestContext(request, {
         'company': company,
         'title': 'Home',
         'filter_list': filter_list,
-        'member_count': company.get_all_members().count(),
+        'member_count': member_count,
+        'working_member_count': len(working_members),
+        'waiting_member_count': len(waiting_members),
     })
     template = loader.get_template('home.html')
     return HttpResponse(template.render(context))
@@ -63,7 +70,7 @@ def employee_list(request):
     dict_order = common.get_ordering_dict(o, ['first_name', 'section', 'salesperson__first_name'])
     order_list = common.get_ordering_list(o)
 
-    all_members = company.get_all_members()
+    all_members = company.get_all_members(request.user)
 
     if salesperson:
         salesperson_obj = Salesperson.objects.get(employee_id=salesperson)
@@ -428,6 +435,11 @@ def history(request):
     })
     template = loader.get_template('history.html')
     return HttpResponse(template.render(context))
+
+
+def logout_view(request):
+    logout(request)
+    return redirect('index')
 
 
 def sync_db(request):

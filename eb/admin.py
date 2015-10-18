@@ -162,6 +162,11 @@ class MemberAdmin(admin.ModelAdmin):
         query_set = admin.ModelAdmin.get_queryset(self, request)
         if request.user.is_superuser:
             return query_set
+        elif request.user.salesperson.member_type == 0 and request.user.salesperson.section:
+            # 営業部長の場合
+            section = request.user.salesperson.section
+            salesperson_list = section.salesperson_set.all()
+            return query_set.filter(salesperson__in=salesperson_list)
         else:
             return query_set.filter(salesperson=request.user.salesperson)
 
@@ -204,14 +209,13 @@ class SalespersonAdmin(admin.ModelAdmin):
 
     def get_queryset(self, request):
         query_set = admin.ModelAdmin.get_queryset(self, request)
-        salesperson = request.user.salesperson
         if request.user.is_superuser:
             return query_set
-        elif salesperson.member_type == 0 and salesperson.section:
+        elif request.user.salesperson.member_type == 0 and request.user.salesperson.section:
             # 営業部長の場合は該当部署のすべての営業員が変更できる。
-            return query_set.filter(section=salesperson.section)
+            return query_set.filter(section=request.user.salesperson.section)
         else:
-            return query_set.filter(pk=salesperson.pk)
+            return query_set.filter(pk=request.user.salesperson.pk)
 
     def create_users(self, request, queryset):
         if request.user.is_superuser:

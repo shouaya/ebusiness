@@ -539,6 +539,26 @@ def get_insert_sql():
             print i.replace("VALUES", "(%s) VALUES" % (items,))
 
 
+def is_salesperson(user):
+    try:
+        if user.salesperson:
+            return True
+        else:
+            return False
+    except:
+        return False
+
+
+def is_salesperson_director(user):
+    try:
+        if user.salesperson.member_type == 0:
+            return True
+        else:
+            return False
+    except:
+        return False
+
+
 if __name__ == "__main__":
     # get_insert_sql()
     line_counter()

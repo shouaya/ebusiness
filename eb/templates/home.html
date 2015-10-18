@@ -14,7 +14,7 @@
                 <th>社員数:</th>
                 <td class="num"><a href="{% url 'employee_list' %}"> {{ member_count }}</a></td>
                 <th>稼働中人数:</th>
-                <td class="num"><a href="{% url 'employee_list' %}?status=working"> {{ company.get_working_members.count }}</a></td>
+                <td class="num"><a href="{% url 'employee_list' %}?status=working"> {{ working_member_count }}</a></td>
                 <th>待機中人数:</th>
                 <td class="num"><a href="{% url 'employee_list' %}?status=waiting" class="red">{{ company.get_waiting_members|length }}</a></td>
             </tr>
