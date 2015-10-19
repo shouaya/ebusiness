@@ -11,12 +11,15 @@ from django.contrib import admin
 from django.contrib import messages
 from django.contrib.auth.models import User
 from django.utils.translation import ugettext_lazy as _
+from django.conf.urls import url, patterns
+from django.template.response import TemplateResponse
+from django.template import RequestContext
 
 import forms
 from .models import Company, Section, Member, Salesperson, Project, Client, ClientMember, \
     ProjectMember, Skill, ProjectSkill, ProjectActivity, Subcontractor, PositionShip,\
     ProjectStage, OS, HistoryProject, MemberAttendance, create_group_salesperson
-from utils import common
+from utils import common, loader as file_loader
 
 
 class TextInputListFilter(admin.ListFilter):
@@ -434,6 +437,37 @@ class ProjectActivityAdmin(admin.ModelAdmin):
     get_salesperson.short_description = u"参加している営業員"
 
 
+class ResumeAdmin(admin.ModelAdmin):
+
+    def upload_resume(self, request):
+        if request.method == 'GET':
+            form = forms.UploadFileForm()
+            context = dict(
+                self.admin_site.each_context(request),
+                form=form,
+                title=u'履歴書をアップロード',
+            )
+            return TemplateResponse(request, "upload_file.html", RequestContext(request, context))
+        elif request.method == 'POST':
+            form = forms.UploadFileForm(request.POST, request.FILES['file'])
+            context = dict(
+                self.admin_site.each_context(request),
+                form=form,
+                title=u'履歴書をアップロード',
+            )
+            if form.is_valid():
+                member = file_loader.load_resume()
+            return TemplateResponse(request, "upload_file.html", RequestContext(request, context))
+
+    def get_urls(self):
+        urls = super(ResumeAdmin, self).get_urls()
+        my_urls = patterns(
+            '',
+            url(r'^upload_resume/$', self.admin_site.admin_view(self.upload_resume), name='upload_resume'),
+        )
+        return my_urls + urls
+
+
 class HistoryProjectAdmin(admin.ModelAdmin):
     filter_horizontal = ['os', 'stages']
 
@@ -455,6 +489,7 @@ admin.site.register(Subcontractor)
 admin.site.register(PositionShip)
 admin.site.register(ProjectStage)
 admin.site.register(OS)
+# admin.site.register(UploadModel, ResumeAdmin)
 admin.site.register(HistoryProject, HistoryProjectAdmin)
 
 admin.site.site_header = u'社員営業状況管理システム'

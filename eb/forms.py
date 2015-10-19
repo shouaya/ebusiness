@@ -163,3 +163,7 @@ class MemberAttendanceForm(forms.ModelForm):
             if str(project_member.end_date.year) + "%02d" % (project_member.end_date.month,) < year + month:
                 self.add_error('year', u"対象年月は案件終了日以降になっています！")
                 self.add_error('month', u"対象年月は案件終了日以降になっています！")
+
+
+class UploadFileForm(forms.Form):
+    file = forms.FileField()

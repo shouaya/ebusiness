@@ -708,6 +708,10 @@ class MemberAttendance(models.Model):
         return u"%s %s年 %s" % (self.project_member, self.year, self.get_month_display())
 
 
+# class UploadModel(models.Model):
+#     pass
+
+
 class HistoryProject(models.Model):
     name = models.CharField(max_length=50, verbose_name=u"案件名称")
     member = models.ForeignKey(Member, verbose_name=u"名前")

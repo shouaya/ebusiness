@@ -14,8 +14,9 @@ from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.contrib.auth import logout
 from django.shortcuts import redirect
 
-from utils import constants, common, errors
+from utils import constants, common, errors, loader as file_loader
 from .models import Company, Member, Section, Project, ProjectMember, Salesperson
+from .forms import UploadFileForm
 
 
 PAGE_SIZE = 50
@@ -454,6 +455,26 @@ def recommended_project_list(request, employee_id):
     })
     template = loader.get_template('recommended_project.html')
     return HttpResponse(template.render(context))
+
+
+def upload_resume(request):
+    company = get_company()
+
+    if request.method == 'GET':
+        form = UploadFileForm()
+        context = RequestContext(request, {
+            'company': company,
+            'title': u'履歴書をアップロード',
+            'form': form,
+        })
+
+        template = loader.get_template('upload_file.html')
+        return HttpResponse(template.render(context))
+    elif request.method == 'POST':
+        form = UploadFileForm(request.POST, request.FILES['file'])
+        if form.is_valid():
+            member = file_loader.load_resume()
+            return
 
 
 def history(request):

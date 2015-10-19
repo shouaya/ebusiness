@@ -25,4 +25,5 @@ urlpatterns = [
     url(r'^history.html$', views.history, name='history'),
     url(r'^logout/$', views.logout_view, name='logout_view'),
     url(r"^syncdb.html", views.sync_db, name="syncdb"),
+    url(r"^upload_file.html$", views.upload_resume, name="upload_file")
 ]
