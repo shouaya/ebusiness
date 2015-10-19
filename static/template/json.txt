@@ -1,0 +1,5 @@
+
+API:http://service.e-business.co.jp:8080/ContractManagement/api/newContract?after=日付&uid=ユーザID
+afterとuidを設定しない場合は：全てのユーザの全ての契約情報を返します。
+
+例：http://service.e-business.co.jp:8080/ContractManagement/api/newContract?after=2015-10-10&uid=0343
