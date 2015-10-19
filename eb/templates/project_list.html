@@ -35,7 +35,7 @@
             </select>
             <input type="submit" value="Filter" />
             <a href="?download=business_plan{{ params }}" target="_blank" class="button">営業企画書ダウンロード</a>
-            <a href="{% url 'admin:eb_project_add' %}" target="_blank" class="button">案件を追加</a>
+            <a href="{% url 'admin:eb_project_add' %}?from=portal" target="_blank" class="button">案件を追加</a>
         </form>
     </div>
     <table class="list" cellpadding="0" cellspacing="0">
@@ -131,7 +131,7 @@
                         <td>{{ project.boss.name }}</td>
                         <td>{{ project.middleman.name }}</td>
                         <td class="center"><a href="?status={{ project.status }}">{{ project.get_status_display }}</a></td>
-                        <td class="center"><a href="{% url 'admin:eb_project_change' project.id %}" target="_blank">編集</a></td>
+                        <td class="center"><a href="{% url 'admin:eb_project_change' project.id %}?from=portal" target="_blank">編集</a></td>
                     </tr>
                 {% endfor %}
             {% else %}

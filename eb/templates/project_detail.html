@@ -55,7 +55,7 @@
     <div class="dashboard">
         <div class="dashboard-title">営業活動</div>
         <form action="" method="get">
-            <a href="{% url 'admin:eb_projectactivity_add' %}?project_id={{ project.pk }}"
+            <a href="{% url 'admin:eb_projectactivity_add' %}?project_id={{ project.pk }}&from=portal"
                target="_blank" class="button">活動を追加</a>
         </form>
     </div>
@@ -99,7 +99,7 @@
                         {% endfor %}
                     </td>
                     <td class="center">
-                        <a href="{% url 'admin:eb_projectactivity_change' project_activity.pk %}" target="_blank">編集</a>
+                        <a href="{% url 'admin:eb_projectactivity_change' project_activity.pk %}?from=portal" target="_blank">編集</a>
                     </td>
                 </tr>
             {% endfor %}

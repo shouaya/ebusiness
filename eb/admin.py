@@ -6,6 +6,7 @@ Created on 2015/08/21
 """
 import datetime
 
+from django.http import HttpResponse
 from django.contrib import admin
 from django.contrib import messages
 from django.contrib.auth.models import User
@@ -170,6 +171,26 @@ class MemberAdmin(admin.ModelAdmin):
         else:
             return query_set.filter(salesperson=request.user.salesperson)
 
+    def response_change(self, request, obj):
+        if request.GET.get('from') == "portal":
+            return HttpResponse('''
+               <script type="text/javascript">
+                  window.close();
+               </script>''')
+        else:
+            response = super(MemberAdmin, self).response_change(request, obj)
+            return response
+
+    def response_add(self, request, obj, post_url_continue=None):
+        if request.GET.get('from') == "portal":
+            return HttpResponse('''
+               <script type="text/javascript">
+                  window.close();
+               </script>''')
+        else:
+            response = super(MemberAdmin, self).response_change(request, obj)
+            return response
+
 
 class SalespersonAdmin(admin.ModelAdmin):
 
@@ -262,8 +283,33 @@ class ProjectAdmin(admin.ModelAdmin):
         query_set = admin.ModelAdmin.get_queryset(self, request)
         if request.user.is_superuser:
             return query_set
+        elif request.user.salesperson.member_type == 0 and request.user.salesperson.section:
+            # 営業部長の場合
+            section = request.user.salesperson.section
+            salesperson_list = section.salesperson_set.all()
+            return query_set.filter(salesperson__in=salesperson_list)
         else:
             return query_set.filter(salesperson=request.user.salesperson)
+
+    def response_add(self, request, obj, post_url_continue=None):
+        if request.GET.get('from') == "portal":
+            return HttpResponse('''
+               <script type="text/javascript">
+                  window.close();
+               </script>''')
+        else:
+            response = super(ProjectAdmin, self).response_change(request, obj)
+            return response
+
+    def response_change(self, request, obj):
+        if request.GET.get('from') == "portal":
+            return HttpResponse('''
+               <script type="text/javascript">
+                  window.close();
+               </script>''')
+        else:
+            response = super(ProjectAdmin, self).response_change(request, obj)
+            return response
 
 
 class ClientAdmin(admin.ModelAdmin):
@@ -309,6 +355,26 @@ class ProjectMemberAdmin(admin.ModelAdmin):
             form.base_fields['member'].initial = Member.objects.get(employee_id=employee_id)
         return form
 
+    def response_change(self, request, obj):
+        if request.GET.get('from') == "portal":
+            return HttpResponse('''
+               <script type="text/javascript">
+                  window.close();
+               </script>''')
+        else:
+            response = super(ProjectMemberAdmin, self).response_change(request, obj)
+            return response
+
+    def response_add(self, request, obj, post_url_continue=None):
+        if request.GET.get('from') == "portal":
+            return HttpResponse('''
+               <script type="text/javascript">
+                  window.close();
+               </script>''')
+        else:
+            response = super(ProjectMemberAdmin, self).response_change(request, obj)
+            return response
+
 
 class MemberAttendanceAdmin(admin.ModelAdmin):
     forms = forms.MemberAttendanceForm
@@ -343,6 +409,26 @@ class ProjectActivityAdmin(admin.ModelAdmin):
         for salesperson in salesperson_list:
             names.append(u"%s %s" % (salesperson.first_name, salesperson.last_name))
         return ", ".join(names)
+
+    def response_change(self, request, obj):
+        if request.GET.get('from') == "portal":
+            return HttpResponse('''
+               <script type="text/javascript">
+                  window.close();
+               </script>''')
+        else:
+            response = super(ProjectActivityAdmin, self).response_change(request, obj)
+            return response
+
+    def response_add(self, request, obj, post_url_continue=None):
+        if request.GET.get('from') == "portal":
+            return HttpResponse('''
+               <script type="text/javascript">
+                  window.close();
+               </script>''')
+        else:
+            response = super(ProjectActivityAdmin, self).response_change(request, obj)
+            return response
 
     get_client_members.short_description = u"参加しているお客様"
     get_salesperson.short_description = u"参加している営業員"

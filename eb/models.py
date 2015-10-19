@@ -86,6 +86,7 @@ class Company(AbstractCompany):
         now = datetime.date.today()
         if user:
             if user.is_superuser:
+                # 管理員の場合全部見られる
                 query_set = Member.objects.raw("select distinct m.*"
                                                "  from eb_member m"
                                                "  join eb_projectmember pm on pm.member_id = m.id"
@@ -93,17 +94,18 @@ class Company(AbstractCompany):
                                                "   and pm.end_date >= %s", [now, now])
                 return list(query_set)
             elif common.is_salesperson_director(user) and user.salesperson.section:
+                # 営業部長の場合、部門内すべての社員が見られる
                 salesperson_list = user.salesperson.section.salesperson_set.all()
-                id_list = [salesperson.id for salesperson in salesperson_list]
+                id_list = [str(salesperson.id) for salesperson in salesperson_list]
                 query_set = Member.objects.raw("select distinct m.*"
                                                "  from eb_member m"
                                                "  join eb_projectmember pm on pm.member_id = m.id"
                                                " where pm.start_date <= %s"
                                                "   and pm.end_date >= %s"
-                                               "   and m.salesperson_id in (" + ",".join(id_list) + ")",
-                                               [now, now])
+                                               "   and m.salesperson_id in (" + ",".join(id_list) + ")", [now, now])
                 return list(query_set)
             elif common.is_salesperson(user):
+                # 営業員の場合、担当している社員だけ見られる
                 query_set = Member.objects.raw("select distinct m.*"
                                                "  from eb_member m"
                                                "  join eb_projectmember pm on pm.member_id = m.id"
@@ -118,36 +120,89 @@ class Company(AbstractCompany):
         now = datetime.date.today()
         if user:
             if user.is_superuser:
-                query_set = Member.objects.raw("SELECT DISTINCT M.*"
-                                               "  FROM eb_member M"
-                                               " WHERE NOT EXISTS (SELECT 1 "
-                                               "                     FROM eb_projectmember PM"
-                                               "                    WHERE PM.MEMBER_ID = M.ID"
-                                               "                      AND PM.START_DATE <= %s"
-                                               "                      AND PM.END_DATE >= %s)", [now, now])
+                # 管理員の場合全部見られる
+                query_set = Member.objects.raw("select distinct m.*"
+                                               "  from eb_member m"
+                                               " where not exists (select 1 "
+                                               "                     from eb_projectmember pm"
+                                               "                    where pm.member_id = m.id"
+                                               "                      and pm.start_date <= %s"
+                                               "                      and pm.end_date >= %s)", [now, now])
                 return list(query_set)
             elif common.is_salesperson_director(user) and user.salesperson.section:
-                pass
+                # 営業部長の場合、部門内すべての社員が見られる
+                salesperson_list = user.salesperson.section.salesperson_set.all()
+                id_list = [str(salesperson.id) for salesperson in salesperson_list]
+                query_set = Member.objects.raw("select distinct m.*"
+                                               "  from eb_member m"
+                                               " where not exists (select 1 "
+                                               "                     from eb_projectmember pm"
+                                               "                    where pm.member_id = m.id"
+                                               "                      and pm.start_date <= %s"
+                                               "                      and pm.end_date >= %s)"
+                                               "   and m.salesperson_id in (" + ",".join(id_list) + ")", [now, now])
+                return list(query_set)
+            elif common.is_salesperson(user):
+                # 営業員の場合、担当している社員だけ見られる
+                query_set = Member.objects.raw("select distinct m.*"
+                                               "  from eb_member m"
+                                               " where not exists (select 1 "
+                                               "                     from eb_projectmember pm"
+                                               "                    where pm.member_id = m.id"
+                                               "                      and pm.start_date <= %s"
+                                               "                      and pm.end_date >= %s)"
+                                               "   and m.salesperson_id = %s", [now, now, user.salesperson.id])
+                return list(query_set)
 
         return []
 
-    def get_release_members_by_month(self, date):
+    def get_release_members_by_month(self, date, user=None):
         date_first_day = datetime.date(date.year, date.month, 1)
         next_month = common.add_months(date, 1)
         date_next_month = datetime.date(next_month.year, next_month.month, 1)
-        return ProjectMember.objects.filter(end_date__gte=date_first_day,
-                                            end_date__lt=date_next_month)
+        if user:
+            if user.is_superuser:
+                # 管理員の場合全部見られる
+                query_set = Member.objects.raw("select distinct m.*"
+                                               "  from eb_member m"
+                                               "  join eb_projectmember pm on pm.member_id = m.id"
+                                               " where pm.end_date >= %s"
+                                               "   and pm.end_date < %s", [date_first_day, date_next_month])
+                return list(query_set)
+            elif common.is_salesperson_director(user) and user.salesperson.section:
+                # 営業部長の場合、部門内すべての社員が見られる
+                salesperson_list = user.salesperson.section.salesperson_set.all()
+                id_list = [str(salesperson.id) for salesperson in salesperson_list]
+                query_set = Member.objects.raw("select distinct m.*"
+                                               "  from eb_member m"
+                                               "  join eb_projectmember pm on pm.member_id = m.id"
+                                               " where pm.end_date >= %s"
+                                               "   and pm.end_date < %s"
+                                               "   and m.salesperson_id in (" + ",".join(id_list) + ")",
+                                               [date_first_day, date_next_month])
+                return list(query_set)
+            elif common.is_salesperson(user):
+                # 営業員の場合、担当している社員だけ見られる
+                query_set = Member.objects.raw("select distinct m.*"
+                                               "  from eb_member m"
+                                               "  join eb_projectmember pm on pm.member_id = m.id"
+                                               " where pm.end_date >= %s"
+                                               "   and pm.end_date < %s"
+                                               "   and m.salesperson_id = %s",
+                                               [date_first_day, date_next_month, user.salesperson.id])
+                return list(query_set)
+        return []
 
-    def get_release_current_month(self):
-        return self.get_release_members_by_month(datetime.date.today())
+    def get_release_current_month(self, user=None):
+        return self.get_release_members_by_month(datetime.date.today(), user)
 
-    def get_release_next_month(self):
+    def get_release_next_month(self, user=None):
         next_month = common.add_months(datetime.date.today(), 1)
-        return self.get_release_members_by_month(next_month)
+        return self.get_release_members_by_month(next_month, user)
 
-    def get_release_next_2_month(self):
+    def get_release_next_2_month(self, user=None):
         next_2_month = common.add_months(datetime.date.today(), 2)
-        return self.get_release_members_by_month(next_2_month)
+        return self.get_release_members_by_month(next_2_month, user)
 
     def get_projects(self, status=0):
         """ステータスによって、該当する全ての案件を取得する。

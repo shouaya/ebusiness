@@ -25,8 +25,19 @@
                 <span style="color: gray;">E-Business Inc.</span>
                 <div class="login-info">
                     {% if not user.is_anonymous %}
-                        ようこそ　{{ user }}
+                        ようこそ&nbsp;&nbsp;
+                        <b>
+                            {% if user.salesperson %}
+                                {{ user.salesperson }}
+                            {% else %}
+                                {{ user }}
+                            {% endif %}
+                        </b>&nbsp;&nbsp;
+                        {{ user.salesperson.get_member_type_display }}
+                        <br/>
                         <a href="{% url 'logout_view' %}">Logout</a>
+                    {% else %}
+                        <a href="{% url 'admin:login' %}?next={{ request.get_full_path }}">ログイン</a>
                     {% endif %}
                 </div>
             </div>
@@ -36,7 +47,7 @@
                     <li><a href="{% url 'employee_list' %}">要員一覧</a></li>
                     <li><a href="{% url 'project_list' %}">案件一覧</a></li>
                     <li><a href="{% url 'release_list' %}">リリース状況一覧</a></li>
-                    <li><a href="/admin/">管理サイト</a></li>
+                    <li><a href="{% url 'admin:index' %}">管理サイト</a></li>
                 </ul>
             </div>
         </div>

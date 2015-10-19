@@ -25,15 +25,15 @@
                 <th>今月リリース:</th>
                 <td class="num">
                     <a href="{% url 'release_list' %}?period={{ filter_list.now_year }}{{ filter_list.now_month|stringformat:'02d' }}"
-                       class="red">{{ company.get_release_current_month.count }}</a></td>
+                       class="red">{{ current_month_count }}</a></td>
                 <th>来月リリース:</th>
                 <td class="num">
                     <a href="{% url 'release_list' %}?period={{ filter_list.next_month_year }}{{ filter_list.next_month_month|stringformat:'02d' }}">
-                        {{ company.get_release_next_month.count }}</a></td>
+                        {{ next_month_count }}</a></td>
                 <th>再来月リリース:</th>
                 <td class="num">
                     <a href="{% url 'release_list' %}?period={{ filter_list.next_2_months_year }}{{ filter_list.next_2_months_month|stringformat:'02d' }}">
-                        {{ company.get_release_next_2_month.count }}</a></td>
+                        {{ next_2_month_count }}</a></td>
             </tr>
         </table>
     </div>
