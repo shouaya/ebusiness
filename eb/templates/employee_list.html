@@ -39,7 +39,7 @@
             </select>
             <input type="submit" value="Filter" />
             <a href="?download=member_list{{ params }}" target="_blank" class="button">要員一覧ダウンロード</a>
-            <a href="{% url 'admin:upload_resume' %}" class="button" target="_blank">履歴書をアップロード</a>
+            <a href="{% url 'upload_file' %}" class="button" target="_blank">履歴書をアップロード</a>
             <a href="{% url 'admin:eb_member_add' %}?from=portal" target="_blank" class="button">要員を追加</a>
         </form>
     </div>

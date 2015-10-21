@@ -44,12 +44,12 @@ class AbstractMember(models.Model):
     country = models.CharField(blank=True, null=True, max_length=20, verbose_name=u"国籍・地域")
     birthday = models.DateField(blank=False, null=False, default=datetime.date.today(), verbose_name=u"生年月日")
     graduate_date = models.DateField(blank=True, null=True, verbose_name=u"卒業年月日")
-    degree = models.IntegerField(blank=True, null=True, choices=constants.CHOICE_DEGREE_TYPE, verbose_name=u"学歴")
     email = models.EmailField(blank=True, null=True, verbose_name=u"メールアドレス")
     post_code = models.CharField(blank=True, null=True, max_length=7, verbose_name=u"郵便番号")
     address1 = models.CharField(blank=True, null=True, max_length=200, verbose_name=u"住所１")
     address2 = models.CharField(blank=True, null=True, max_length=200, verbose_name=u"住所２")
     nearest_station = models.CharField(blank=True, null=True, max_length=15, verbose_name=u"最寄駅")
+    years_in_japan = models.IntegerField(blank=True, null=True, verbose_name=u"在日年数")
     phone = models.CharField(blank=True, null=True, max_length=11, verbose_name=u"電話番号")
     is_married = models.CharField(blank=True, null=True, max_length=1,
                                   choices=constants.CHOICE_MARRIED, verbose_name=u"婚姻状況")
@@ -57,6 +57,7 @@ class AbstractMember(models.Model):
     company = models.ForeignKey('Company', blank=True, null=True, verbose_name=u"会社")
     japanese_description = models.TextField(blank=True, null=True, verbose_name=u"日本語能力の説明")
     certificate = models.TextField(blank=True, null=True, verbose_name=u"資格の説明")
+    skill_description = models.TextField(blank=True, null=True, verbose_name=u"得意")
     comment = models.TextField(blank=True, null=True, verbose_name=u"備考")
     user = models.OneToOneField(User, blank=True, null=True)
 
@@ -507,7 +508,7 @@ class ClientMember(models.Model):
 
 
 class Skill(models.Model):
-    name = models.CharField(blank=False, null=False, max_length=30, verbose_name=u"名称")
+    name = models.CharField(blank=False, null=False, unique=True, max_length=30, verbose_name=u"名称")
 
     class Meta:
         ordering = ['name']
@@ -518,7 +519,7 @@ class Skill(models.Model):
 
 
 class OS(models.Model):
-    name = models.CharField(max_length=15, verbose_name=u"名称")
+    name = models.CharField(max_length=15, unique=True, verbose_name=u"名称")
 
     class Meta:
         ordering = ['name']
@@ -666,7 +667,7 @@ class ProjectSkill(models.Model):
 
 
 class ProjectStage(models.Model):
-    name = models.CharField(max_length=15, verbose_name=u"作業工程名称")
+    name = models.CharField(max_length=15, unique=True, verbose_name=u"作業工程名称")
 
     class Meta:
         verbose_name = verbose_name_plural = u"作業工程"
@@ -683,7 +684,7 @@ class ProjectMember(models.Model):
     price = models.IntegerField(null=False, default=0, verbose_name=u"単価")
     status = models.IntegerField(null=False, default=1,
                                  choices=constants.CHOICE_PROJECT_MEMBER_STATUS, verbose_name=u"ステータス")
-    role = models.IntegerField(default=1, choices=constants.CHOICE_PROJECT_ROLE, verbose_name=u"作業区分")
+    role = models.CharField(default="PG", max_length=2, choices=constants.CHOICE_PROJECT_ROLE, verbose_name=u"作業区分")
     stages = models.ManyToManyField(ProjectStage, blank=True, null=True, verbose_name=u"作業工程")
 
     class Meta:
@@ -708,8 +709,14 @@ class MemberAttendance(models.Model):
         return u"%s %s年 %s" % (self.project_member, self.year, self.get_month_display())
 
 
-# class UploadModel(models.Model):
-#     pass
+class Degree(models.Model):
+    member = models.ForeignKey(Member, verbose_name=u"社員")
+    start_date = models.DateField(verbose_name=u"入学日")
+    end_date = models.DateField(verbose_name=u"卒業日")
+    description = models.CharField(blank=True, null=True, max_length=255, verbose_name=u"学校名称/学部/専門/学位")
+
+    class Meta:
+        verbose_name = verbose_name_plural = u"学歴"
 
 
 class HistoryProject(models.Model):
@@ -720,7 +727,8 @@ class HistoryProject(models.Model):
     start_date = models.DateField(blank=True, null=True, verbose_name=u"開始日")
     end_date = models.DateField(blank=True, null=True, verbose_name=u"終了日")
     os = models.ManyToManyField(OS, blank=True, null=True, verbose_name=u"機種／OS")
-    role = models.IntegerField(default=1, choices=constants.CHOICE_PROJECT_ROLE, verbose_name=u"作業区分")
+    skill = models.ManyToManyField(Skill, blank=True, null=True, verbose_name=u"スキル要求")
+    role = models.CharField(default="PG", max_length=2, choices=constants.CHOICE_PROJECT_ROLE, verbose_name=u"作業区分")
     stages = models.ManyToManyField(ProjectStage, blank=True, null=True, verbose_name=u"作業工程")
 
     class Meta:

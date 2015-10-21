@@ -7,6 +7,9 @@ Created on 2015/09/28
 EXCEL_APPLICATION = "Excel.Application"
 EXCEL_FORMAT_EXCEL2003 = 56
 
+REG_DATE_STR = ur"\d{4}([-/.年])\d{1,2}([-/.月])\d{1,2}([日]?)"
+REG_DATE_STR2 = ur"\d{4}([-/.年])\d{1,2}([-/.月]?)"
+
 NAME_BUSINESS_PLAN = u"%02d月営業企画"
 NAME_MEMBER_LIST = u"最新要員一覧"
 
@@ -17,6 +20,12 @@ DOWNLOAD_BUSINESS_PLAN = "business_plan"
 DOWNLOAD_MEMBER_LIST = "member_list"
 
 ERROR_TEMPLATE_NOT_EXISTS = u"テンプレートファイルが存在しません。"
+
+PROJECT_STAGE = (u"要件定義", u"調査分析",
+                 u"基本設計", u"詳細設計",
+                 u"開発製造", u"単体試験",
+                 u"結合試験", u"総合試験",
+                 u"保守運用", u"サポート")
 
 CHOICE_PROJECT_MEMBER_STATUS = ((1, u"提案中"),
                                 (2, u"作業中"),
@@ -43,8 +52,13 @@ CHOICE_MEMBER_TYPE = ((1, u"正社員"),
                       (2, u"契約社員"),
                       (3, u"個人事業者"),
                       (4, u"他社技術者"))
-CHOICE_PROJECT_ROLE = ((1, u"OP：ｵﾍﾟﾚｰﾀｰ"), (2, u"PG：ﾌﾟﾛｸﾞﾗﾏｰ"), (3, u"SP：ｼｽﾃﾑﾌﾟﾛｸﾞﾗﾏｰ"), (4, u"SE：ｼｽﾃﾑｴﾝｼﾞﾆｱ"),
-                       (5, u"SL：ｻﾌﾞﾘｰﾀﾞｰ"), (6, u"L：ﾘｰﾀﾞｰ"), (7, u"M：ﾏﾈｰｼﾞｬｰ"))
+CHOICE_PROJECT_ROLE = (("OP", u"OP：ｵﾍﾟﾚｰﾀｰ"),
+                       ("PG", u"PG：ﾌﾟﾛｸﾞﾗﾏｰ"),
+                       ("SP", u"SP：ｼｽﾃﾑﾌﾟﾛｸﾞﾗﾏｰ"),
+                       ("SE", u"SE：ｼｽﾃﾑｴﾝｼﾞﾆｱ"),
+                       ("SL", u"SL：ｻﾌﾞﾘｰﾀﾞｰ"),
+                       ("L", u"L：ﾘｰﾀﾞｰ"),
+                       ("M", u"M：ﾏﾈｰｼﾞｬｰ"))
 CHOICE_POSITION = ((4, u"部長"), (5, u"担当部長"),
                    (6, u"課長"), (7, u"担当課長"), (8, u"PM"), (9, u"リーダー"), (10, u"サブリーダー"))
 CHOICE_SEX = (('1', u"男"), ('2', u"女"))

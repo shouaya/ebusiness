@@ -7,12 +7,16 @@ Created on 2015/08/21
 import datetime
 import re
 import urllib
+import xlrd
 
 from django.http import HttpResponse
+from django.contrib import admin
 from django.template import RequestContext, loader
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.contrib.auth import logout
-from django.shortcuts import redirect
+from django.shortcuts import redirect, render_to_response
+from django.views.decorators.csrf import csrf_protect
+from django.template.context_processors import csrf
 
 from utils import constants, common, errors, loader as file_loader
 from .models import Company, Member, Section, Project, ProjectMember, Salesperson
@@ -457,24 +461,38 @@ def recommended_project_list(request, employee_id):
     return HttpResponse(template.render(context))
 
 
+@csrf_protect
 def upload_resume(request):
     company = get_company()
+    context = {
+        'company': company,
+        'title': u'履歴書をアップロード',
+        'site_header': admin.site.site_header,
+        'site_title': admin.site.site_title,
+    }
+    context.update(csrf(request))
 
-    if request.method == 'GET':
-        form = UploadFileForm()
-        context = RequestContext(request, {
-            'company': company,
-            'title': u'履歴書をアップロード',
-            'form': form,
-        })
-
-        template = loader.get_template('upload_file.html')
-        return HttpResponse(template.render(context))
-    elif request.method == 'POST':
-        form = UploadFileForm(request.POST, request.FILES['file'])
+    if request.method == 'POST':
+        form = UploadFileForm(request.POST, request.FILES)
+        context.update({'form': form})
         if form.is_valid():
-            member = file_loader.load_resume()
-            return
+            input_excel = request.FILES['file']
+            new_member = file_loader.load_resume(input_excel.read())
+            member_list = Member.objects.raw(u"select * from eb_member"
+                                             u" where CONCAT(first_name, last_name) = %s",
+                                             [new_member.first_name + new_member.last_name])
+            member_list = list(member_list)
+            if member_list:
+                # 同じ名前のメンバーが存在する場合
+                context.update({'member_list': member_list})
+            else:
+                pass
+    else:
+        form = UploadFileForm()
+        context.update({'form': form})
+
+    r = render_to_response('upload_file.html', context)
+    return HttpResponse(r)
 
 
 def history(request):

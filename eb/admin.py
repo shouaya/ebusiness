@@ -4,22 +4,17 @@ Created on 2015/08/21
 
 @author: Yang Wanjun
 """
-import datetime
-
 from django.http import HttpResponse
 from django.contrib import admin
 from django.contrib import messages
 from django.contrib.auth.models import User
 from django.utils.translation import ugettext_lazy as _
-from django.conf.urls import url, patterns
-from django.template.response import TemplateResponse
-from django.template import RequestContext
 
 import forms
 from .models import Company, Section, Member, Salesperson, Project, Client, ClientMember, \
     ProjectMember, Skill, ProjectSkill, ProjectActivity, Subcontractor, PositionShip,\
-    ProjectStage, OS, HistoryProject, MemberAttendance, create_group_salesperson
-from utils import common, loader as file_loader
+    ProjectStage, OS, HistoryProject, MemberAttendance, Degree, create_group_salesperson
+from utils import common
 
 
 class TextInputListFilter(admin.ListFilter):
@@ -100,6 +95,11 @@ class MemberAttendanceInline(admin.TabularInline):
     extra = 1
 
 
+class DegreeInline(admin.TabularInline):
+    model = Degree
+    extra = 1
+
+
 def get_full_name(obj):
     return "%s %s" % (obj.first_name, obj.last_name)
 get_full_name.short_description = u"名前"
@@ -144,6 +144,7 @@ class MemberAdmin(admin.ModelAdmin):
     list_display_links = [get_full_name]
     list_filter = ['member_type', 'section', 'subcontractor', 'salesperson', NoUserFilter]
     search_fields = ['first_name', 'last_name']
+    inlines = (DegreeInline,)
     fieldsets = (
         (None, {'fields': ('employee_id',
                            ('first_name', 'last_name'),
@@ -152,10 +153,11 @@ class MemberAdmin(admin.ModelAdmin):
                            'birthday')}),
         (u'詳細情報',
          {'classes': ('collapse',),
-          'fields': (('sex', 'is_married'),
+          'fields': (('sex', 'is_married', 'years_in_japan'),
                      'post_code',
                      ('address1', 'address2'),
-                     'country', 'graduate_date', 'phone', 'japanese_description', 'certificate', 'comment')}),
+                     'country', 'graduate_date', 'phone', 'japanese_description',
+                     'certificate', 'skill_description', 'comment')}),
         (u"勤務情報", {'fields': ('member_type', 'email', 'section', 'company', 'subcontractor', 'salesperson')})
     )
 
@@ -437,35 +439,36 @@ class ProjectActivityAdmin(admin.ModelAdmin):
     get_salesperson.short_description = u"参加している営業員"
 
 
-class ResumeAdmin(admin.ModelAdmin):
-
-    def upload_resume(self, request):
-        if request.method == 'GET':
-            form = forms.UploadFileForm()
-            context = dict(
-                self.admin_site.each_context(request),
-                form=form,
-                title=u'履歴書をアップロード',
-            )
-            return TemplateResponse(request, "upload_file.html", RequestContext(request, context))
-        elif request.method == 'POST':
-            form = forms.UploadFileForm(request.POST, request.FILES['file'])
-            context = dict(
-                self.admin_site.each_context(request),
-                form=form,
-                title=u'履歴書をアップロード',
-            )
-            if form.is_valid():
-                member = file_loader.load_resume()
-            return TemplateResponse(request, "upload_file.html", RequestContext(request, context))
-
-    def get_urls(self):
-        urls = super(ResumeAdmin, self).get_urls()
-        my_urls = patterns(
-            '',
-            url(r'^upload_resume/$', self.admin_site.admin_view(self.upload_resume), name='upload_resume'),
-        )
-        return my_urls + urls
+# class ResumeAdmin(admin.ModelAdmin):
+#
+#     @csrf_protect
+#     def upload_resume(self, request):
+#         if request.method == 'GET':
+#             form = forms.UploadFileForm()
+#             context = dict(
+#                 self.admin_site.each_context(request),
+#                 form=form,
+#                 title=u'履歴書をアップロード',
+#             )
+#             return TemplateResponse(request, "upload_file.html", RequestContext(request, context))
+#         elif request.method == 'POST':
+#             form = forms.UploadFileForm(request.POST, request.FILES['file'])
+#             context = dict(
+#                 self.admin_site.each_context(request),
+#                 form=form,
+#                 title=u'履歴書をアップロード',
+#             )
+#             if form.is_valid():
+#                 member = file_loader.load_resume()
+#             return TemplateResponse(request, "upload_file.html", RequestContext(request, context))
+#
+#     def get_urls(self):
+#         urls = super(ResumeAdmin, self).get_urls()
+#         my_urls = patterns(
+#             '',
+#             url(r'^upload_resume/$', self.admin_site.admin_view(self.upload_resume), name='upload_resume'),
+#         )
+#         return my_urls + urls
 
 
 class HistoryProjectAdmin(admin.ModelAdmin):
@@ -489,7 +492,6 @@ admin.site.register(Subcontractor)
 admin.site.register(PositionShip)
 admin.site.register(ProjectStage)
 admin.site.register(OS)
-# admin.site.register(UploadModel, ResumeAdmin)
 admin.site.register(HistoryProject, HistoryProjectAdmin)
 
 admin.site.site_header = u'社員営業状況管理システム'

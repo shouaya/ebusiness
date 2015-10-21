@@ -559,6 +559,107 @@ def is_salesperson_director(user):
         return False
 
 
+def parse_date_from_string(str_date, split1=u'/', split2=u'/', split3=u''):
+    """文字列から、日付を解析する。
+
+    Arguments：
+      str_date: 解析要の文字列
+      split1: 区切り
+      split2:
+      split3:
+
+    Returns：
+      date型
+
+    Raises：
+      なし
+    """
+    if str_date and str_date.strip():
+        str_date = str_date.strip().encode("utf-8")
+        dt = datetime.datetime.strptime(str_date, "%Y" +
+                                        split1.encode("utf-8") + "%m" +
+                                        split2.encode("utf-8") + "%d" +
+                                        split3.encode("utf-8"))
+        return datetime.date(dt.year, dt.month, dt.day)
+    else:
+        return None
+
+
+def parse_date_from_string2(str_date, split1=u'/', split2=u''):
+    """文字列から、日付を解析する。
+
+    Arguments：
+      str_date: 解析要の文字列
+      split1: 区切り
+      split2:
+
+    Returns：
+      date型
+
+    Raises：
+      なし
+    """
+    if str_date and str_date.strip():
+        str_date = str_date.strip().encode("utf-8")
+        dt = datetime.datetime.strptime(str_date, "%Y" +
+                                        split1.encode("utf-8") + "%m" +
+                                        split2.encode("utf-8"))
+        return datetime.date(dt.year, dt.month, dt.day)
+    else:
+        return None
+
+
+def parse_os_lang(name):
+    """履歴書を読み込む時、文字列からＯＳを解析する。
+
+    Arguments：
+      name: 解析要の文字列
+
+    Returns：
+      解析後の文字列
+
+    Raises：
+      なし
+    """
+    if not name:
+        return None
+
+    name = name.strip().lower()
+    new_name = ""
+    for i in name:
+        if re.match(ur"[0-9a-z/# ]", i, re.U):
+            new_name += i
+    if new_name:
+        return new_name.title()
+    else:
+        return None
+
+
+def parse_project_role(name):
+    """案件の作業区分を解析する。
+
+    Arguments：
+      name: 解析要の文字列
+
+    Returns：
+      解析後の文字列
+
+    Raises：
+      なし
+    """
+    if not name:
+        return None
+    name = name.strip().upper()
+    if name == "PM":
+        return "PM"
+    elif name == "PL":
+        return "L"
+    elif name in [v for v, m in constants.CHOICE_PROJECT_ROLE]:
+        return name
+    else:
+        return None
+
+
 if __name__ == "__main__":
     # get_insert_sql()
     line_counter()

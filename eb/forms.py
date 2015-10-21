@@ -67,9 +67,9 @@ class MemberForm(forms.ModelForm):
                   'first_name_en', 'last_name_en',
                   'sex', 'country', 'is_married',
                   'birthday', 'graduate_date',
-                  'degree', 'email', 'post_code', 'address1', 'address2', 'phone', 'salesperson',
+                  'email', 'post_code', 'address1', 'address2', 'years_in_japan', 'phone', 'salesperson',
                   'member_type', 'section', 'company', 'subcontractor',
-                  'japanese_description', 'certificate', 'comment']
+                  'japanese_description', 'certificate', 'skill_description', 'comment']
 
     post_code = forms.CharField(max_length=7,
                                 widget=forms.TextInput(
@@ -114,7 +114,7 @@ class SalespersonForm(forms.ModelForm):
                   'first_name_en', 'last_name_en',
                   'sex', 'country',
                   'birthday', 'graduate_date',
-                  'degree', 'email', 'post_code', 'address1', 'address2', 'phone', 'member_type',
+                  'email', 'post_code', 'address1', 'address2', 'phone', 'member_type',
                   'section', 'company',
                   'japanese_description', 'certificate', 'comment']
 
