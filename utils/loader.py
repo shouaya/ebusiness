@@ -15,11 +15,11 @@ import constants
 import common
 
 
-def load_resume(file_content, member=None):
+def load_resume(file_content, member_id=None):
     book = xlrd.open_workbook(file_contents=file_content)
     sheet = book.sheet_by_index(0)
 
-    if member is None:
+    if member_id is None:
         member = Member()
 
         # 基本情報読み込む
@@ -63,7 +63,10 @@ def load_resume(file_content, member=None):
         # 得意
         skill_description = sheet.cell(10, 27).value
         member.skill_description = skill_description.strip() if skill_description else None
+
+        finished = False
     else:
+        member = Member.objects.get(pk=member_id)
         # 学歴読み込む
         for row in range(14, sheet.nrows):
             if sheet.cell(row, 5).value:
@@ -81,6 +84,7 @@ def load_resume(file_content, member=None):
                         if sheet.cell(row, col).value:
                             degree.description = sheet.cell(row, col).value
                             break
+                    degree.save()
             else:
                 break
 
@@ -144,10 +148,11 @@ def load_resume(file_content, member=None):
                     project_name = title.strip() if title else None
                     # 業務経歴の対象を作成
                     try:
-                        project = HistoryProject.objects.get(name=project_name,
+                        project = HistoryProject.objects.get(name=project_name, member=member,
                                                              start_date=date_list[0], end_date=date_list[1])
                     except ObjectDoesNotExist:
-                        project = HistoryProject(name=project_name, start_date=date_list[0], end_date=date_list[1])
+                        project = HistoryProject(name=project_name, member=member,
+                                                 start_date=date_list[0], end_date=date_list[1])
 
                     # 作業場所
                     for i in range(col_content + 1, col_os):
@@ -199,8 +204,9 @@ def load_resume(file_content, member=None):
                             stage = ProjectStage(name=constants.PROJECT_STAGE[i])
                             stage.save()
                         project.stages.add(stage)
+        finished = True
 
-    return member
+    return member, finished
 
 
 def get_first_last_name(name):

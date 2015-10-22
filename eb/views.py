@@ -477,14 +477,16 @@ def upload_resume(request):
         context.update({'form': form})
         if form.is_valid():
             input_excel = request.FILES['file']
-            new_member = file_loader.load_resume(input_excel.read())
-            member_list = Member.objects.raw(u"select * from eb_member"
+            member_id = request.POST.get('select', None)
+            new_member, finished = file_loader.load_resume(input_excel.read(), member_id)
+            if not finished:
+                members = Member.objects.raw(u"select * from eb_member"
                                              u" where CONCAT(first_name, last_name) = %s",
                                              [new_member.first_name + new_member.last_name])
-            member_list = list(member_list)
-            if member_list:
-                # 同じ名前のメンバーが存在する場合
-                context.update({'member_list': member_list})
+                members = list(members)
+                if members:
+                    # 同じ名前のメンバーが存在する場合
+                    context.update({'members': members, 'display': True})
             else:
                 pass
     else:
