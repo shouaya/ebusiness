@@ -1,65 +1,52 @@
 {% extends "base.html" %}
 
 {% block header %}
-    <script type="text/javascript">
-        window.onload = function() {
-            init_select("status");
-        };
-    </script>
 {% endblock %}
 
 {% block content %}
-    <table class="list" cellpadding="0" cellspacing="0">
-        <thead>
+    <div class="dashboard">
+        <div class="dashboard-title">{{ member }} の履歴</div>
+        <table>
             <tr>
-                <th>名前</th>
-                <th>案件名称</th>
-                <th>スキル要求</th>
-                <th>稼働開始日</th>
-                <th>稼働終了日</th>
-                <th>ステータス</th>
-                <th></th>
+                <td>
+                    <table style="width: 320px;">
+                        <tr>
+                            <td>フリガナ</td>
+                            <td>{{ member.first_name_ja }}&nbsp;{{ member.last_name_ja }}</td>
+                        </tr>
+                        <tr>
+                            <td>氏名</td>
+                            <td>{{ member }}</td>
+                        </tr>
+                        <tr>
+                            <td>現住所</td>
+                            <td>{{ member.address1 }}</td>
+                        </tr>
+                        <tr>
+                            <td>最寄駅</td>
+                            <td>{{ member.nearest_station }}</td>
+                        </tr>
+                        <tr>
+                            <td>在日年数</td>
+                            <td>{{ member.years_in_japan }}&nbsp;年</td>
+                        </tr>
+                    </table>
+                </td>
+                <td>
+
+                </td>
+                <td>
+
+                </td>
             </tr>
-        </thead>
-        <tbody>
-            {% if project_members %}
-                {% for project_member in project_members %}
-                    <tr class="{% cycle 'row1' 'row2' %}">
-                        <td>{{ project_member.member }}</td>
-                        <td><a href="{% url 'project_detail' project_member.project.pk %}">
-                            {{ project_member.project.name }}</a>
-                        </td>
-                        <td>
-                            {% for skill in project_member.project.skills.all %}
-                                {{ skill }},
-                            {% endfor %}
-                        </td>
-                        <td>{{ project_member.start_date|date:"Y-m-d" }}</td>
-                        <td>{{ project_member.end_date|date:"Y-m-d" }}</td>
-                        <td class="center">
-                            <a href="?status={{ project_member.status }}">
-                            {{ project_member.get_status_display }}
-                            </a>
-                        </td>
-                        <td class="center">
-                            <a href="{% url 'admin:eb_projectmember_change' project_member.id %}?from=portal" target="_blank">編集</a>
-                        </td>
-                    </tr>
-                {% endfor %}
-            {% else %}
-                <tr class="row2"><td class="center red" colspan="7">まだ何の案件にはいてありません。</td></tr>
-            {% endif %}
-        </tbody>
-        <tfoot>
+        </table>
+        <table>
             <tr>
-                <th>名前</th>
-                <th>案件名称</th>
-                <th>スキル要求</th>
-                <th>稼働開始日</th>
-                <th>稼働終了日</th>
-                <th>ステータス</th>
-                <th></th>
+                <td>性別</td>
+                <td>{{ member.get_sex_display }}</td>
+                <td>日 本 語／英語</td>
+                <td>{{ member.japanese_description }}</td>
             </tr>
-        </tfoot>
-    </table>
+        </table>
+    </div>
 {% endblock %}

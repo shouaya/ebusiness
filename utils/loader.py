@@ -22,15 +22,19 @@ def load_resume(file_content, member_id=None):
     if member_id is None:
         member = Member()
 
+        # 姓名
+        name = sheet.cell(5, 3).value
+        member.first_name = get_first_last_name(name)[0]
+        member.last_name = get_first_last_name(name)[1]
+
+        finished = False
+    else:
+        member = Member.objects.get(pk=member_id)
         # 基本情報読み込む
         # フリカナ
         name_jp = sheet.cell(4, 3).value
         member.first_name_ja = get_first_last_ja_name(name_jp)[0]
         member.last_name_ja = get_first_last_ja_name(name_jp)[1]
-        # 姓名
-        name = sheet.cell(5, 3).value
-        member.first_name = get_first_last_name(name)[0]
-        member.last_name = get_first_last_name(name)[1]
         # 性別
         sex = sheet.cell(4, 15).value
         if sex and sex in (u"男", u"女"):
@@ -63,10 +67,6 @@ def load_resume(file_content, member_id=None):
         # 得意
         skill_description = sheet.cell(10, 27).value
         member.skill_description = skill_description.strip() if skill_description else None
-
-        finished = False
-    else:
-        member = Member.objects.get(pk=member_id)
         # 学歴読み込む
         for row in range(14, sheet.nrows):
             if sheet.cell(row, 5).value:
@@ -76,10 +76,10 @@ def load_resume(file_content, member_id=None):
                     date_list.append(common.parse_date_from_string(m.group()))
                 if date_list:
                     # 学歴のインスタンスを作成
-                    degree = Degree()
-                    degree.member = member
-                    degree.start_date = date_list[0]
-                    degree.end_date = date_list[1]
+                    try:
+                        degree = Degree.objects.get(member=member, start_date=date_list[0], end_date=date_list[1])
+                    except ObjectDoesNotExist:
+                        degree = Degree(member=member, start_date=date_list[0], end_date=date_list[1])
                     for col in range(6, sheet.ncols):
                         if sheet.cell(row, col).value:
                             degree.description = sheet.cell(row, col).value
@@ -165,6 +165,7 @@ def load_resume(file_content, member_id=None):
                     description = sheet.cell(row + 1, col_content).value
                     project.description = description.strip() if description else None
                     # 機種／OS
+                    project_os_list = []
                     str_os = sheet.cell(row, col_os).value
                     if str_os:
                         os_list = [common.parse_os_lang(os) for os in str_os.split("\n")
@@ -176,8 +177,9 @@ def load_resume(file_content, member_id=None):
                                 # 存在しない場合は追加する。
                                 os = OS(name=name)
                                 os.save()
-                            project.os.add(os)
+                            project_os_list.append(os)
                     # 言語／ツール ＤＢ
+                    project_skill_list = []
                     str_languages = sheet.cell(row, col_language).value
                     if str_languages:
                         lang_list = [common.parse_os_lang(lang) for lang in str_languages.split("\n")
@@ -188,22 +190,33 @@ def load_resume(file_content, member_id=None):
                             except ObjectDoesNotExist:
                                 skill = Skill(name=lang)
                                 skill.save()
-                            project.skill.add(skill)
+                            project_skill_list.append(skill)
                     # 作業区分
                     role = sheet.cell(row, col_role).value
                     role = common.parse_project_role(role)
                     if role:
                         project.role = role
                     # 作業工程
+                    project_stage_list = []
                     for i, col in enumerate((col_stage_def, col_stage_search, col_stage_bd,
                                              col_stage_dd, col_stage_pg, col_stage_pt,
                                              col_stage_it, col_stage_st, col_stage_maintain, col_stage_support)):
-                        try:
-                            stage = ProjectStage.objects.get(name=constants.PROJECT_STAGE[i])
-                        except ObjectDoesNotExist:
-                            stage = ProjectStage(name=constants.PROJECT_STAGE[i])
-                            stage.save()
-                        project.stages.add(stage)
+                        if sheet.cell(row, col).value:
+                            try:
+                                stage = ProjectStage.objects.get(name=constants.PROJECT_STAGE[i])
+                            except ObjectDoesNotExist:
+                                stage = ProjectStage(name=constants.PROJECT_STAGE[i])
+                                stage.save()
+                            project_stage_list.append(stage)
+
+                    # 履歴を保存する
+                    project.save()
+                    project.os = project_os_list
+                    project.skill = project_skill_list
+                    project.stages = project_stage_list
+                    project.save()
+
+        member.save()
         finished = True
 
     return member, finished

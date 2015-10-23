@@ -387,21 +387,13 @@ def release_list(request):
 
 
 def member_detail(request, employee_id):
-    status = request.GET.get('status', None)
     company = get_company()
     member = Member.objects.get(employee_id=employee_id)
-    if status and status != '0':
-        project_members = ProjectMember.objects.filter(member=member, status=status)\
-            .order_by('-status', 'end_date')
-    else:
-        project_members = ProjectMember.objects.filter(member=member)\
-            .order_by('-status', 'end_date')
 
     context = RequestContext(request, {
         'company': company,
         'member': member,
-        'title': u'%s の詳細情報' % (member,),
-        'project_members': project_members,
+        'title': u'%s の履歴' % (member,),
     })
     template = loader.get_template('member_detail.html')
     return HttpResponse(template.render(context))
