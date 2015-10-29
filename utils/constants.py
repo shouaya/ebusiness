@@ -12,12 +12,14 @@ REG_DATE_STR2 = ur"\d{4}([-/.年])\d{1,2}([-/.月]?)"
 
 NAME_BUSINESS_PLAN = u"%02d月営業企画"
 NAME_MEMBER_LIST = u"最新要員一覧"
+NAME_RESUME = u"EB履歴書_%s_%s"
 
 MARK_POST_CODE = u"〒"
 
 DOWNLOAD_REQUEST = "request"
 DOWNLOAD_BUSINESS_PLAN = "business_plan"
 DOWNLOAD_MEMBER_LIST = "member_list"
+DOWNLOAD_RESUME = "resume"
 
 ERROR_TEMPLATE_NOT_EXISTS = u"テンプレートファイルが存在しません。"
 

@@ -7,7 +7,6 @@ Created on 2015/08/21
 import datetime
 import re
 import urllib
-import xlrd
 
 from django.http import HttpResponse
 from django.contrib import admin
@@ -18,7 +17,7 @@ from django.shortcuts import redirect, render_to_response
 from django.views.decorators.csrf import csrf_protect
 from django.template.context_processors import csrf
 
-from utils import constants, common, errors, loader as file_loader
+from utils import constants, common, errors, loader as file_loader, file_gen
 from .models import Company, Member, Section, Project, ProjectMember, Salesperson
 from .forms import UploadFileForm
 
@@ -389,14 +388,23 @@ def release_list(request):
 def member_detail(request, employee_id):
     company = get_company()
     member = Member.objects.get(employee_id=employee_id)
+    download = request.GET.get('download', None)
 
-    context = RequestContext(request, {
-        'company': company,
-        'member': member,
-        'title': u'%s の履歴' % (member,),
-    })
-    template = loader.get_template('member_detail.html')
-    return HttpResponse(template.render(context))
+    if download == constants.DOWNLOAD_RESUME:
+        date = datetime.date.today().strftime("%Y%m")
+        filename = constants.NAME_RESUME % (member.first_name + member.last_name, date)
+        output = file_gen.generate_resume(member, filename)
+        response = HttpResponse(output.read(), content_type="application/ms-excel")
+        response['Content-Disposition'] = "filename=" + urllib.quote(filename.encode('utf-8')) + ".xlsx"
+        return response
+    else:
+        context = RequestContext(request, {
+            'company': company,
+            'member': member,
+            'title': u'%s の履歴' % (member,),
+        })
+        template = loader.get_template('member_detail.html')
+        return HttpResponse(template.render(context))
 
 
 def member_project_list(request, employee_id):
