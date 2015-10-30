@@ -693,6 +693,66 @@ class ProjectMember(models.Model):
     def __unicode__(self):
         return "%s - %s %s" % (self.project.name, self.member.first_name, self.member.last_name)
 
+    def is_in_rd(self):
+        if self.stages.filter(name=u"要件定義").count() > 0:
+            return True
+        else:
+            return False
+
+    def is_in_sa(self):
+        if self.stages.filter(name=u"調査分析").count() > 0:
+            return True
+        else:
+            return False
+
+    def is_in_bd(self):
+        if self.stages.filter(name=u"基本設計").count() > 0:
+            return True
+        else:
+            return False
+
+    def is_in_dd(self):
+        if self.stages.filter(name=u"詳細設計").count() > 0:
+            return True
+        else:
+            return False
+
+    def is_in_pg(self):
+        if self.stages.filter(name=u"開発製造").count() > 0:
+            return True
+        else:
+            return False
+
+    def is_in_pt(self):
+        if self.stages.filter(name=u"単体試験").count() > 0:
+            return True
+        else:
+            return False
+
+    def is_in_it(self):
+        if self.stages.filter(name=u"結合試験").count() > 0:
+            return True
+        else:
+            return False
+
+    def is_in_st(self):
+        if self.stages.filter(name=u"総合試験").count() > 0:
+            return True
+        else:
+            return False
+
+    def is_in_maintain(self):
+        if self.stages.filter(name=u"保守運用").count() > 0:
+            return True
+        else:
+            return False
+
+    def is_in_support(self):
+        if self.stages.filter(name=u"サポート").count() > 0:
+            return True
+        else:
+            return False
+
 
 class MemberAttendance(models.Model):
     project_member = models.ForeignKey(ProjectMember, verbose_name=u"要員")
@@ -732,6 +792,7 @@ class HistoryProject(models.Model):
     stages = models.ManyToManyField(ProjectStage, blank=True, null=True, verbose_name=u"作業工程")
 
     class Meta:
+        ordering = ['-start_date']
         verbose_name = verbose_name_plural = u"以前やっていた案件"
 
     def __unicode__(self):

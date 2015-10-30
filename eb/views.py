@@ -393,15 +393,19 @@ def member_detail(request, employee_id):
     if download == constants.DOWNLOAD_RESUME:
         date = datetime.date.today().strftime("%Y%m")
         filename = constants.NAME_RESUME % (member.first_name + member.last_name, date)
-        output = file_gen.generate_resume(member, filename)
+        output = file_gen.generate_resume(member)
         response = HttpResponse(output.read(), content_type="application/ms-excel")
         response['Content-Disposition'] = "filename=" + urllib.quote(filename.encode('utf-8')) + ".xlsx"
         return response
     else:
+        project_count = member.projectmember_set.all().count()
         context = RequestContext(request, {
             'company': company,
             'member': member,
             'title': u'%s の履歴' % (member,),
+            'project_count': project_count,
+            'all_project_count': project_count + member.historyproject_set.all().count(),
+            'default_project_count': range(1, 14),
         })
         template = loader.get_template('member_detail.html')
         return HttpResponse(template.render(context))

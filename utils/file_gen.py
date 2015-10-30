@@ -4,14 +4,13 @@ Created on 2015/10/29
 
 @author: Yang Wanjun
 """
+import datetime
 import StringIO
 import xlsxwriter
 
 
-def generate_resume(member, filename):
+def generate_resume(member):
     output = StringIO.StringIO()
-    row = 0
-    col = 0
 
     book = xlsxwriter.Workbook(output)
     sheet = book.add_worksheet()
@@ -24,6 +23,20 @@ def generate_resume(member, filename):
                                     'valign': 'vcenter',
                                     'font_size': 24})
     sheet.merge_range('A1:AP3', u"技　術　者　経　歴　書", title_format)
+    # 最終更新日
+    title_format = book.add_format({'bold': True,
+                                    'border': 0,
+                                    'align': 'right',
+                                    'valign': 'vcenter',
+                                    'font_size': 11})
+    content_format = book.add_format({'bold': True,
+                                      'border': 0,
+                                      'align': 'center',
+                                      'valign': 'vcenter',
+                                      'font_size': 11})
+    sheet.merge_range('A4:AI4', u"最終更新日：", title_format)
+    today = datetime.date.today()
+    sheet.merge_range('AJ4:AP4', u"%d年%02d月" % (today.year, today.month), content_format)
     # 基本情報設定
     title_format_top = book.add_format({'bold': True,
                                         'top': 1,
@@ -167,7 +180,13 @@ def generate_resume(member, filename):
         sheet.merge_range(14 + i, 14, 14 + i, 41, degree.description,
                           content_format_right if i == 0 else content_format_bottom_right)
     else:
-        if member.degree_set.all().count() == 1:
+        cnt = member.degree_set.all().count()
+        if cnt == 1:
+            sheet.merge_range(14 + 1, 5, 14 + 1, 13, "", content_format_bottom)
+            sheet.merge_range(14 + 1, 14, 14 + 1, 41, "", content_format_bottom_right)
+        elif cnt == 0:
+            sheet.merge_range(14 + 0, 5, 14 + 0, 13, "", content_format_inner)
+            sheet.merge_range(14 + 0, 14, 14 + 0, 41, "", content_format_right)
             sheet.merge_range(14 + 1, 5, 14 + 1, 13, "", content_format_bottom)
             sheet.merge_range(14 + 1, 14, 14 + 1, 41, "", content_format_bottom_right)
 
@@ -253,6 +272,13 @@ def generate_resume(member, filename):
                                              'top': 1,
                                              'bottom': 4,
                                              'right': 4})
+    content_format_inner4 = book.add_format({'valign': 'vcenter',
+                                            'font_size': 9,
+                                            'left': 4,
+                                            'top': 4,
+                                            'bottom': 1,
+                                            'right': 4,
+                                            'text_wrap': True})
     content_format_right = book.add_format({'valign': 'vcenter',
                                             'font_size': 9,
                                             'left': 4,
@@ -279,17 +305,62 @@ def generate_resume(member, filename):
     sheet.merge_range('AO21:AO24', u"保\r\n守\r\n運\r\n用", title_format_bottom)
     sheet.merge_range('AP21:AP24', u"サ\r\nポ\r\nー\r\nト", title_format_bottom_right)
 
-    for i, project in enumerate(member.historyproject_set.all()):
+    project_count = member.projectmember_set.all().count()
+    all_project_count = member.historyproject_set.all().count() + project_count
+
+    # 案件一覧
+    for i, project_member in enumerate(member.projectmember_set.all()):
         first_row = 24 + (i * 3)
         sheet.set_row(first_row + 1, 30)
         sheet.set_row(first_row + 2, 30)
         sheet.merge_range(first_row, 0, first_row + 2, 0, str(i + 1), content_format_left)
+        period = u"%d年%02d月～\r\n%d年%02d月" % (project_member.project.start_date.year,
+                                                 project_member.project.start_date.month,
+                                                 project_member.project.end_date.year,
+                                                 project_member.project.end_date.month)
+        sheet.merge_range(first_row, 1, first_row + 2, 4, period, content_format_inner)
+        sheet.merge_range(first_row, 5, first_row, 13, project_member.project.name, content_format_inner2)
+        sheet.merge_range(first_row, 14, first_row, 16, "", content_format_inner3)
+        sheet.merge_range(first_row + 1, 5, first_row + 2, 16, project_member.project.description,
+                          content_format_inner4)
+        os_list = [os.name for os in project_member.project.os.all()]
+        sheet.merge_range(first_row, 17, first_row + 2, 22, u"\r\n".join(os_list), content_format_inner)
+        skill_list = [skill.name for skill in project_member.project.skills.all()]
+        sheet.merge_range(first_row, 23, first_row + 2, 28, u"\r\n".join(skill_list), content_format_inner)
+        sheet.merge_range(first_row, 29, first_row + 2, 31, project_member.role, content_format_inner)
+        sheet.merge_range(first_row, 32, first_row + 2, 32, u"●" if project_member.is_in_rd() else "",
+                          content_format_inner)
+        sheet.merge_range(first_row, 33, first_row + 2, 33, u"●" if project_member.is_in_sa() else "",
+                          content_format_inner)
+        sheet.merge_range(first_row, 34, first_row + 2, 34, u"●" if project_member.is_in_bd() else "",
+                          content_format_inner)
+        sheet.merge_range(first_row, 35, first_row + 2, 35, u"●" if project_member.is_in_dd() else "",
+                          content_format_inner)
+        sheet.merge_range(first_row, 36, first_row + 2, 36, u"●" if project_member.is_in_pg() else "",
+                          content_format_inner)
+        sheet.merge_range(first_row, 37, first_row + 2, 37, u"●" if project_member.is_in_pt() else "",
+                          content_format_inner)
+        sheet.merge_range(first_row, 38, first_row + 2, 38, u"●" if project_member.is_in_it() else "",
+                          content_format_inner)
+        sheet.merge_range(first_row, 39, first_row + 2, 39, u"●" if project_member.is_in_st() else "",
+                          content_format_inner)
+        sheet.merge_range(first_row, 40, first_row + 2, 40, u"●" if project_member.is_in_maintain() else "",
+                          content_format_inner)
+        sheet.merge_range(first_row, 41, first_row + 2, 41, u"●" if project_member.is_in_support() else "",
+                          content_format_right)
+
+    # 以前やっていた案件を出力する。
+    for i, project in enumerate(member.historyproject_set.all()):
+        first_row = 24 + (project_count * 3) + (i * 3)
+        sheet.set_row(first_row + 1, 30)
+        sheet.set_row(first_row + 2, 30)
+        sheet.merge_range(first_row, 0, first_row + 2, 0, str(project_count + i + 1), content_format_left)
         period = u"%d年%02d月～\r\n%d年%02d月" % (project.start_date.year, project.start_date.month,
                                              project.end_date.year, project.end_date.month)
         sheet.merge_range(first_row, 1, first_row + 2, 4, period, content_format_inner)
         sheet.merge_range(first_row, 5, first_row, 13, project.name, content_format_inner2)
         sheet.merge_range(first_row, 14, first_row, 16, project.location, content_format_inner3)
-        sheet.merge_range(first_row + 1, 5, first_row + 2, 16, project.description, content_format_inner)
+        sheet.merge_range(first_row + 1, 5, first_row + 2, 16, project.description, content_format_inner4)
         os_list = [os.name for os in project.os.all()]
         sheet.merge_range(first_row, 17, first_row + 2, 22, u"\r\n".join(os_list), content_format_inner)
         skill_list = [skill.name for skill in project.skill.all()]
@@ -307,12 +378,34 @@ def generate_resume(member, filename):
                           content_format_inner)
         sheet.merge_range(first_row, 41, first_row + 2, 41, u"●" if project.is_in_support() else "",
                           content_format_right)
+    if all_project_count == 0:
+        all_project_count = 13
+        for i in range(13):
+            first_row = 24 + (i * 3)
+            sheet.merge_range(first_row, 0, first_row + 2, 0, str(i + 1), content_format_left)
+            sheet.merge_range(first_row, 1, first_row + 2, 4, "", content_format_inner)
+            sheet.merge_range(first_row, 5, first_row, 13, "", content_format_inner2)
+            sheet.merge_range(first_row, 14, first_row, 16, "", content_format_inner3)
+            sheet.merge_range(first_row + 1, 5, first_row + 2, 16, "", content_format_inner4)
+            sheet.merge_range(first_row, 17, first_row + 2, 22, "", content_format_inner)
+            sheet.merge_range(first_row, 23, first_row + 2, 28, "", content_format_inner)
+            sheet.merge_range(first_row, 29, first_row + 2, 31, "", content_format_inner)
+            sheet.merge_range(first_row, 32, first_row + 2, 32, "", content_format_inner)
+            sheet.merge_range(first_row, 33, first_row + 2, 33, "", content_format_inner)
+            sheet.merge_range(first_row, 34, first_row + 2, 34, "", content_format_inner)
+            sheet.merge_range(first_row, 35, first_row + 2, 35, "", content_format_inner)
+            sheet.merge_range(first_row, 36, first_row + 2, 36, "", content_format_inner)
+            sheet.merge_range(first_row, 37, first_row + 2, 37, "", content_format_inner)
+            sheet.merge_range(first_row, 38, first_row + 2, 38, "", content_format_inner)
+            sheet.merge_range(first_row, 39, first_row + 2, 39, "", content_format_inner)
+            sheet.merge_range(first_row, 40, first_row + 2, 40, "", content_format_inner)
+            sheet.merge_range(first_row, 41, first_row + 2, 41, "", content_format_right)
 
+    row_tail = 24 + (all_project_count * 3)
     tail_format = book.add_format({'align': 'center',
                                    'valign': 'vcenter',
                                    'font_size': 9,
                                    'border': 1})
-    row_tail = 24 + (member.historyproject_set.all().count() * 3)
     sheet.merge_range(row_tail, 0, row_tail, 41,
                       u"作業区分：   M：ﾏﾈｰｼﾞｬｰ、L：ﾘｰﾀﾞｰ、SL：ｻﾌﾞﾘｰﾀﾞｰ、SE：.ｼｽﾃﾑｴﾝｼﾞﾆｱ、SP：ｼｽﾃﾑﾌﾟﾛｸﾞﾗﾏｰ、PG：ﾌﾟﾛｸﾞﾗﾏｰ、OP：ｵﾍﾟﾚｰﾀｰ",
                       tail_format)

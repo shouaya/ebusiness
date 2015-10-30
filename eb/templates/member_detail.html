@@ -85,12 +85,22 @@
                         </tr>
                         {% if member.degree_set.all.count %}
                             {% for degree in member.degree_set.all %}
-                            <tr>
-                                <td class="td-inner">{{ degree.start_date }} ～ {{ degree.end_date }}</td>
-                                <td class="td-inner" style="border-left: 1px dotted black;">{{ degree.description }}</td>
-                            </tr>
+                                <tr>
+                                    <td class="td-inner">{{ degree.start_date }} ～ {{ degree.end_date }}</td>
+                                    <td class="td-inner" style="border-left: 1px dotted black;">{{ degree.description }}</td>
+                                </tr>
                             {% endfor %}
+                            {% if member.degree_set.all.count == 1 %}
+                                <tr>
+                                    <td class="td-inner">&nbsp;</td>
+                                    <td class="td-inner" style="border-left: 1px dotted black;">&nbsp;</td>
+                                </tr>
+                            {% endif %}
                         {% else %}
+                            <tr>
+                                <td class="td-inner">&nbsp;</td>
+                                <td class="td-inner" style="border-left: 1px dotted black;">&nbsp;</td>
+                            </tr>
                             <tr>
                                 <td class="td-inner">&nbsp;</td>
                                 <td class="td-inner" style="border-left: 1px dotted black;">&nbsp;</td>
@@ -130,86 +140,210 @@
                             <th class="th-top">保守運用</th>
                             <th class="th-top" style="border-right: 0px;">サポート</th>
                         </tr>
-                        {% for project in member.historyproject_set.all %}
-                            <tr class="project-detail">
-                                <td style="text-align: center;">{{ forloop.counter }}</td>
-                                <td>{{ project.start_date|date:"Y年M" }}～<br/>{{ project.end_date|date:"Y年M" }}</td>
-                                <td>
-                                    <table style="width: 266px; table-layout: fixed;" cellpadding="0" cellspacing="0">
-                                        <tr>
-                                            <td nowrap style="overflow: hidden; border: 0px;">{{ project.name }}</td>
-                                            <td style="text-align: center; width: 66px; border: 0px; border-left: 1px dotted black;">{{ project.location }}</td>
-                                        </tr>
-                                        <tr>
-                                            <td colspan="2" style="word-break: break-word; border: 0px; border-top: 1px dotted black;">
-                                                <pre>{{ project.description }}</pre>
-                                            </td>
-                                        </tr>
-                                    </table>
-                                </td>
-                                <td>
-                                    {% for os in project.os.all %}
-                                        {{ os }}<br/>
-                                    {% endfor %}
-                                </td>
-                                <td>
-                                    {% for skill in project.skill.all %}
-                                        {{ skill }}<br/>
-                                    {% endfor %}
-                                </td>
-                                <td>{{ project.role }}</td>
-                                <td>
-                                    {% if project.is_in_rd %}
-                                        ●
-                                    {% endif %}
-                                </td>
-                                <td>
-                                    {% if project.is_in_sa %}
-                                        ●
-                                    {% endif %}
-                                </td>
-                                <td>
-                                    {% if project.is_in_bd %}
-                                        ●
-                                    {% endif %}
-                                </td>
-                                <td>
-                                    {% if project.is_in_dd %}
-                                        ●
-                                    {% endif %}
-                                </td>
-                                <td>
-                                    {% if project.is_in_pg %}
-                                        ●
-                                    {% endif %}
-                                </td>
-                                <td>
-                                    {% if project.is_in_pt %}
-                                        ●
-                                    {% endif %}
-                                </td>
-                                <td>
-                                    {% if project.is_in_it %}
-                                        ●
-                                    {% endif %}
-                                </td>
-                                <td>
-                                    {% if project.is_in_st %}
-                                        ●
-                                    {% endif %}
-                                </td>
-                                <td>
-                                    {% if project.is_in_maintain %}
-                                        ●
-                                    {% endif %}
-                                </td>
-                                <td>
-                                    {% if project.is_in_support %}
-                                        ●
-                                    {% endif %}
-                                </td>
-                            </tr>
-                        {% endfor %}
+                        {% if all_project_count %}
+                            {% for projectmember in member.projectmember_set.all %}
+                                <tr class="project-detail">
+                                    <td style="text-align: center;">{{ forloop.counter }}</td>
+                                    <td>{{ projectmember.project.start_date|date:"Y年M" }}～<br/>{{ projectmember.project.end_date|date:"Y年M" }}</td>
+                                    <td>
+                                        <table style="width: 266px; table-layout: fixed;" cellpadding="0" cellspacing="0">
+                                            <tr>
+                                                <td nowrap style="overflow: hidden; border: 0px;">{{ projectmember.project.name }}</td>
+                                                <td style="text-align: center; width: 66px; border: 0px; border-left: 1px dotted black;"></td>
+                                            </tr>
+                                            <tr>
+                                                <td colspan="2" style="word-break: break-word; border: 0px; border-top: 1px dotted black;">
+                                                    {% if projectmember.project.description %}
+                                                        <pre>{{ projectmember.project.description }}</pre>
+                                                    {% else %}
+                                                        &nbsp;
+                                                    {% endif %}
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                    <td>
+                                        {% for os in projectmember.project.os.all %}
+                                            {{ os }}<br/>
+                                        {% endfor %}
+                                    </td>
+                                    <td>
+                                        {% for skill in projectmember.project.skills.all %}
+                                            {{ skill }}<br/>
+                                        {% endfor %}
+                                    </td>
+                                    <td>{{ projectmember.role }}</td>
+                                    <td>
+                                        {% if projectmember.is_in_rd %}
+                                            ●
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if projectmember.is_in_sa %}
+                                            ●
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if projectmember.is_in_bd %}
+                                            ●
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if projectmember.is_in_dd %}
+                                            ●
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if projectmember.is_in_pg %}
+                                            ●
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if projectmember.is_in_pt %}
+                                            ●
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if projectmember.is_in_it %}
+                                            ●
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if projectmember.is_in_st %}
+                                            ●
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if projectmember.is_in_maintain %}
+                                            ●
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if projectmember.is_in_support %}
+                                            ●
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                            {% for project in member.historyproject_set.all %}
+                                <tr class="project-detail">
+                                    <td style="text-align: center;">{{ forloop.counter|add:project_count }}</td>
+                                    <td>{{ project.start_date|date:"Y年M" }}～<br/>{{ project.end_date|date:"Y年M" }}</td>
+                                    <td>
+                                        <table style="width: 266px; table-layout: fixed;" cellpadding="0" cellspacing="0">
+                                            <tr>
+                                                <td nowrap style="overflow: hidden; border: 0px;">{{ project.name }}</td>
+                                                <td style="text-align: center; width: 66px; border: 0px; border-left: 1px dotted black;">{{ project.location }}</td>
+                                            </tr>
+                                            <tr>
+                                                <td colspan="2" style="word-break: break-word; border: 0px; border-top: 1px dotted black;">
+                                                    <pre>{{ project.description }}</pre>
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                    <td>
+                                        {% for os in project.os.all %}
+                                            {{ os }}<br/>
+                                        {% endfor %}
+                                    </td>
+                                    <td>
+                                        {% for skill in project.skill.all %}
+                                            {{ skill }}<br/>
+                                        {% endfor %}
+                                    </td>
+                                    <td>{{ project.role }}</td>
+                                    <td>
+                                        {% if project.is_in_rd %}
+                                            ●
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if project.is_in_sa %}
+                                            ●
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if project.is_in_bd %}
+                                            ●
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if project.is_in_dd %}
+                                            ●
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if project.is_in_pg %}
+                                            ●
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if project.is_in_pt %}
+                                            ●
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if project.is_in_it %}
+                                            ●
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if project.is_in_st %}
+                                            ●
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if project.is_in_maintain %}
+                                            ●
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if project.is_in_support %}
+                                            ●
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        {% else %}
+                            {% for i in default_project_count %}
+                                <tr class="project-detail">
+                                    <td style="text-align: center;">{{ i }}</td>
+                                    <td>&nbsp;</td>
+                                    <td>
+                                        <table style="width: 266px; table-layout: fixed;" cellpadding="0" cellspacing="0">
+                                            <tr>
+                                                <td nowrap style="overflow: hidden; border: 0px;">&nbsp;</td>
+                                                <td style="text-align: center; width: 66px; border: 0px; border-left: 1px dotted black;">&nbsp;</td>
+                                            </tr>
+                                            <tr>
+                                                <td colspan="2" style="word-break: break-word; border: 0px; border-top: 1px dotted black;">
+                                                    <pre>&nbsp;</pre>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td colspan="2" style="word-break: break-word; border: 0px;">
+                                                    <pre>&nbsp;</pre>
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                    <td>&nbsp;</td>
+                                    <td>&nbsp;</td>
+                                    <td>&nbsp;</td>
+                                    <td>&nbsp;</td>
+                                    <td>&nbsp;</td>
+                                    <td>&nbsp;</td>
+                                    <td>&nbsp;</td>
+                                    <td>&nbsp;</td>
+                                    <td>&nbsp;</td>
+                                    <td>&nbsp;</td>
+                                    <td>&nbsp;</td>
+                                    <td>&nbsp;</td>
+                                    <td>&nbsp;</td>
+                                </tr>
+                            {% endfor %}
+                        {% endif %}
                     </table>
                 </td>
             </tr>
