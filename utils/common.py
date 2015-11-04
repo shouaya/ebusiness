@@ -294,9 +294,9 @@ def generate_business_plan(projects, filename):
         if project.members.all().count() == 0:
             continue
         # 顧客
-        sheet.write(row + 2 + i, col + 0, project.client.name, cell_format)
+        sheet.write(row + 2 + i, col + 0, project.client.name if project.client else "", cell_format)
         # 窓口
-        sheet.write(row + 2 + i, col + 1, project.middleman.name, cell_format)
+        sheet.write(row + 2 + i, col + 1, project.middleman.name if project.middleman else "", cell_format)
         sheet.write(row + 2 + i, col + 2, project.address, cell_format)
         first_project_member = project.get_first_project_member()
         sheet.write(row + 2 + i, col + 3, first_project_member.member.section.name, cell_format)
@@ -660,8 +660,32 @@ def parse_project_role(name):
         return None
 
 
+def get_first_last_name(name):
+    if name:
+        return name[:1], name[1:]
+    else:
+        return None, None
+
+
+def get_first_last_ja_name(name):
+    if name:
+        reg = re.compile(ur"[ 　]+", re.UNICODE)
+        return reg.split(name)
+    else:
+        return None, None
+
+
+def get_next_employee_id(max_employee_id):
+    m = re.search(r"^[A-Za-z]*", max_employee_id)
+    prefix = m.group()
+    m = re.search(r"[0-9]+", max_employee_id)
+    max_num = m.group()
+    len_num = len(max_num)
+    next_num = int(max_num) + 1
+    len_right_num = len(str(next_num))
+    str_num = "0" * (len_num - len_right_num) + str(next_num)
+    return prefix + str_num
+
+
 if __name__ == "__main__":
-    # get_insert_sql()
-    line_counter()
-    # for l in range(703):
-    #     print get_excel_col_by_index(l)
+    pass

@@ -7,6 +7,8 @@ Created on 2015/08/21
 import datetime
 import re
 import urllib
+import json
+import urllib2
 
 from django.http import HttpResponse
 from django.contrib import admin
@@ -16,6 +18,7 @@ from django.contrib.auth import logout
 from django.shortcuts import redirect, render_to_response
 from django.views.decorators.csrf import csrf_protect
 from django.template.context_processors import csrf
+from django.core.exceptions import ObjectDoesNotExist
 
 from utils import constants, common, errors, loader as file_loader, file_gen
 from .models import Company, Member, Section, Project, ProjectMember, Salesperson
@@ -482,15 +485,10 @@ def upload_resume(request):
         if form.is_valid():
             input_excel = request.FILES['file']
             member_id = request.POST.get('select', None)
-            new_member, finished = file_loader.load_resume(input_excel.read(), member_id)
-            if not finished:
-                members = Member.objects.raw(u"select * from eb_member"
-                                             u" where CONCAT(first_name, last_name) = %s",
-                                             [new_member.first_name + new_member.last_name])
-                members = list(members)
-                if members:
-                    # 同じ名前のメンバーが存在する場合
-                    context.update({'members': members, 'display': True})
+            new_member, members = file_loader.load_resume(input_excel.read(), int(member_id) if member_id else None)
+            if members:
+                # 同じ名前のメンバーが存在する場合
+                context.update({'members': members, 'display': True})
             else:
                 pass
     else:
@@ -517,12 +515,101 @@ def logout_view(request):
 
 
 def sync_db(request):
-    message = "成功しました！"
-    from utils.syncdb import SyncDb
-    sync = SyncDb()
-    sync.sync_subcontractor()
-    sync.sync_section()
-    sync.sync_member()
-    sync.sync_client()
-    sync.sync_project()
-    return HttpResponse(message)
+    ret_value = """{
+"employeeList":
+[
+{
+"address": "千葉県 XX市OOOO58-1-204",
+"birthDate": "1900/01/01",
+"department": "開発部　O部",
+"departmentId": "4",
+"ebMailAddress": "xxxxxxx@e-business.co.jp",
+"id": "0000",
+"insert_date": "2014-07-15 12:03:21.0",
+"introduction": null,
+"japanComeDate": "",
+"jobId": null,
+"joinDate": "2014/08/15",
+"kana": "ｶﾀｶﾞﾅ",
+"mailAddress": "ming_hua_2011@hotmail.com",
+"name": "氏名",
+"phone": "0X0-XXXX-XXXX",
+"postcode": "XXX/XXXX",
+"sex": "0",
+"station": "",
+"update_date": "2015-11-04 11:03:30.0"
+}
+],
+"error": null,
+"serverTime": "Wed Nov 04 15:27:48 JST 2015",
+"statusCd": "1",
+"token": "65B5466868E3B79BB696A320A6AB9C40"
+}"""
+    dict_data = json.loads(ret_value)
+    messages = []
+    for data in dict_data.get("employeeList"):
+        employee_code = data.get("id", None)
+        name = data.get("name", None)
+        birthday = data.get("birthDate", None)
+        address = data.get("address", None)
+        department_name = data.get("department", None)
+        eb_mail = data.get("ebMailAddress", None)
+        introduction = data.get("introduction", None)
+        join_date = data.get("joinDate", None)
+        name_jp = data.get("kana", None)
+        private_mail = data.get("mailAddress", None)
+        phone = data.get("phone", None)
+        postcode = data.get("postcode", None)
+        sex = data.get("sex", None)
+        station = data.get("station", None)
+        if employee_code and Member.objects.filter(employee_id=employee_code).count() == 0:
+            try:
+                member = Member(employee_id=employee_code)
+                member.first_name = common.get_first_last_name(name)[0]
+                member.last_name = common.get_first_last_name(name)[1]
+                if name_jp:
+                    lst = common.get_first_last_ja_name(name_jp)
+                    if len(lst) == 2 and lst[0]:
+                        member.first_name_ja = common.get_first_last_ja_name(name_jp)[0]
+                        member.last_name_ja = common.get_first_last_ja_name(name_jp)[1]
+                    elif len(lst) == 1:
+                        member.first_name_ja = common.get_first_last_ja_name(name_jp)[0]
+                if birthday:
+                    member.birthday = common.parse_date_from_string(birthday)
+                else:
+                    member.birthday = datetime.date.today()
+                member.address1 = address
+                if department_name:
+                    try:
+                        section = Section.objects.get(name=department_name)
+                    except ObjectDoesNotExist:
+                        section = Section(name=department_name)
+                        section.company = get_company()
+                        section.save()
+                    member.section = section
+                member.email = eb_mail
+                member.private_email = private_mail
+                member.comment = introduction
+                if join_date:
+                    member.join_date = common.parse_date_from_string(join_date)
+                if phone:
+                    member.phone = phone.replace("-", "")
+                if postcode:
+                    member.post_code = postcode.strip().replace("/", "")
+                member.nearest_station = station
+                member.sex = "2" if sex == "0" else "1"
+                member.save()
+            except Exception as e:
+                messages.append(("ERROR", name, birthday, address, u"エラー：" + e.message))
+        else:
+            messages.append(("WARN", name, birthday, address, u"既に存在しているレコードです。"))
+
+    context = {
+        'messages': [u"完了しました。"],
+        'message_list': messages,
+        'title': u'社員管理DBのデータを同期する。',
+        'site_header': admin.site.site_header,
+        'site_title': admin.site.site_title,
+    }
+    r = render_to_response('syncdb.html', context)
+    return HttpResponse(r)

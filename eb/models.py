@@ -44,7 +44,9 @@ class AbstractMember(models.Model):
     country = models.CharField(blank=True, null=True, max_length=20, verbose_name=u"国籍・地域")
     birthday = models.DateField(blank=False, null=False, default=datetime.date.today(), verbose_name=u"生年月日")
     graduate_date = models.DateField(blank=True, null=True, verbose_name=u"卒業年月日")
+    join_date = models.DateField(blank=True, null=True, default=datetime.date.today(), verbose_name=u"入社年月日")
     email = models.EmailField(blank=True, null=True, verbose_name=u"メールアドレス")
+    private_email = models.EmailField(blank=True, null=True, verbose_name=u"個人メールアドレス")
     post_code = models.CharField(blank=True, null=True, max_length=7, verbose_name=u"郵便番号")
     address1 = models.CharField(blank=True, null=True, max_length=200, verbose_name=u"住所１")
     address2 = models.CharField(blank=True, null=True, max_length=200, verbose_name=u"住所２")
@@ -92,7 +94,8 @@ class Company(AbstractCompany):
                                                "  from eb_member m"
                                                "  join eb_projectmember pm on pm.member_id = m.id"
                                                " where pm.start_date <= %s"
-                                               "   and pm.end_date >= %s", [now, now])
+                                               "   and pm.end_date >= %s"
+                                               "   and pm.status = 2", [now, now])
                 return list(query_set)
             elif common.is_salesperson_director(user) and user.salesperson.section:
                 # 営業部長の場合、部門内すべての社員が見られる
@@ -103,6 +106,7 @@ class Company(AbstractCompany):
                                                "  join eb_projectmember pm on pm.member_id = m.id"
                                                " where pm.start_date <= %s"
                                                "   and pm.end_date >= %s"
+                                               "   and pm.status = 2"
                                                "   and m.salesperson_id in (" + ",".join(id_list) + ")", [now, now])
                 return list(query_set)
             elif common.is_salesperson(user):
@@ -112,6 +116,7 @@ class Company(AbstractCompany):
                                                "  join eb_projectmember pm on pm.member_id = m.id"
                                                " where pm.start_date <= %s"
                                                "   and pm.end_date >= %s"
+                                               "   and pm.status = 2"
                                                "   and m.salesperson_id = %s", [now, now, user.salesperson.id])
                 return list(query_set)
 
@@ -127,6 +132,7 @@ class Company(AbstractCompany):
                                                " where not exists (select 1 "
                                                "                     from eb_projectmember pm"
                                                "                    where pm.member_id = m.id"
+                                               "                      and pm.status = 2"
                                                "                      and pm.start_date <= %s"
                                                "                      and pm.end_date >= %s)", [now, now])
                 return list(query_set)
@@ -139,6 +145,7 @@ class Company(AbstractCompany):
                                                " where not exists (select 1 "
                                                "                     from eb_projectmember pm"
                                                "                    where pm.member_id = m.id"
+                                               "                      and pm.status = 2"
                                                "                      and pm.start_date <= %s"
                                                "                      and pm.end_date >= %s)"
                                                "   and m.salesperson_id in (" + ",".join(id_list) + ")", [now, now])
@@ -150,6 +157,7 @@ class Company(AbstractCompany):
                                                " where not exists (select 1 "
                                                "                     from eb_projectmember pm"
                                                "                    where pm.member_id = m.id"
+                                               "                      and pm.status = 2"
                                                "                      and pm.start_date <= %s"
                                                "                      and pm.end_date >= %s)"
                                                "   and m.salesperson_id = %s", [now, now, user.salesperson.id])
@@ -350,6 +358,7 @@ class Member(AbstractMember):
     member_type = models.IntegerField(default=0, choices=constants.CHOICE_MEMBER_TYPE, verbose_name=u"社員区分")
     salesperson = models.ForeignKey(Salesperson, blank=True, null=True, verbose_name=u"営業員")
     subcontractor = models.ForeignKey(Subcontractor, blank=True, null=True, verbose_name=u"協力会社")
+    price = models.IntegerField(null=False, default=0, verbose_name=u"単価")
 
     class Meta:
         ordering = ['first_name', 'last_name']
@@ -372,7 +381,7 @@ class Member(AbstractMember):
     def get_project_end_date(self):
         # 稼働状態を取得する（待機・稼働中）
         now = datetime.datetime.now()
-        projects = self.projectmember_set.filter(end_date__gt=now, start_date__lte=now)
+        projects = self.projectmember_set.filter(end_date__gt=now, start_date__lte=now, status=2)
         if projects.count() > 0:
             return projects[0].end_date
         else:
@@ -756,7 +765,8 @@ class ProjectMember(models.Model):
 
 class MemberAttendance(models.Model):
     project_member = models.ForeignKey(ProjectMember, verbose_name=u"要員")
-    year = models.CharField(max_length=4, default=str(datetime.date.today().year), verbose_name=u"対象年")
+    year = models.CharField(max_length=4, default=str(datetime.date.today().year),
+                            choices=constants.CHOICE_ATTENDANCE_YEAR, verbose_name=u"対象年")
     month = models.CharField(max_length=2, choices=constants.CHOICE_ATTENDANCE_MONTH, verbose_name=u"対象月")
     total_hours = models.DecimalField(max_digits=5, decimal_places=2, verbose_name=u"合計時間")
     extra_hours = models.DecimalField(max_digits=5, decimal_places=2, default=0, verbose_name=u"残業時間")

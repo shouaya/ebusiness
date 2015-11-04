@@ -158,7 +158,7 @@ class MemberAdmin(admin.ModelAdmin):
                      ('address1', 'address2'),
                      'country', 'graduate_date', 'phone', 'japanese_description',
                      'certificate', 'skill_description', 'comment')}),
-        (u"勤務情報", {'fields': ('member_type', 'email', 'section', 'company', 'subcontractor', 'salesperson')})
+        (u"勤務情報", {'fields': ('member_type', 'email', 'section', 'company', 'subcontractor', 'salesperson', 'price')})
     )
 
     class Media:
@@ -340,7 +340,12 @@ class ProjectMemberAdmin(admin.ModelAdmin):
     list_display_links = ['member']
     list_filter = ['status']
     inlines = (MemberAttendanceInline,)
-    #
+
+    class Media:
+        js = ('/static/js/jquery-2.1.4.min.js',
+              '/static/js/filterlist.js',
+              '/static/js/select_filter.js')
+
     def display_project_client(self, obj):
         return obj.project.client.name
 
@@ -392,6 +397,11 @@ class ProjectActivityAdmin(admin.ModelAdmin):
     list_display_links = ['name']
 
     filter_horizontal = ['client_members', 'salesperson', 'members']
+
+    class Media:
+        js = ('/static/js/jquery-2.1.4.min.js',
+              '/static/js/filterlist.js',
+              '/static/js/select_filter.js')
 
     def get_form(self, request, obj=None, **kwargs):
         form = super(ProjectActivityAdmin, self).get_form(request, obj, **kwargs)

@@ -69,7 +69,7 @@ class MemberForm(forms.ModelForm):
                   'birthday', 'graduate_date',
                   'email', 'post_code', 'address1', 'address2', 'years_in_japan', 'phone', 'salesperson',
                   'member_type', 'section', 'company', 'subcontractor',
-                  'japanese_description', 'certificate', 'skill_description', 'comment']
+                  'japanese_description', 'certificate', 'skill_description', 'comment', 'price']
 
     post_code = forms.CharField(max_length=7,
                                 widget=forms.TextInput(

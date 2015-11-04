@@ -1,0 +1,24 @@
+{% extends "admin/base_site.html" %}
+
+{% block content %}
+    <table>
+        {% if message_list %}
+            {% for level, name, birthday, address, message in message_list %}
+                <tr>
+                    <td>{{ name }}</td>
+                    <td>{{ birthday }}</td>
+                    <td>{{ address }}</td>
+                    {% ifequal level 'ERROR' %}
+                        <td style="color: red;">{{ message }}</td>
+                    {% else %}
+                        <td>{{ message }}</td>
+                    {% endifequal %}
+                </tr>
+            {% endfor %}
+        {% else %}
+            <tr>
+                <td colspan="4">正常完了しました。</td>
+            </tr>
+        {% endif %}
+    </table>
+{% endblock %}
