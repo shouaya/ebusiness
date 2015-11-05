@@ -141,7 +141,7 @@ class SalespersonForm(forms.ModelForm):
 class ProjectMemberForm(forms.ModelForm):
     class Meta:
         model = models.ProjectMember
-        fields = ['project', 'member', 'start_date', 'end_date', 'price', 'status', 'role']
+        fields = ['project', 'member', 'start_date', 'end_date', 'price', 'expenses', 'status', 'role']
 
 
 class MemberAttendanceForm(forms.ModelForm):

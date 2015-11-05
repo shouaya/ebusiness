@@ -690,7 +690,8 @@ class ProjectMember(models.Model):
     member = models.ForeignKey(Member, verbose_name=u"名前")
     start_date = models.DateField(blank=True, null=True, verbose_name=u"開始日")
     end_date = models.DateField(blank=True, null=True, verbose_name=u"終了日")
-    price = models.IntegerField(null=False, default=0, verbose_name=u"単価")
+    price = models.IntegerField(default=0, verbose_name=u"単価")
+    expenses = models.IntegerField(default=0, verbose_name=u"交通費")
     status = models.IntegerField(null=False, default=1,
                                  choices=constants.CHOICE_PROJECT_MEMBER_STATUS, verbose_name=u"ステータス")
     role = models.CharField(default="PG", max_length=2, choices=constants.CHOICE_PROJECT_ROLE, verbose_name=u"作業区分")

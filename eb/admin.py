@@ -162,7 +162,10 @@ class MemberAdmin(admin.ModelAdmin):
     )
 
     class Media:
-        js = ('http://ajaxzip3.googlecode.com/svn/trunk/ajaxzip3/ajaxzip3.js',)
+        js = ('http://ajaxzip3.googlecode.com/svn/trunk/ajaxzip3/ajaxzip3.js',
+              '/static/js/jquery-2.1.4.min.js',
+              '/static/js/filterlist.js',
+              '/static/js/select_filter.js')
 
     def get_queryset(self, request):
         query_set = admin.ModelAdmin.get_queryset(self, request)
@@ -277,6 +280,11 @@ class ProjectAdmin(admin.ModelAdmin):
     search_fields = ['name']
     inlines = (ProjectSkillInline, ProjectMemberInline)
 
+    class Media:
+        js = ('/static/js/jquery-2.1.4.min.js',
+              '/static/js/filterlist.js',
+              '/static/js/select_filter.js')
+
     def get_form(self, request, obj=None, **kwargs):
         form = super(ProjectAdmin, self).get_form(request, obj, **kwargs)
         if obj and obj.client:
@@ -329,6 +337,11 @@ class ClientMemberAdmin(admin.ModelAdmin):
 
     list_display = ['name', 'email', 'client']
     search_fields = ['name']
+
+    class Media:
+        js = ('/static/js/jquery-2.1.4.min.js',
+              '/static/js/filterlist.js',
+              '/static/js/select_filter.js')
 
 
 class ProjectMemberAdmin(admin.ModelAdmin):
@@ -481,8 +494,21 @@ class ProjectActivityAdmin(admin.ModelAdmin):
 #         return my_urls + urls
 
 
+class PositionShipAdmin(admin.ModelAdmin):
+
+    class Media:
+        js = ('/static/js/jquery-2.1.4.min.js',
+              '/static/js/filterlist.js',
+              '/static/js/select_filter.js')
+
+
 class HistoryProjectAdmin(admin.ModelAdmin):
-    filter_horizontal = ['os', 'stages']
+    filter_horizontal = ['os', 'skill', 'stages']
+
+    class Media:
+        js = ('/static/js/jquery-2.1.4.min.js',
+              '/static/js/filterlist.js',
+              '/static/js/select_filter.js')
 
 
 # Register your models here.
@@ -496,10 +522,10 @@ admin.site.register(Project, ProjectAdmin)
 admin.site.register(Client, ClientAdmin)
 admin.site.register(ClientMember, ClientMemberAdmin)
 admin.site.register(ProjectMember, ProjectMemberAdmin)
-admin.site.register(MemberAttendance, MemberAttendanceAdmin)
+# admin.site.register(MemberAttendance, MemberAttendanceAdmin)
 admin.site.register(ProjectActivity, ProjectActivityAdmin)
 admin.site.register(Subcontractor)
-admin.site.register(PositionShip)
+admin.site.register(PositionShip, PositionShipAdmin)
 admin.site.register(ProjectStage)
 admin.site.register(OS)
 admin.site.register(HistoryProject, HistoryProjectAdmin)
