@@ -1,18 +1,28 @@
 {% extends "admin/base_site.html" %}
 
 {% block content %}
+    <form method="post">
+        {% csrf_token %}
+        <span>ＵＲＬ</span><input type="text" style="width: 500px;" name="url"/>
+        <input type="submit" value="導入"/>
+    </form>
+    {% if show_result %}
     <table>
         {% if message_list %}
             {% for level, name, birthday, address, message in message_list %}
-                <tr>
+                {% ifequal level 'ERROR' %}
+                <tr style="color: red;">
+                {% else %}
+                    {% ifequal level 'WARN' %}
+                    <tr style="color: #FFC100;">
+                    {% else %}
+                    <tr>
+                    {% endifequal %}
+                {% endifequal %}
                     <td>{{ name }}</td>
                     <td>{{ birthday }}</td>
                     <td>{{ address }}</td>
-                    {% ifequal level 'ERROR' %}
-                        <td style="color: red;">{{ message }}</td>
-                    {% else %}
-                        <td>{{ message }}</td>
-                    {% endifequal %}
+                    <td>{{ message }}</td>
                 </tr>
             {% endfor %}
         {% else %}
@@ -21,4 +31,5 @@
             </tr>
         {% endif %}
     </table>
+    {% endif %}
 {% endblock %}

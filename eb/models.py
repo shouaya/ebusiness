@@ -8,6 +8,7 @@ import datetime
 
 from django.db import models
 from django.contrib.auth.models import User, Group, Permission
+from django.core.exceptions import ObjectDoesNotExist
 
 from utils import common, constants
 
@@ -68,6 +69,12 @@ class AbstractMember(models.Model):
 
 
 class Company(AbstractCompany):
+
+    bank_name = models.CharField(blank=True, null=True, max_length=20, verbose_name=u"銀行名称")
+    branch_name = models.CharField(blank=True, null=True, max_length=20, verbose_name=u"支店名称")
+    account_type = models.CharField(blank=True, null=True, max_length=1, choices=constants.CHOICE_ACCOUNT_TYPE,
+                                    verbose_name=u"預金種類")
+    account_number = models.CharField(blank=True, null=True, max_length=7, verbose_name=u"口座番号")
 
     class Meta:
         verbose_name = verbose_name_plural = u"会社"
@@ -358,7 +365,7 @@ class Member(AbstractMember):
     member_type = models.IntegerField(default=0, choices=constants.CHOICE_MEMBER_TYPE, verbose_name=u"社員区分")
     salesperson = models.ForeignKey(Salesperson, blank=True, null=True, verbose_name=u"営業員")
     subcontractor = models.ForeignKey(Subcontractor, blank=True, null=True, verbose_name=u"協力会社")
-    price = models.IntegerField(null=False, default=0, verbose_name=u"単価")
+    cost = models.IntegerField(null=False, default=0, verbose_name=u"コスト")
 
     class Meta:
         ordering = ['first_name', 'last_name']
@@ -491,10 +498,6 @@ class Client(AbstractCompany):
     remark = models.TextField(blank=True, null=True, verbose_name=u"評価")
     comment = models.TextField(blank=True, null=True, verbose_name=u"備考")
     salesperson = models.ForeignKey(Salesperson, blank=True, null=True, verbose_name=u"営業担当")
-    created_date = models.DateTimeField(auto_now_add=True, editable=False)
-    updated_date = models.DateTimeField(auto_now=True, editable=False)
-    saletest_customer_id = models.IntegerField(blank=True, null=True, editable=False,
-                                               help_text=u"売上ＤＢからデータを導入するために使う、売上ＤＢの顧客ＩＤ")
     request_file = models.FileField(blank=True, null=True, upload_to="./request", verbose_name=u"請求書テンプレート")
 
     class Meta:
@@ -553,8 +556,6 @@ class Project(models.Model):
                                   related_name="middleman_set", verbose_name=u"案件連絡者")
     salesperson = models.ForeignKey(Salesperson, blank=True, null=True, verbose_name=u"営業員")
     members = models.ManyToManyField(Member, through='ProjectMember', blank=True, null=True)
-    saletest_contract_id = models.IntegerField(blank=True, null=True, editable=False,
-                                               help_text=u"売上ＤＢからデータを導入するために使う、売上ＤＢの契約ＩＤ")
 
     class Meta:
         ordering = ['name']
@@ -605,10 +606,11 @@ class Project(models.Model):
         members = list(query_set)
         return members
 
-    def get_project_members_current_month(self):
-        now = datetime.date.today()
-        first_day = datetime.date(now.year, now.month, 1)
-        last_day = common.get_last_day_by_month(now)
+    def get_project_members_by_month(self, d=None):
+        if not d:
+            d = datetime.date.today()
+        first_day = datetime.date(d.year, d.month, 1)
+        last_day = common.get_last_day_by_month(d)
         return self.projectmember_set.filter(start_date__lte=last_day, end_date__gte=first_day)
 
     def get_first_project_member(self):
@@ -692,6 +694,8 @@ class ProjectMember(models.Model):
     end_date = models.DateField(blank=True, null=True, verbose_name=u"終了日")
     price = models.IntegerField(default=0, verbose_name=u"単価")
     expenses = models.IntegerField(default=0, verbose_name=u"交通費")
+    min_hours = models.DecimalField(max_digits=5, decimal_places=2, default=160, verbose_name=u"基準時間")
+    max_hours = models.DecimalField(max_digits=5, decimal_places=2, default=180, verbose_name=u"最大時間")
     status = models.IntegerField(null=False, default=1,
                                  choices=constants.CHOICE_PROJECT_MEMBER_STATUS, verbose_name=u"ステータス")
     role = models.CharField(default="PG", max_length=2, choices=constants.CHOICE_PROJECT_ROLE, verbose_name=u"作業区分")
@@ -763,6 +767,24 @@ class ProjectMember(models.Model):
         else:
             return False
 
+    def get_attendance(self, year, month):
+        """指定された年月によって、該当するメンバーの勤怠情報を取得する。
+
+        Arguments：
+          year: 対象年
+          month: 対象月
+
+        Returns：
+          MemberAttendanceのインスタンス、または None
+
+        Raises：
+          なし
+        """
+        try:
+            return self.memberattendance_set.get(year=str(year), month="%02d" % (month,))
+        except ObjectDoesNotExist:
+            return None
+
 
 class MemberAttendance(models.Model):
     project_member = models.ForeignKey(ProjectMember, verbose_name=u"要員")
@@ -771,6 +793,8 @@ class MemberAttendance(models.Model):
     month = models.CharField(max_length=2, choices=constants.CHOICE_ATTENDANCE_MONTH, verbose_name=u"対象月")
     total_hours = models.DecimalField(max_digits=5, decimal_places=2, verbose_name=u"合計時間")
     extra_hours = models.DecimalField(max_digits=5, decimal_places=2, default=0, verbose_name=u"残業時間")
+    plus_per_hour = models.IntegerField(blank=True, null=True, verbose_name=u"増（円）")
+    minus_per_hour = models.IntegerField(blank=True, null=True, verbose_name=u"減（円）")
 
     class Meta:
         ordering = ['project_member', 'year', 'month']

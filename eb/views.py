@@ -8,6 +8,7 @@ import datetime
 import re
 import urllib
 import json
+import os
 import urllib2
 
 from django.http import HttpResponse
@@ -19,6 +20,7 @@ from django.shortcuts import redirect, render_to_response
 from django.views.decorators.csrf import csrf_protect
 from django.template.context_processors import csrf
 from django.core.exceptions import ObjectDoesNotExist
+from django.contrib.auth.decorators import login_required
 
 from utils import constants, common, errors, loader as file_loader, file_gen
 from .models import Company, Member, Section, Project, ProjectMember, Salesperson
@@ -36,6 +38,7 @@ def get_company():
         return company_list[0]
 
 
+@login_required(login_url='/admin/login/')
 def index(request):
     company = get_company()
     now = datetime.date.today()
@@ -71,6 +74,7 @@ def index(request):
     return HttpResponse(template.render(context))
 
 
+@login_required(login_url='/admin/login/')
 def employee_list(request):
     company = get_company()
     status = request.GET.get('status', None)
@@ -140,6 +144,7 @@ def employee_list(request):
         return HttpResponse(template.render(context))
 
 
+@login_required(login_url='/admin/login/')
 def section_members(request, name):
     company = get_company()
     section = Section.objects.get(name=name)
@@ -188,6 +193,7 @@ def section_members(request, name):
     return HttpResponse(template.render(context))
 
 
+@login_required(login_url='/admin/login/')
 def project_list(request):
     company = get_company()
     status = request.GET.get('status', None)
@@ -253,6 +259,7 @@ def project_list(request):
         return HttpResponse(template.render(context))
 
 
+@login_required(login_url='/admin/login/')
 def project_detail(request, project_id):
     company = get_company()
     project = Project.objects.get(pk=project_id)
@@ -260,11 +267,16 @@ def project_detail(request, project_id):
 
     if download == constants.DOWNLOAD_REQUEST:
         try:
-            path = common.generate_request(project, company)
+            request_name = request.GET.get("request_name", None)
+            request_no = request.GET.get("request_no", None)
+            order_no = request.GET.get("order_no", None)
+            path = file_gen.generate_request(project, company, request_name, request_no, order_no)
             now = datetime.datetime.now()
             filename = "請求書（%s年%02d月）.xls" % (now.year, now.month)
             response = HttpResponse(open(path, 'rb'), content_type="application/excel")
             response['Content-Disposition'] = "filename=" + urllib.quote(filename)
+            # 一時ファイルを削除する。
+            common.delete_temp_files(os.path.dirname(path))
             return response
         except errors.FileNotExistException, ex:
             return HttpResponse(u"<script>alert('%s');window.close();</script>" % (ex.message,))
@@ -278,6 +290,7 @@ def project_detail(request, project_id):
         return HttpResponse(template.render(context))
 
 
+@login_required(login_url='/admin/login/')
 def project_member_list(request, project_id):
     company = get_company()
     status = request.GET.get('status', None)
@@ -321,6 +334,7 @@ def project_member_list(request, project_id):
     return HttpResponse(template.render(context))
 
 
+@login_required(login_url='/admin/login/')
 def release_list(request):
     company = get_company()
     period = request.GET.get('period', None)
@@ -388,6 +402,7 @@ def release_list(request):
     return HttpResponse(template.render(context))
 
 
+@login_required(login_url='/admin/login/')
 def member_detail(request, employee_id):
     company = get_company()
     member = Member.objects.get(employee_id=employee_id)
@@ -414,6 +429,7 @@ def member_detail(request, employee_id):
         return HttpResponse(template.render(context))
 
 
+@login_required(login_url='/admin/login/')
 def member_project_list(request, employee_id):
     status = request.GET.get('status', None)
     company = get_company()
@@ -435,6 +451,7 @@ def member_project_list(request, employee_id):
     return HttpResponse(template.render(context))
 
 
+@login_required(login_url='/admin/login/')
 def recommended_member_list(request, project_id):
     project = Project.objects.get(pk=project_id)
     company = get_company()
@@ -450,6 +467,7 @@ def recommended_member_list(request, project_id):
     return HttpResponse(template.render(context))
 
 
+@login_required(login_url='/admin/login/')
 def recommended_project_list(request, employee_id):
     company = get_company()
     member = Member.objects.get(employee_id=employee_id)
@@ -468,6 +486,7 @@ def recommended_project_list(request, employee_id):
     return HttpResponse(template.render(context))
 
 
+@login_required(login_url='/admin/login/')
 @csrf_protect
 def upload_resume(request):
     company = get_company()
@@ -499,6 +518,7 @@ def upload_resume(request):
     return HttpResponse(r)
 
 
+@login_required(login_url='/admin/login/')
 def history(request):
     company = get_company()
     context = RequestContext(request, {
@@ -514,8 +534,25 @@ def logout_view(request):
     return redirect('index')
 
 
+@login_required(login_url='/admin/login/')
+@csrf_protect
 def sync_db(request):
-    ret_value = """{
+    context = {
+        'title': u'社員管理DBのデータを同期する。',
+        'site_header': admin.site.site_header,
+        'site_title': admin.site.site_title,
+    }
+    context.update(csrf(request))
+    if request.method == 'GET':
+        pass
+    else:
+        url = request.POST.get("url", None)
+        if not url:
+            pass
+        else:
+            response = urllib2.urlopen(url)
+            html = response.read()
+            html = u"""{
 "employeeList":
 [
 {
@@ -532,7 +569,7 @@ def sync_db(request):
 "joinDate": "2014/08/15",
 "kana": "ｶﾀｶﾞﾅ",
 "mailAddress": "ming_hua_2011@hotmail.com",
-"name": "氏名",
+"name": "張　燕",
 "phone": "0X0-XXXX-XXXX",
 "postcode": "XXX/XXXX",
 "sex": "0",
@@ -545,71 +582,86 @@ def sync_db(request):
 "statusCd": "1",
 "token": "65B5466868E3B79BB696A320A6AB9C40"
 }"""
-    dict_data = json.loads(ret_value)
-    messages = []
-    for data in dict_data.get("employeeList"):
-        employee_code = data.get("id", None)
-        name = data.get("name", None)
-        birthday = data.get("birthDate", None)
-        address = data.get("address", None)
-        department_name = data.get("department", None)
-        eb_mail = data.get("ebMailAddress", None)
-        introduction = data.get("introduction", None)
-        join_date = data.get("joinDate", None)
-        name_jp = data.get("kana", None)
-        private_mail = data.get("mailAddress", None)
-        phone = data.get("phone", None)
-        postcode = data.get("postcode", None)
-        sex = data.get("sex", None)
-        station = data.get("station", None)
-        if employee_code and Member.objects.filter(employee_id=employee_code).count() == 0:
-            try:
-                member = Member(employee_id=employee_code)
-                member.first_name = common.get_first_last_name(name)[0]
-                member.last_name = common.get_first_last_name(name)[1]
-                if name_jp:
-                    lst = common.get_first_last_ja_name(name_jp)
-                    if len(lst) == 2 and lst[0]:
-                        member.first_name_ja = common.get_first_last_ja_name(name_jp)[0]
-                        member.last_name_ja = common.get_first_last_ja_name(name_jp)[1]
-                    elif len(lst) == 1:
-                        member.first_name_ja = common.get_first_last_ja_name(name_jp)[0]
-                if birthday:
-                    member.birthday = common.parse_date_from_string(birthday)
-                else:
-                    member.birthday = datetime.date.today()
-                member.address1 = address
-                if department_name:
-                    try:
-                        section = Section.objects.get(name=department_name)
-                    except ObjectDoesNotExist:
-                        section = Section(name=department_name)
-                        section.company = get_company()
-                        section.save()
-                    member.section = section
-                member.email = eb_mail
-                member.private_email = private_mail
-                member.comment = introduction
-                if join_date:
-                    member.join_date = common.parse_date_from_string(join_date)
-                if phone:
-                    member.phone = phone.replace("-", "")
-                if postcode:
-                    member.post_code = postcode.strip().replace("/", "")
-                member.nearest_station = station
-                member.sex = "2" if sex == "0" else "1"
-                member.save()
-            except Exception as e:
-                messages.append(("ERROR", name, birthday, address, u"エラー：" + e.message))
-        else:
-            messages.append(("WARN", name, birthday, address, u"既に存在しているレコードです。"))
+            dict_data = json.loads(html.replace("\r", "").replace("\n", ""))
+            message_list = []
+            if 'employeeList' in dict_data:
+                for data in dict_data.get("employeeList"):
+                    employee_code = data.get("id", None)
+                    name = data.get("name", None)
+                    birthday = data.get("birthDate", None)
+                    address = data.get("address", None)
+                    department_name = data.get("department", None)
+                    eb_mail = data.get("ebMailAddress", None)
+                    introduction = data.get("introduction", None)
+                    join_date = data.get("joinDate", None)
+                    name_jp = data.get("kana", None)
+                    private_mail = data.get("mailAddress", None)
+                    phone = data.get("phone", None)
+                    postcode = data.get("postcode", None)
+                    sex = data.get("sex", None)
+                    station = data.get("station", None)
+                    if employee_code and Member.objects.filter(employee_id=employee_code).count() == 0:
+                        try:
+                            # コストを取得する。
+                            member = Member(employee_id=employee_code)
+                            member.first_name = common.get_first_last_name(name)[0]
+                            member.last_name = common.get_first_last_name(name)[1]
+                            if name_jp:
+                                lst = common.get_first_last_ja_name(name_jp)
+                                if len(lst) == 2 and lst[0]:
+                                    member.first_name_ja = common.get_first_last_ja_name(name_jp)[0]
+                                    member.last_name_ja = common.get_first_last_ja_name(name_jp)[1]
+                                elif len(lst) == 1:
+                                    member.first_name_ja = common.get_first_last_ja_name(name_jp)[0]
+                            if birthday:
+                                member.birthday = common.parse_date_from_string(birthday)
+                            else:
+                                member.birthday = datetime.date.today()
+                            member.address1 = address
+                            if department_name:
+                                try:
+                                    section = Section.objects.get(name=department_name)
+                                except ObjectDoesNotExist:
+                                    section = Section(name=department_name)
+                                    section.company = get_company()
+                                    section.save()
+                                member.section = section
+                            member.email = eb_mail
+                            member.private_email = private_mail
+                            member.comment = introduction
+                            if join_date:
+                                member.join_date = common.parse_date_from_string(join_date)
+                            if phone:
+                                member.phone = phone.replace("-", "")
+                            if postcode:
+                                member.post_code = postcode.strip().replace("/", "")
+                            member.nearest_station = station
+                            member.sex = "2" if sex == "0" else "1"
+                            member.cost = get_cost(employee_code)
+                            member.save()
+                            message_list.append(("INFO", name, birthday, address, u"完了"))
+                        except Exception as e:
+                            message_list.append(("ERROR", name, birthday, address, u"エラー：" + e.message))
+                    else:
+                        message_list.append(("WARN", name, birthday, address, u"既に存在しているレコードです。"))
+                context.update({
+                    'messages': [u"完了しました。"],
+                    'message_list': message_list,
+                })
+            else:
+                pass
 
-    context = {
-        'messages': [u"完了しました。"],
-        'message_list': messages,
-        'title': u'社員管理DBのデータを同期する。',
-        'site_header': admin.site.site_header,
-        'site_title': admin.site.site_title,
-    }
     r = render_to_response('syncdb.html', context)
     return HttpResponse(r)
+
+
+def get_cost(code):
+    if code:
+        url = "http://service.e-business.co.jp:8080/ContractManagement/api/newContract?uid=%s" % (code,)
+        response = urllib2.urlopen(url)
+        html = response.read()
+        data = json.loads(html.replace("\r", "").replace("\n", ""))
+        for item in data['contractList']:
+            if item['EMPLOYER_NO'] == code:
+                return item['ALLOWANLE_COST']
+    return 0

@@ -18,7 +18,7 @@ REG_UPPER_CAMEL = r"^([A-Z][a-z]+)+$"
 class CompanyForm(forms.ModelForm):
     class Meta:
         models = models.Company
-        fields = ['name', 'japanese_spell', 'found_date', 'capital', 'post_code', 'address1', 'address2', 'tel', 'fax']
+        fields = '__all__'
 
     post_code = forms.CharField(max_length=7,
                                 widget=forms.TextInput(
@@ -62,14 +62,7 @@ class SectionForm(forms.ModelForm):
 class MemberForm(forms.ModelForm):
     class Meta:
         model = models.Member
-        fields = ['employee_id', 'first_name', 'last_name',
-                  'first_name_ja', 'last_name_ja',
-                  'first_name_en', 'last_name_en',
-                  'sex', 'country', 'is_married',
-                  'birthday', 'graduate_date',
-                  'email', 'post_code', 'address1', 'address2', 'years_in_japan', 'phone', 'salesperson',
-                  'member_type', 'section', 'company', 'subcontractor',
-                  'japanese_description', 'certificate', 'skill_description', 'comment', 'price']
+        fields = '__all__'
 
     post_code = forms.CharField(max_length=7,
                                 widget=forms.TextInput(
@@ -141,28 +134,37 @@ class SalespersonForm(forms.ModelForm):
 class ProjectMemberForm(forms.ModelForm):
     class Meta:
         model = models.ProjectMember
-        fields = ['project', 'member', 'start_date', 'end_date', 'price', 'expenses', 'status', 'role']
+        fields = ['project', 'member', 'start_date', 'end_date', 'price', 'expenses',
+                  'min_hours', 'max_hours', 'status', 'role', 'stages']
 
 
 class MemberAttendanceForm(forms.ModelForm):
     class Meta:
-        models = models.MemberAttendance
-        fields = ['project_member', 'year', 'month', 'total_hours', 'extra_hours']
+        model = models.MemberAttendance
+        fields = '__all__'
+
+    total_hours = forms.DecimalField(max_digits=5, decimal_places=2,
+                                     widget=forms.TextInput(
+                                         attrs={'onblur': "calc_extra_hours(this)"}),
+                                     label=u"合計時間",
+                                     required=True)
 
     def clean(self):
         cleaned_data = super(MemberAttendanceForm, self).clean()
         project_member = cleaned_data.get("project_member")
         year = cleaned_data.get("year")
         month = cleaned_data.get("month")
-        d = datetime.date(int(year), int(month), 1)
-        if project_member.start_date:
-            if str(project_member.start_date.year) + "%02d" % (project_member.start_date.month,) > year + month:
-                self.add_error('year', u"対象年月は案件開始日以前になっています！")
-                self.add_error('month', u"対象年月は案件開始日以前になっています！")
-        if project_member.end_date:
-            if str(project_member.end_date.year) + "%02d" % (project_member.end_date.month,) < year + month:
-                self.add_error('year', u"対象年月は案件終了日以降になっています！")
-                self.add_error('month', u"対象年月は案件終了日以降になっています！")
+        if not month:
+            self.add_error('month', u"入力してください！")
+        else:
+            if project_member.start_date:
+                if str(project_member.start_date.year) + "%02d" % (project_member.start_date.month,) > year + month:
+                    self.add_error('year', u"対象年月は案件開始日以前になっています！")
+                    self.add_error('month', u"対象年月は案件開始日以前になっています！")
+            if project_member.end_date:
+                if str(project_member.end_date.year) + "%02d" % (project_member.end_date.month,) < year + month:
+                    self.add_error('year', u"対象年月は案件終了日以降になっています！")
+                    self.add_error('month', u"対象年月は案件終了日以降になっています！")
 
 
 class UploadFileForm(forms.Form):

@@ -6,9 +6,10 @@ html {
 
 body {
     height: 100%;
-    font-family: YouYuan, 'Noto Sans CJK JP', 'Noto Sans', 'Source Han Sans J',
+    font-family: 'ＭＳ Ｐゴシック';
+    /*font-family: YouYuan, 'Noto Sans CJK JP', 'Noto Sans', 'Source Han Sans J',
                  SourceHanSansJP, メイリオ, Meiryo, 游ゴシック, YuGothic,
-                 'ヒラギノ角ゴ Pro W3', 'Hiragino Kaku Gothic Pro', sans-serif, msyh;
+                 'ヒラギノ角ゴ Pro W3', 'Hiragino Kaku Gothic Pro', sans-serif, msyh;*/
 }
 
 div.container {

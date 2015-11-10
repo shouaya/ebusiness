@@ -33,3 +33,55 @@ function init_select(name)
         document.getElementById(name).value = value;
     }
 }
+
+function show_mask() {
+    mask = $('#mask')
+    mask.css('display', 'block');
+    mask.css('width', $(document).width());
+    mask.css('height', $(document).height());
+}
+
+function show_dialog(id_dialog) {
+    show_mask();
+
+    dialog = $('#' + id_dialog);
+    dialog.css('display', 'block');
+    top_position = ($(window).height() - dialog.height()) / 2;
+    left_position = ($(window).width() - dialog.width()) / 2;
+    dialog.css('top', top_position + "px");
+    dialog.css('left', left_position + "px");
+}
+
+function hide_dialog(id_dialog) {
+    $('#mask').css('display', 'none');
+    dialog = $('.dialog');
+    dialog.css('display', 'none');
+}
+
+function calc_extra_hours(obj) {
+    price = $("#id_price").val();
+    min_hours = $("#id_min_hours").val();
+    max_hours = $("#id_max_hours").val();
+    total_hours = $(obj).val();
+    row_id = $(obj).parent().parent().attr("id");
+    obj_extra_hours = $("#id_" + row_id + "-extra_hours");
+    obj_plus = $("#id_" + row_id + "-plus_per_hour");
+    obj_minus = $("#id_" + row_id + "-minus_per_hour");
+    if (min_hours != "" && max_hours != "" && total_hours != "") {
+        min_hours = parseFloat(min_hours);
+        max_hours = parseFloat(max_hours);
+        total_hours = parseFloat(total_hours);
+        extra_hours = 0.00;
+        if (total_hours > max_hours) {
+            extra_hours = total_hours - max_hours;
+        } else if (total_hours < min_hours) {
+            extra_hours = total_hours - min_hours;
+        }
+        obj_extra_hours.val(extra_hours);
+
+        // 増（円）と 減（円）
+        price = parseFloat(price);
+        obj_plus.val(Math.round(price / max_hours));
+        obj_minus.val(Math.round(price / min_hours));
+    }
+}

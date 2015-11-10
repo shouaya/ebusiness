@@ -34,9 +34,11 @@
                 <option value="5">完了</option>
             </select>
             <input type="submit" value="Filter" />
-            <a href="?download=business_plan{{ params }}" target="_blank" class="button">営業企画書ダウンロード</a>
-            <a href="{% url 'admin:eb_project_add' %}?from=portal" target="_blank" class="button">案件を追加</a>
         </form>
+        <div class="dashboard-tail">
+            <a href="?download=business_plan{{ params }}" target="_blank">営業企画書ダウンロード</a>
+            <a href="{% url 'admin:eb_project_add' %}?from=portal" target="_blank">案件を追加</a>
+        </div>
     </div>
     <table class="list" cellpadding="0" cellspacing="0">
         <thead>

@@ -6,7 +6,8 @@ Created on 2015/08/20
 """
 
 from django.conf.urls import url
-from django.views.generic.base import TemplateView
+from django.contrib.auth import views as auth_views
+
 from . import views
 
 urlpatterns = [
@@ -26,5 +27,5 @@ urlpatterns = [
     url(r'^history.html$', views.history, name='history'),
     url(r'^logout/$', views.logout_view, name='logout_view'),
     url(r"^syncdb.html", views.sync_db, name="syncdb"),
-    url(r"^upload_file.html$", views.upload_resume, name="upload_file")
+    url(r"^upload_file.html$", views.upload_resume, name="upload_file"),
 ]

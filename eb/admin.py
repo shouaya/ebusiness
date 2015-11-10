@@ -158,7 +158,7 @@ class MemberAdmin(admin.ModelAdmin):
                      ('address1', 'address2'),
                      'country', 'graduate_date', 'phone', 'japanese_description',
                      'certificate', 'skill_description', 'comment')}),
-        (u"勤務情報", {'fields': ('member_type', 'email', 'section', 'company', 'subcontractor', 'salesperson', 'price')})
+        (u"勤務情報", {'fields': ('member_type', 'email', 'section', 'company', 'subcontractor', 'salesperson', 'cost')})
     )
 
     class Media:
@@ -350,6 +350,7 @@ class ProjectMemberAdmin(admin.ModelAdmin):
     search_fields = ['project__name', 'member__first_name', 'member__last_name']
 
     list_display = ['project', 'display_project_client', 'member', 'start_date', 'end_date', 'status']
+    filter_horizontal = ['stages']
     list_display_links = ['member']
     list_filter = ['status']
     inlines = (MemberAttendanceInline,)
@@ -357,7 +358,8 @@ class ProjectMemberAdmin(admin.ModelAdmin):
     class Media:
         js = ('/static/js/jquery-2.1.4.min.js',
               '/static/js/filterlist.js',
-              '/static/js/select_filter.js')
+              '/static/js/select_filter.js',
+              '/static/js/base.js')
 
     def display_project_client(self, obj):
         return obj.project.client.name
@@ -397,11 +399,6 @@ class ProjectMemberAdmin(admin.ModelAdmin):
         else:
             response = super(ProjectMemberAdmin, self).response_change(request, obj)
             return response
-
-
-class MemberAttendanceAdmin(admin.ModelAdmin):
-    forms = forms.MemberAttendanceForm
-    list_display = ['project_member', 'year', 'month', 'total_hours', 'extra_hours']
 
 
 class ProjectActivityAdmin(admin.ModelAdmin):

@@ -7,8 +7,161 @@
     <div class="dashboard">
         <div class="dashboard-title">なにをしたいのですか？</div>
         <form action="" method="get">
-            <a href="?download=request" target="_blank" class="button">請求書生成</a>
-            <a href="{% url 'admin:eb_project_change' project.id %}" target="_blank" class="button">案件を編集</a>
+            <a href="javascript:show_dialog('replace_info')" class="button">請求書置換文字列の説明</a>
+            <a href="javascript:show_dialog('request_gen')" class="button">請求書生成</a>
+            <a href="{% url 'admin:eb_project_change' project.id %}?from=portal" target="_blank" class="button">案件を編集</a>
+            <a href="{% url 'admin:eb_projectmember_add' %}?project_id={{ project.pk }}&from=portal"
+               target="_blank" class="button">要員をアサイン</a>
+        </form>
+    </div>
+    <div id="mask" onclick="hide_dialog()" class="mask">
+    </div>
+    <div id="replace_info" class="dialog">
+        <table width="100%" cellpadding="0" cellspacing="0">
+            <tr>
+                <th>{$CLIENT_POST_CODE$}</th>
+                <td>お客様郵便番号</td>
+                <th>{$CLIENT_ADDRESS$}</th>
+                <td>お客様住所</td>
+            </tr>
+            <tr>
+                <th>{$CLIENT_TEL$}</th>
+                <td>お客様電話番号</td>
+                <th>{$CLIENT_COMPANY_NAME$}</th>
+                <td>お客様名称</td>
+            </tr>
+            <tr>
+                <th>{$WORK_PERIOD$}</th>
+                <td>作業期間</td>
+                <th>{$ORDER_NO$}</th>
+                <td>注文番号</td>
+            </tr>
+            <tr>
+                <th>{$REQUEST_DATE$}</th>
+                <td>注文日</td>
+                <th>{$CONTRACT_NAME$}</th>
+                <td>契約件名</td>
+            </tr>
+            <tr>
+                <th class="sep">{$REMIT_DATE$}</th>
+                <td class="sep" colspan="3">お支払い期限</td>
+            </tr>
+            <tr>
+                <th class="sep">{$REQUEST_NO$}</th>
+                <td class="sep">請求番号</td>
+                <th class="sep">{$PUBLISH_DATE$}</th>
+                <td class="sep">発 行 日</td>
+            </tr>
+            <tr>
+                <th>{$POST_CODE$}</th>
+                <td>本社郵便番号</td>
+                <th>{$ADDRESS$}</th>
+                <td>本社住所</td>
+            </tr>
+            <tr>
+                <th>{$COMPANY_NAME$}</th>
+                <td>会社名</td>
+                <th>{$MASTER$}</th>
+                <td>代表取締役</td>
+            </tr>
+            <tr>
+                <th class="sep">{$TEL$}</th>
+                <td class="sep" colspan="3">本社電話番号</td>
+            </tr>
+            <tr>
+                <th>{$BANK_NAME$}</th>
+                <td>銀行名称</td>
+                <th>{$BRANCH_NAME$}</th>
+                <td>支店名称</td>
+            </tr>
+            <tr>
+                <th class="sep">{$ACCOUNT_TYPE$}</th>
+                <td class="sep">預金種類</td>
+                <th class="sep">{$ACCOUNT_NUMBER$}</th>
+                <td class="sep">口座番号</td>
+            </tr>
+            <tr>
+                <th>{$NO$}</th>
+                <td>番号</td>
+                <th>{$ITEM_NAME$}</th>
+                <td>項目名称</td>
+            </tr>
+            <tr>
+                <th>{$ITEM_PRICE$}</th>
+                <td>単価</td>
+                <th>{$ITEM_WORK_HOURS$}</th>
+                <td>作業時間</td>
+            </tr>
+            <tr>
+                <th>{$ITEM_EXTRA_HOURS$}</th>
+                <td>残業時間</td>
+                <th>{$ITEM_MIN_MAX$}</th>
+                <td>Min/Max（H）</td>
+            </tr>
+            <tr>
+                <th>{$ITEM_MINUS_PER_HOUR$}</th>
+                <td>減（円）</td>
+                <th>{$ITEM_PLUS_PER_HOUR$}</th>
+                <td>増（円）</td>
+            </tr>
+            <tr>
+                <th>{$ITEM_MINUS_PER_HOUR2$}</th>
+                <td>減（円）</td>
+                <th>{$ITEM_PLUS_PER_HOUR2$}</th>
+                <td>増（円）</td>
+            </tr>
+            <tr>
+                <th>{$ITEM_OTHER$}</th>
+                <td>その他</td>
+                <th>{$ITEM_AMOUNT_BASIC$}</th>
+                <td>基本金額（円）</td>
+            </tr>
+            <tr>
+                <th>{$ITEM_AMOUNT_EXTRA$}</th>
+                <td>残業金額</td>
+                <th>{$ITEM_COMMENT$}</th>
+                <td>備考</td>
+            </tr>
+            <tr>
+                <th class="sep">{$ITEM_RATE$}</th>
+                <td class="sep" colspan="3">率</td>
+            </tr>
+            <tr>
+                <th>{$ITEM_COUNT$}</th>
+                <td>数量</td>
+                <th>{$ITEM_UNIT$}</th>
+                <td>単位</td>
+            </tr>
+            <tr>
+                <th>{$ITEM_NAME_TOTAL$}</th>
+                <td>項目合計</td>
+                <th>{$ITEM_AMOUNT_TOTAL$}</th>
+                <td>要員すべての金額</td>
+            </tr>
+        </table>
+    </div>
+    <div id="request_gen" class="dialog">
+        <form method="get" action="" target="_blank">
+            <table width="100%" cellpadding="0" cellspacing="0">
+                <tr>
+                    <th>請求書名</th>
+                    <td colspan="3">
+                        <input type="text" name="request_name" value="{{ project.name }}" style="width: 350px;"/>
+                    </td>
+                </tr>
+                <tr>
+                    <th>請求番号</th>
+                    <td><input type="text" name="request_no"/></td>
+                    <th>注文番号</th>
+                    <td><input type="text" name="order_no"/></td>
+                </tr>
+                <tr>
+                    <td colspan="4" style="text-align: center;">
+                        <input type="hidden" name="download" value="request"/>
+                        <input type="submit" value="請求書をダウンロード"/>
+                    </td>
+                </tr>
+            </table>
         </form>
     </div>
     <table class="detail" cellpadding="0" cellspacing="0">

@@ -96,7 +96,7 @@
                         <td>{{ project_member.end_date|date:"Y-m-d" }}</td>
                         <td class="center">
                             {% ifequal project_member.member.get_business_status "営業中" %}
-                                <a href="{% url 'member_detail' project_member.member.employee_id %}?status=1">営業中</a>
+                                <a href="{% url 'member_project_list' project_member.member.employee_id %}?status=1">営業中</a>
                             {% else %}
                                 {{ project_member.member.get_business_status }}
                             {% endifequal %}

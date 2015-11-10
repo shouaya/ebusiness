@@ -128,7 +128,17 @@ section div.dashboard {
 
 section div.dashboard div.dashboard-title {
     padding: 5px 5px;
-    background: linear-gradient(#fff, #eee)
+    background: linear-gradient(#fff, #eee);
+}
+
+section div.dashboard div.dashboard-tail {
+    padding: 2px 5px;
+    background: linear-gradient(#fff, #eee);
+    text-align: right;
+}
+
+section div.dashboard div.dashboard-tail a {
+    margin-right: 10px;
 }
 
 section div.dashboard form, section div.dashboard table {
@@ -218,4 +228,30 @@ section .pagination span.current {
     font-weight: bold;
     font-size: 13px;
     vertical-align: top;
+}
+
+section div.mask {
+    position: absolute;
+    display: none;
+    width: 100%;
+    height: 100%;
+    top: 0px;
+    left: 0px;
+    background: rgba(127, 127, 127, 0.5);
+}
+
+section div.dialog {
+    position: fixed;
+    display: none;
+    width: 600px;
+    background-color: white;
+    z-index: 1000;
+}
+
+section div.dialog .sep {
+    border-bottom: 1px solid gray;
+}
+
+section div.dialog form th, section div.dialog form td {
+    padding: 5px 5px;
 }
