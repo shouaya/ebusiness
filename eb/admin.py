@@ -250,16 +250,19 @@ class SalespersonAdmin(admin.ModelAdmin):
         if request.user.is_superuser:
             cnt = 0
             for member in queryset.filter(user__isnull=True):
-                name = member.first_name_en.lower() + member.last_name_en.lower()
-                pwd = common.get_default_password(member)
-                user = User.objects.create_user(name, member.email, pwd)
-                user.is_staff = True
-                group = create_group_salesperson()
-                user.groups.add(group)
-                user.save()
-                member.user = user
-                member.save()
-                cnt += 1
+                if member.first_name_en and member.last_name_en and member.birthday:
+                    name = member.first_name_en.lower() + member.last_name_en.lower()
+                    pwd = common.get_default_password(member)
+                    user = User.objects.create_user(name, member.email, pwd)
+                    user.is_staff = True
+                    group = create_group_salesperson()
+                    user.groups.add(group)
+                    user.first_name = member.first_name
+                    user.last_name = member.last_name
+                    user.save()
+                    member.user = user
+                    member.save()
+                    cnt += 1
             if cnt:
                 self.message_user(request, u"選択された営業員にユーザが作成されました。")
             else:
