@@ -493,6 +493,8 @@ class Client(AbstractCompany):
     undertaker = models.CharField(blank=True, null=True, max_length=30, verbose_name=u"担当者")
     undertaker_mail = models.EmailField(blank=True, null=True, verbose_name=u"担当者メール")
     payment_type = models.CharField(blank=True, null=True, max_length=2, verbose_name=u"支払方法")
+    payment_month = models.CharField(blank=True, null=True, max_length=1,
+                                     choices=constants.CHOICE_PAYMENT_MONTH, verbose_name=u"支払いサイト")
     payment_day = models.CharField(blank=True, null=True, max_length=2,
                                    choices=constants.CHOICE_PAYMENT_DAY, verbose_name=u"支払日")
     remark = models.TextField(blank=True, null=True, verbose_name=u"評価")

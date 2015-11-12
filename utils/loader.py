@@ -241,5 +241,5 @@ def load_resume(file_content, member_id=None):
 
     member.save()
 
-    return member
+    return member, None
 

@@ -36,9 +36,7 @@ class CompanyForm(forms.ModelForm):
 class ClientForm(forms.ModelForm):
     class Meta:
         models = models.Company
-        fields = ['name', 'japanese_spell', 'found_date', 'capital', 'post_code', 'address1', 'address2', 'tel', 'fax',
-                  'president', 'employee_count', 'sale_amount', 'payment_type', 'payment_day', 'remark', 'comment',
-                  'salesperson', 'request_file']
+        fields = '__all__'
 
     post_code = forms.CharField(max_length=7,
                                 widget=forms.TextInput(
