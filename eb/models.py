@@ -14,7 +14,7 @@ from utils import common, constants
 
 
 class AbstractCompany(models.Model):
-    name = models.CharField(blank=False, null=False, max_length=30, verbose_name=u"会社名")
+    name = models.CharField(blank=False, null=False, unique=True, max_length=30, verbose_name=u"会社名")
     japanese_spell = models.CharField(blank=True, null=True, max_length=30, verbose_name=u"フリカナ")
     found_date = models.DateField(blank=True, null=True, verbose_name=u"設立年月日")
     capital = models.BigIntegerField(blank=True, null=True, verbose_name=u"資本金")

@@ -552,36 +552,6 @@ def sync_db(request):
         else:
             response = urllib2.urlopen(url)
             html = response.read()
-            html = u"""{
-"employeeList":
-[
-{
-"address": "千葉県 XX市OOOO58-1-204",
-"birthDate": "1900/01/01",
-"department": "開発部　O部",
-"departmentId": "4",
-"ebMailAddress": "xxxxxxx@e-business.co.jp",
-"id": "0000",
-"insert_date": "2014-07-15 12:03:21.0",
-"introduction": null,
-"japanComeDate": "",
-"jobId": null,
-"joinDate": "2014/08/15",
-"kana": "ｶﾀｶﾞﾅ",
-"mailAddress": "ming_hua_2011@hotmail.com",
-"name": "張　燕",
-"phone": "0X0-XXXX-XXXX",
-"postcode": "XXX/XXXX",
-"sex": "0",
-"station": "",
-"update_date": "2015-11-04 11:03:30.0"
-}
-],
-"error": null,
-"serverTime": "Wed Nov 04 15:27:48 JST 2015",
-"statusCd": "1",
-"token": "65B5466868E3B79BB696A320A6AB9C40"
-}"""
             dict_data = json.loads(html.replace("\r", "").replace("\n", ""))
             message_list = []
             if 'employeeList' in dict_data:
@@ -601,6 +571,8 @@ def sync_db(request):
                     sex = data.get("sex", None)
                     station = data.get("station", None)
                     if employee_code and Member.objects.filter(employee_id=employee_code).count() == 0:
+                        if employee_code == u"0294":
+                            pass
                         try:
                             # コストを取得する。
                             member = Member(employee_id=employee_code)
@@ -614,7 +586,10 @@ def sync_db(request):
                                 elif len(lst) == 1:
                                     member.first_name_ja = common.get_first_last_ja_name(name_jp)[0]
                             if birthday:
-                                member.birthday = common.parse_date_from_string(birthday)
+                                try:
+                                    member.birthday = common.parse_date_from_string(birthday)
+                                except:
+                                    member.birthday = datetime.date.today()
                             else:
                                 member.birthday = datetime.date.today()
                             member.address1 = address
@@ -634,7 +609,11 @@ def sync_db(request):
                             if phone:
                                 member.phone = phone.replace("-", "")
                             if postcode:
-                                member.post_code = postcode.strip().replace("/", "")
+                                member.post_code = postcode.strip().replace("/", "").replace("-", "").strip()
+                                if len(member.post_code.strip()) == 8:
+                                    member.post_code = member.post_code[3:] + member.post_code[4:]
+                                if len(member.post_code) != 7:
+                                    member.post_code = None
                             member.nearest_station = station
                             member.sex = "2" if sex == "0" else "1"
                             member.cost = get_cost(employee_code)
@@ -647,6 +626,7 @@ def sync_db(request):
                 context.update({
                     'messages': [u"完了しました。"],
                     'message_list': message_list,
+                    'show_result': True,
                 })
             else:
                 pass
@@ -655,13 +635,40 @@ def sync_db(request):
     return HttpResponse(r)
 
 
+def is_retired(code):
+    if code:
+        url = "http://service.e-business.co.jp:8080/ContractManagement/api/newContract?uid=%s" % (code,)
+        response = urllib2.urlopen(url)
+        html = response.read()
+        data = json.loads(html.replace("\r", "").replace("\n", ""))
+        period_list = []
+        for item in data['contractList']:
+            period_list.append(item['EMPLOYMENT_PERIOD_END'])
+        if period_list:
+            latest_period = max(period_list)
+            period_end = common.parse_date_from_string(latest_period, split1=u"-", split2=u"-")
+            if period_end and period_end < datetime.date.today():
+                return True
+    return False
+
+
 def get_cost(code):
     if code:
         url = "http://service.e-business.co.jp:8080/ContractManagement/api/newContract?uid=%s" % (code,)
         response = urllib2.urlopen(url)
         html = response.read()
         data = json.loads(html.replace("\r", "").replace("\n", ""))
+        period_list = []
+        for item in data['contractList']:
+            period_list.append(item['EMPLOYMENT_PERIOD_END'])
+        latest_period = None
+        if period_list:
+            latest_period = max(period_list)
+        for item in data['contractList']:
+            if latest_period and item['EMPLOYER_NO'] == code and item['EMPLOYMENT_PERIOD_END'] == latest_period:
+                if item['ALLOWANLE_COST'] != "-":
+                    return item['ALLOWANLE_COST']
         for item in data['contractList']:
             if item['EMPLOYER_NO'] == code:
-                return item['ALLOWANLE_COST']
+                return item['ALLOWANLE_COST'] if item['ALLOWANLE_COST'] != "-" else 0
     return 0
