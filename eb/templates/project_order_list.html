@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+
+{% block header %}
+    <script type="text/javascript">
+        window.onload = function() {
+            init_select("name");
+            init_select("client");
+        };
+    </script>
+{% endblock %}
+
+{% block content %}
+    <div class="dashboard">
+        <div class="dashboard-title">なにをしたいのですか？</div>
+        <form action="{% url 'project_list' %}" method="get">
+            <span>名称: </span><input type="text" id="name" name="name" style="width: 100px;"/>
+            <span>関連会社: </span><input type="text" id="client" name="client" style="width: 100px;"/>
+            <input type="submit" value="Filter" />
+            <a href="{% url 'admin:eb_project_add' %}?from=portal" class="button" target="_blank">案件を追加</a>
+        </form>
+    </div>
+    <table class="list" cellpadding="0" cellspacing="0">
+        <thead>
+            <tr>
+                <th>
+                    {% if dict_order.name.is_in_ordering %}
+                        <div class="sortoptions">
+                            <a class="sortremove" href="?o={{ dict_order.name.url_list_removed }}{{ params }}"></a>
+                            <span class="sortpriority">{{ dict_order.name.priority }}</span>
+                            <a class="{% if dict_order.name.is_asc %}descending{% else %}ascending{% endif %}"
+                               href="?o={{ dict_order.name.url }}{{ params }}"></a>
+                        </div>
+                    {% endif %}
+                    <div class="text">
+                        <a href="?o={{ dict_order.name.url }}{{ params }}">案件名称</a>
+                    </div>
+                    <div class="clear"></div>
+                </th>
+                <th>
+                    {% if dict_order.client__name.is_in_ordering %}
+                        <div class="sortoptions">
+                            <a class="sortremove" href="?o={{ dict_order.client__name.url_list_removed }}{{ params }}"></a>
+                            <span class="sortpriority">{{ dict_order.client__name.priority }}</span>
+                            <a class="{% if dict_order.client__name.is_asc %}descending{% else %}ascending{% endif %}"
+                               href="?o={{ dict_order.client__name.url }}{{ params }}"></a>
+                        </div>
+                    {% endif %}
+                    <div class="text">
+                        <a href="?o={{ dict_order.client__name.url }}{{ params }}">関連会社</a>
+                    </div>
+                    <div class="clear"></div>
+                </th>
+                <th>注文書情報</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% if projects %}
+                {% for project in projects %}
+                    <tr class="{% cycle 'row1' 'row2' %}">
+                        <td style="width: 250px; white-space: nowrap; overflow: hidden;">
+                            <a href="{% url 'project_detail' project.pk %}" title="{{ project.name }}">{{ project.name }}</a>
+                        </td>
+                        <td>{{ project.client.name }}</td>
+                        {% if project.get_order_by_month %}
+                            <td><img width="12px" src="/static/img/icon-normal.png"/></td>
+                            <td class="center">
+                                <a href="{% url 'admin:eb_clientorder_change' project.get_order_by_month.pk %}?project_id={{ project.pk }}&from=portal" target="_blank">編集</a>
+                            </td>
+                        {% else %}
+                            <td><img width="12px" src="/static/img/icon-warn.png"/></td>
+                            <td class="center">
+                                <a href="{% url 'admin:eb_clientorder_add' %}?project_id={{ project.pk }}&from=portal" target="_blank">追加</a>
+                            </td>
+                        {% endif %}
+                    </tr>
+                {% endfor %}
+            {% else %}
+                <tr class="row1"><td class="center red" colspan="9">該当する案件がありません。</td></tr>
+            {% endif %}
+        </tbody>
+        <tfoot>
+            <tr>
+                <td colspan="9">
+                    <div class="pagination">
+                        <span class="step-links">
+                            {% if projects.has_previous %}
+                                <a href="?page={{ projects.previous_page_number }}{{ params }}">&lt;</a>
+                            {% endif %}
+
+                            {% if paginator.page_range|length > 1 %}
+                                {% for page in paginator.page_range %}
+                                    {% ifequal page projects.number %}
+                                        <span class="current">
+                                            {{ page }}
+                                        </span>
+                                    {% else %}
+                                        <a href="?page={{ page }}{{ params }}">{{ page }}</a>
+                                    {% endifequal %}
+                                {% endfor %}
+                            {% endif %}
+
+                            {% if projects.has_next %}
+                                <a href="?page={{ projects.next_page_number }}{{ params }}">&gt;</a>
+                            {% endif %}
+                            <span>{{ paginator.count }} 件</span>
+                        </span>
+                    </div>
+                </td>
+            </tr>
+        </tfoot>
+    </table>
+{% endblock %}

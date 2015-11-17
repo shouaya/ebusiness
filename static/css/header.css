@@ -35,6 +35,40 @@ header div.header-nav ul li a:hover {
     border: 1px solid #EDF3FE;
 }
 
+header div.header-nav ul li ul {
+    position: absolute;
+    top: 115px;/*親メニューの高さと同じにする*/
+    width: 160px;
+    z-index: 100;
+}
+header div.header-nav ul li ul li {
+    visibility: hidden;
+    overflow: hidden;
+    width: 160px;/*サブメニューの幅*/
+    height: 0;
+    background: #ffffff;/*サブメニューの背景色*/
+    border: 1px solid #ffe;
+}
+header div.header-nav ul li ul li:hover, header div.header-nav ul li ul li a:hover {
+      background:#eeeeee;/*ホバー時のサブメニューの背景色*/
+    border: 1px solid #EDF3FE;
+}
+header div.header-nav ul li:hover ul li, header div.header-nav ul li a:hover ul li{
+    visibility: visible;
+    overflow: visible;
+    height:40px;/*サブメニューの高さ*/
+    z-index: 10;
+    border: 1px solid #EDF3FE;
+}
+
+header div.header-nav * {
+    -webkit-transition: 0.5s;
+    -moz-transition: 0.5s;
+    -ms-transition: 0.5s;
+    -o-transition: 0.5s;
+    transition: 0.5s;
+}
+
 header img.logo {
     width: 100px;
     margin-top: 18px;

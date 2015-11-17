@@ -260,6 +260,38 @@ def project_list(request):
         return HttpResponse(template.render(context))
 
 
+def project_order_list(request):
+    company = get_company()
+    o = request.GET.get('o', None)
+    dict_order = common.get_ordering_dict(o, ['name', 'client__name', 'salesperson__first_name', 'boss__name',
+                                              'middleman__name'])
+    order_list = common.get_ordering_list(o)
+
+    all_projects = Project.objects.public_filter(status=4)
+
+    if order_list:
+        all_projects = all_projects.order_by(*order_list)
+
+    paginator = Paginator(all_projects, PAGE_SIZE)
+    page = request.GET.get('page')
+    try:
+        projects = paginator.page(page)
+    except PageNotAnInteger:
+        projects = paginator.page(1)
+    except EmptyPage:
+        projects = paginator.page(paginator.num_pages)
+
+    context = RequestContext(request, {
+        'company': company,
+        'title': u'現在実施中案件一覧',
+        'projects': projects,
+        'paginator': paginator,
+        'dict_order': dict_order,
+    })
+    template = loader.get_template('project_order_list.html')
+    return HttpResponse(template.render(context))
+
+
 @login_required(login_url='/admin/login/')
 def project_detail(request, project_id):
     company = get_company()

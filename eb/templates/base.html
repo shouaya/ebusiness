@@ -46,7 +46,11 @@
                 <ul>
                     <li><a href="{% url 'index' %}">HOME</a></li>
                     <li><a href="{% url 'employee_list' %}">要員一覧</a></li>
-                    <li><a href="{% url 'project_list' %}">案件一覧</a></li>
+                    <li><a href="{% url 'project_list' %}">案件一覧</a>
+                        <ul>
+                            <li><a href="{% url 'project_order_list' %}">案件の注文情報</a></li>
+                        </ul>
+                    </li>
                     <li><a href="{% url 'release_list' %}">リリース状況一覧</a></li>
                     <li><a href="{% url 'admin:index' %}">管理サイト</a></li>
                 </ul>
@@ -59,8 +63,6 @@
         </div>
     </section>
 	<footer>
-        Created by <b><i>Yang Wanjun</i></b> on 2015/08, any questions please contact with
-        <u><a href="mailto: yangwanjun@e-business.com">yangwanjun@e-business.com</a></u>.
         <a href="{% url 'history' %}">Click here to see history</a>
     </footer>
 </body>
