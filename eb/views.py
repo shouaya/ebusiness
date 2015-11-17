@@ -21,6 +21,7 @@ from django.views.decorators.csrf import csrf_protect
 from django.template.context_processors import csrf
 from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.auth.decorators import login_required
+from django.conf import settings
 
 from utils import constants, common, errors, loader as file_loader, file_gen
 from .models import Company, Member, Section, Project, ProjectMember, Salesperson
@@ -93,13 +94,13 @@ def employee_list(request):
 
     if salesperson:
         salesperson_obj = Salesperson.objects.get(employee_id=salesperson)
-        all_members = salesperson_obj.member_set.all()
+        all_members = salesperson_obj.member_set.public_all()
         params += u"&salesperson=%s" % (salesperson,)
     if first_name:
-        all_members = Member.objects.filter(first_name__contains=first_name)
+        all_members = all_members.public_filter(first_name__contains=first_name)
         params += u"&first_name=%s" % (first_name,)
     if last_name:
-        all_members = all_members.filter(last_name__contains=last_name)
+        all_members = all_members.public_filter(last_name__contains=last_name)
         params += u"&last_name=%s" % (last_name,)
 
     if order_list:
@@ -135,7 +136,7 @@ def employee_list(request):
             'company': company,
             'title': u'要員一覧',
             'members': members,
-            'salesperson': Salesperson.objects.all(),
+            'salesperson': Salesperson.objects.public_all(),
             'paginator': paginator,
             'params': params,
             'dict_order': dict_order,
@@ -154,10 +155,10 @@ def section_members(request, name):
     salesperson = request.GET.get('salesperson', None)
     params = ""
     if name:
-        all_members = Member.objects.filter(section=section, name__contains=name)
+        all_members = Member.objects.public_filter(section=section, name__contains=name)
         params += u"&name=%s" % (name,)
     else:
-        all_members = Member.objects.filter(section=section)
+        all_members = Member.objects.public_filter(section=section)
 
     if status == "working":
         all_members = [member for member in all_members if member.get_project_end_date()]
@@ -208,19 +209,19 @@ def project_list(request):
     order_list = common.get_ordering_list(o)
 
     if download == constants.DOWNLOAD_BUSINESS_PLAN:
-        all_projects = Project.objects.filter(status=4)
+        all_projects = Project.objects.public_filter(status=4)
     else:
-        all_projects = Project.objects.all()
+        all_projects = Project.objects.public_all()
 
     if salesperson:
         salesperson_obj = Salesperson.objects.get(employee_id=salesperson)
-        all_projects = salesperson_obj.project_set.all()
+        all_projects = salesperson_obj.project_set.public_all()
         params += "&salesperson=%s" % (salesperson,)
     if status:
-        all_projects = Project.objects.filter(status=status)
+        all_projects = Project.objects.public_filter(status=status)
         params += "&status=%s" % (status,)
     if name:
-        all_projects = all_projects.filter(name__contains=name)
+        all_projects = all_projects.public_filter(name__contains=name)
         params += "&name=%s" % (name,)
 
     if order_list:
@@ -251,7 +252,7 @@ def project_list(request):
             'title': u'案件一覧',
             'projects': projects,
             'paginator': paginator,
-            'salesperson': Salesperson.objects.all(),
+            'salesperson': Salesperson.objects.public_all(),
             'params': params,
             'dict_order': dict_order,
         })
@@ -301,7 +302,7 @@ def project_member_list(request, project_id):
                                               'member__section', 'start_date', 'end_date', 'price'])
     order_list = common.get_ordering_list(o)
 
-    all_project_members = project.projectmember_set.all()
+    all_project_members = project.projectmember_set.public_all()
     if order_list:
         all_project_members = all_project_members.order_by(*order_list)
 
@@ -355,26 +356,26 @@ def release_list(request):
     if request.user:
         if request.user.is_superuser:
             # 管理員の場合全部見られる
-            all_project_members = ProjectMember.objects.filter(end_date__gte=start_date,
-                                                               end_date__lt=end_date).order_by('end_date')
+            all_project_members = ProjectMember.objects.public_filter(end_date__gte=start_date,
+                                                                      end_date__lt=end_date).order_by('end_date')
         elif common.is_salesperson_director(request.user) and request.user.salesperson.section:
             # 営業部長の場合、部門内すべての社員が見られる
-            salesperson_list = request.user.salesperson.section.salesperson_set.all()
-            all_project_members = ProjectMember.objects.filter(end_date__gte=start_date,
-                                                               end_date__lt=end_date,
-                                                               member__salesperson__in=salesperson_list).\
+            salesperson_list = request.user.salesperson.section.salesperson_set.public_all()
+            all_project_members = ProjectMember.objects.public_filter(end_date__gte=start_date,
+                                                                      end_date__lt=end_date,
+                                                                      member__salesperson__in=salesperson_list).\
                 order_by('end_date')
         elif common.is_salesperson(request.user):
             # 営業員の場合、担当している社員だけ見られる
-            all_project_members = ProjectMember.objects.filter(end_date__gte=start_date,
-                                                               end_date__lt=end_date,
-                                                               member__salesperson=request.user.salesperson).\
+            all_project_members = ProjectMember.objects.public_filter(end_date__gte=start_date,
+                                                                      end_date__lt=end_date,
+                                                                      member__salesperson=request.user.salesperson).\
                 order_by('end_date')
         else:
-            all_project_members = ProjectMember.objects.filter(pk=-1)
+            all_project_members = ProjectMember.objects.public_filter(pk=-1)
     else:
-        all_project_members = ProjectMember.objects.filter(end_date__gte=start_date,
-                                                           end_date__lt=end_date).order_by('end_date')
+        all_project_members = ProjectMember.objects.public_filter(end_date__gte=start_date,
+                                                                  end_date__lt=end_date).order_by('end_date')
     if order_list:
         all_project_members = all_project_members.order_by(*order_list)
 
@@ -416,13 +417,13 @@ def member_detail(request, employee_id):
         response['Content-Disposition'] = "filename=" + urllib.quote(filename.encode('utf-8')) + ".xlsx"
         return response
     else:
-        project_count = member.projectmember_set.all().count()
+        project_count = member.projectmember_set.public_all().count()
         context = RequestContext(request, {
             'company': company,
             'member': member,
             'title': u'%s の履歴' % (member,),
             'project_count': project_count,
-            'all_project_count': project_count + member.historyproject_set.all().count(),
+            'all_project_count': project_count + member.historyproject_set.public_all().count(),
             'default_project_count': range(1, 14),
         })
         template = loader.get_template('member_detail.html')
@@ -435,10 +436,10 @@ def member_project_list(request, employee_id):
     company = get_company()
     member = Member.objects.get(employee_id=employee_id)
     if status and status != '0':
-        project_members = ProjectMember.objects.filter(member=member, status=status)\
+        project_members = ProjectMember.objects.public_filter(member=member, status=status)\
             .order_by('-status', 'end_date')
     else:
-        project_members = ProjectMember.objects.filter(member=member)\
+        project_members = ProjectMember.objects.public_filter(member=member)\
             .order_by('-status', 'end_date')
 
     context = RequestContext(request, {
@@ -473,7 +474,7 @@ def recommended_project_list(request, employee_id):
     member = Member.objects.get(employee_id=employee_id)
     skills = member.get_skill_list()
     project_id_list = member.get_recommended_projects()
-    projects = Project.objects.filter(pk__in=project_id_list)
+    projects = Project.objects.public_filter(pk__in=project_id_list)
 
     context = RequestContext(request, {
         'company': company,
@@ -518,6 +519,17 @@ def upload_resume(request):
     return HttpResponse(r)
 
 
+def download_client_order(request):
+    p = request.GET.get('path', None)
+    if p:
+        path = os.path.join(settings.MEDIA_ROOT, p.strip('./'))
+        if os.path.exists(path):
+            filename = os.path.basename(path)
+            response = HttpResponse(open(path, 'rb'), content_type="application/excel")
+            response['Content-Disposition'] = "filename=" + urllib.quote(filename.encode("utf8"))
+            return response
+
+
 @login_required(login_url='/admin/login/')
 def history(request):
     company = get_company()
@@ -555,6 +567,7 @@ def sync_db(request):
             dict_data = json.loads(html.replace("\r", "").replace("\n", ""))
             message_list = []
             if 'employeeList' in dict_data:
+                company = get_company()
                 for data in dict_data.get("employeeList"):
                     employee_code = data.get("id", None)
                     name = data.get("name", None)
@@ -570,12 +583,22 @@ def sync_db(request):
                     postcode = data.get("postcode", None)
                     sex = data.get("sex", None)
                     station = data.get("station", None)
-                    if employee_code and Member.objects.filter(employee_id=employee_code).count() == 0:
-                        if employee_code == u"0294":
-                            pass
+                    if employee_code:
+                        if department_name == u"営業部":
+                            if Salesperson.objects.filter(employee_id=employee_code).count() == 0:
+                                member = Salesperson(employee_id=employee_code)
+                            else:
+                                message_list.append(("WARN", name, birthday, address, u"既に存在しているレコードです。"))
+                                continue
+                        else:
+                            if Member.objects.filter(employee_id=employee_code).count() == 0:
+                                member = Member(employee_id=employee_code)
+                            else:
+                                message_list.append(("WARN", name, birthday, address, u"既に存在しているレコードです。"))
+                                continue
+
                         try:
                             # コストを取得する。
-                            member = Member(employee_id=employee_code)
                             member.first_name = common.get_first_last_name(name)[0]
                             member.last_name = common.get_first_last_name(name)[1]
                             if name_jp:
@@ -589,7 +612,7 @@ def sync_db(request):
                                 try:
                                     member.birthday = common.parse_date_from_string(birthday)
                                 except:
-                                    member.birthday = datetime.date.today()
+                                    member.birthday = None
                             else:
                                 member.birthday = datetime.date.today()
                             member.address1 = address
@@ -617,12 +640,11 @@ def sync_db(request):
                             member.nearest_station = station
                             member.sex = "2" if sex == "0" else "1"
                             member.cost = get_cost(employee_code)
+                            member.company = company
                             member.save()
                             message_list.append(("INFO", name, birthday, address, u"完了"))
                         except Exception as e:
                             message_list.append(("ERROR", name, birthday, address, u"エラー：" + e.message))
-                    else:
-                        message_list.append(("WARN", name, birthday, address, u"既に存在しているレコードです。"))
                 context.update({
                     'messages': [u"完了しました。"],
                     'message_list': message_list,

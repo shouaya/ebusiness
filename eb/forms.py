@@ -51,10 +51,28 @@ class ClientForm(forms.ModelForm):
             self.add_error('post_code', u"正しい郵便番号を入力してください。")
 
 
+class SubcontractorForm(forms.ModelForm):
+    class Meta:
+        models = models.Subcontractor
+        fields = '__all__'
+
+    post_code = forms.CharField(max_length=7,
+                                widget=forms.TextInput(
+                                    attrs={'onKeyUp': "AjaxZip3.zip2addr(this,'','address1','address1');"}),
+                                label=u"郵便番号",
+                                required=False)
+
+    def clean(self):
+        cleaned_data = super(SubcontractorForm, self).clean()
+        post_code = cleaned_data.get("post_code")
+        if post_code and not re.match(REG_POST_CODE, post_code):
+            self.add_error('post_code', u"正しい郵便番号を入力してください。")
+
+
 class SectionForm(forms.ModelForm):
     class Meta:
         model = models.Section
-        fields = ['name', 'description', 'company']
+        fields = '__all__'
 
 
 class MemberForm(forms.ModelForm):
@@ -100,14 +118,7 @@ class MemberForm(forms.ModelForm):
 class SalespersonForm(forms.ModelForm):
     class Meta:
         model = models.Salesperson
-        fields = ['employee_id', 'first_name', 'last_name',
-                  'first_name_ja', 'last_name_ja',
-                  'first_name_en', 'last_name_en',
-                  'sex', 'country',
-                  'birthday', 'graduate_date',
-                  'email', 'post_code', 'address1', 'address2', 'phone', 'member_type',
-                  'section', 'company',
-                  'japanese_description', 'certificate', 'comment']
+        fields = '__all__'
 
     post_code = forms.CharField(max_length=7,
                                 widget=forms.TextInput(
@@ -132,8 +143,14 @@ class SalespersonForm(forms.ModelForm):
 class ProjectMemberForm(forms.ModelForm):
     class Meta:
         model = models.ProjectMember
-        fields = ['project', 'member', 'start_date', 'end_date', 'price', 'expenses',
-                  'min_hours', 'max_hours', 'status', 'role', 'stages']
+        fields = '__all__'
+
+    min_hours = forms.DecimalField(max_digits=5, decimal_places=2, initial=160,
+                                   widget=forms.TextInput(attrs={'style': 'width: 70px;', 'type': 'number'}),
+                                   label=u"基準時間", required=True)
+    max_hours = forms.DecimalField(max_digits=5, decimal_places=2, initial=180,
+                                   widget=forms.TextInput(attrs={'style': 'width: 70px;', 'type': 'number'}),
+                                   label=u"最大時間", required=True)
 
 
 class MemberAttendanceForm(forms.ModelForm):
@@ -141,11 +158,23 @@ class MemberAttendanceForm(forms.ModelForm):
         model = models.MemberAttendance
         fields = '__all__'
 
+    rate = forms.DecimalField(max_digits=5, decimal_places=2, initial=1,
+                              widget=forms.TextInput(attrs={'style': 'width: 70px;',
+                                                            'type': 'number'}),
+                              label=u"率")
     total_hours = forms.DecimalField(max_digits=5, decimal_places=2,
                                      widget=forms.TextInput(
-                                         attrs={'onblur': "calc_extra_hours(this)"}),
+                                         attrs={'onblur': "calc_extra_hours(this)",
+                                                'type': 'number',
+                                                'style': 'width: 70px;'}),
                                      label=u"合計時間",
                                      required=True)
+    plus_per_hour = forms.IntegerField(widget=forms.TextInput(attrs={'onblur': "calc_price_for_plus(this)",
+                                                                     'style': 'width: 70px;'}),
+                                       label=u"増（円）")
+    minus_per_hour = forms.IntegerField(widget=forms.TextInput(attrs={'onblur': "calc_price_for_minus(this)",
+                                                                      'style': 'width: 70px;'}),
+                                        label=u"減（円）")
 
     def clean(self):
         cleaned_data = super(MemberAttendanceForm, self).clean()

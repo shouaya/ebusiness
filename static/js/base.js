@@ -67,6 +67,7 @@ function calc_extra_hours(obj) {
     obj_extra_hours = $("#id_" + row_id + "-extra_hours");
     obj_plus = $("#id_" + row_id + "-plus_per_hour");
     obj_minus = $("#id_" + row_id + "-minus_per_hour");
+    obj_value = $("#id_" + row_id + "-price");                     // 価格
     if (min_hours != "" && max_hours != "" && total_hours != "") {
         min_hours = parseFloat(min_hours);
         max_hours = parseFloat(max_hours);
@@ -81,7 +82,52 @@ function calc_extra_hours(obj) {
 
         // 増（円）と 減（円）
         price = parseFloat(price);
-        obj_plus.val(Math.round(price / max_hours));
-        obj_minus.val(Math.round(price / min_hours));
+        plus_per_hour = Math.round(price / max_hours);
+        minus_per_hour = Math.round(price / min_hours);
+        obj_plus.val(plus_per_hour);
+        obj_minus.val(minus_per_hour);
+
+        // 最終価格
+        if (extra_hours > 0) {
+            result = price + extra_hours * plus_per_hour;
+        }
+        else if (extra_hours < 0) {
+            result = price + extra_hours * minus_per_hour;
+        } else {
+            result = price;
+        }
+        obj_value.val(Math.round(result));
+    }
+}
+
+function calc_price_for_plus(obj) {
+    price = parseFloat($("#id_price").val());
+    plus_per_hour = parseFloat($(obj).val());
+    row_id = $(obj).parent().parent().attr("id");
+    obj_extra_hours = $("#id_" + row_id + "-extra_hours");
+    obj_value = $("#id_" + row_id + "-price");                     // 価格
+    extra_hours = $(obj_extra_hours).val();
+    if (extra_hours != "") {
+        extra_hours = parseFloat(extra_hours);
+        if (extra_hours > 0) {
+            result = price + extra_hours * plus_per_hour;
+            obj_value.val(Math.round(result));
+        }
+    }
+}
+
+function calc_price_for_minus(obj) {
+    price = parseFloat($("#id_price").val());
+    minus_per_hour = parseFloat($(obj).val());
+    row_id = $(obj).parent().parent().attr("id");
+    obj_extra_hours = $("#id_" + row_id + "-extra_hours");
+    obj_value = $("#id_" + row_id + "-price");                     // 価格
+    extra_hours = $(obj_extra_hours).val();
+    if (extra_hours != "") {
+        extra_hours = parseFloat(extra_hours);
+        if (extra_hours < 0) {
+            result = price + extra_hours * minus_per_hour;
+            obj_value.val(Math.round(result));
+        }
     }
 }

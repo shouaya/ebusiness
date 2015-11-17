@@ -75,10 +75,16 @@
                 <td>支店名称</td>
             </tr>
             <tr>
-                <th class="sep">{$ACCOUNT_TYPE$}</th>
-                <td class="sep">預金種類</td>
-                <th class="sep">{$ACCOUNT_NUMBER$}</th>
-                <td class="sep">口座番号</td>
+                <th>{$ACCOUNT_TYPE$}</th>
+                <td>預金種類</td>
+                <th>{$ACCOUNT_NUMBER$}</th>
+                <td>口座番号</td>
+            </tr>
+            <tr>
+                <th class="sep">{$BANK_ACCOUNT_HOLDER$}</th>
+                <td class="sep">口座名義人</td>
+                <th class="sep">{$BRANCH_NO$}</th>
+                <td class="sep">支店番号</td>
             </tr>
             <tr>
                 <th>{$NO$}</th>
@@ -119,12 +125,22 @@
             <tr>
                 <th>{$ITEM_AMOUNT_EXTRA$}</th>
                 <td>残業金額</td>
-                <th>{$ITEM_COMMENT$}</th>
-                <td>備考</td>
+                <th>{$ITEM_AMOUNT_TOTAL$}</th>
+                <td>基本金額＋残業金額</td>
             </tr>
             <tr>
                 <th class="sep">{$ITEM_RATE$}</th>
-                <td class="sep" colspan="3">率</td>
+                <td class="sep">率</td>
+                <th class="sep">{$ITEM_COMMENT$}</th>
+                <td class="sep">備考</td>
+            </tr>
+            <tr>
+                <th colspan="3">{$ITEM_EXPENSES_CATEGORY_SUMMARY$}</th>
+                <td>各人清算リスト概要</td>
+            </tr>
+            <tr>
+                <th class="sep" colspan="3">{$ITEM_EXPENSES_CATEGORY_AMOUNT$}</th>
+                <td class="sep">分類ごとの金額</td>
             </tr>
             <tr>
                 <th>{$ITEM_COUNT$}</th>
@@ -135,7 +151,7 @@
             <tr>
                 <th>{$ITEM_NAME_TOTAL$}</th>
                 <td>項目合計</td>
-                <th>{$ITEM_AMOUNT_TOTAL$}</th>
+                <th>{$ITEM_AMOUNT_ALL$}</th>
                 <td>要員すべての金額</td>
             </tr>
         </table>
@@ -143,24 +159,32 @@
     <div id="request_gen" class="dialog">
         <form method="get" action="" target="_blank">
             <table width="100%" cellpadding="0" cellspacing="0">
-                <tr>
-                    <th>請求書名</th>
-                    <td colspan="3">
-                        <input type="text" name="request_name" value="{{ project.name }}" style="width: 350px;"/>
-                    </td>
-                </tr>
-                <tr>
-                    <th>請求番号</th>
-                    <td><input type="text" name="request_no"/></td>
-                    <th>注文番号</th>
-                    <td><input type="text" name="order_no"/></td>
-                </tr>
-                <tr>
-                    <td colspan="4" style="text-align: center;">
-                        <input type="hidden" name="download" value="request"/>
-                        <input type="submit" value="請求書をダウンロード"/>
-                    </td>
-                </tr>
+                {% if project.get_order_by_month %}
+                    <tr>
+                        <th>請求書名</th>
+                        <td colspan="3">
+                            <input type="text" name="request_name" value="{{ project.get_order_by_month.name }}" style="width: 350px;"/>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>請求番号</th>
+                        <td><input type="text" name="request_no"/></td>
+                        <th>注文番号</th>
+                        <td>
+                            <input type="text" name="order_no" value="{{ project.get_order_by_month.order_no }}"/>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="4" style="text-align: center;">
+                            <input type="hidden" name="download" value="request"/>
+                            <input type="submit" value="請求書をダウンロード"/>
+                        </td>
+                    </tr>
+                {% else %}
+                    <tr>
+                        <td style="height: 100px;" class="center red">注文書履歴がありません。</td>
+                    </tr>
+                {% endif %}
             </table>
         </form>
     </div>
@@ -204,6 +228,56 @@
                 {% endifequal %}
             </td>
         </tr>
+    </table>
+    <div class="dashboard">
+        <div class="dashboard-title">注文履歴</div>
+        <form action="" method="get">
+            <a href="{% url 'admin:eb_clientorder_add' %}?project_id={{ project.pk }}&from=portal"
+               target="_blank" class="button">注文書を追加</a>
+        </form>
+    </div>
+    <table class="list" cellpadding="0" cellspacing="0">
+        <thead>
+            <tr>
+                <th>契約件名</th>
+                <th>対象年月</th>
+                <th>注文番号</th>
+                <th>注文書あり？</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tfoot>
+            <tr>
+                <th>契約件名</th>
+                <th>対象年月</th>
+                <th>注文番号</th>
+                <th>注文書あり？</th>
+                <th></th>
+            </tr>
+        </tfoot>
+        <tbody>
+            {% if project.clientorder_set.all %}
+                {% for client_order in project.clientorder_set.all %}
+                    <tr class="{% cycle 'row1' 'row2' %}">
+                        <td>{{ client_order.name }}</td>
+                        <td>{{ client_order.year }}年{{ client_order.month }}月</td>
+                        <td>{{ client_order.order_no }}</td>
+                        <td>
+                            {% if client_order.order_file %}
+                                <a href="{% url 'download_client_order'%}?path={{ client_order.order_file }}" target="_blank">ダウンロード</a>
+                            {% else %}
+                                <img width="12px" src="/static/img/icon-warn.png"/>
+                            {% endif %}
+                        </td>
+                        <td class="center">
+                            <a href="{% url 'admin:eb_clientorder_change' client_order.pk %}?project_id={{ project.pk }}&from=portal" target="_blank">編集</a>
+                        </td>
+                    </tr>
+                {% endfor %}
+            {% else %}
+                <tr class="row2"><td class="center red" colspan="5">注文履歴がありません。</td></tr>
+            {% endif %}
+        </tbody>
     </table>
     <div class="dashboard">
         <div class="dashboard-title">営業活動</div>

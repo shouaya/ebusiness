@@ -43,7 +43,7 @@ class AbstractMember(models.Model):
                                     help_text=u"漢字ごとに先頭文字は大文字にしてください（例：XiaoWang）")
     sex = models.CharField(blank=True, null=True, max_length=1, choices=constants.CHOICE_SEX, verbose_name=u"性別")
     country = models.CharField(blank=True, null=True, max_length=20, verbose_name=u"国籍・地域")
-    birthday = models.DateField(blank=False, null=False, default=datetime.date.today(), verbose_name=u"生年月日")
+    birthday = models.DateField(blank=True, null=True, default=datetime.date.today(), verbose_name=u"生年月日")
     graduate_date = models.DateField(blank=True, null=True, verbose_name=u"卒業年月日")
     join_date = models.DateField(blank=True, null=True, default=datetime.date.today(), verbose_name=u"入社年月日")
     email = models.EmailField(blank=True, null=True, verbose_name=u"メールアドレス")
@@ -63,18 +63,38 @@ class AbstractMember(models.Model):
     skill_description = models.TextField(blank=True, null=True, verbose_name=u"得意")
     comment = models.TextField(blank=True, null=True, verbose_name=u"備考")
     user = models.OneToOneField(User, blank=True, null=True)
+    is_retired = models.BooleanField(blank=False, null=False, default=False, verbose_name=u"退職")
 
     class Meta:
         abstract = True
 
 
+class PublicManager(models.Manager):
+
+    def __init__(self, *args, **kwargs):
+        super(PublicManager, self).__init__()
+        self.args = args
+        self.kwargs = kwargs
+
+    def get_queryset(self):
+        return super(PublicManager, self).get_queryset()
+
+    def public_all(self):
+        return self.get_queryset().filter(*self.args, **self.kwargs)
+
+    def public_filter(self, *args, **kwargs):
+        return self.public_all().filter(*args, **kwargs)
+
+
 class Company(AbstractCompany):
 
     bank_name = models.CharField(blank=True, null=True, max_length=20, verbose_name=u"銀行名称")
+    branch_no = models.CharField(blank=True, null=True, max_length=3, verbose_name=u"支店番号")
     branch_name = models.CharField(blank=True, null=True, max_length=20, verbose_name=u"支店名称")
     account_type = models.CharField(blank=True, null=True, max_length=1, choices=constants.CHOICE_ACCOUNT_TYPE,
                                     verbose_name=u"預金種類")
     account_number = models.CharField(blank=True, null=True, max_length=7, verbose_name=u"口座番号")
+    account_holder = models.CharField(blank=True, null=True, max_length=20, verbose_name=u"口座名義")
 
     class Meta:
         verbose_name = verbose_name_plural = u"会社"
@@ -82,15 +102,15 @@ class Company(AbstractCompany):
     def get_all_members(self, user=None):
         if user:
             if user.is_superuser:
-                return Member.objects.all()
+                return Member.objects.public_filter(section__is_on_sales=True)
             elif common.is_salesperson_director(user) and user.salesperson.section:
-                salesperson_list = user.salesperson.section.salesperson_set.all()
-                return Member.objects.filter(salesperson__in=salesperson_list)
+                salesperson_list = user.salesperson.section.salesperson_set.public_all()
+                return Member.objects.public_filter(salesperson__in=salesperson_list, section__is_on_sales=True)
             elif common.is_salesperson(user):
-                return Member.objects.filter(salesperson=user.salesperson)
+                return Member.objects.public_filter(salesperson=user.salesperson, section__is_on_sales=True)
             else:
-                return Member.objects.filter(pk=-1)
-        return Member.objects.all()
+                return Member.objects.public_filter(pk=-1)
+        return Member.objects.public_filter(section__is_on_sales=True)
 
     def get_working_members(self, user=None):
         now = datetime.date.today()
@@ -100,20 +120,32 @@ class Company(AbstractCompany):
                 query_set = Member.objects.raw("select distinct m.*"
                                                "  from eb_member m"
                                                "  join eb_projectmember pm on pm.member_id = m.id"
+                                               "  join eb_section s on s.id = m.section_id"
                                                " where pm.start_date <= %s"
                                                "   and pm.end_date >= %s"
-                                               "   and pm.status = 2", [now, now])
+                                               "   and pm.status = 2"
+                                               "   and s.is_on_sales = 1"
+                                               "   and m.is_retired = 0"
+                                               "   and m.is_deleted = 0"
+                                               "   and s.is_deleted = 0"
+                                               "   and pm.is_deleted = 0", [now, now])
                 return list(query_set)
             elif common.is_salesperson_director(user) and user.salesperson.section:
                 # 営業部長の場合、部門内すべての社員が見られる
-                salesperson_list = user.salesperson.section.salesperson_set.all()
+                salesperson_list = user.salesperson.section.salesperson_set.public_all()
                 id_list = [str(salesperson.id) for salesperson in salesperson_list]
                 query_set = Member.objects.raw("select distinct m.*"
                                                "  from eb_member m"
                                                "  join eb_projectmember pm on pm.member_id = m.id"
+                                               "  join eb_section s on s.id = m.section_id"
                                                " where pm.start_date <= %s"
                                                "   and pm.end_date >= %s"
                                                "   and pm.status = 2"
+                                               "   and s.is_on_sales = 1"
+                                               "   and m.is_retired = 0"
+                                               "   and m.is_deleted = 0"
+                                               "   and s.is_deleted = 0"
+                                               "   and pm.is_deleted = 0"
                                                "   and m.salesperson_id in (" + ",".join(id_list) + ")", [now, now])
                 return list(query_set)
             elif common.is_salesperson(user):
@@ -121,10 +153,16 @@ class Company(AbstractCompany):
                 query_set = Member.objects.raw("select distinct m.*"
                                                "  from eb_member m"
                                                "  join eb_projectmember pm on pm.member_id = m.id"
+                                               "  join eb_section s on s.id = m.section_id"
                                                " where pm.start_date <= %s"
                                                "   and pm.end_date >= %s"
                                                "   and pm.status = 2"
-                                               "   and m.salesperson_id = %s", [now, now, user.salesperson.id])
+                                               "   and m.salesperson_id = %s"
+                                               "   and m.is_retired = 0"
+                                               "   and s.is_on_sales = 1"
+                                               "   and m.is_deleted = 0"
+                                               "   and s.is_deleted = 0"
+                                               "   and pm.is_deleted = 0", [now, now, user.salesperson.id])
                 return list(query_set)
 
         return []
@@ -136,38 +174,56 @@ class Company(AbstractCompany):
                 # 管理員の場合全部見られる
                 query_set = Member.objects.raw("select distinct m.*"
                                                "  from eb_member m"
+                                               "  join eb_section s on s.id = m.section_id"
                                                " where not exists (select 1 "
                                                "                     from eb_projectmember pm"
                                                "                    where pm.member_id = m.id"
                                                "                      and pm.status = 2"
+                                               "                      and pm.is_deleted = 0"
                                                "                      and pm.start_date <= %s"
-                                               "                      and pm.end_date >= %s)", [now, now])
+                                               "                      and pm.end_date >= %s)"
+                                               "   and s.is_on_sales = 1"
+                                               "   and m.is_retired = 0"
+                                               "   and m.is_deleted = 0"
+                                               "   and s.is_deleted = 0", [now, now])
                 return list(query_set)
             elif common.is_salesperson_director(user) and user.salesperson.section:
                 # 営業部長の場合、部門内すべての社員が見られる
-                salesperson_list = user.salesperson.section.salesperson_set.all()
+                salesperson_list = user.salesperson.section.salesperson_set.public_all()
                 id_list = [str(salesperson.id) for salesperson in salesperson_list]
                 query_set = Member.objects.raw("select distinct m.*"
                                                "  from eb_member m"
+                                               "  join eb_section s on s.id = m.section_id"
                                                " where not exists (select 1 "
                                                "                     from eb_projectmember pm"
                                                "                    where pm.member_id = m.id"
                                                "                      and pm.status = 2"
+                                               "                      and pm.is_deleted = 0"
                                                "                      and pm.start_date <= %s"
                                                "                      and pm.end_date >= %s)"
+                                               "   and s.is_on_sales = 1"
+                                               "   and m.is_retired = 0"
+                                               "   and m.is_deleted = 0"
+                                               "   and s.is_deleted = 0"
                                                "   and m.salesperson_id in (" + ",".join(id_list) + ")", [now, now])
                 return list(query_set)
             elif common.is_salesperson(user):
                 # 営業員の場合、担当している社員だけ見られる
                 query_set = Member.objects.raw("select distinct m.*"
                                                "  from eb_member m"
+                                               "  join eb_section s on s.id = m.section_id"
                                                " where not exists (select 1 "
                                                "                     from eb_projectmember pm"
                                                "                    where pm.member_id = m.id"
                                                "                      and pm.status = 2"
+                                               "                      and pm.is_deleted = 0"
                                                "                      and pm.start_date <= %s"
                                                "                      and pm.end_date >= %s)"
-                                               "   and m.salesperson_id = %s", [now, now, user.salesperson.id])
+                                               "   and m.salesperson_id = %s"
+                                               "   and m.is_retired = 0"
+                                               "   and m.is_deleted = 0"
+                                               "   and s.is_deleted = 0"
+                                               "   and s.is_on_sales = 1", [now, now, user.salesperson.id])
                 return list(query_set)
 
         return []
@@ -181,19 +237,25 @@ class Company(AbstractCompany):
                 # 管理員の場合全部見られる
                 query_set = Member.objects.raw("select distinct m.*"
                                                "  from eb_member m"
-                                               "  join eb_projectmember pm on pm.member_id = m.id"
-                                               " where pm.end_date >= %s"
-                                               "   and pm.end_date < %s", [date_first_day, date_next_month])
-                return list(query_set)
-            elif common.is_salesperson_director(user) and user.salesperson.section:
-                # 営業部長の場合、部門内すべての社員が見られる
-                salesperson_list = user.salesperson.section.salesperson_set.all()
-                id_list = [str(salesperson.id) for salesperson in salesperson_list]
-                query_set = Member.objects.raw("select distinct m.*"
-                                               "  from eb_member m"
+                                               "  join eb_section s on s.id = m.section_id and s.is_deleted = 0"
                                                "  join eb_projectmember pm on pm.member_id = m.id"
                                                " where pm.end_date >= %s"
                                                "   and pm.end_date < %s"
+                                               "   and m.is_deleted = 0"
+                                               "   and pm.is_deleted = 0", [date_first_day, date_next_month])
+                return list(query_set)
+            elif common.is_salesperson_director(user) and user.salesperson.section:
+                # 営業部長の場合、部門内すべての社員が見られる
+                salesperson_list = user.salesperson.section.salesperson_set.public_all()
+                id_list = [str(salesperson.id) for salesperson in salesperson_list]
+                query_set = Member.objects.raw("select distinct m.*"
+                                               "  from eb_member m"
+                                               "  join eb_section s on s.id = m.section_id and s.is_deleted = 0"
+                                               "  join eb_projectmember pm on pm.member_id = m.id"
+                                               " where pm.end_date >= %s"
+                                               "   and pm.end_date < %s"
+                                               "   and m.is_deleted = 0"
+                                               "   and pm.is_deleted = 0"
                                                "   and m.salesperson_id in (" + ",".join(id_list) + ")",
                                                [date_first_day, date_next_month])
                 return list(query_set)
@@ -201,10 +263,13 @@ class Company(AbstractCompany):
                 # 営業員の場合、担当している社員だけ見られる
                 query_set = Member.objects.raw("select distinct m.*"
                                                "  from eb_member m"
+                                               "  join eb_section s on s.id = m.section_id and s.is_deleted = 0"
                                                "  join eb_projectmember pm on pm.member_id = m.id"
                                                " where pm.end_date >= %s"
                                                "   and pm.end_date < %s"
-                                               "   and m.salesperson_id = %s",
+                                               "   and m.salesperson_id = %s"
+                                               "   and m.is_deleted = 0"
+                                               "   and pm.is_deleted = 0",
                                                [date_first_day, date_next_month, user.salesperson.id])
                 return list(query_set)
         return []
@@ -233,9 +298,9 @@ class Company(AbstractCompany):
           なし
         """
         if status == 0:
-            return Project.objects.all()
+            return Project.objects.public_all()
         else:
-            return Project.objects.filter(status=status)
+            return Project.objects.public_filter(status=status)
 
     def get_proposal_projects(self):
         """提案中の案件を取得する。
@@ -309,7 +374,7 @@ class Company(AbstractCompany):
 
     def get_master(self):
         # 代表取締役を取得する。
-        members = Salesperson.objects.filter(member_type=7)
+        members = Salesperson.objects.public_filter(member_type=7)
         if members.count() == 1:
             return members[0]
         else:
@@ -320,22 +385,35 @@ class Subcontractor(AbstractCompany):
     president = models.CharField(blank=True, null=True, max_length=30, verbose_name=u"代表者名")
     employee_count = models.IntegerField(blank=True, null=True, verbose_name=u"従業員数")
     sale_amount = models.BigIntegerField(blank=True, null=True, verbose_name=u"売上高")
-    payment_type = models.CharField(blank=True, null=True, max_length=2, verbose_name=u"支払方法")
+    payment_month = models.CharField(blank=True, null=True, max_length=1, default='1',
+                                     choices=constants.CHOICE_PAYMENT_MONTH, verbose_name=u"支払いサイト")
     payment_day = models.CharField(blank=True, null=True, max_length=2, choices=constants.CHOICE_PAYMENT_DAY,
-                                   verbose_name=u"支払日")
+                                   default='99', verbose_name=u"支払日")
     comment = models.TextField(blank=True, null=True, verbose_name=u"備考")
-    created_date = models.DateTimeField(auto_now_add=True, editable=False)
-    updated_date = models.DateTimeField(auto_now=True, editable=False)
+    is_deleted = models.BooleanField(default=False, editable=False, verbose_name=u"削除フラグ")
+    deleted_date = models.DateTimeField(blank=True, null=True, editable=False, verbose_name=u"削除年月日")
+
+    objects = PublicManager(is_deleted=False)
 
     class Meta:
         ordering = ['name']
         verbose_name = verbose_name_plural = u"協力会社"
 
+    def delete(self, using=None):
+        self.is_deleted = True
+        self.deleted_date = datetime.datetime.now()
+        self.save()
+
 
 class Section(models.Model):
     name = models.CharField(blank=False, null=False, max_length=30, verbose_name=u"部署名")
     description = models.CharField(blank=True, null=True, max_length=200, verbose_name=u"概要")
+    is_on_sales = models.BooleanField(blank=False, null=False, default=False, verbose_name=u"営業対象")
     company = models.ForeignKey(Company, blank=False, null=False, verbose_name=u"会社")
+    is_deleted = models.BooleanField(default=False, editable=False, verbose_name=u"削除フラグ")
+    deleted_date = models.DateTimeField(blank=True, null=True, editable=False, verbose_name=u"削除年月日")
+
+    objects = PublicManager(is_deleted=False)
 
     class Meta:
         ordering = ['name']
@@ -348,10 +426,19 @@ class Section(models.Model):
             desc = self.description[:7] + "..." if len(self.description) > 10 else self.description
             return u"%s(%s)" % (self.name, desc)
 
+    def delete(self, using=None):
+        self.is_deleted = True
+        self.deleted_date = datetime.datetime.now()
+        self.save()
+
 
 class Salesperson(AbstractMember):
 
     member_type = models.IntegerField(default=0, choices=constants.CHOICE_SALESPERSON_TYPE, verbose_name=u"社員区分")
+    is_deleted = models.BooleanField(default=False, editable=False, verbose_name=u"削除フラグ")
+    deleted_date = models.DateTimeField(blank=True, null=True, editable=False, verbose_name=u"削除年月日")
+
+    objects = PublicManager(is_deleted=False, is_retired=False, section__is_deleted=False)
 
     class Meta:
         ordering = ['first_name', 'last_name']
@@ -360,12 +447,21 @@ class Salesperson(AbstractMember):
     def __unicode__(self):
         return u"%s %s" % (self.first_name, self.last_name)
 
+    def delete(self, using=None):
+        self.is_deleted = True
+        self.deleted_date = datetime.datetime.now()
+        self.save()
+
 
 class Member(AbstractMember):
     member_type = models.IntegerField(default=0, choices=constants.CHOICE_MEMBER_TYPE, verbose_name=u"社員区分")
     salesperson = models.ForeignKey(Salesperson, blank=True, null=True, verbose_name=u"営業員")
     subcontractor = models.ForeignKey(Subcontractor, blank=True, null=True, verbose_name=u"協力会社")
     cost = models.IntegerField(null=False, default=0, verbose_name=u"コスト")
+    is_deleted = models.BooleanField(default=False, editable=False, verbose_name=u"削除フラグ")
+    deleted_date = models.DateTimeField(blank=True, null=True, editable=False, verbose_name=u"削除年月日")
+
+    objects = PublicManager(is_deleted=False, is_retired=False, section__is_deleted=False)
 
     class Meta:
         ordering = ['first_name', 'last_name']
@@ -388,7 +484,7 @@ class Member(AbstractMember):
     def get_project_end_date(self):
         # 稼働状態を取得する（待機・稼働中）
         now = datetime.datetime.now()
-        projects = self.projectmember_set.filter(end_date__gt=now, start_date__lte=now, status=2)
+        projects = self.projectmember_set.public_filter(end_date__gt=now, start_date__lte=now, status=2)
         if projects.count() > 0:
             return projects[0].end_date
         else:
@@ -396,7 +492,7 @@ class Member(AbstractMember):
 
     def get_business_status(self):
         next_2_month = common.add_months(datetime.date.today(), 2)
-        if self.projectmember_set.filter(status=1).count() > 0:
+        if self.projectmember_set.public_filter(status=1).count() > 0:
             return u"営業中"
         elif not self.get_project_end_date() \
                 or self.get_project_end_date() < datetime.date(next_2_month.year, next_2_month.month, 1):
@@ -442,7 +538,7 @@ class Member(AbstractMember):
         Raises：
           なし
         """
-        project_member_list = self.projectmember_set.all()
+        project_member_list = self.projectmember_set.public_all()
         role_list = []
         for project_member in project_member_list:
             role = project_member.get_role_display().split(u"：")[0]
@@ -463,13 +559,18 @@ class Member(AbstractMember):
           なし
         """
         if is_min:
-            positions = self.positionship_set.filter(is_part_time=False).order_by('-position')
+            positions = self.positionship_set.public_filter(is_part_time=False).order_by('-position')
         else:
-            positions = self.positionship_set.filter(is_part_time=False)
+            positions = self.positionship_set.public_filter(is_part_time=False)
         if positions.count() > 0:
             return positions[0]
         else:
             return None
+
+    def delete(self, using=None):
+        self.is_deleted = True
+        self.deleted_date = datetime.datetime.now()
+        self.save()
 
 
 class PositionShip(models.Model):
@@ -477,6 +578,10 @@ class PositionShip(models.Model):
     position = models.IntegerField(blank=True, null=True, choices=constants.CHOICE_POSITION, verbose_name=u"職位")
     section = models.ForeignKey(Section, verbose_name=u"部署")
     is_part_time = models.BooleanField(default=False, verbose_name=u"兼任")
+    is_deleted = models.BooleanField(default=False, editable=False, verbose_name=u"削除フラグ")
+    deleted_date = models.DateTimeField(blank=True, null=True, editable=False, verbose_name=u"削除年月日")
+
+    objects = PublicManager(is_deleted=False, section__is_deleted=False)
 
     class Meta:
         ordering = ['position']
@@ -485,6 +590,11 @@ class PositionShip(models.Model):
     def __unicode__(self):
         return "%s - %s %s" % (self.get_position_display(), self.member.first_name, self.member.last_name)
 
+    def delete(self, using=None):
+        self.is_deleted = True
+        self.deleted_date = datetime.datetime.now()
+        self.save()
+
 
 class Client(AbstractCompany):
     president = models.CharField(blank=True, null=True, max_length=30, verbose_name=u"代表者名")
@@ -492,19 +602,47 @@ class Client(AbstractCompany):
     sale_amount = models.BigIntegerField(blank=True, null=True, verbose_name=u"売上高")
     undertaker = models.CharField(blank=True, null=True, max_length=30, verbose_name=u"担当者")
     undertaker_mail = models.EmailField(blank=True, null=True, verbose_name=u"担当者メール")
-    payment_type = models.CharField(blank=True, null=True, max_length=2, verbose_name=u"支払方法")
-    payment_month = models.CharField(blank=True, null=True, max_length=1,
+    payment_month = models.CharField(blank=True, null=True, max_length=1, default='1',
                                      choices=constants.CHOICE_PAYMENT_MONTH, verbose_name=u"支払いサイト")
-    payment_day = models.CharField(blank=True, null=True, max_length=2,
+    payment_day = models.CharField(blank=True, null=True, max_length=2, default='99',
                                    choices=constants.CHOICE_PAYMENT_DAY, verbose_name=u"支払日")
     remark = models.TextField(blank=True, null=True, verbose_name=u"評価")
     comment = models.TextField(blank=True, null=True, verbose_name=u"備考")
     salesperson = models.ForeignKey(Salesperson, blank=True, null=True, verbose_name=u"営業担当")
     request_file = models.FileField(blank=True, null=True, upload_to="./request", verbose_name=u"請求書テンプレート")
+    is_deleted = models.BooleanField(default=False, editable=False, verbose_name=u"削除フラグ")
+    deleted_date = models.DateTimeField(blank=True, null=True, editable=False, verbose_name=u"削除年月日")
+
+    objects = PublicManager(is_deleted=False)
 
     class Meta:
         ordering = ['name']
         verbose_name = verbose_name_plural = u"取引先"
+
+    def get_pay_date(self, date=datetime.date.today()):
+        """支払い期限日を取得する。
+
+        Arguments：
+          なし
+
+        Returns：
+          Date
+
+        Raises：
+          なし
+        """
+        months = int(self.payment_month) if self.payment_month else 1
+        pay_month = common.add_months(date, months)
+        if self.payment_day == '99' or not self.payment_day:
+            return common.get_last_day_by_month(pay_month)
+        else:
+            pay_day = int(self.payment_day)
+            return datetime.date(pay_month.year, pay_month.month, pay_day)
+
+    def delete(self, using=None):
+        self.is_deleted = True
+        self.deleted_date = datetime.datetime.now()
+        self.save()
 
 
 class ClientMember(models.Model):
@@ -512,6 +650,10 @@ class ClientMember(models.Model):
     email = models.EmailField(blank=True, null=True, verbose_name=u"メールアドレス")
     phone = models.CharField(blank=True, null=True, max_length=11, verbose_name=u"電話番号")
     client = models.ForeignKey(Client, verbose_name=u"所属会社")
+    is_deleted = models.BooleanField(default=False, editable=False, verbose_name=u"削除フラグ")
+    deleted_date = models.DateTimeField(blank=True, null=True, editable=False, verbose_name=u"削除年月日")
+
+    objects = PublicManager(is_deleted=False, client__is_deleted=False)
 
     class Meta:
         ordering = ['name']
@@ -520,9 +662,18 @@ class ClientMember(models.Model):
     def __unicode__(self):
         return "%s - %s" % (self.client.name, self.name)
 
+    def delete(self, using=None):
+        self.is_deleted = True
+        self.deleted_date = datetime.datetime.now()
+        self.save()
+
 
 class Skill(models.Model):
     name = models.CharField(blank=False, null=False, unique=True, max_length=30, verbose_name=u"名称")
+    is_deleted = models.BooleanField(default=False, editable=False, verbose_name=u"削除フラグ")
+    deleted_date = models.DateTimeField(blank=True, null=True, editable=False, verbose_name=u"削除年月日")
+
+    objects = PublicManager(is_deleted=False)
 
     class Meta:
         ordering = ['name']
@@ -531,9 +682,18 @@ class Skill(models.Model):
     def __unicode__(self):
         return self.name
 
+    def delete(self, using=None):
+        self.is_deleted = True
+        self.deleted_date = datetime.datetime.now()
+        self.save()
+
 
 class OS(models.Model):
     name = models.CharField(max_length=15, unique=True, verbose_name=u"名称")
+    is_deleted = models.BooleanField(default=False, editable=False, verbose_name=u"削除フラグ")
+    deleted_date = models.DateTimeField(blank=True, null=True, editable=False, verbose_name=u"削除年月日")
+
+    objects = PublicManager(is_deleted=False)
 
     class Meta:
         ordering = ['name']
@@ -541,6 +701,11 @@ class OS(models.Model):
 
     def __unicode__(self):
         return self.name
+
+    def delete(self, using=None):
+        self.is_deleted = True
+        self.deleted_date = datetime.datetime.now()
+        self.save()
 
 
 class Project(models.Model):
@@ -558,6 +723,10 @@ class Project(models.Model):
                                   related_name="middleman_set", verbose_name=u"案件連絡者")
     salesperson = models.ForeignKey(Salesperson, blank=True, null=True, verbose_name=u"営業員")
     members = models.ManyToManyField(Member, through='ProjectMember', blank=True, null=True)
+    is_deleted = models.BooleanField(default=False, editable=False, verbose_name=u"削除フラグ")
+    deleted_date = models.DateTimeField(blank=True, null=True, editable=False, verbose_name=u"削除年月日")
+
+    objects = PublicManager(is_deleted=False, client__is_deleted=False)
 
     class Meta:
         ordering = ['name']
@@ -568,7 +737,7 @@ class Project(models.Model):
 
     def get_project_members(self):
         # 案件にアサイン人数を取得する。
-        return self.projectmember_set.all()
+        return self.projectmember_set.public_all()
 
     def get_recommended_members(self):
         # 如果案件为提案状态则自动推荐待机中的人员及即将待机的人
@@ -578,7 +747,7 @@ class Project(models.Model):
             return members
 
         dict_skills = {}
-        for skill in self.skills.all():
+        for skill in self.skills.public_all():
             dict_skills[skill.name] = self.get_members_by_skill_name(skill.name)
 
         return dict_skills
@@ -613,7 +782,7 @@ class Project(models.Model):
             d = datetime.date.today()
         first_day = datetime.date(d.year, d.month, 1)
         last_day = common.get_last_day_by_month(d)
-        return self.projectmember_set.filter(start_date__lte=last_day, end_date__gte=first_day)
+        return self.projectmember_set.public_filter(start_date__lte=last_day, end_date__gte=first_day)
 
     def get_first_project_member(self):
         """営業企画書を出すとき、1つ目に表示するメンバー。
@@ -630,11 +799,11 @@ class Project(models.Model):
         now = datetime.date.today()
         first_day = datetime.date(now.year, now.month, 1)
         last_day = common.get_last_day_by_month(now)
-        project_members = self.projectmember_set.filter(start_date__lte=last_day, end_date__gte=first_day, role=7)
+        project_members = self.projectmember_set.public_filter(start_date__lte=last_day, end_date__gte=first_day, role=7)
         if project_members.count() == 0:
-            project_members = self.projectmember_set.filter(start_date__lte=last_day, end_date__gte=first_day, role=6)
+            project_members = self.projectmember_set.public_filter(start_date__lte=last_day, end_date__gte=first_day, role=6)
         if project_members.count() == 0:
-            project_members = self.projectmember_set.filter(start_date__lte=last_day, end_date__gte=first_day)
+            project_members = self.projectmember_set.public_filter(start_date__lte=last_day, end_date__gte=first_day)
         if project_members.count() > 0:
             return project_members[0]
         else:
@@ -644,7 +813,83 @@ class Project(models.Model):
         now = datetime.date.today()
         first_day = datetime.date(now.year, now.month, 1)
         last_day = common.get_last_day_by_month(now)
-        return self.projectmember_set.filter(start_date__lte=last_day, end_date__gte=first_day)
+        return self.projectmember_set.public_filter(start_date__lte=last_day, end_date__gte=first_day)
+
+    def get_order_by_month(self, year=None, month=None):
+        """指定年月の注文履歴を取得する。
+
+        Arguments：
+          year: 指定年
+          month: 指定月
+
+        Returns：
+          ClientOrder のインスタンス
+
+        Raises：
+          なし
+        """
+        date = datetime.date.today()
+        if not year and not month:
+            year = str(date.year)
+            month = str(date.month)
+        try:
+            return self.clientorder_set.get(year=year, month=month)
+        except ObjectDoesNotExist:
+            return None
+
+    def get_expenses(self, year, month):
+        """指定年月の清算リストを取得する。
+
+        Arguments：
+          year: 指定年
+          month: 指定月
+
+        Returns：
+          MemberExpenses のインスタンス
+
+        Raises：
+          なし
+        """
+        return MemberExpenses.objects.public_filter(project_member__project=self,
+                                             year=str(year),
+                                             month=str(month)).order_by('category__name')
+
+    def delete(self, using=None):
+        self.is_deleted = True
+        self.deleted_date = datetime.datetime.now()
+        self.save()
+
+
+def get_client_order_path(instance, filename):
+    return u"./client_order/{0}/{1}{2}_{3}".format(instance.project.client.name,
+                                                   instance.year, instance.month, filename)
+
+
+class ClientOrder(models.Model):
+    project = models.ForeignKey(Project, verbose_name=u"案件")
+    name = models.CharField(max_length=30, verbose_name=u"注文書名称")
+    year = models.CharField(max_length=4, default=str(datetime.date.today().year),
+                            choices=constants.CHOICE_ATTENDANCE_YEAR, verbose_name=u"対象年")
+    month = models.CharField(max_length=2, choices=constants.CHOICE_ATTENDANCE_MONTH, verbose_name=u"対象月")
+    order_no = models.CharField(max_length=20, verbose_name=u"注文番号")
+    order_file = models.FileField(blank=True, null=True, upload_to=get_client_order_path, verbose_name=u"注文書")
+    is_deleted = models.BooleanField(default=False, editable=False, verbose_name=u"削除フラグ")
+    deleted_date = models.DateTimeField(blank=True, null=True, editable=False, verbose_name=u"削除年月日")
+
+    objects = PublicManager(is_deleted=False, project__is_deleted=False)
+
+    class Meta:
+        ordering = ['project', 'name', 'year', 'month']
+        unique_together = ('project', 'year', 'month')
+        verbose_name = verbose_name_plural = u"お客様注文書"
+
+    def __unicode__(self):
+        return self.name
+
+    def delete(self, using=None):
+        self.is_deleted = True
+        self.deleted_date = datetime.datetime.now()
+        self.save()
 
 
 class ProjectActivity(models.Model):
@@ -657,6 +902,10 @@ class ProjectActivity(models.Model):
     members = models.ManyToManyField(Member, blank=True, null=True, verbose_name=u"参加している社員")
     salesperson = models.ManyToManyField(Salesperson, blank=True, null=True, verbose_name=u"参加している営業員")
     created_date = models.DateTimeField(auto_now_add=True, editable=False)
+    is_deleted = models.BooleanField(default=False, editable=False, verbose_name=u"削除フラグ")
+    deleted_date = models.DateTimeField(blank=True, null=True, editable=False, verbose_name=u"削除年月日")
+
+    objects = PublicManager(is_deleted=False, project__is_deleted=False)
 
     class Meta:
         ordering = ['project', 'open_date']
@@ -665,12 +914,21 @@ class ProjectActivity(models.Model):
     def __unicode__(self):
         return "%s - %s" % (self.project.name, self.name)
 
+    def delete(self, using=None):
+        self.is_deleted = True
+        self.deleted_date = datetime.datetime.now()
+        self.save()
+
 
 class ProjectSkill(models.Model):
     project = models.ForeignKey(Project, verbose_name=u"案件")
     skill = models.ForeignKey(Skill, verbose_name=u"スキル")
     period = models.IntegerField(blank=True, null=True, choices=constants.CHOICE_SKILL_TIME, verbose_name=u"経験年数")
     description = models.TextField(blank=True, null=True, verbose_name=u"備考")
+    is_deleted = models.BooleanField(default=False, editable=False, verbose_name=u"削除フラグ")
+    deleted_date = models.DateTimeField(blank=True, null=True, editable=False, verbose_name=u"削除年月日")
+
+    objects = PublicManager(is_deleted=False, project__is_deleted=False)
 
     class Meta:
         verbose_name = verbose_name_plural = u"案件のスキル要求"
@@ -678,15 +936,29 @@ class ProjectSkill(models.Model):
     def __unicode__(self):
         return "%s - %s" % (self.project.name, self.skill.name)
 
+    def delete(self, using=None):
+        self.is_deleted = True
+        self.deleted_date = datetime.datetime.now()
+        self.save()
+
 
 class ProjectStage(models.Model):
     name = models.CharField(max_length=15, unique=True, verbose_name=u"作業工程名称")
+    is_deleted = models.BooleanField(default=False, editable=False, verbose_name=u"削除フラグ")
+    deleted_date = models.DateTimeField(blank=True, null=True, editable=False, verbose_name=u"削除年月日")
+
+    objects = PublicManager(is_deleted=False)
 
     class Meta:
         verbose_name = verbose_name_plural = u"作業工程"
 
     def __unicode__(self):
         return self.name
+
+    def delete(self, using=None):
+        self.is_deleted = True
+        self.deleted_date = datetime.datetime.now()
+        self.save()
 
 
 class ProjectMember(models.Model):
@@ -702,6 +974,11 @@ class ProjectMember(models.Model):
                                  choices=constants.CHOICE_PROJECT_MEMBER_STATUS, verbose_name=u"ステータス")
     role = models.CharField(default="PG", max_length=2, choices=constants.CHOICE_PROJECT_ROLE, verbose_name=u"作業区分")
     stages = models.ManyToManyField(ProjectStage, blank=True, null=True, verbose_name=u"作業工程")
+    is_deleted = models.BooleanField(default=False, editable=False, verbose_name=u"削除フラグ")
+    deleted_date = models.DateTimeField(blank=True, null=True, editable=False, verbose_name=u"削除年月日")
+
+    objects = PublicManager(is_deleted=False, project__is_deleted=False, member__is_deleted=False,
+                            member__section__is_deleted=False)
 
     class Meta:
         verbose_name = verbose_name_plural = u"案件メンバー"
@@ -710,61 +987,61 @@ class ProjectMember(models.Model):
         return "%s - %s %s" % (self.project.name, self.member.first_name, self.member.last_name)
 
     def is_in_rd(self):
-        if self.stages.filter(name=u"要件定義").count() > 0:
+        if self.stages.public_filter(name=u"要件定義").count() > 0:
             return True
         else:
             return False
 
     def is_in_sa(self):
-        if self.stages.filter(name=u"調査分析").count() > 0:
+        if self.stages.public_filter(name=u"調査分析").count() > 0:
             return True
         else:
             return False
 
     def is_in_bd(self):
-        if self.stages.filter(name=u"基本設計").count() > 0:
+        if self.stages.public_filter(name=u"基本設計").count() > 0:
             return True
         else:
             return False
 
     def is_in_dd(self):
-        if self.stages.filter(name=u"詳細設計").count() > 0:
+        if self.stages.public_filter(name=u"詳細設計").count() > 0:
             return True
         else:
             return False
 
     def is_in_pg(self):
-        if self.stages.filter(name=u"開発製造").count() > 0:
+        if self.stages.public_filter(name=u"開発製造").count() > 0:
             return True
         else:
             return False
 
     def is_in_pt(self):
-        if self.stages.filter(name=u"単体試験").count() > 0:
+        if self.stages.public_filter(name=u"単体試験").count() > 0:
             return True
         else:
             return False
 
     def is_in_it(self):
-        if self.stages.filter(name=u"結合試験").count() > 0:
+        if self.stages.public_filter(name=u"結合試験").count() > 0:
             return True
         else:
             return False
 
     def is_in_st(self):
-        if self.stages.filter(name=u"総合試験").count() > 0:
+        if self.stages.public_filter(name=u"総合試験").count() > 0:
             return True
         else:
             return False
 
     def is_in_maintain(self):
-        if self.stages.filter(name=u"保守運用").count() > 0:
+        if self.stages.public_filter(name=u"保守運用").count() > 0:
             return True
         else:
             return False
 
     def is_in_support(self):
-        if self.stages.filter(name=u"サポート").count() > 0:
+        if self.stages.public_filter(name=u"サポート").count() > 0:
             return True
         else:
             return False
@@ -787,23 +1064,84 @@ class ProjectMember(models.Model):
         except ObjectDoesNotExist:
             return None
 
+    def delete(self, using=None):
+        self.is_deleted = True
+        self.deleted_date = datetime.datetime.now()
+        self.save()
+
+
+class ExpensesCategory(models.Model):
+    name = models.CharField(max_length=50, verbose_name=u"名称")
+    is_deleted = models.BooleanField(default=False, editable=False, verbose_name=u"削除フラグ")
+    deleted_date = models.DateTimeField(blank=True, null=True, editable=False, verbose_name=u"削除年月日")
+
+    objects = PublicManager(is_deleted=False)
+
+    class Meta:
+        verbose_name = verbose_name_plural = u"清算分類"
+
+    def __unicode__(self):
+        return self.name
+
+    def delete(self, using=None):
+        self.is_deleted = True
+        self.deleted_date = datetime.datetime.now()
+        self.save()
+
+
+class MemberExpenses(models.Model):
+    project_member = models.ForeignKey(ProjectMember, verbose_name=u"要員")
+    year = models.CharField(max_length=4, default=str(datetime.date.today().year),
+                            choices=constants.CHOICE_ATTENDANCE_YEAR, verbose_name=u"対象年")
+    month = models.CharField(max_length=2, choices=constants.CHOICE_ATTENDANCE_MONTH, verbose_name=u"対象月")
+    category = models.ForeignKey(ExpensesCategory, verbose_name=u"分類")
+    price = models.IntegerField(default=0, verbose_name=u"価格")
+    is_deleted = models.BooleanField(default=False, editable=False, verbose_name=u"削除フラグ")
+    deleted_date = models.DateTimeField(blank=True, null=True, editable=False, verbose_name=u"削除年月日")
+
+    objects = PublicManager(is_deleted=False, project_member__is_deleted=False, category__is_deleted=False)
+
+    class Meta:
+        ordering = ['project_member', 'year', 'month']
+        verbose_name = verbose_name_plural = u"清算リスト"
+
+    def __unicode__(self):
+        return u"%s %s %s" % (self.project_member, self.get_year_display(), self.get_month_display())
+
+    def delete(self, using=None):
+        self.is_deleted = True
+        self.deleted_date = datetime.datetime.now()
+        self.save()
+
 
 class MemberAttendance(models.Model):
     project_member = models.ForeignKey(ProjectMember, verbose_name=u"要員")
     year = models.CharField(max_length=4, default=str(datetime.date.today().year),
                             choices=constants.CHOICE_ATTENDANCE_YEAR, verbose_name=u"対象年")
     month = models.CharField(max_length=2, choices=constants.CHOICE_ATTENDANCE_MONTH, verbose_name=u"対象月")
+    rate = models.DecimalField(max_digits=3, decimal_places=2, default=1, verbose_name=u"率")
     total_hours = models.DecimalField(max_digits=5, decimal_places=2, verbose_name=u"合計時間")
     extra_hours = models.DecimalField(max_digits=5, decimal_places=2, default=0, verbose_name=u"残業時間")
     plus_per_hour = models.IntegerField(blank=True, null=True, verbose_name=u"増（円）")
     minus_per_hour = models.IntegerField(blank=True, null=True, verbose_name=u"減（円）")
+    price = models.IntegerField(default=0, verbose_name=u"価格")
+    comment = models.CharField(blank=True, null=True, max_length=50, verbose_name=u"備考")
+    is_deleted = models.BooleanField(default=False, editable=False, verbose_name=u"削除フラグ")
+    deleted_date = models.DateTimeField(blank=True, null=True, editable=False, verbose_name=u"削除年月日")
+
+    objects = PublicManager(is_deleted=False, project_member__is_deleted=False)
 
     class Meta:
         ordering = ['project_member', 'year', 'month']
         verbose_name = verbose_name_plural = u"勤務時間"
 
     def __unicode__(self):
-        return u"%s %s年 %s" % (self.project_member, self.year, self.get_month_display())
+        return u"%s %s %s" % (self.project_member, self.get_year_display(), self.get_month_display())
+
+    def delete(self, using=None):
+        self.is_deleted = True
+        self.deleted_date = datetime.datetime.now()
+        self.save()
 
 
 class Degree(models.Model):
@@ -811,9 +1149,18 @@ class Degree(models.Model):
     start_date = models.DateField(verbose_name=u"入学日")
     end_date = models.DateField(verbose_name=u"卒業日")
     description = models.CharField(blank=True, null=True, max_length=255, verbose_name=u"学校名称/学部/専門/学位")
+    is_deleted = models.BooleanField(default=False, editable=False, verbose_name=u"削除フラグ")
+    deleted_date = models.DateTimeField(blank=True, null=True, editable=False, verbose_name=u"削除年月日")
+
+    objects = PublicManager(is_deleted=False, member__is_deleted=False, member__section__is_deleted=False)
 
     class Meta:
         verbose_name = verbose_name_plural = u"学歴"
+
+    def delete(self, using=None):
+        self.is_deleted = True
+        self.deleted_date = datetime.datetime.now()
+        self.save()
 
 
 class HistoryProject(models.Model):
@@ -827,6 +1174,10 @@ class HistoryProject(models.Model):
     skill = models.ManyToManyField(Skill, blank=True, null=True, verbose_name=u"スキル要求")
     role = models.CharField(default="PG", max_length=2, choices=constants.CHOICE_PROJECT_ROLE, verbose_name=u"作業区分")
     stages = models.ManyToManyField(ProjectStage, blank=True, null=True, verbose_name=u"作業工程")
+    is_deleted = models.BooleanField(default=False, editable=False, verbose_name=u"削除フラグ")
+    deleted_date = models.DateTimeField(blank=True, null=True, editable=False, verbose_name=u"削除年月日")
+
+    objects = PublicManager(is_deleted=False, member__is_deleted=False, member__section__is_deleted=False)
 
     class Meta:
         ordering = ['-start_date']
@@ -836,64 +1187,69 @@ class HistoryProject(models.Model):
         return "%s - %s %s" % (self.name, self.member.first_name, self.member.last_name)
 
     def is_in_rd(self):
-        if self.stages.filter(name=u"要件定義").count() > 0:
+        if self.stages.public_filter(name=u"要件定義").count() > 0:
             return True
         else:
             return False
 
     def is_in_sa(self):
-        if self.stages.filter(name=u"調査分析").count() > 0:
+        if self.stages.public_filter(name=u"調査分析").count() > 0:
             return True
         else:
             return False
 
     def is_in_bd(self):
-        if self.stages.filter(name=u"基本設計").count() > 0:
+        if self.stages.public_filter(name=u"基本設計").count() > 0:
             return True
         else:
             return False
 
     def is_in_dd(self):
-        if self.stages.filter(name=u"詳細設計").count() > 0:
+        if self.stages.public_filter(name=u"詳細設計").count() > 0:
             return True
         else:
             return False
 
     def is_in_pg(self):
-        if self.stages.filter(name=u"開発製造").count() > 0:
+        if self.stages.public_filter(name=u"開発製造").count() > 0:
             return True
         else:
             return False
 
     def is_in_pt(self):
-        if self.stages.filter(name=u"単体試験").count() > 0:
+        if self.stages.public_filter(name=u"単体試験").count() > 0:
             return True
         else:
             return False
 
     def is_in_it(self):
-        if self.stages.filter(name=u"結合試験").count() > 0:
+        if self.stages.public_filter(name=u"結合試験").count() > 0:
             return True
         else:
             return False
 
     def is_in_st(self):
-        if self.stages.filter(name=u"総合試験").count() > 0:
+        if self.stages.public_filter(name=u"総合試験").count() > 0:
             return True
         else:
             return False
 
     def is_in_maintain(self):
-        if self.stages.filter(name=u"保守運用").count() > 0:
+        if self.stages.public_filter(name=u"保守運用").count() > 0:
             return True
         else:
             return False
 
     def is_in_support(self):
-        if self.stages.filter(name=u"サポート").count() > 0:
+        if self.stages.public_filter(name=u"サポート").count() > 0:
             return True
         else:
             return False
+
+    def delete(self, using=None):
+        self.is_deleted = True
+        self.deleted_date = datetime.datetime.now()
+        self.save()
 
 
 def create_group_salesperson():

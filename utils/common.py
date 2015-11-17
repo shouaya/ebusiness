@@ -397,7 +397,7 @@ def get_excel_col_entire(col):
 
 
 def get_default_password(member):
-    return "%s@%s" % (member.first_name_en, member.birthday.strftime("%Y%m%d"))
+    return "password"
 
 
 def line_counter():
@@ -570,6 +570,7 @@ def parse_project_role(name):
 
 def get_first_last_name(name):
     if name:
+        name = name.strip()
         reg = re.compile(ur"[ 　]+", re.UNICODE)
         if reg.search(name):
             return reg.split(name)
@@ -601,9 +602,9 @@ def get_next_employee_id(max_employee_id):
 
 def get_full_postcode(postcode):
     if postcode:
-        return constants.MARK_POST_CODE + "%s-%s" % (postcode[:3], postcode[3:])
+        return "%s-%s" % (postcode[:3], postcode[3:])
     else:
-        return constants.MARK_POST_CODE
+        return ""
 
 
 def delete_temp_files(path):

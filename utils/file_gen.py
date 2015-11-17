@@ -460,25 +460,25 @@ def generate_request(project, company, request_name=None, request_no=None, order
     # お客様住所
     data['CLIENT_ADDRESS'] = project.client.address1 + project.client.address2
     # お客様電話番号
-    data['CLIENT_TEL'] = "Tel: " + project.client.tel
+    data['CLIENT_TEL'] = project.client.tel
     # お客様名称
     data['CLIENT_COMPANY_NAME'] = project.client.name
     now = datetime.date.today()
     first_day = datetime.date(now.year, now.month, 1)
-    last_day = common.get_last_day_by_month(now)
+    last_day_current_month = common.get_last_day_by_month(now)
     period = u"%s年%s月%s日 ～ %s年%s月%s日" % (first_day.year, first_day.month, first_day.day,
-                                         last_day.year, last_day.month, last_day.day)
+                                         last_day_current_month.year, last_day_current_month.month, last_day_current_month.day)
     # 作業期間
     data['WORK_PERIOD'] = period
     # 注文番号
     data['ORDER_NO'] = order_no if order_no else u""
     # 注文日
-    data['REQUEST_DATE'] = last_day.strftime('%Y/%m/%d')
+    data['REQUEST_DATE'] = last_day_current_month.strftime('%Y/%m/%d')
     # 契約件名
     data['CONTRACT_NAME'] = request_name if request_name else project.name
     next_month = common.add_months(now, 1)
     # お支払い期限
-    data['REMIT_DATE'] = common.get_last_day_by_month(next_month).strftime('%Y/%m/%d')
+    data['REMIT_DATE'] = project.client.get_pay_date().strftime('%Y/%m/%d')
     # 請求番号
     data['REQUEST_NO'] = request_no if request_no else u""
     # 発行日
@@ -496,12 +496,16 @@ def generate_request(project, company, request_name=None, request_no=None, order
     data['TEL'] = company.tel
     # 振込先銀行名称
     data['BANK_NAME'] = company.bank_name
+    # 支店番号
+    data['BRANCH_NO'] = company.branch_no
     # 支店名称
     data['BRANCH_NAME'] = company.branch_name
     # 預金種類
     data['ACCOUNT_TYPE'] = company.get_account_type_display()
     # 口座番号
     data['ACCOUNT_NUMBER'] = company.account_number
+    # 口座名義人
+    data['BANK_ACCOUNT_HOLDER'] = company.account_holder
 
     # 全員の合計明細
     detail_all = dict()
@@ -513,58 +517,69 @@ def generate_request(project, company, request_name=None, request_no=None, order
     project_members = project.get_project_members_by_month(date)
     members_amount = 0
     for i, project_member in enumerate(project_members):
-        dict_member = dict()
+        dict_expenses = dict()
         # 番号
-        dict_member['NO'] = i + 1
+        dict_expenses['NO'] = i + 1
         # 項目
-        dict_member['ITEM_NAME'] = project_member.member.__unicode__()
-        # 率
-        dict_member['ITEM_RATE'] = 1
+        dict_expenses['ITEM_NAME'] = project_member.member.__unicode__()
         # 単価（円）
-        dict_member['ITEM_PRICE'] = project_member.price
+        dict_expenses['ITEM_PRICE'] = project_member.price
         # Min/Max（H）
-        dict_member['ITEM_MIN_MAX'] = "%s/%s" % (int(project_member.min_hours), int(project_member.max_hours))
+        dict_expenses['ITEM_MIN_MAX'] = "%s/%s" % (int(project_member.min_hours), int(project_member.max_hours))
         attendance = project_member.get_attendance(date.year, date.month)
         # その他
-        dict_member['ITEM_OTHER'] = 0
+        dict_expenses['ITEM_OTHER'] = 0
         # 基本金額
-        dict_member['ITEM_AMOUNT_BASIC'] = project_member.price if attendance else u""
+        dict_expenses['ITEM_AMOUNT_BASIC'] = project_member.price if attendance else u""
         # 残業金額
         if attendance:
             # 勤務時間
-            dict_member['ITEM_WORK_HOURS'] = attendance.total_hours if attendance else u""
+            dict_expenses['ITEM_WORK_HOURS'] = attendance.total_hours if attendance else u""
             # 残業時間
-            dict_member['ITEM_EXTRA_HOURS'] = attendance.extra_hours if attendance else u""
+            dict_expenses['ITEM_EXTRA_HOURS'] = attendance.extra_hours if attendance else u""
+            # 率
+            dict_expenses['ITEM_RATE'] = attendance.rate if attendance.rate else 1
             # 減（円）
-            if attendance.minus_per_hour:
-                dict_member['ITEM_MINUS_PER_HOUR'] = attendance.minus_per_hour
-            else:
-                dict_member['ITEM_MINUS_PER_HOUR'] = (project_member.price / project_member.min_hours) \
+            if attendance.minus_per_hour is None:
+                dict_expenses['ITEM_MINUS_PER_HOUR'] = (project_member.price / project_member.min_hours) \
                     if attendance else u""
+            else:
+                dict_expenses['ITEM_MINUS_PER_HOUR'] = attendance.minus_per_hour
             # 増（円）
-            if attendance.plus_per_hour:
-                dict_member['ITEM_PLUS_PER_HOUR'] = attendance.plus_per_hour
-            else:
-                dict_member['ITEM_PLUS_PER_HOUR'] = (project_member.price / project_member.max_hours) \
+            if attendance.plus_per_hour is None:
+                dict_expenses['ITEM_PLUS_PER_HOUR'] = (project_member.price / project_member.max_hours) \
                     if attendance else u""
+            else:
+                dict_expenses['ITEM_PLUS_PER_HOUR'] = attendance.plus_per_hour
 
             if attendance.extra_hours > 0:
-                dict_member['ITEM_AMOUNT_EXTRA'] = attendance.extra_hours * dict_member['ITEM_PLUS_PER_HOUR']
-                dict_member['ITEM_PLUS_PER_HOUR2'] = dict_member['ITEM_PLUS_PER_HOUR']
-                dict_member['ITEM_MINUS_PER_HOUR2'] = u""
+                dict_expenses['ITEM_AMOUNT_EXTRA'] = attendance.extra_hours * dict_expenses['ITEM_PLUS_PER_HOUR']
+                dict_expenses['ITEM_PLUS_PER_HOUR2'] = dict_expenses['ITEM_PLUS_PER_HOUR']
+                dict_expenses['ITEM_MINUS_PER_HOUR2'] = u""
             elif attendance.extra_hours < 0:
-                dict_member['ITEM_AMOUNT_EXTRA'] = attendance.extra_hours * dict_member['ITEM_MINUS_PER_HOUR']
-                dict_member['ITEM_PLUS_PER_HOUR2'] = u""
-                dict_member['ITEM_MINUS_PER_HOUR2'] = dict_member['ITEM_MINUS_PER_HOUR']
+                dict_expenses['ITEM_AMOUNT_EXTRA'] = attendance.extra_hours * dict_expenses['ITEM_MINUS_PER_HOUR']
+                dict_expenses['ITEM_PLUS_PER_HOUR2'] = u""
+                dict_expenses['ITEM_MINUS_PER_HOUR2'] = dict_expenses['ITEM_MINUS_PER_HOUR']
             else:
-                dict_member['ITEM_AMOUNT_EXTRA'] = 0
-                dict_member['ITEM_PLUS_PER_HOUR2'] = u""
-                dict_member['ITEM_MINUS_PER_HOUR2'] = u""
+                dict_expenses['ITEM_AMOUNT_EXTRA'] = 0
+                dict_expenses['ITEM_PLUS_PER_HOUR2'] = u""
+                dict_expenses['ITEM_MINUS_PER_HOUR2'] = u""
+            # 基本金額＋残業金額
+            dict_expenses['ITEM_AMOUNT_TOTAL'] = attendance.price
+            # 備考
+            dict_expenses['ITEM_COMMENT'] = attendance.comment
         else:
-            dict_member['ITEM_AMOUNT_EXTRA'] = u""
-            dict_member['ITEM_AMOUNT_EXTRA'] = u""
+            dict_expenses['ITEM_AMOUNT_EXTRA'] = u""
+            dict_expenses['ITEM_PLUS_PER_HOUR'] = u""
+            dict_expenses['ITEM_MINUS_PER_HOUR'] = u""
+            dict_expenses['ITEM_PLUS_PER_HOUR2'] = u""
+            dict_expenses['ITEM_MINUS_PER_HOUR2'] = u""
+            dict_expenses['ITEM_WORK_HOURS'] = u""
+            dict_expenses['ITEM_EXTRA_HOURS'] = u""
+            # 基本金額＋残業金額
+            dict_expenses['ITEM_AMOUNT_TOTAL'] = project_member.price
 
-        detail_members.append(dict_member)
+        detail_members.append(dict_expenses)
 
         # 金額合計
         members_amount += project_member.price
@@ -577,11 +592,34 @@ def generate_request(project, company, request_name=None, request_no=None, order
     # 単位
     detail_all['ITEM_UNIT'] = u"一式"
     # 金額
-    detail_all['ITEM_AMOUNT_TOTAL'] = members_amount
+    detail_all['ITEM_AMOUNT_ALL'] = members_amount
     # 備考
     detail_all['ITEM_COMMENT'] = u""
+
+    # 清算リスト
+    dict_expenses = {}
+    for expenses in project.get_expenses(date.year, date.month):
+        if expenses.category.name not in dict_expenses:
+            dict_expenses[expenses.category.name] = [expenses]
+        else:
+            dict_expenses[expenses.category.name].append(expenses)
+    detail_expenses = []
+    for key, value in dict_expenses.iteritems():
+        d = dict()
+        member_list = []
+        amount = 0
+        for expenses in value:
+            member_list.append(expenses.project_member.member.first_name +
+                               expenses.project_member.member.last_name +
+                               u"￥%s" % (expenses.price,))
+            amount += expenses.price
+        d['ITEM_EXPENSES_CATEGORY_SUMMARY'] = u"%s(%s)" % (key, u"、".join(member_list))
+        d['ITEM_EXPENSES_CATEGORY_AMOUNT'] = amount
+        detail_expenses.append(d)
+
     data['detail_all'] = detail_all
     data['detail_members'] = detail_members
+    data['detail_expenses'] = detail_expenses  # 清算リスト
 
     replace_excel_dict(sheet, data)
 
@@ -639,6 +677,10 @@ def replace_excel_dict(sheet, data):
         elif key == "detail_members":
             if find_cell_by_string(sheet, "{$ITEM_PRICE$}"):
                 replace_excel_list(sheet, value)
+        elif key == "detail_expenses":
+            # 清算リスト
+            if find_cell_by_string(sheet, "{$ITEM_EXPENSES_CATEGORY_AMOUNT$}"):
+                replace_excel_list(sheet, value)
         else:
             sheet.Cells.Replace(What="{$%s$}" % (key,), Replacement=value, LookAt=constants.xlPart, MatchCase=False,
                                 SearchFormat=False, ReplaceFormat=False, SearchOrder=constants.xlByRows)
@@ -650,21 +692,23 @@ def replace_excel_list(sheet, data_list):
         positions = get_replace_positions(sheet, data_list[0])
         if positions:
             row, col = positions.values()[0]
-            start_cell = sheet.Cells(row + (2 * rows), col)
+            start_cell = sheet.Cells(row + rows, 1)
             end_cell = find_cell_by_string(sheet, "*", after=start_cell)
             # 必要行数
             cnt_all_rows = rows * len(data_list)
             # 既存の行数
-            cnt_current_rows = end_cell.Row - start_cell.Row
+            cnt_current_rows = end_cell.Row - (start_cell.Row - 1)
             # 足りない行数
             if cnt_all_rows > cnt_current_rows:
-                cnt_extra_rows = cnt_all_rows - cnt_current_rows - 1
-                sheet.Range("%s:%s" % (end_cell.Row - 1, end_cell.Row + cnt_extra_rows)).Insert(Shift=constants.xlDown)
+                cnt_extra_rows = cnt_all_rows - cnt_current_rows
+                sheet.Range("%s:%s" % (end_cell.Row, end_cell.Row + cnt_extra_rows - 1)).Insert(Shift=constants.xlDown)
         for i, data in enumerate(data_list):
             for key, value in data.iteritems():
                 if key in positions:
                     row, col = positions[key]
                     sheet.Cells(row + (i * rows), col).Value = value
+                    if key in ('ITEM_WORK_HOURS', 'ITEM_RATE'):
+                        sheet.Cells(row + (i * rows), col).NumberFormatLocal = u"G/標準"
 
 
 def find_cell_by_string(sheet, s, after=None):
