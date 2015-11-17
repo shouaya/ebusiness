@@ -45,27 +45,27 @@ def load_resume(file_content, member_id=None):
         name = sheet.cell(5, 3).value
         member.first_name = common.get_first_last_name(name)[0]
         member.last_name = common.get_first_last_name(name)[1]
+        # 基本情報読み込む
+        # フリカナ
+        name_jp = sheet.cell(4, 3).value
+        member.first_name_ja = common.get_first_last_ja_name(name_jp)[0]
+        member.last_name_ja = common.get_first_last_ja_name(name_jp)[1]
+        # 性別
+        sex = sheet.cell(4, 15).value
+        if sex and sex in (u"男", u"女"):
+            member.sex = '1' if sex == u"男" else "2"
+        # 生年月日
+        birthday = sheet.cell(8, 15).value
+        dt = datetime.datetime(*xlrd.xldate_as_tuple(birthday, book.datemode))
+        member.birthday = datetime.date(dt.year, dt.month, dt.day)
+        # 最寄駅
+        station = sheet.cell(9, 3).value
+        member.nearest_station = station.strip() if station else None
     else:
         member = Member.objects.get(pk=member_id)
-    # 基本情報読み込む
-    # フリカナ
-    name_jp = sheet.cell(4, 3).value
-    member.first_name_ja = common.get_first_last_ja_name(name_jp)[0]
-    member.last_name_ja = common.get_first_last_ja_name(name_jp)[1]
-    # 性別
-    sex = sheet.cell(4, 15).value
-    if sex and sex in (u"男", u"女"):
-        member.sex = '1' if sex == u"男" else "2"
     # 国家・地域
     country = sheet.cell(6, 15).value
     member.country = country.strip() if country else None
-    # 生年月日
-    birthday = sheet.cell(8, 15).value
-    dt = datetime.datetime(*xlrd.xldate_as_tuple(birthday, book.datemode))
-    member.birthday = datetime.date(dt.year, dt.month, dt.day)
-    # 最寄駅
-    station = sheet.cell(9, 3).value
-    member.nearest_station = station.strip() if station else None
     # 在日年数
     years = sheet.cell(10, 3).value
     if years and years.strip():
@@ -242,4 +242,3 @@ def load_resume(file_content, member_id=None):
     member.save()
 
     return member, None
-

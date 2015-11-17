@@ -145,11 +145,12 @@
                                 <tr class="project-detail">
                                     <td style="text-align: center;">{{ forloop.counter }}</td>
                                     <td>{{ projectmember.project.start_date|date:"Y年M" }}～<br/>{{ projectmember.project.end_date|date:"Y年M" }}</td>
-                                    <td>
-                                        <table style="width: 266px; table-layout: fixed;" cellpadding="0" cellspacing="0">
+                                    <td style="vertical-align: top; padding: 0px;">
+                                        <table style="width: 270px; table-layout: fixed;" cellpadding="0" cellspacing="0">
                                             <tr>
                                                 <td nowrap style="overflow: hidden; border: 0px;">{{ projectmember.project.name }}</td>
-                                                <td style="text-align: center; width: 66px; border: 0px; border-left: 1px dotted black;"></td>
+                                                <td style="text-align: center; width: 70px; border: 0px; border-left: 1px dotted black;
+                                                    padding: 0px;white-space: nowrap; overflow: hidden;"></td>
                                             </tr>
                                             <tr>
                                                 <td colspan="2" style="word-break: break-word; border: 0px; border-top: 1px dotted black;">
@@ -229,11 +230,12 @@
                                 <tr class="project-detail">
                                     <td style="text-align: center;">{{ forloop.counter|add:project_count }}</td>
                                     <td>{{ project.start_date|date:"Y年M" }}～<br/>{{ project.end_date|date:"Y年M" }}</td>
-                                    <td>
-                                        <table style="width: 266px; table-layout: fixed;" cellpadding="0" cellspacing="0">
+                                    <td style="vertical-align: top; padding: 0px;">
+                                        <table style="width: 270px; table-layout: fixed;" cellpadding="0" cellspacing="0">
                                             <tr>
                                                 <td nowrap style="overflow: hidden; border: 0px;">{{ project.name }}</td>
-                                                <td style="text-align: center; width: 66px; border: 0px; border-left: 1px dotted black;">{{ project.location }}</td>
+                                                <td style="text-align: center; width: 70px; border: 0px; border-left: 1px dotted black;
+                                                    padding: 0px;white-space: nowrap; overflow: hidden;">{{ project.location }}</td>
                                             </tr>
                                             <tr>
                                                 <td colspan="2" style="word-break: break-word; border: 0px; border-top: 1px dotted black;">

@@ -582,17 +582,17 @@ def generate_request(project, company, request_name=None, request_no=None, order
         detail_members.append(dict_expenses)
 
         # 金額合計
-        members_amount += project_member.price
+        members_amount += dict_expenses['ITEM_AMOUNT_TOTAL']
     # 番号
     detail_all['NO'] = 1
     # 項目：契約件名に設定
-    detail_all['ITEM_NAME_TOTAL'] = data['CONTRACT_NAME']
+    detail_all['ITEM_NAME_ATTENDANCE_TOTAL'] = data['CONTRACT_NAME']
     # 数量
     detail_all['ITEM_COUNT'] = 1
     # 単位
     detail_all['ITEM_UNIT'] = u"一式"
     # 金額
-    detail_all['ITEM_AMOUNT_ALL'] = members_amount
+    detail_all['ITEM_AMOUNT_ATTENDANCE_ALL'] = members_amount
     # 備考
     detail_all['ITEM_COMMENT'] = u""
 
@@ -604,6 +604,7 @@ def generate_request(project, company, request_name=None, request_no=None, order
         else:
             dict_expenses[expenses.category.name].append(expenses)
     detail_expenses = []
+    expenses_amount = 0
     for key, value in dict_expenses.iteritems():
         d = dict()
         member_list = []
@@ -613,6 +614,7 @@ def generate_request(project, company, request_name=None, request_no=None, order
                                expenses.project_member.member.last_name +
                                u"￥%s" % (expenses.price,))
             amount += expenses.price
+            expenses_amount += expenses.price
         d['ITEM_EXPENSES_CATEGORY_SUMMARY'] = u"%s(%s)" % (key, u"、".join(member_list))
         d['ITEM_EXPENSES_CATEGORY_AMOUNT'] = amount
         detail_expenses.append(d)
@@ -620,6 +622,10 @@ def generate_request(project, company, request_name=None, request_no=None, order
     data['detail_all'] = detail_all
     data['detail_members'] = detail_members
     data['detail_expenses'] = detail_expenses  # 清算リスト
+    data['ITEM_AMOUNT_ATTENDANCE'] = members_amount
+    data['ITEM_AMOUNT_ATTENDANCE_TAX'] = int(members_amount * 0.08)  # 出勤のトータル金額の税金
+    data['ITEM_AMOUNT_ATTENDANCE_ALL'] = members_amount + data['ITEM_AMOUNT_ATTENDANCE_TAX']
+    data['ITEM_AMOUNT_ALL'] = data['ITEM_AMOUNT_ATTENDANCE_ALL'] + expenses_amount
 
     replace_excel_dict(sheet, data)
 
@@ -672,7 +678,7 @@ def replace_excel_dict(sheet, data):
         return
     for key, value in data.iteritems():
         if key == "detail_all":
-            if find_cell_by_string(sheet, "{$ITEM_NAME_TOTAL$}"):
+            if find_cell_by_string(sheet, "{$ITEM_NAME_ATTENDANCE_TOTAL$}"):
                 replace_excel_dict(sheet, value)
         elif key == "detail_members":
             if find_cell_by_string(sheet, "{$ITEM_PRICE$}"):

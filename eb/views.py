@@ -97,10 +97,10 @@ def employee_list(request):
         all_members = salesperson_obj.member_set.public_all()
         params += u"&salesperson=%s" % (salesperson,)
     if first_name:
-        all_members = all_members.public_filter(first_name__contains=first_name)
+        all_members = all_members.filter(first_name__contains=first_name)
         params += u"&first_name=%s" % (first_name,)
     if last_name:
-        all_members = all_members.public_filter(last_name__contains=last_name)
+        all_members = all_members.filter(last_name__contains=last_name)
         params += u"&last_name=%s" % (last_name,)
 
     if order_list:
@@ -221,7 +221,7 @@ def project_list(request):
         all_projects = Project.objects.public_filter(status=status)
         params += "&status=%s" % (status,)
     if name:
-        all_projects = all_projects.public_filter(name__contains=name)
+        all_projects = all_projects.filter(name__contains=name)
         params += "&name=%s" % (name,)
 
     if order_list:
