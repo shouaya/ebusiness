@@ -434,7 +434,7 @@ class Section(models.Model):
 
 class Salesperson(AbstractMember):
 
-    member_type = models.IntegerField(default=0, choices=constants.CHOICE_SALESPERSON_TYPE, verbose_name=u"社員区分")
+    member_type = models.IntegerField(default=5, choices=constants.CHOICE_SALESPERSON_TYPE, verbose_name=u"社員区分")
     is_deleted = models.BooleanField(default=False, editable=False, verbose_name=u"削除フラグ")
     deleted_date = models.DateTimeField(blank=True, null=True, editable=False, verbose_name=u"削除年月日")
 
@@ -717,6 +717,11 @@ class Project(models.Model):
     end_date = models.DateField(blank=True, null=True, verbose_name=u"終了日")
     address = models.CharField(blank=True, null=True, max_length=255, verbose_name=u"作業場所")
     status = models.IntegerField(choices=constants.CHOICE_PROJECT_STATUS, verbose_name=u"ステータス")
+    attendance_type = models.CharField(max_length=1, default='1', choices=constants.CHOICE_ATTENDANCE_TYPE, verbose_name=u"出勤の計算区分")
+    min_hours = models.DecimalField(max_digits=5, decimal_places=2, default=160, verbose_name=u"基準時間",
+                                    help_text=u"该项目仅仅是作为项目中各人员时间的默认设置，计算时不会使用该值。")
+    max_hours = models.DecimalField(max_digits=5, decimal_places=2, default=180, verbose_name=u"最大時間",
+                                    help_text=u"该项目仅仅是作为项目中各人员时间的默认设置，计算时不会使用该值。")
     client = models.ForeignKey(Client, null=True, verbose_name=u"関連会社")
     boss = models.ForeignKey(ClientMember, blank=True, null=True, related_name="boss_set", verbose_name=u"案件責任者")
     middleman = models.ForeignKey(ClientMember, blank=True, null=True,
@@ -782,7 +787,8 @@ class Project(models.Model):
             d = datetime.date.today()
         first_day = datetime.date(d.year, d.month, 1)
         last_day = common.get_last_day_by_month(d)
-        return self.projectmember_set.public_filter(start_date__lte=last_day, end_date__gte=first_day)
+        return self.projectmember_set.public_filter(start_date__lte=last_day,
+                                                    end_date__gte=first_day).exclude(status='1')
 
     def get_first_project_member(self):
         """営業企画書を出すとき、1つ目に表示するメンバー。
@@ -851,8 +857,36 @@ class Project(models.Model):
           なし
         """
         return MemberExpenses.objects.public_filter(project_member__project=self,
-                                             year=str(year),
-                                             month=str(month)).order_by('category__name')
+                                                    year=str(year),
+                                                    month=str(month)).order_by('category__name')
+
+    def get_year_month_attendance_finished(self):
+        """案件の月単位の勤怠入力状況を取得する。
+
+        Arguments：
+          なし
+
+        Returns：
+          (対象年月, True / False)
+
+        Raises：
+          なし
+        """
+        ret_value = []
+        for year, month in common.get_year_month_list(self.start_date, self.end_date):
+            query_set = ProjectMember.objects.raw(u"select pm.* "
+                                                  u"  from eb_projectmember pm"
+                                                  u" where not exists (select 1 "
+                                                  u"                     from eb_memberattendance ma"
+                                                  u"				       where pm.id = ma.project_member_id"
+                                                  u"                      and ma.year = %s"
+                                                  u"                      and ma.month = %s"
+                                                  u"					     and ma.is_deleted = 0)"
+                                                  u"   and pm.project_id = %s"
+                                                  u"   and pm.is_deleted = 0", [year, month, self.pk])
+            project_members = list(query_set)
+            ret_value.append((year + month, False if len(project_members) > 0 else True))
+        return ret_value
 
     def delete(self, using=None):
         self.is_deleted = True
@@ -967,7 +1001,7 @@ class ProjectMember(models.Model):
     start_date = models.DateField(blank=True, null=True, verbose_name=u"開始日")
     end_date = models.DateField(blank=True, null=True, verbose_name=u"終了日")
     price = models.IntegerField(default=0, verbose_name=u"単価")
-    expenses = models.IntegerField(default=0, verbose_name=u"交通費")
+    # expenses = models.IntegerField(default=0, verbose_name=u"交通費")
     min_hours = models.DecimalField(max_digits=5, decimal_places=2, default=160, verbose_name=u"基準時間")
     max_hours = models.DecimalField(max_digits=5, decimal_places=2, default=180, verbose_name=u"最大時間")
     status = models.IntegerField(null=False, default=1,
@@ -984,7 +1018,7 @@ class ProjectMember(models.Model):
         verbose_name = verbose_name_plural = u"案件メンバー"
 
     def __unicode__(self):
-        return "%s - %s %s" % (self.project.name, self.member.first_name, self.member.last_name)
+        return self.member.__unicode__()
 
     def is_in_rd(self):
         if self.stages.public_filter(name=u"要件定義").count() > 0:

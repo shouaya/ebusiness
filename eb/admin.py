@@ -264,17 +264,17 @@ class MemberAdmin(admin.ModelAdmin):
                   window.close();
                </script>''')
         else:
-            response = super(MemberAdmin, self).response_change(request, obj)
+            response = super(MemberAdmin, self).response_add(request, obj)
             return response
 
 
 class SalespersonAdmin(admin.ModelAdmin):
 
     form = forms.SalespersonForm
-    list_display = ['employee_id', get_full_name, 'email', 'section', 'is_user_created', 'is_deleted']
+    list_display = ['employee_id', get_full_name, 'email', 'section', 'member_type', 'is_user_created', 'is_deleted']
     list_display_links = [get_full_name]
     search_fields = ['first_name', 'last_name']
-    list_filter = ['section', NoUserFilter, 'is_deleted']
+    list_filter = ['member_type', 'section', NoUserFilter, 'is_deleted']
     fieldsets = (
         (None, {'fields': ('employee_id',
                            ('first_name', 'last_name'),
@@ -435,7 +435,7 @@ class ProjectAdmin(admin.ModelAdmin):
                   window.close();
                </script>''')
         else:
-            response = super(ProjectAdmin, self).response_change(request, obj)
+            response = super(ProjectAdmin, self).response_add(request, obj)
             return response
 
     def response_change(self, request, obj):
@@ -551,7 +551,7 @@ class ClientOrderAdmin(admin.ModelAdmin):
                   window.close();
                </script>''')
         else:
-            response = super(ClientOrderAdmin, self).response_change(request, obj)
+            response = super(ClientOrderAdmin, self).response_add(request, obj)
             return response
 
 
@@ -712,7 +712,7 @@ class ProjectMemberAdmin(admin.ModelAdmin):
                   window.close();
                </script>''')
         else:
-            response = super(ProjectMemberAdmin, self).response_change(request, obj)
+            response = super(ProjectMemberAdmin, self).response_add(request, obj)
             return response
 
 
@@ -795,7 +795,7 @@ class ProjectActivityAdmin(admin.ModelAdmin):
                   window.close();
                </script>''')
         else:
-            response = super(ProjectActivityAdmin, self).response_change(request, obj)
+            response = super(ProjectActivityAdmin, self).response_add(request, obj)
             return response
 
     get_client_members.short_description = u"参加しているお客様"

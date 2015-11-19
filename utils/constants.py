@@ -127,6 +127,9 @@ CHOICE_ACCOUNT_TYPE = (("1", u"普通預金"),
                        ("5", u"貯蓄預金"),
                        ("6", u"大口定期預金"),
                        ("7", u"積立定期預金"))
+CHOICE_ATTENDANCE_TYPE = (('1', u"１５分ごと"),
+                          ('2', u"３０分ごと"),
+                          ('3', u"１時間ごと"))
 
 xlPart = 2
 xlByRows = 1

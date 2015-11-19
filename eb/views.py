@@ -22,10 +22,11 @@ from django.template.context_processors import csrf
 from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.auth.decorators import login_required
 from django.conf import settings
+from django.forms import formset_factory
 
 from utils import constants, common, errors, loader as file_loader, file_gen
-from .models import Company, Member, Section, Project, ProjectMember, Salesperson
-from .forms import UploadFileForm
+from .models import Company, Member, Section, Project, ProjectMember, Salesperson, MemberAttendance
+from . import forms
 
 
 PAGE_SIZE = 50
@@ -314,13 +315,64 @@ def project_detail(request, project_id):
         except errors.FileNotExistException, ex:
             return HttpResponse(u"<script>alert('%s');window.close();</script>" % (ex.message,))
     else:
+
         context = RequestContext(request, {
             'company': company,
             'title': u'%s - 案件詳細' % (project.name,),
             'project': project,
+            'month_list': project.get_year_month_attendance_finished(),
         })
         template = loader.get_template('project_detail.html')
         return HttpResponse(template.render(context))
+
+
+@login_required(login_url='/admin/login/')
+def project_attendance_list(request, project_id):
+    company = get_company()
+    project = Project.objects.get(pk=project_id)
+    ym = request.GET.get('ym', None)
+    formset = None
+    if ym:
+        try:
+            str_year = ym[:4]
+            str_month = ym[4:]
+            date = datetime.date(int(str_year), int(str_month), 1)
+            project_members = project.get_project_members_by_month(date)
+            dict_initials = []
+            for project_member in project_members:
+                attendance = project_member.get_attendance(date.year, date.month)
+                if attendance:
+                    d = {'project_member': attendance.project_member,
+                         'year': str_year,
+                         'month': str_month,
+                         'rate': attendance.rate,
+                         'total_hours': attendance.total_hours,
+                         'extra_hours': attendance.extra_hours,
+                         'plus_per_hour': attendance.plus_per_hour,
+                         'minus_per_hour': attendance.minus_per_hour,
+                         'price': attendance.price,
+                         'comment': attendance.comment}
+                else:
+                    d = {'project_member': project_member,
+                         'year': str_year,
+                         'month': str_month,
+                         }
+                dict_initials.append(d)
+            AttendanceFormSet = formset_factory(forms.MemberAttendanceForm, extra=0)
+            formset = AttendanceFormSet(initial=dict_initials)
+        except Exception as e:
+            print e.message
+
+    context = {
+        'company': company,
+        'title': u'%s - 勤怠入力' % (project.name,),
+        'project': project,
+        'formset': formset
+    }
+    context.update(csrf(request))
+
+    r = render_to_response('project_attendance_list.html', context)
+    return HttpResponse(r)
 
 
 @login_required(login_url='/admin/login/')
@@ -532,7 +584,7 @@ def upload_resume(request):
     context.update(csrf(request))
 
     if request.method == 'POST':
-        form = UploadFileForm(request.POST, request.FILES)
+        form = forms.UploadFileForm(request.POST, request.FILES)
         context.update({'form': form})
         if form.is_valid():
             input_excel = request.FILES['file']
@@ -544,7 +596,7 @@ def upload_resume(request):
             else:
                 pass
     else:
-        form = UploadFileForm()
+        form = forms.UploadFileForm()
         context.update({'form': form})
 
     r = render_to_response('upload_file.html', context)

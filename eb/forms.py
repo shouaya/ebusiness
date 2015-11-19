@@ -160,20 +160,31 @@ class MemberAttendanceForm(forms.ModelForm):
 
     rate = forms.DecimalField(max_digits=5, decimal_places=2, initial=1,
                               widget=forms.TextInput(attrs={'style': 'width: 70px;',
-                                                            'type': 'number'}),
+                                                            'type': 'number',
+                                                            'step': 0.1}),
                               label=u"率")
     total_hours = forms.DecimalField(max_digits=5, decimal_places=2,
                                      widget=forms.TextInput(
                                          attrs={'onblur': "calc_extra_hours(this)",
                                                 'type': 'number',
-                                                'style': 'width: 70px;'}),
+                                                'style': 'width: 70px;',
+                                                'step': 0.25}),
                                      label=u"合計時間",
                                      required=True)
+    extra_hours = forms.DecimalField(max_digits=5, decimal_places=2, initial=0,
+                                     widget=forms.TextInput(
+                                         attrs={'type': 'number',
+                                                'style': 'width: 70px;',
+                                                'step': 0.25}),
+                                     label=u"残業時間",
+                                     required=True)
     plus_per_hour = forms.IntegerField(widget=forms.TextInput(attrs={'onblur': "calc_price_for_plus(this)",
-                                                                     'style': 'width: 70px;'}),
+                                                                     'style': 'width: 60px;',
+                                                                     'type': 'number',}),
                                        label=u"増（円）")
     minus_per_hour = forms.IntegerField(widget=forms.TextInput(attrs={'onblur': "calc_price_for_minus(this)",
-                                                                      'style': 'width: 70px;'}),
+                                                                      'style': 'width: 60px;',
+                                                                      'type': 'number',}),
                                         label=u"減（円）")
 
     def clean(self):

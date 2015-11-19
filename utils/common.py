@@ -626,5 +626,30 @@ def delete_temp_files(path):
             print e.message
 
 
+def get_year_month_list(start_date, end_date):
+    """開始日付から終了日付までの年月を取得する。
+
+    Arguments：
+      start_date: 開始日付
+      end_date: 終了日付
+
+    Returns：
+      なし
+
+    Raises：
+      なし
+    """
+    ret = []
+    if start_date and end_date:
+        months1 = (start_date.year * 12) + start_date.month
+        months2 = (end_date.year * 12) + end_date.month
+        if months1 <= months2:
+            for i in range(months2 - months1 + 1):
+                d = add_months(start_date, i)
+                ret.append(["%04d" % (d.year,), "%02d" % (d.month,)])
+
+    return ret
+
+
 if __name__ == "__main__":
     line_counter()
