@@ -137,6 +137,7 @@ function calc_extra_hours_portal(obj) {
     price = $("#" + row_id + "-basic_price").val();
     min_hours = $("#" + row_id + "-min_hours").val();
     max_hours = $("#" + row_id + "-max_hours").val();
+    rate = $("#" + row_id + "-rate").val();
     total_hours = $(obj).val();
     obj_extra_hours = $("#" + row_id + "-extra_hours");
     obj_plus = $("#" + row_id + "-plus_per_hour");
@@ -147,6 +148,7 @@ function calc_extra_hours_portal(obj) {
         max_hours = parseFloat(max_hours);
         total_hours = parseFloat(total_hours);
         extra_hours = 0.00;
+        rate = parseFloat(rate);
         if (total_hours > max_hours) {
             extra_hours = total_hours - max_hours;
         } else if (total_hours < min_hours) {

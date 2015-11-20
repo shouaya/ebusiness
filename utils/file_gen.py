@@ -425,7 +425,7 @@ def generate_resume(member):
     return output
 
 
-def generate_request(project, company, request_name=None, request_no=None, order_no=None):
+def generate_request(project, company, request_name=None, request_no=None, order_no=None, ym=None):
     """請求書を出力する。
 
     Arguments：
@@ -434,6 +434,7 @@ def generate_request(project, company, request_name=None, request_no=None, order
       request_name: 請求書名称
       request_no: 請求番号
       order_no: 注文番号
+      ym: 対象年月
 
     Returns：
       dict
@@ -454,6 +455,15 @@ def generate_request(project, company, request_name=None, request_no=None, order
     template_book.Close()
     sheet = book.Worksheets(cnt + 1)
 
+    date = datetime.date.today()
+    if ym:
+        try:
+            year = ym[:4]
+            month = ym[4:]
+            date = datetime.date(int(year), int(month), 1)
+        except:
+            pass
+
     data = dict()
     # お客様郵便番号
     data['CLIENT_POST_CODE'] = common.get_full_postcode(project.client.post_code)
@@ -463,9 +473,8 @@ def generate_request(project, company, request_name=None, request_no=None, order
     data['CLIENT_TEL'] = project.client.tel
     # お客様名称
     data['CLIENT_COMPANY_NAME'] = project.client.name
-    now = datetime.date.today()
-    first_day = datetime.date(now.year, now.month, 1)
-    last_day_current_month = common.get_last_day_by_month(now)
+    first_day = datetime.date(date.year, date.month, 1)
+    last_day_current_month = common.get_last_day_by_month(date)
     period = u"%s年%s月%s日 ～ %s年%s月%s日" % (first_day.year, first_day.month, first_day.day,
                                          last_day_current_month.year, last_day_current_month.month, last_day_current_month.day)
     # 作業期間
@@ -476,12 +485,12 @@ def generate_request(project, company, request_name=None, request_no=None, order
     data['REQUEST_DATE'] = last_day_current_month.strftime('%Y/%m/%d')
     # 契約件名
     data['CONTRACT_NAME'] = request_name if request_name else project.name
-    next_month = common.add_months(now, 1)
     # お支払い期限
-    data['REMIT_DATE'] = project.client.get_pay_date().strftime('%Y/%m/%d')
+    data['REMIT_DATE'] = project.client.get_pay_date(date=date).strftime('%Y/%m/%d')
     # 請求番号
     data['REQUEST_NO'] = request_no if request_no else u""
     # 発行日
+    now = datetime.date.today()
     data['PUBLISH_DATE'] = u"%d年%02d月%02d日" % (now.year, now.month, now.day)
     # 本社郵便番号
     data['POST_CODE'] = common.get_full_postcode(company.post_code)
@@ -513,7 +522,6 @@ def generate_request(project, company, request_name=None, request_no=None, order
     detail_members = []
 
     # 案件内すべてのメンバーを取得する。
-    date = datetime.date.today()
     project_members = project.get_project_members_by_month(date)
     members_amount = 0
     for i, project_member in enumerate(project_members):

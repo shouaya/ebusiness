@@ -488,7 +488,7 @@ class ClientAdmin(admin.ModelAdmin):
 
 
 class ClientOrderAdmin(admin.ModelAdmin):
-    list_display = ['project', 'name', 'year', 'month', 'is_deleted']
+    list_display = ['project', 'name', 'start_date', 'end_date', 'is_deleted']
     list_filter = ['is_deleted']
     actions = ['delete_objects', 'active_objects']
 
@@ -510,8 +510,6 @@ class ClientOrderAdmin(admin.ModelAdmin):
             project = Project.objects.get(pk=project_id)
             form.base_fields['project'].initial = project
             form.base_fields['name'].initial = project.name
-            form.base_fields['year'].initial = str(datetime.date.today().year)
-            form.base_fields['month'].initial = str(datetime.date.today().month)
         return form
 
     def delete_objects(self, request, queryset):

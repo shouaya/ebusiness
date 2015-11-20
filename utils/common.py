@@ -28,6 +28,15 @@ def get_last_day_by_month(source_date):
     return next_month + datetime.timedelta(days=-source_date.day)
 
 
+def get_first_day_current_month():
+    today = datetime.date.today()
+    return datetime.date(today.year, today.month, 1)
+
+
+def get_last_day_current_month():
+    return get_last_day_by_month(datetime.date.today())
+
+
 def get_release_months(cnt):
     if not cnt:
         cnt = 3
@@ -626,12 +635,13 @@ def delete_temp_files(path):
             print e.message
 
 
-def get_year_month_list(start_date, end_date, is_reverse=True):
+def get_year_month_list(start_date, end_date, is_reverse=True, add_future=False):
     """開始日付から終了日付までの年月を取得する。
 
     Arguments：
       start_date: 開始日付
       end_date: 終了日付
+      is_reverse: 戻り値の並び順
 
     Returns：
       なし
@@ -641,12 +651,14 @@ def get_year_month_list(start_date, end_date, is_reverse=True):
     """
     ret = []
     if start_date and end_date:
+        today = datetime.date.today()
         months1 = (start_date.year * 12) + start_date.month
         months2 = (end_date.year * 12) + end_date.month
         if months1 <= months2:
             for i in range(months2 - months1 + 1):
                 d = add_months(start_date, i)
-                ret.append(["%04d" % (d.year,), "%02d" % (d.month,)])
+                if (today.year * 12 + today.month) >= (d.year * 12 + d.month) or add_future:
+                    ret.append(["%04d" % (d.year,), "%02d" % (d.month,)])
 
     ret.sort(key=lambda ym: ym[0] + ym[1], reverse=is_reverse)
     return ret

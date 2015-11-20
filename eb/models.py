@@ -823,7 +823,7 @@ class Project(models.Model):
         last_day = common.get_last_day_by_month(now)
         return self.projectmember_set.public_filter(start_date__lte=last_day, end_date__gte=first_day)
 
-    def get_order_by_month(self, year=None, month=None):
+    def get_order_by_month(self, date=None):
         """指定年月の注文履歴を取得する。
 
         Arguments：
@@ -836,12 +836,10 @@ class Project(models.Model):
         Raises：
           なし
         """
-        date = datetime.date.today()
-        if not year and not month:
-            year = str(date.year)
-            month = str(date.month)
+        if not date:
+            date = datetime.date.today()
         try:
-            return self.clientorder_set.get(year=year, month=month)
+            return self.clientorder_set.get(start_date__lte=date, end_date__gte=date)
         except ObjectDoesNotExist:
             return None
 
@@ -861,6 +859,34 @@ class Project(models.Model):
         return MemberExpenses.objects.public_filter(project_member__project=self,
                                                     year=str(year),
                                                     month=str(month)).order_by('category__name')
+
+    def get_year_month_order_finished(self):
+        """案件の月単位の註文書を取得する。
+
+        Arguments：
+          なし
+
+        Returns：
+          (対象年月, ClientOrder)
+
+        Raises：
+          なし
+        """
+        ret_value = []
+        for year, month in common.get_year_month_list(self.start_date, self.end_date):
+            ym = year + month
+            query_set = ClientOrder.objects.raw(u"select co.*"
+                                                u"  from eb_clientorder co"
+                                                u" where date_format(co.start_date, '%%Y%%m') <= %s"
+                                                u"   and date_format(co.end_date, '%%Y%%m') >= %s"
+                                                u"   and co.project_id = %s"
+                                                u"   and co.is_deleted = 0", [ym, ym, self.pk])
+            orders = list(query_set)
+            if orders:
+                ret_value.append((year, month, ClientOrder.objects.get(pk=orders[0].pk)))
+            else:
+                ret_value.append((year, month, None))
+        return ret_value
 
     def get_year_month_attendance_finished(self):
         """案件の月単位の勤怠入力状況を取得する。
@@ -886,10 +912,10 @@ class Project(models.Model):
                                                       u"  from eb_projectmember pm"
                                                       u" where not exists (select 1 "
                                                       u"                     from eb_memberattendance ma"
-                                                      u"				       where pm.id = ma.project_member_id"
+                                                      u"				    where pm.id = ma.project_member_id"
                                                       u"                      and ma.year = %s"
                                                       u"                      and ma.month = %s"
-                                                      u"					     and ma.is_deleted = 0)"
+                                                      u"					  and ma.is_deleted = 0)"
                                                       u"   and pm.start_date <= %s"
                                                       u"   and pm.end_date >= %s"
                                                       u"   and pm.project_id = %s"
@@ -907,15 +933,15 @@ class Project(models.Model):
 
 def get_client_order_path(instance, filename):
     return u"./client_order/{0}/{1}{2}_{3}".format(instance.project.client.name,
-                                                   instance.year, instance.month, filename)
+                                                   instance.start_date.year, instance.start_date.month,
+                                                   filename)
 
 
 class ClientOrder(models.Model):
     project = models.ForeignKey(Project, verbose_name=u"案件")
     name = models.CharField(max_length=30, verbose_name=u"注文書名称")
-    year = models.CharField(max_length=4, default=str(datetime.date.today().year),
-                            choices=constants.CHOICE_ATTENDANCE_YEAR, verbose_name=u"対象年")
-    month = models.CharField(max_length=2, choices=constants.CHOICE_ATTENDANCE_MONTH, verbose_name=u"対象月")
+    start_date = models.DateField(default=common.get_first_day_current_month(), verbose_name=u"開始日")
+    end_date = models.DateField(default=common.get_last_day_current_month(), verbose_name=u"終了日")
     order_no = models.CharField(max_length=20, verbose_name=u"注文番号")
     order_file = models.FileField(blank=True, null=True, upload_to=get_client_order_path, verbose_name=u"注文書")
     is_deleted = models.BooleanField(default=False, editable=False, verbose_name=u"削除フラグ")
@@ -924,8 +950,8 @@ class ClientOrder(models.Model):
     objects = PublicManager(is_deleted=False, project__is_deleted=False)
 
     class Meta:
-        ordering = ['project', 'name', 'year', 'month']
-        unique_together = ('project', 'year', 'month')
+        ordering = ['project', 'name', 'start_date', 'end_date']
+        unique_together = ('project', 'start_date', 'end_date')
         verbose_name = verbose_name_plural = u"お客様注文書"
 
     def __unicode__(self):

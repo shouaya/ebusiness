@@ -304,9 +304,9 @@ def project_detail(request, project_id):
             request_name = request.GET.get("request_name", None)
             request_no = request.GET.get("request_no", None)
             order_no = request.GET.get("order_no", None)
-            path = file_gen.generate_request(project, company, request_name, request_no, order_no)
-            now = datetime.datetime.now()
-            filename = "請求書（%s年%02d月）.xls" % (now.year, now.month)
+            ym = request.GET.get("ym", None)
+            path = file_gen.generate_request(project, company, request_name, request_no, order_no, ym)
+            filename = "請求書（%s年%02d月）.xls" % (int(ym[:4]), int(ym[4:]))
             response = HttpResponse(open(path, 'rb'), content_type="application/excel")
             response['Content-Disposition'] = "filename=" + urllib.quote(filename)
             # 一時ファイルを削除する。
@@ -320,7 +320,8 @@ def project_detail(request, project_id):
             'company': company,
             'title': u'%s - 案件詳細' % (project.name,),
             'project': project,
-            'month_list': project.get_year_month_attendance_finished(),
+            'order_month_list': project.get_year_month_order_finished(),
+            'attendance_month_list': project.get_year_month_attendance_finished(),
         })
         template = loader.get_template('project_detail.html')
         return HttpResponse(template.render(context))
@@ -370,7 +371,11 @@ def project_attendance_list(request, project_id):
                     else:
                         d = {'project_member': project_member,
                              'year': str_year,
-                             'month': str_month}
+                             'month': str_month,
+                             'basic_price': project_member.price,
+                             'max_hours': project_member.max_hours,
+                             'min_hours': project_member.min_hours,
+                             }
                     dict_initials.append(d)
                 AttendanceFormSet = modelformset_factory(MemberAttendance, form=forms.MemberAttendanceFormSet, extra=len(project_members))
                 formset = AttendanceFormSet(queryset=MemberAttendance.objects.none(), initial=dict_initials)
@@ -385,8 +390,6 @@ def project_attendance_list(request, project_id):
             AttendanceFormSet = modelformset_factory(MemberAttendance, form=forms.MemberAttendanceForm, extra=0)
             formset = AttendanceFormSet(request.POST)
             if formset.is_valid():
-                for form in formset:
-                    form.save()
                 attendance_list = formset.save(commit=False)
                 for i, attendance in enumerate(attendance_list):
                     if not attendance.pk:

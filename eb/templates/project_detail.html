@@ -7,8 +7,6 @@
     <div class="dashboard">
         <div class="dashboard-title">なにをしたいのですか？</div>
         <form action="" method="get">
-            <a href="javascript:show_dialog('replace_info')" class="button">請求書置換文字列の説明</a>
-            <a href="javascript:show_dialog('request_gen')" class="button">請求書生成</a>
             <a href="{% url 'admin:eb_project_change' project.id %}?from=portal&_popup=1" target="_blank" class="button">案件を編集</a>
             <a href="{% url 'admin:eb_projectmember_add' %}?project_id={{ project.pk }}&from=portal&_popup=1"
                target="_blank" class="button">要員をアサイン</a>
@@ -16,7 +14,7 @@
     </div>
     <div id="mask" onclick="hide_dialog()" class="mask">
     </div>
-    <div id="replace_info" class="dialog">
+    <div id="replace_info" class="dialog" style="width: 700px;">
         <table width="100%" cellpadding="0" cellspacing="0">
             <tr>
                 <th>{$CLIENT_POST_CODE$}</th>
@@ -170,38 +168,6 @@
             </tr>
         </table>
     </div>
-    <div id="request_gen" class="dialog">
-        <form method="get" action="" target="_blank">
-            <table width="100%" cellpadding="0" cellspacing="0">
-                {% if project.get_order_by_month %}
-                    <tr>
-                        <th>請求書名</th>
-                        <td colspan="3">
-                            <input type="text" name="request_name" value="{{ project.get_order_by_month.name }}" style="width: 350px;"/>
-                        </td>
-                    </tr>
-                    <tr>
-                        <th>請求番号</th>
-                        <td><input type="text" name="request_no"/></td>
-                        <th>注文番号</th>
-                        <td>
-                            <input type="text" name="order_no" value="{{ project.get_order_by_month.order_no }}"/>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td colspan="4" style="text-align: center;">
-                            <input type="hidden" name="download" value="request"/>
-                            <input type="submit" value="請求書をダウンロード"/>
-                        </td>
-                    </tr>
-                {% else %}
-                    <tr>
-                        <td style="height: 100px;" class="center red">注文書履歴がありません。</td>
-                    </tr>
-                {% endif %}
-            </table>
-        </form>
-    </div>
     <table class="detail" cellpadding="0" cellspacing="0">
         <tr>
             <th>案件名称</th><td>{{ project.name }}</td>
@@ -246,46 +212,87 @@
     <div class="dashboard">
         <div class="dashboard-title">注文履歴</div>
         <form action="" method="get">
-            <a href="{% url 'admin:eb_clientorder_add' %}?project_id={{ project.pk }}&from=portal"
-               target="_blank" class="button">注文書を追加</a>
+            <a href="javascript:show_dialog('replace_info')" class="button">請求書置換文字列の説明</a>
         </form>
     </div>
     <table class="list" cellpadding="0" cellspacing="0">
         <thead>
             <tr>
-                <th>契約件名</th>
                 <th>対象年月</th>
+                <th>契約件名</th>
                 <th>注文番号</th>
                 <th>注文書あり？</th>
+                <th></th>
                 <th></th>
             </tr>
         </thead>
         <tfoot>
             <tr>
-                <th>契約件名</th>
                 <th>対象年月</th>
+                <th>契約件名</th>
                 <th>注文番号</th>
                 <th>注文書あり？</th>
+                <th></th>
                 <th></th>
             </tr>
         </tfoot>
         <tbody>
-            {% if project.clientorder_set.all %}
-                {% for client_order in project.clientorder_set.all %}
+            {% if order_month_list %}
+                {% for year, month, client_order in order_month_list %}
                     <tr class="{% cycle 'row1' 'row2' %}">
-                        <td>{{ client_order.name }}</td>
-                        <td>{{ client_order.year }}年{{ client_order.month }}月</td>
-                        <td>{{ client_order.order_no }}</td>
-                        <td>
-                            {% if client_order.order_file %}
-                                <a href="{% url 'download_client_order'%}?path={{ client_order.order_file }}" target="_blank">ダウンロード</a>
-                            {% else %}
-                                <img width="12px" src="/static/img/icon-warn.png"/>
-                            {% endif %}
-                        </td>
-                        <td class="center">
-                            <a href="{% url 'admin:eb_clientorder_change' client_order.pk %}?project_id={{ project.pk }}&from=portal" target="_blank">編集</a>
-                        </td>
+                        <td>{{ year }}年{{ month }}月</td>
+                        {% if client_order %}
+                            <td>{{ client_order.name }}</td>
+                            <td>{{ client_order.order_no }}</td>
+                            <td>
+                                {% if client_order.order_file %}
+                                    <a href="{% url 'download_client_order'%}?path={{ client_order.order_file }}" target="_blank">ダウンロード</a>
+                                {% else %}
+                                    <img width="12px" src="/static/img/icon-warn.png"/>
+                                {% endif %}
+                            </td>
+                            <td class="center">
+                                <a href="{% url 'admin:eb_clientorder_change' client_order.pk %}?project_id={{ project.pk }}&from=portal&_popup=1" target="_blank">編集</a>
+                            </td>
+                            <td class="center">
+                                <a href="javascript:show_dialog('request_gen_{{ year }}{{ month }}')">請求書生成</a>
+                                <div id="request_gen_{{ year }}{{ month }}" class="dialog">
+                                    <form method="get" action="" target="_blank">
+                                        <input type="hidden" value="{{ year }}{{ month }}" name="ym"/>
+                                        <table width="100%" cellpadding="0" cellspacing="0">
+                                            <tr>
+                                                <th>請求書名</th>
+                                                <td style="text-align: left;" colspan="3">
+                                                    <input type="text" name="request_name" value="{{ client_order.name }}" style="width: 450px;"/>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <th>請求番号</th>
+                                                <td style="text-align: left;"><input type="text" name="request_no"/></td>
+                                                <th>注文番号</th>
+                                                <td style="text-align: left;">
+                                                    <input type="text" name="order_no" value="{{ client_order.order_no }}"/>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td colspan="4" style="text-align: center;">
+                                                    <input type="hidden" name="download" value="request"/>
+                                                    <input type="submit" value="請求書をダウンロード"/>
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </form>
+                                </div>
+                            </td>
+                        {% else %}
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td class="center">
+                                <a href="{% url 'admin:eb_clientorder_add' %}?project_id={{ project.pk }}&from=portal&_popup=1" target="_blank">追加</a>
+                            </td>
+                            <td></td>
+                        {% endif %}
                     </tr>
                 {% endfor %}
             {% else %}
@@ -309,8 +316,8 @@
             </tr>
         </tfoot>
         <tbody>
-            {% if month_list %}
-                {% for ym, is_finished in month_list %}
+            {% if attendance_month_list %}
+                {% for ym, is_finished in attendance_month_list %}
                     <tr class="{% cycle 'row1' 'row2' %}">
                         <td>{{ ym }}</td>
                         <td>
