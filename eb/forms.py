@@ -180,12 +180,16 @@ class MemberAttendanceForm(forms.ModelForm):
                                      required=True)
     plus_per_hour = forms.IntegerField(widget=forms.TextInput(attrs={'onblur': "calc_price_for_plus(this)",
                                                                      'style': 'width: 60px;',
-                                                                     'type': 'number',}),
+                                                                     'type': 'number'}),
                                        label=u"増（円）")
     minus_per_hour = forms.IntegerField(widget=forms.TextInput(attrs={'onblur': "calc_price_for_minus(this)",
                                                                       'style': 'width: 60px;',
-                                                                      'type': 'number',}),
+                                                                      'type': 'number'}),
                                         label=u"減（円）")
+    price = forms.IntegerField(initial=0,
+                               widget=forms.TextInput(attrs={'style': 'width: 80px;',
+                                                             'type': 'number'}),
+                               label=u"価格")
 
     def clean(self):
         cleaned_data = super(MemberAttendanceForm, self).clean()
@@ -207,3 +211,54 @@ class MemberAttendanceForm(forms.ModelForm):
 
 class UploadFileForm(forms.Form):
     file = forms.FileField()
+
+
+class MemberAttendanceFormSet(forms.ModelForm):
+    class Meta:
+        model = models.MemberAttendance
+        fields = '__all__'
+
+    basic_price = forms.CharField(widget=forms.TextInput(attrs={'style': 'width: 45px; border: 0px;'
+                                                                         'background-color: transparent;',
+                                                                'readonly': 'readonly'}),
+                                  required=False, label=u"単価")
+    max_hours = forms.CharField(widget=forms.TextInput(attrs={'style': 'width: 40px; border: 0px;'
+                                                                       'background-color: transparent;',
+                                                              'readonly': 'readonly'}),
+                                required=False, label=u"最大")
+    min_hours = forms.CharField(widget=forms.TextInput(attrs={'style': 'width: 40px; border: 0px;'
+                                                                       'background-color: transparent;',
+                                                              'readonly': 'readonly'}),
+                                required=False, label=u"最小")
+    rate = forms.DecimalField(max_digits=5, decimal_places=2, initial=1,
+                              widget=forms.TextInput(attrs={'style': 'width: 40px;',
+                                                            'type': 'number',
+                                                            'step': 0.1}),
+                              label=u"率")
+    total_hours = forms.DecimalField(max_digits=5, decimal_places=2,
+                                     widget=forms.TextInput(
+                                         attrs={'onblur': "calc_extra_hours_portal(this)",
+                                                'type': 'number',
+                                                'style': 'width: 60px;',
+                                                'step': 0.25}),
+                                     label=u"合計時間",
+                                     required=True)
+    extra_hours = forms.DecimalField(max_digits=5, decimal_places=2, initial=0,
+                                     widget=forms.TextInput(
+                                         attrs={'type': 'number',
+                                                'style': 'width: 50px;',
+                                                'step': 0.25}),
+                                     label=u"残業時間",
+                                     required=True)
+    plus_per_hour = forms.IntegerField(widget=forms.TextInput(attrs={'onblur': "calc_price_for_plus_portal(this)",
+                                                                     'style': 'width: 50px;',
+                                                                     'type': 'number'}),
+                                       label=u"増（円）")
+    minus_per_hour = forms.IntegerField(widget=forms.TextInput(attrs={'onblur': "calc_price_for_minus_portal(this)",
+                                                                      'style': 'width: 50px;',
+                                                                      'type': 'number'}),
+                                        label=u"減（円）")
+    price = forms.IntegerField(initial=0,
+                               widget=forms.TextInput(attrs={'style': 'width: 70px;',
+                                                             'type': 'number'}),
+                               label=u"価格")

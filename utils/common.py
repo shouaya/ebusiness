@@ -626,7 +626,7 @@ def delete_temp_files(path):
             print e.message
 
 
-def get_year_month_list(start_date, end_date):
+def get_year_month_list(start_date, end_date, is_reverse=True):
     """開始日付から終了日付までの年月を取得する。
 
     Arguments：
@@ -648,6 +648,7 @@ def get_year_month_list(start_date, end_date):
                 d = add_months(start_date, i)
                 ret.append(["%04d" % (d.year,), "%02d" % (d.month,)])
 
+    ret.sort(key=lambda ym: ym[0] + ym[1], reverse=is_reverse)
     return ret
 
 

@@ -4,7 +4,12 @@
 {% block header %}
     <script type="text/javascript">
         window.onload = function() {
-            init_select("status");
+            obj_list = $("select")
+            obj_list.attr("disabled", "disabled");
+            for (i=0; i<=obj_list.length; i++) {
+                obj = $(obj_list[i])
+                obj.after("<input type='hidden' value='" + obj.val() + "' name='" + obj.attr("name") + "'/>");
+            }
         };
     </script>
 {% endblock %}
@@ -13,20 +18,34 @@
     <div class="dashboard">
         <div class="dashboard-title">勤怠情報入力</div>
     </div>
+    <table class="detail" cellpadding="0" cellspacing="0">
+        <tr>
+            <th>案件名称</th><td>{{ project.name }}</td>
+            <th>関連会社</th><td>{{ project.client.name }}</td>
+        </tr>
+        <tr>
+            <th>開始日付</th><td>{{ project.start_date|date:"Y-m-d" }}</td>
+            <th>終了日付</th><td>{{ project.end_date|date:"Y-m-d" }}</td>
+        </tr>
+        <tr>
+            <th>出勤の計算区分</th><td colspan="3">{{ project.get_attendance_type_display }}</td>
+        </tr>
+    </table>
     <form method="post" action="">
         {% csrf_token %}
+        {{ formset.management_form }}
         <table id="formset" class="list" cellpadding="0"  cellspacing="0">
             {% for form in formset.forms %}
                 {% if forloop.first %}
                 <thead>
                     <tr>
                         {% for field in form.visible_fields %}
-                        <th>{{ field.label|capfirst }}</th>
+                            <th>{{ field.label|capfirst }}</th>
                         {% endfor %}
                     </tr>
                 </thead>
                 {% endif %}
-                <tr class="{% cycle row1,row2 %}">
+                <tr class="{% cycle row1,row2 %}" id="id_form-{{ forloop.counter0 }}">
                     {% for field in form.visible_fields %}
                         <td>
                             {# Include the hidden fields in the form #}
@@ -43,7 +62,7 @@
             {% endfor %}
             <tfoot>
                 <tr>
-                    <td style="height: 30px;" colspan="10"><input type="submit" value="保存" class="right btnOk"/></td>
+                    <td style="height: 30px;" colspan="13"><input type="submit" value="保存" class="right btnOk"/></td>
                 </tr>
             </tfoot>
         </table>

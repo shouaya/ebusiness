@@ -22,7 +22,7 @@ from django.template.context_processors import csrf
 from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.auth.decorators import login_required
 from django.conf import settings
-from django.forms import formset_factory
+from django.forms.models import modelformset_factory
 
 from utils import constants, common, errors, loader as file_loader, file_gen
 from .models import Company, Member, Section, Project, ProjectMember, Salesperson, MemberAttendance
@@ -332,47 +332,72 @@ def project_attendance_list(request, project_id):
     project = Project.objects.get(pk=project_id)
     ym = request.GET.get('ym', None)
     formset = None
-    if ym:
-        try:
-            str_year = ym[:4]
-            str_month = ym[4:]
-            date = datetime.date(int(str_year), int(str_month), 1)
-            project_members = project.get_project_members_by_month(date)
-            dict_initials = []
-            for project_member in project_members:
-                attendance = project_member.get_attendance(date.year, date.month)
-                if attendance:
-                    d = {'project_member': attendance.project_member,
-                         'year': str_year,
-                         'month': str_month,
-                         'rate': attendance.rate,
-                         'total_hours': attendance.total_hours,
-                         'extra_hours': attendance.extra_hours,
-                         'plus_per_hour': attendance.plus_per_hour,
-                         'minus_per_hour': attendance.minus_per_hour,
-                         'price': attendance.price,
-                         'comment': attendance.comment}
-                else:
-                    d = {'project_member': project_member,
-                         'year': str_year,
-                         'month': str_month,
-                         }
-                dict_initials.append(d)
-            AttendanceFormSet = formset_factory(forms.MemberAttendanceForm, extra=0)
-            formset = AttendanceFormSet(initial=dict_initials)
-        except Exception as e:
-            print e.message
 
     context = {
         'company': company,
         'title': u'%s - 勤怠入力' % (project.name,),
         'project': project,
-        'formset': formset
     }
     context.update(csrf(request))
 
-    r = render_to_response('project_attendance_list.html', context)
-    return HttpResponse(r)
+    if ym:
+        str_year = ym[:4]
+        str_month = ym[4:]
+        date = datetime.date(int(str_year), int(str_month), 1)
+        if request.method == 'GET':
+            try:
+                project_members = project.get_project_members_by_month(date)
+                dict_initials = []
+                for project_member in project_members:
+                    attendance = project_member.get_attendance(date.year, date.month)
+                    if attendance:
+                        d = {'id': attendance.pk,
+                             'pk': attendance.pk,
+                             'project_member': attendance.project_member,
+                             'year': str_year,
+                             'month': str_month,
+                             'basic_price': attendance.project_member.price,
+                             'max_hours': attendance.project_member.max_hours,
+                             'min_hours': attendance.project_member.min_hours,
+                             'rate': attendance.rate,
+                             'total_hours': attendance.total_hours,
+                             'extra_hours': attendance.extra_hours,
+                             'plus_per_hour': attendance.plus_per_hour,
+                             'minus_per_hour': attendance.minus_per_hour,
+                             'price': attendance.price,
+                             'comment': attendance.comment,
+                             }
+                    else:
+                        d = {'project_member': project_member,
+                             'year': str_year,
+                             'month': str_month}
+                    dict_initials.append(d)
+                AttendanceFormSet = modelformset_factory(MemberAttendance, form=forms.MemberAttendanceFormSet, extra=len(project_members))
+                formset = AttendanceFormSet(queryset=MemberAttendance.objects.none(), initial=dict_initials)
+            except Exception as e:
+                print e.message
+
+            context.update({'formset': formset})
+
+            r = render_to_response('project_attendance_list.html', context)
+            return HttpResponse(r)
+        else:
+            AttendanceFormSet = modelformset_factory(MemberAttendance, form=forms.MemberAttendanceForm, extra=0)
+            formset = AttendanceFormSet(request.POST)
+            if formset.is_valid():
+                for form in formset:
+                    form.save()
+                attendance_list = formset.save(commit=False)
+                for i, attendance in enumerate(attendance_list):
+                    if not attendance.pk:
+                        attendance_id = request.POST.get("form-%s-id" % (i,), None)
+                        attendance.pk = int(attendance_id) if attendance_id else None
+                    attendance.save()
+                return redirect("/eb/project/%s.html#tbl_attendance" % (project.pk,))
+            else:
+                context.update({'formset': formset})
+                r = render_to_response('project_attendance_list.html', context)
+                return HttpResponse(r)
 
 
 @login_required(login_url='/admin/login/')

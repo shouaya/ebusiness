@@ -255,3 +255,8 @@ section div.dialog .sep {
 section div.dialog form th, section div.dialog form td {
     padding: 5px 5px;
 }
+
+section .errorlist {
+    background: #c11;
+    color: #fff;
+}
