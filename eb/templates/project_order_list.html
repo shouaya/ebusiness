@@ -5,18 +5,38 @@
         window.onload = function() {
             init_select("name");
             init_select("client");
+            init_select("ym");
         };
+
+        function download_request(project_id, order_no, name) {
+            ym = $("#ym").val();
+            window.open("/eb/project/" + project_id + ".html?download=request&order_no=" + order_no + "&request_name=" + name + "&ym=" + ym);
+        }
     </script>
 {% endblock %}
 
 {% block content %}
     <div class="dashboard">
         <div class="dashboard-title">なにをしたいのですか？</div>
-        <form action="{% url 'project_list' %}" method="get">
+        <form action="" method="get">
             <span>名称: </span><input type="text" id="name" name="name" style="width: 100px;"/>
             <span>関連会社: </span><input type="text" id="client" name="client" style="width: 100px;"/>
+            <label for="ym">対象年月</label>
+            <select name="ym" id="ym">
+                {% for year, month in month_list %}
+                    {% ifequal year current_year %}
+                        {% ifequal month current_month %}
+                            <option selected="selected" value="{{ year }}{{ month }}">{{ year }}年{{ month}}月</option>
+                        {% else %}
+                            <option value="{{ year }}{{ month }}">{{ year }}年{{ month}}月</option>
+                        {% endifequal %}
+                    {% else %}
+                        <option value="{{ year }}{{ month }}">{{ year }}年{{ month}}月</option>
+                    {% endifequal %}
+                {% endfor %}
+            </select>
             <input type="submit" value="Filter" />
-            <a href="{% url 'admin:eb_project_add' %}?from=portal" class="button" target="_blank">案件を追加</a>
+            <a href="{% url 'admin:eb_project_add' %}?from=portal&_popup=1" class="button" target="_blank">案件を追加</a>
         </form>
     </div>
     <table class="list" cellpadding="0" cellspacing="0">
@@ -52,26 +72,31 @@
                 </th>
                 <th>注文書情報</th>
                 <th></th>
+                <th style="width: 150px;"></th>
             </tr>
         </thead>
         <tbody>
             {% if projects %}
-                {% for project in projects %}
+                {% for project, order in projects %}
                     <tr class="{% cycle 'row1' 'row2' %}">
                         <td style="width: 250px; white-space: nowrap; overflow: hidden;">
                             <a href="{% url 'project_detail' project.pk %}" title="{{ project.name }}">{{ project.name }}</a>
                         </td>
                         <td>{{ project.client.name }}</td>
-                        {% if project.get_order_by_month %}
+                        {% if order %}
                             <td><img width="12px" src="/static/img/icon-normal.png"/></td>
                             <td class="center">
-                                <a href="{% url 'admin:eb_clientorder_change' project.get_order_by_month.pk %}?project_id={{ project.pk }}&from=portal" target="_blank">編集</a>
+                                <a href="{% url 'admin:eb_clientorder_change' order.pk %}?project_id={{ project.pk }}&from=portal&_popup=1" target="_blank">編集</a>
+                            </td>
+                            <td class="center">
+                                <a href="javascript:download_request({{ project.pk }}, '{{ order.order_no }}', '{{ order.name }}')" target="_blank">請求書ダウンロード</a>
                             </td>
                         {% else %}
                             <td><img width="12px" src="/static/img/icon-warn.png"/></td>
                             <td class="center">
-                                <a href="{% url 'admin:eb_clientorder_add' %}?project_id={{ project.pk }}&from=portal" target="_blank">追加</a>
+                                <a href="{% url 'admin:eb_clientorder_add' %}?project_id={{ project.pk }}&from=portal&_popup=1" target="_blank">追加</a>
                             </td>
+                            <td></td>
                         {% endif %}
                     </tr>
                 {% endfor %}

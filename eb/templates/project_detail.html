@@ -285,9 +285,7 @@
                                 </div>
                             </td>
                         {% else %}
-                            <td></td>
-                            <td></td>
-                            <td></td>
+                            <td colspan="3"><img width="12px" src="/static/img/icon-warn.png"/></td>
                             <td class="center">
                                 <a href="{% url 'admin:eb_clientorder_add' %}?project_id={{ project.pk }}&from=portal&_popup=1" target="_blank">追加</a>
                             </td>
@@ -296,7 +294,7 @@
                     </tr>
                 {% endfor %}
             {% else %}
-                <tr class="row2"><td class="center red" colspan="5">注文履歴がありません。</td></tr>
+                <tr class="row1"><td class="center red" colspan="6">注文履歴がありません。</td></tr>
             {% endif %}
         </tbody>
     </table>
@@ -331,7 +329,7 @@
                     </tr>
                 {% endfor %}
             {% else %}
-                <tr class="row2"><td class="center red" colspan="3">案件の開始日付と終了日付は正しく入力されたかどうかをご確認ください。</td></tr>
+                <tr class="row1"><td class="center red" colspan="3">案件の開始日付と終了日付は正しく入力されたかどうかをご確認ください。</td></tr>
             {% endif %}
         </tbody>
     </table>

@@ -23,9 +23,10 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.auth.decorators import login_required
 from django.conf import settings
 from django.forms.models import modelformset_factory
+from django.db.models import Max
 
 from utils import constants, common, errors, loader as file_loader, file_gen
-from .models import Company, Member, Section, Project, ProjectMember, Salesperson, MemberAttendance
+from .models import Company, Member, Section, Project, ProjectMember, Salesperson, MemberAttendance, Subcontractor
 from . import forms
 
 
@@ -263,9 +264,15 @@ def project_list(request):
 
 def project_order_list(request):
     company = get_company()
+    name = request.GET.get('name', None)
+    client = request.GET.get('client', None)
+    ym = request.GET.get('ym', None)
+    if not ym:
+        today = datetime.date.today()
+        ym = "%s%02d" % (today.year, today.month)
     o = request.GET.get('o', None)
-    dict_order = common.get_ordering_dict(o, ['name', 'client__name', 'salesperson__first_name', 'boss__name',
-                                              'middleman__name'])
+    params = ""
+    dict_order = common.get_ordering_dict(o, ['name', 'client__name'])
     order_list = common.get_ordering_list(o)
 
     all_projects = Project.objects.public_filter(status=4)
@@ -273,7 +280,19 @@ def project_order_list(request):
     if order_list:
         all_projects = all_projects.order_by(*order_list)
 
-    paginator = Paginator(all_projects, PAGE_SIZE)
+    if name:
+        all_projects = all_projects.filter(name__contains=name)
+        params += "&name=%s" % (name,)
+    if client:
+        all_projects = [project for project in all_projects if client in project.client.name]
+        params += "&client=%s" % (client,)
+
+    all_project_orders = []
+    for project in all_projects:
+        client_order = project.get_order_by_month(ym[:4], ym[4:])
+        all_project_orders.append((project, client_order))
+
+    paginator = Paginator(all_project_orders, PAGE_SIZE)
     page = request.GET.get('page')
     try:
         projects = paginator.page(page)
@@ -288,6 +307,9 @@ def project_order_list(request):
         'projects': projects,
         'paginator': paginator,
         'dict_order': dict_order,
+        'month_list': common.get_month_list(-1, 1),
+        'current_year': str(datetime.date.today().year),
+        'current_month': str("%02d" % (datetime.date.today().month,)),
     })
     template = loader.get_template('project_order_list.html')
     return HttpResponse(template.render(context))
@@ -491,7 +513,7 @@ def release_list(request):
     if order_list:
         all_project_members = all_project_members.order_by(*order_list)
 
-    filter_list = common.get_release_months(3)
+    filter_list = common.get_month_list()
 
     paginator = Paginator(all_project_members, PAGE_SIZE)
     page = request.GET.get('page')
@@ -806,3 +828,48 @@ def get_cost(code):
             if item['EMPLOYER_NO'] == code:
                 return item['ALLOWANLE_COST'] if item['ALLOWANLE_COST'] != "-" else 0
     return 0
+
+
+@login_required(login_url='/admin/login/')
+def sync_db2(request):
+    context = {
+        'title': u'社員管理DBのデータを同期する。',
+        'site_header': admin.site.site_header,
+        'site_title': admin.site.site_title,
+    }
+    context.update(csrf(request))
+    if request.method == 'GET':
+        pass
+    else:
+        data = request.POST.get('dict_members', None)
+        if data:
+            dict_members = json.loads(data)
+            if dict_members['members']:
+                for dict_member in dict_members['members']:
+                    company_name = dict_member['company_name']
+                    first_name = dict_member['first_name']
+                    last_name = dict_member['last_name']
+                    cost = dict_member['cost']
+                    postcode = dict_member['postcode']
+                    address = dict_member['address']
+                    tel = dict_member['tel']
+
+                    try:
+                        subcontractor = Subcontractor.objects.get(name=company_name)
+                    except ObjectDoesNotExist:
+                        subcontractor = Subcontractor(name=company_name, post_code=postcode, address1=address, tel=tel)
+                        subcontractor.save()
+
+                    if Member.objects.filter(member_type=4, first_name=first_name, last_name=last_name,
+                                             subcontractor=subcontractor).count() == 0:
+                        member = Member(first_name=first_name, last_name=last_name, member_type=4,
+                                        subcontractor=subcontractor, cost=cost)
+                        max_employee_id = Member.objects.filter(employee_id__gte=10000).aggregate(Max('employee_id'))
+                        member.employee_id = common.get_next_employee_id(max_employee_id.get('employee_id__max'))
+                        member.save()
+                context.update({
+                    'messages': [u"完了しました。"],
+                })
+
+    r = render_to_response('syncdb2.html', context)
+    return HttpResponse(r)

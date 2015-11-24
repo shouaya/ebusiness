@@ -37,17 +37,13 @@ def get_last_day_current_month():
     return get_last_day_by_month(datetime.date.today())
 
 
-def get_release_months(cnt):
-    if not cnt:
-        cnt = 3
-
-    now = datetime.date.today()
-    release_month_list = []
-    for i in range(cnt):
-        next_month = add_months(now, i)
-        release_month_list.append((next_month.year, next_month.month))
-
-    return release_month_list
+def get_month_list(start=0, end=2):
+    today = datetime.date.today()
+    month_list = []
+    for i in range(start, end + 1):
+        next_month = add_months(today, i)
+        month_list.append((str(next_month.year), "%02d" % (next_month.month,)))
+    return month_list
 
 
 def get_ordering_dict(data, fields):
@@ -597,7 +593,9 @@ def get_first_last_ja_name(name):
         return None, None
 
 
-def get_next_employee_id(max_employee_id):
+def get_next_employee_id(max_employee_id, min_value=10000):
+    if not max_employee_id:
+        return min_value
     m = re.search(r"^[A-Za-z]*", max_employee_id)
     prefix = m.group()
     m = re.search(r"[0-9]+", max_employee_id)

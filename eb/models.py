@@ -43,7 +43,7 @@ class AbstractMember(models.Model):
                                     help_text=u"漢字ごとに先頭文字は大文字にしてください（例：XiaoWang）")
     sex = models.CharField(blank=True, null=True, max_length=1, choices=constants.CHOICE_SEX, verbose_name=u"性別")
     country = models.CharField(blank=True, null=True, max_length=20, verbose_name=u"国籍・地域")
-    birthday = models.DateField(blank=True, null=True, default=datetime.date.today(), verbose_name=u"生年月日")
+    birthday = models.DateField(blank=True, null=True, verbose_name=u"生年月日")
     graduate_date = models.DateField(blank=True, null=True, verbose_name=u"卒業年月日")
     join_date = models.DateField(blank=True, null=True, default=datetime.date.today(), verbose_name=u"入社年月日")
     email = models.EmailField(blank=True, null=True, verbose_name=u"メールアドレス")
@@ -823,26 +823,6 @@ class Project(models.Model):
         last_day = common.get_last_day_by_month(now)
         return self.projectmember_set.public_filter(start_date__lte=last_day, end_date__gte=first_day)
 
-    def get_order_by_month(self, date=None):
-        """指定年月の注文履歴を取得する。
-
-        Arguments：
-          year: 指定年
-          month: 指定月
-
-        Returns：
-          ClientOrder のインスタンス
-
-        Raises：
-          なし
-        """
-        if not date:
-            date = datetime.date.today()
-        try:
-            return self.clientorder_set.get(start_date__lte=date, end_date__gte=date)
-        except ObjectDoesNotExist:
-            return None
-
     def get_expenses(self, year, month):
         """指定年月の清算リストを取得する。
 
@@ -860,6 +840,32 @@ class Project(models.Model):
                                                     year=str(year),
                                                     month=str(month)).order_by('category__name')
 
+    def get_order_by_month(self, year, month):
+        """指定年月の注文履歴を取得する。
+
+        Arguments：
+          year: 指定年
+          month: 指定月
+
+        Returns：
+          ClientOrder のインスタンス
+
+        Raises：
+          なし
+        """
+        ym = year + month
+        query_set = ClientOrder.objects.raw(u"select co.*"
+                                            u"  from eb_clientorder co"
+                                            u" where date_format(co.start_date, '%%Y%%m') <= %s"
+                                            u"   and date_format(co.end_date, '%%Y%%m') >= %s"
+                                            u"   and co.project_id = %s"
+                                            u"   and co.is_deleted = 0", [ym, ym, self.pk])
+        orders = list(query_set)
+        if orders:
+            return ClientOrder.objects.get(pk=orders[0].pk)
+        else:
+            return None
+
     def get_year_month_order_finished(self):
         """案件の月単位の註文書を取得する。
 
@@ -874,18 +880,8 @@ class Project(models.Model):
         """
         ret_value = []
         for year, month in common.get_year_month_list(self.start_date, self.end_date):
-            ym = year + month
-            query_set = ClientOrder.objects.raw(u"select co.*"
-                                                u"  from eb_clientorder co"
-                                                u" where date_format(co.start_date, '%%Y%%m') <= %s"
-                                                u"   and date_format(co.end_date, '%%Y%%m') >= %s"
-                                                u"   and co.project_id = %s"
-                                                u"   and co.is_deleted = 0", [ym, ym, self.pk])
-            orders = list(query_set)
-            if orders:
-                ret_value.append((year, month, ClientOrder.objects.get(pk=orders[0].pk)))
-            else:
-                ret_value.append((year, month, None))
+            client_order = self.get_order_by_month(year, month)
+            ret_value.append((year, month, client_order))
         return ret_value
 
     def get_year_month_attendance_finished(self):
