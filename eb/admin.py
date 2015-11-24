@@ -4,7 +4,7 @@ Created on 2015/08/21
 
 @author: Yang Wanjun
 """
-import datetime
+import os
 
 from django.http import HttpResponse
 from django.contrib import admin
@@ -181,7 +181,7 @@ class MemberAdmin(admin.ModelAdmin):
     list_display = ['employee_id', get_full_name, 'section', 'subcontractor', 'salesperson',
                     'user', 'is_retired', 'is_deleted']
     list_display_links = [get_full_name]
-    list_filter = ['member_type', 'section', 'subcontractor', 'salesperson', NoUserFilter,
+    list_filter = ['member_type', 'section', 'salesperson', NoUserFilter,
                    'is_retired', 'is_deleted']
     search_fields = ['first_name', 'last_name']
     inlines = (DegreeInline,)
@@ -453,12 +453,21 @@ class ClientAdmin(admin.ModelAdmin):
 
     form = forms.ClientForm
 
-    list_display = ['name', 'is_deleted']
+    list_display = ['name', 'is_request_uploaded', 'is_deleted']
     list_filter = ['is_deleted']
     actions = ['delete_objects', 'active_objects']
 
     class Media:
         js = ('http://ajaxzip3.googlecode.com/svn/trunk/ajaxzip3/ajaxzip3.js',)
+
+    def is_request_uploaded(self, obj):
+        if obj.request_file and os.path.exists(obj.request_file.path):
+            return True
+        else:
+            return False
+
+    is_request_uploaded.short_description = u"請求書テンプレート"
+    is_request_uploaded.boolean = True
 
     def get_actions(self, request):
         actions = super(ClientAdmin, self).get_actions(request)

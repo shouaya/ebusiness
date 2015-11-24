@@ -18,6 +18,8 @@ except:
 import constants
 import common
 import errors
+from django.contrib.humanize.templatetags.humanize import intcomma
+
 
 def generate_resume(member):
     output = StringIO.StringIO()
@@ -634,6 +636,7 @@ def generate_request(project, company, request_name=None, request_no=None, order
     data['ITEM_AMOUNT_ATTENDANCE_TAX'] = int(members_amount * 0.08)  # 出勤のトータル金額の税金
     data['ITEM_AMOUNT_ATTENDANCE_ALL'] = members_amount + data['ITEM_AMOUNT_ATTENDANCE_TAX']
     data['ITEM_AMOUNT_ALL'] = data['ITEM_AMOUNT_ATTENDANCE_ALL'] + expenses_amount
+    data['ITEM_AMOUNT_ALL_COMMA'] = intcomma(data['ITEM_AMOUNT_ALL'])
 
     replace_excel_dict(sheet, data)
 

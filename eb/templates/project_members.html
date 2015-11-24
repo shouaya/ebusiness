@@ -20,7 +20,7 @@
                 <option value="waiting">待機</option>
             </select>
             <input type="submit" value="Filter" />
-            <a href="{% url 'admin:eb_projectmember_add' %}?project_id={{ project.pk }}&from=portal"
+            <a href="{% url 'admin:eb_projectmember_add' %}?project_id={{ project.pk }}&from=portal&_popup=1"
                target="_blank" class="button">要員をアサイン</a>
         </form>
     </div>
@@ -106,7 +106,7 @@
                         <td>{{ project_member.start_date|date:"Y-m-d" }}</td>
                         <td>{{ project_member.end_date|date:"Y-m-d" }}</td>
                         <td>{{ project_member.price|intcomma }}</td>
-                        <td class="center"><a href="{% url 'admin:eb_projectmember_change' project_member.id %}?from=portal" target="_blank">編集</a></td>
+                        <td class="center"><a href="{% url 'admin:eb_projectmember_change' project_member.id %}?from=portal&_popup=1" target="_blank">編集</a></td>
                     </tr>
                 {% endfor %}
             {% else %}

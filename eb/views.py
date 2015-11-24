@@ -718,17 +718,20 @@ def sync_db(request):
                     sex = data.get("sex", None)
                     station = data.get("station", None)
                     if employee_code:
-                        if department_name == u"営業部":
+                        if department_name == u"営業部" or employee_code in ('0126', '0198', '0150'):
+                            # 0150 孫雲釵
+                            # 0198 劉 暢
+                            # 0126 丁 玲
                             if Salesperson.objects.filter(employee_id=employee_code).count() == 0:
                                 member = Salesperson(employee_id=employee_code)
                             else:
-                                message_list.append(("WARN", name, birthday, address, u"既に存在しているレコードです。"))
+                                # message_list.append(("WARN", name, birthday, address, u"既に存在しているレコードです。"))
                                 continue
                         else:
                             if Member.objects.filter(employee_id=employee_code).count() == 0:
                                 member = Member(employee_id=employee_code)
                             else:
-                                message_list.append(("WARN", name, birthday, address, u"既に存在しているレコードです。"))
+                                # message_list.append(("WARN", name, birthday, address, u"既に存在しているレコードです。"))
                                 continue
 
                         try:
