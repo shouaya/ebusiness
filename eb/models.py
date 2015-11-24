@@ -606,6 +606,10 @@ class Client(AbstractCompany):
                                      choices=constants.CHOICE_PAYMENT_MONTH, verbose_name=u"支払いサイト")
     payment_day = models.CharField(blank=True, null=True, max_length=2, default='99',
                                    choices=constants.CHOICE_PAYMENT_DAY, verbose_name=u"支払日")
+    tax_rate = models.DecimalField(default=0.08, max_digits=3, decimal_places=2, choices=constants.CHOICE_TAX_RATE,
+                                   verbose_name=u"税率")
+    decimal_type = models.CharField(max_length=1, default='0', choices=constants.CHOICE_DECIMAL_TYPE,
+                                    verbose_name=u"小数の処理区分")
     remark = models.TextField(blank=True, null=True, verbose_name=u"評価")
     comment = models.TextField(blank=True, null=True, verbose_name=u"備考")
     salesperson = models.ForeignKey(Salesperson, blank=True, null=True, verbose_name=u"営業担当")

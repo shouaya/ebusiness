@@ -31,7 +31,11 @@
             <th>終了日付</th><td>{{ project.end_date|date:"Y-m-d" }}</td>
         </tr>
         <tr>
-            <th>出勤の計算区分</th><td colspan="3">{{ project.get_attendance_type_display }}</td>
+            <th>出勤の計算区分</th><td>{{ project.get_attendance_type_display }}</td>
+            <th>税率</th><td>{{ project.client.get_tax_rate_display }}</td>
+        </tr>
+        <tr>
+            <th>小数の処理区分</th><td colspan="3">{{ project.client.get_decimal_type_display }}</td>
         </tr>
     </table>
     <form method="post" action="">

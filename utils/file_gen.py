@@ -633,7 +633,10 @@ def generate_request(project, company, request_name=None, request_no=None, order
     data['detail_members'] = detail_members
     data['detail_expenses'] = detail_expenses  # 清算リスト
     data['ITEM_AMOUNT_ATTENDANCE'] = members_amount
-    data['ITEM_AMOUNT_ATTENDANCE_TAX'] = int(members_amount * 0.08)  # 出勤のトータル金額の税金
+    if project.client.decimal_type == '0':
+        data['ITEM_AMOUNT_ATTENDANCE_TAX'] = int(round(members_amount * project.client.tax_rate))
+    else:
+        data['ITEM_AMOUNT_ATTENDANCE_TAX'] = int(members_amount * project.client.tax_rate)  # 出勤のトータル金額の税金
     data['ITEM_AMOUNT_ATTENDANCE_ALL'] = members_amount + data['ITEM_AMOUNT_ATTENDANCE_TAX']
     data['ITEM_AMOUNT_ALL'] = data['ITEM_AMOUNT_ATTENDANCE_ALL'] + expenses_amount
     data['ITEM_AMOUNT_ALL_COMMA'] = intcomma(data['ITEM_AMOUNT_ALL'])

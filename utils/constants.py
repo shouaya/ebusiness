@@ -4,6 +4,8 @@ Created on 2015/09/28
 
 @author: Yang Wanjun
 """
+from decimal import Decimal
+
 EXCEL_APPLICATION = "Excel.Application"
 EXCEL_FORMAT_EXCEL2003 = 56
 
@@ -131,6 +133,11 @@ CHOICE_ACCOUNT_TYPE = (("1", u"普通預金"),
 CHOICE_ATTENDANCE_TYPE = (('1', u"１５分ごと"),
                           ('2', u"３０分ごと"),
                           ('3', u"１時間ごと"))
+CHOICE_TAX_RATE = ((Decimal('0.00'), u"税なし"),
+                   (Decimal('0.05'), u"5％"),
+                   (Decimal('0.08'), u"8％"))
+CHOICE_DECIMAL_TYPE = (('0', u"四捨五入"),
+                       ('1', u"切り捨て"))
 
 xlPart = 2
 xlByRows = 1
