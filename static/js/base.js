@@ -58,6 +58,70 @@ function hide_dialog(id_dialog) {
     dialog.css('display', 'none');
 }
 
+function calc_plus_minus(obj) {
+    if (obj.id == "id_price") {
+        price = parseFloat($("#id_price").val());
+        min_hours = parseFloat($("#id_min_hours").val());
+        max_hours = parseFloat($("#id_max_hours").val());
+        plus_per_hour = Math.round(price / max_hours);
+        minus_per_hour = Math.round(price / min_hours);
+        $("#id_plus_per_hour").val(plus_per_hour);
+        $("#id_minus_per_hour").val(minus_per_hour);
+    } else {
+        row_id = $(obj).parent().parent().attr("id");
+        price = parseFloat($(obj).val());
+        obj_min_hour = $("#id_" + row_id + "-min_hours");
+        obj_max_hour = $("#id_" + row_id + "-max_hours");
+        obj_plus = $("#id_" + row_id + "-plus_per_hour");
+        obj_minus = $("#id_" + row_id + "-minus_per_hour");
+        min_hours = parseFloat(obj_min_hour.val());
+        max_hours = parseFloat(obj_max_hour.val());
+
+        plus_per_hour = Math.round(price / max_hours);
+        minus_per_hour = Math.round(price / min_hours);
+        obj_plus.val(plus_per_hour);
+        obj_minus.val(minus_per_hour);
+    }
+}
+
+function calc_minus_from_min_hour(obj) {
+    if (obj.id == "id_min_hours") {
+        price = parseFloat($("#id_price").val());
+        min_hours = parseFloat($("#id_min_hours").val());
+        minus_per_hour = Math.round(price / min_hours);
+        $("#id_minus_per_hour").val(minus_per_hour);
+    } else {
+        row_id = $(obj).parent().parent().attr("id");
+        obj_price = $("#id_" + row_id + "-price");
+        obj_min_hour = $("#id_" + row_id + "-min_hours");
+        obj_minus = $("#id_" + row_id + "-minus_per_hour");
+        price = parseFloat(obj_price.val());
+        min_hours = parseFloat(obj_min_hour.val());
+
+        minus_per_hour = Math.round(price / min_hours);
+        obj_minus.val(minus_per_hour);
+    }
+}
+
+function calc_plus_from_max_hour(obj) {
+    if (obj.id == "id_max_hours") {
+        price = parseFloat($("#id_price").val());
+        max_hours = parseFloat($("#id_max_hours").val());
+        plus_per_hour = Math.round(price / max_hours);
+        $("#id_plus_per_hour").val(plus_per_hour);
+    } else {
+        row_id = $(obj).parent().parent().attr("id");
+        obj_price = $("#id_" + row_id + "-price");
+        obj_max_hour = $("#id_" + row_id + "-max_hours");
+        obj_plus = $("#id_" + row_id + "-plus_per_hour");
+        price = parseFloat(obj_price.val());
+        max_hours = parseFloat(obj_max_hour.val());
+
+        plus_per_hour = Math.round(price / max_hours);
+        obj_plus.val(plus_per_hour);
+    }
+}
+
 function calc_extra_hours(obj) {
     price = $("#id_price").val();
     min_hours = $("#id_min_hours").val();

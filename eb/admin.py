@@ -381,7 +381,8 @@ class ProjectAdmin(admin.ModelAdmin):
     class Media:
         js = ('/static/js/jquery-2.1.4.min.js',
               '/static/js/filterlist.js',
-              '/static/js/select_filter.js')
+              '/static/js/select_filter.js',
+              '/static/js/base.js')
 
     def get_actions(self, request):
         actions = super(ProjectAdmin, self).get_actions(request)

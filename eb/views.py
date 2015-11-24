@@ -385,8 +385,8 @@ def project_attendance_list(request, project_id):
                              'rate': attendance.rate,
                              'total_hours': attendance.total_hours,
                              'extra_hours': attendance.extra_hours,
-                             'plus_per_hour': attendance.plus_per_hour,
-                             'minus_per_hour': attendance.minus_per_hour,
+                             'plus_per_hour': project_member.plus_per_hour,
+                             'minus_per_hour': project_member.minus_per_hour,
                              'price': attendance.price,
                              'comment': attendance.comment,
                              }
@@ -397,6 +397,8 @@ def project_attendance_list(request, project_id):
                              'basic_price': project_member.price,
                              'max_hours': project_member.max_hours,
                              'min_hours': project_member.min_hours,
+                             'plus_per_hour': project_member.plus_per_hour,
+                             'minus_per_hour': project_member.minus_per_hour,
                              }
                     dict_initials.append(d)
                 AttendanceFormSet = modelformset_factory(MemberAttendance, form=forms.MemberAttendanceFormSet, extra=len(project_members))
