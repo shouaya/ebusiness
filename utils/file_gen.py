@@ -550,17 +550,17 @@ def generate_request(project, company, request_name=None, request_no=None, order
             # 率
             dict_expenses['ITEM_RATE'] = attendance.rate if attendance.rate else 1
             # 減（円）
-            if attendance.minus_per_hour is None:
+            if project_member.minus_per_hour is None:
                 dict_expenses['ITEM_MINUS_PER_HOUR'] = (project_member.price / project_member.min_hours) \
                     if attendance else u""
             else:
-                dict_expenses['ITEM_MINUS_PER_HOUR'] = attendance.minus_per_hour
+                dict_expenses['ITEM_MINUS_PER_HOUR'] = project_member.minus_per_hour
             # 増（円）
-            if attendance.plus_per_hour is None:
+            if project_member.plus_per_hour is None:
                 dict_expenses['ITEM_PLUS_PER_HOUR'] = (project_member.price / project_member.max_hours) \
                     if attendance else u""
             else:
-                dict_expenses['ITEM_PLUS_PER_HOUR'] = attendance.plus_per_hour
+                dict_expenses['ITEM_PLUS_PER_HOUR'] = project_member.plus_per_hour
 
             if attendance.extra_hours > 0:
                 dict_expenses['ITEM_AMOUNT_EXTRA'] = attendance.extra_hours * dict_expenses['ITEM_PLUS_PER_HOUR']
@@ -579,6 +579,7 @@ def generate_request(project, company, request_name=None, request_no=None, order
             # 備考
             dict_expenses['ITEM_COMMENT'] = attendance.comment
         else:
+            dict_expenses['ITEM_RATE'] = u""
             dict_expenses['ITEM_AMOUNT_EXTRA'] = u""
             dict_expenses['ITEM_PLUS_PER_HOUR'] = u""
             dict_expenses['ITEM_MINUS_PER_HOUR'] = u""
@@ -586,6 +587,7 @@ def generate_request(project, company, request_name=None, request_no=None, order
             dict_expenses['ITEM_MINUS_PER_HOUR2'] = u""
             dict_expenses['ITEM_WORK_HOURS'] = u""
             dict_expenses['ITEM_EXTRA_HOURS'] = u""
+            dict_expenses['ITEM_COMMENT'] = u""
             # 基本金額＋残業金額
             dict_expenses['ITEM_AMOUNT_TOTAL'] = project_member.price
 
@@ -627,6 +629,12 @@ def generate_request(project, company, request_name=None, request_no=None, order
             expenses_amount += expenses.price
         d['ITEM_EXPENSES_CATEGORY_SUMMARY'] = u"%s(%s)" % (key, u"、".join(member_list))
         d['ITEM_EXPENSES_CATEGORY_AMOUNT'] = amount
+        detail_expenses.append(d)
+    if not dict_expenses:
+        # 清算がない場合、
+        d = dict()
+        d['ITEM_EXPENSES_CATEGORY_SUMMARY'] = u""
+        d['ITEM_EXPENSES_CATEGORY_AMOUNT'] = 0
         detail_expenses.append(d)
 
     data['detail_all'] = detail_all

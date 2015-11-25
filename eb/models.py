@@ -840,9 +840,9 @@ class Project(models.Model):
         Raises：
           なし
         """
-        return MemberExpenses.objects.public_filter(project_member__project=self,
-                                                    year=str(year),
-                                                    month=str(month)).order_by('category__name')
+        return MemberExpenses.objects.filter(project_member__project=self,
+                                             year=str(year),
+                                             month=str(month)).order_by('category__name')
 
     def get_order_by_month(self, year, month):
         """指定年月の注文履歴を取得する。
@@ -1171,7 +1171,7 @@ class MemberExpenses(models.Model):
     is_deleted = models.BooleanField(default=False, editable=False, verbose_name=u"削除フラグ")
     deleted_date = models.DateTimeField(blank=True, null=True, editable=False, verbose_name=u"削除年月日")
 
-    objects = PublicManager(is_deleted=False, project_member__is_deleted=False, category__is_deleted=False)
+    # objects = PublicManager(is_deleted=False, project_member__is_deleted=False, category__is_deleted=False)
 
     class Meta:
         ordering = ['project_member', 'year', 'month']
@@ -1180,10 +1180,10 @@ class MemberExpenses(models.Model):
     def __unicode__(self):
         return u"%s %s %s" % (self.project_member, self.get_year_display(), self.get_month_display())
 
-    def delete(self, using=None):
-        self.is_deleted = True
-        self.deleted_date = datetime.datetime.now()
-        self.save()
+    # def delete(self, using=None):
+    #     self.is_deleted = True
+    #     self.deleted_date = datetime.datetime.now()
+    #     self.save()
 
 
 class MemberAttendance(models.Model):

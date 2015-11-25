@@ -14,7 +14,7 @@
         <form action="{% url 'release_list' %}" method="get">
             <select id="period" name="period">
                 {% for year, month in filter_list %}
-                    <option value="{{ year }}{{ month|stringformat:'02d' }}">{{ year }} 年 {{ month|stringformat:'02d' }} 月</option>
+                    <option value="{{ year }}{{ month }}">{{ year }} 年 {{ month }} 月</option>
                 {% endfor %}
             </select>
             <input type="submit" value="Filter" />
