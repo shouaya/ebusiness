@@ -88,14 +88,6 @@ class PublicManager(models.Manager):
 
 class Company(AbstractCompany):
 
-    bank_name = models.CharField(blank=True, null=True, max_length=20, verbose_name=u"銀行名称")
-    branch_no = models.CharField(blank=True, null=True, max_length=3, verbose_name=u"支店番号")
-    branch_name = models.CharField(blank=True, null=True, max_length=20, verbose_name=u"支店名称")
-    account_type = models.CharField(blank=True, null=True, max_length=1, choices=constants.CHOICE_ACCOUNT_TYPE,
-                                    verbose_name=u"預金種類")
-    account_number = models.CharField(blank=True, null=True, max_length=7, verbose_name=u"口座番号")
-    account_holder = models.CharField(blank=True, null=True, max_length=20, verbose_name=u"口座名義")
-
     class Meta:
         verbose_name = verbose_name_plural = u"会社"
 
@@ -379,6 +371,33 @@ class Company(AbstractCompany):
             return members[0]
         else:
             return None
+
+
+class BankInfo(models.Model):
+    company = models.ForeignKey(Company, verbose_name=u"会社")
+    bank_name = models.CharField(blank=False, null=False, max_length=20, verbose_name=u"銀行名称")
+    branch_no = models.CharField(blank=False, null=False, max_length=3, verbose_name=u"支店番号")
+    branch_name = models.CharField(blank=False, null=False, max_length=20, verbose_name=u"支店名称")
+    account_type = models.CharField(blank=False, null=False, max_length=1, choices=constants.CHOICE_ACCOUNT_TYPE,
+                                    verbose_name=u"預金種類")
+    account_number = models.CharField(blank=False, null=False, max_length=7, verbose_name=u"口座番号")
+    account_holder = models.CharField(blank=True, null=True, max_length=20, verbose_name=u"口座名義")
+    is_deleted = models.BooleanField(default=False, editable=False, verbose_name=u"削除フラグ")
+    deleted_date = models.DateTimeField(blank=True, null=True, editable=False, verbose_name=u"削除年月日")
+
+    objects = PublicManager(is_deleted=False)
+
+    class Meta:
+        unique_together = ('branch_no', 'account_number')
+        verbose_name = verbose_name_plural = u"銀行口座"
+
+    def __unicode__(self):
+        return self.bank_name
+
+    def delete(self, using=None):
+        self.is_deleted = True
+        self.deleted_date = datetime.datetime.now()
+        self.save()
 
 
 class Subcontractor(AbstractCompany):
@@ -943,6 +962,7 @@ class ClientOrder(models.Model):
     start_date = models.DateField(default=common.get_first_day_current_month(), verbose_name=u"開始日")
     end_date = models.DateField(default=common.get_last_day_current_month(), verbose_name=u"終了日")
     order_no = models.CharField(max_length=20, verbose_name=u"注文番号")
+    bank_info = models.ForeignKey(BankInfo, blank=False, null=True, verbose_name=u"振込先口座")
     order_file = models.FileField(blank=True, null=True, upload_to=get_client_order_path, verbose_name=u"注文書")
     is_deleted = models.BooleanField(default=False, editable=False, verbose_name=u"削除フラグ")
     deleted_date = models.DateTimeField(blank=True, null=True, editable=False, verbose_name=u"削除年月日")

@@ -427,7 +427,7 @@ def generate_resume(member):
     return output
 
 
-def generate_request(project, company, request_name=None, request_no=None, order_no=None, ym=None):
+def generate_request(project, company, request_name=None, request_no=None, order_no=None, ym=None, bank=None):
     """請求書を出力する。
 
     Arguments：
@@ -506,17 +506,17 @@ def generate_request(project, company, request_name=None, request_no=None, order
     # 本社電話番号
     data['TEL'] = company.tel
     # 振込先銀行名称
-    data['BANK_NAME'] = company.bank_name
+    data['BANK_NAME'] = bank.bank_name if bank else u""
     # 支店番号
-    data['BRANCH_NO'] = company.branch_no
+    data['BRANCH_NO'] = bank.branch_no if bank else u""
     # 支店名称
-    data['BRANCH_NAME'] = company.branch_name
+    data['BRANCH_NAME'] = bank.branch_name if bank else u""
     # 預金種類
-    data['ACCOUNT_TYPE'] = company.get_account_type_display()
+    data['ACCOUNT_TYPE'] = bank.get_account_type_display() if bank else u""
     # 口座番号
-    data['ACCOUNT_NUMBER'] = company.account_number
+    data['ACCOUNT_NUMBER'] = bank.account_number if bank else u""
     # 口座名義人
-    data['BANK_ACCOUNT_HOLDER'] = company.account_holder
+    data['BANK_ACCOUNT_HOLDER'] = bank.account_holder if bank else u""
 
     # 全員の合計明細
     detail_all = dict()

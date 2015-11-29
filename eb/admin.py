@@ -16,7 +16,7 @@ import forms
 from .models import Company, Section, Member, Salesperson, Project, Client, ClientMember, \
     ProjectMember, Skill, ProjectSkill, ProjectActivity, Subcontractor, PositionShip,\
     ProjectStage, OS, HistoryProject, MemberAttendance, Degree, ClientOrder, \
-    create_group_salesperson, MemberExpenses, ExpensesCategory
+    create_group_salesperson, MemberExpenses, ExpensesCategory, BankInfo
 from utils import common
 
 
@@ -132,6 +132,39 @@ class CompanyAdmin(admin.ModelAdmin):
             return False
         else:
             return True
+
+
+class BankInfoAdmin(admin.ModelAdmin):
+
+    list_display = ['bank_name', 'is_deleted']
+    actions = ['delete_objects', 'active_objects']
+
+    def get_form(self, request, obj=None, **kwargs):
+        form = super(BankInfoAdmin, self).get_form(request, obj, **kwargs)
+        company = Company.objects.all()[0]
+        if company:
+            form.base_fields['company'].initial = company
+        return form
+
+    def delete_objects(self, request, queryset):
+        cnt = 0
+        for obj in queryset:
+            if not obj.is_deleted:
+                obj.delete()
+                cnt += 1
+        self.message_user(request,  str(cnt) + u"件選択された対象が削除されました。")
+
+    def active_objects(self, request, queryset):
+        cnt = 0
+        for obj in queryset:
+            if obj.is_deleted:
+                obj.is_deleted = False
+                obj.save()
+                cnt += 1
+        self.message_user(request,  str(cnt) + u"件選択された対象が復活しました。")
+
+    delete_objects.short_description = u"選択されたレコードを削除する。"
+    active_objects.short_description = u"選択されたレコードを復活する。"
 
 
 class SectionAdmin(admin.ModelAdmin):
@@ -516,10 +549,13 @@ class ClientOrderAdmin(admin.ModelAdmin):
     def get_form(self, request, obj=None, **kwargs):
         form = super(ClientOrderAdmin, self).get_form(request, obj, **kwargs)
         project_id = request.GET.get('project_id', None)
+        banks = BankInfo.objects.public_all()
         if project_id:
             project = Project.objects.get(pk=project_id)
             form.base_fields['project'].initial = project
             form.base_fields['name'].initial = project.name
+        if banks.count() > 0:
+            form.base_fields['bank_info'].initial = banks[0]
         return form
 
     def delete_objects(self, request, queryset):
@@ -888,6 +924,7 @@ class HistoryProjectAdmin(admin.ModelAdmin):
 
 # Register your models here.
 admin.site.register(Company, CompanyAdmin)
+admin.site.register(BankInfo, BankInfoAdmin)
 admin.site.register(Section, SectionAdmin)
 admin.site.register(Member, MemberAdmin)
 admin.site.register(Salesperson, SalespersonAdmin)

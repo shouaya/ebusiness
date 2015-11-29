@@ -277,6 +277,20 @@
                                                 </td>
                                             </tr>
                                             <tr>
+                                                <th>振込先銀行</th>
+                                                <td colspan="3" style="text-align: left;">
+                                                    <select name="bank">
+                                                        {% for bank_info in banks %}
+                                                            {% ifequal client_order.bank_info.pk bank_info.pk %}
+                                                                <option value="{{ bank_info.pk }}" selected>{{ bank_info }}</option>
+                                                            {% else %}
+                                                                <option value="{{ bank_info.pk }}">{{ bank_info }}</option>
+                                                            {% endifequal %}
+                                                        {% endfor %}
+                                                    </select>
+                                                </td>
+                                            </tr>
+                                            <tr>
                                                 <td colspan="4" style="text-align: center;">
                                                     <input type="hidden" name="download" value="request"/>
                                                     <input type="submit" value="請求書をダウンロード"/>

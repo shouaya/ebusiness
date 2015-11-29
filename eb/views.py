@@ -26,7 +26,8 @@ from django.forms.models import modelformset_factory
 from django.db.models import Max
 
 from utils import constants, common, errors, loader as file_loader, file_gen
-from .models import Company, Member, Section, Project, ProjectMember, Salesperson, MemberAttendance, Subcontractor
+from .models import Company, Member, Section, Project, ProjectMember, Salesperson, \
+    MemberAttendance, Subcontractor, BankInfo
 from . import forms
 
 
@@ -327,7 +328,12 @@ def project_detail(request, project_id):
             request_no = request.GET.get("request_no", None)
             order_no = request.GET.get("order_no", None)
             ym = request.GET.get("ym", None)
-            path = file_gen.generate_request(project, company, request_name, request_no, order_no, ym)
+            bank_id = request.GET.get('bank', None)
+            try:
+                bank = BankInfo.objects.get(pk=bank_id)
+            except ObjectDoesNotExist:
+                bank = None
+            path = file_gen.generate_request(project, company, request_name, request_no, order_no, ym, bank)
             filename = "請求書（%s年%02d月）.xls" % (int(ym[:4]), int(ym[4:]))
             response = HttpResponse(open(path, 'rb'), content_type="application/excel")
             response['Content-Disposition'] = "filename=" + urllib.quote(filename)
@@ -342,6 +348,7 @@ def project_detail(request, project_id):
             'company': company,
             'title': u'%s - 案件詳細' % (project.name,),
             'project': project,
+            'banks': BankInfo.objects.public_all(),
             'order_month_list': project.get_year_month_order_finished(),
             'attendance_month_list': project.get_year_month_attendance_finished(),
         })
