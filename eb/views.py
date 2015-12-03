@@ -325,7 +325,6 @@ def project_detail(request, project_id):
     if download == constants.DOWNLOAD_REQUEST:
         try:
             request_name = request.GET.get("request_name", None)
-            request_no = request.GET.get("request_no", None)
             order_no = request.GET.get("order_no", None)
             ym = request.GET.get("ym", None)
             bank_id = request.GET.get('bank', None)
@@ -333,7 +332,7 @@ def project_detail(request, project_id):
                 bank = BankInfo.objects.get(pk=bank_id)
             except ObjectDoesNotExist:
                 bank = None
-            path = file_gen.generate_request(project, company, request_name, request_no, order_no, ym, bank)
+            path = file_gen.generate_request(project, company, request_name, order_no, ym, bank)
             filename = "請求書（%s年%02d月）.xls" % (int(ym[:4]), int(ym[4:]))
             response = HttpResponse(open(path, 'rb'), content_type="application/excel")
             response['Content-Disposition'] = "filename=" + urllib.quote(filename)

@@ -5,10 +5,13 @@ Created on 2015/08/20
 @author: Yang Wanjun
 """
 import datetime
+import re
 
 from django.db import models
 from django.contrib.auth.models import User, Group, Permission
 from django.core.exceptions import ObjectDoesNotExist
+from django.db.models import Max
+
 
 from utils import common, constants
 
@@ -944,6 +947,35 @@ class Project(models.Model):
                 ret_value.append((year + month, False if len(project_members) > 0 else True))
         return ret_value
 
+    def get_request_no(self, str_year, str_month):
+        """請求番号を取得する。
+
+        Arguments：
+          str_year: 対象年
+          str_month: 対象月
+
+        Returns：
+          "yyyymm001"の請求番号
+
+        Raises：
+          なし
+        """
+        if self.projectrequest_set.filter(year=str_year, month=str_month).count() == 0:
+            # 指定年月の請求番号がない場合、請求番号を発行する。
+            max_request_no = ProjectRequest.objects.filter(year=str_year, month=str_month).aggregate(Max('request_no'))
+            request_no = max_request_no.get('request_no__max')
+            if request_no and re.match(r"^([0-9]{7}|[0-9]{7}-[0-9]{3})$", request_no):
+                no = request_no[4:7]
+                no = "%03d" % (int(no),)
+                next_request = "%s%s%s" % (str_year[2:], str_month, no)
+            else:
+                next_request = "%s%s%s" % (str_year[2:], str_month, "001")
+        else:
+            # 存在する場合、そのまま使う、再発行はしません。
+            project_request = self.projectrequest_set.filter(year=str_year, month=str_month)[0]
+            next_request = project_request.request_no
+        return next_request
+
     def delete(self, using=None):
         self.is_deleted = True
         self.deleted_date = datetime.datetime.now()
@@ -981,6 +1013,14 @@ class ClientOrder(models.Model):
         self.is_deleted = True
         self.deleted_date = datetime.datetime.now()
         self.save()
+
+
+class ProjectRequest(models.Model):
+    project = models.ForeignKey(Project, verbose_name=u"案件")
+    year = models.CharField(max_length=4, default=str(datetime.date.today().year),
+                            choices=constants.CHOICE_ATTENDANCE_YEAR, verbose_name=u"対象年")
+    month = models.CharField(max_length=2, choices=constants.CHOICE_ATTENDANCE_MONTH, verbose_name=u"対象月")
+    request_no = models.CharField(max_length=7, verbose_name=u"請求番号")
 
 
 class ProjectActivity(models.Model):

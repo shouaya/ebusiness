@@ -427,7 +427,7 @@ def generate_resume(member):
     return output
 
 
-def generate_request(project, company, request_name=None, request_no=None, order_no=None, ym=None, bank=None):
+def generate_request(project, company, request_name=None, order_no=None, ym=None, bank=None):
     """請求書を出力する。
 
     Arguments：
@@ -464,7 +464,11 @@ def generate_request(project, company, request_name=None, request_no=None, order
             month = ym[4:]
             date = datetime.date(int(year), int(month), 1)
         except:
-            pass
+            year = str(date.year)
+            month = "%02d" % (date.month,)
+    else:
+        year = str(date.year)
+        month = "%02d" % (date.month,)
 
     data = dict()
     # お客様郵便番号
@@ -490,7 +494,7 @@ def generate_request(project, company, request_name=None, request_no=None, order
     # お支払い期限
     data['REMIT_DATE'] = project.client.get_pay_date(date=date).strftime('%Y/%m/%d')
     # 請求番号
-    data['REQUEST_NO'] = request_no if request_no else u""
+    data['REQUEST_NO'] = project.get_request_no(year, month)
     # 発行日
     now = datetime.date.today()
     data['PUBLISH_DATE'] = u"%d年%02d月%02d日" % (now.year, now.month, now.day)
