@@ -947,7 +947,7 @@ class Project(models.Model):
                 ret_value.append((year + month, False if len(project_members) > 0 else True))
         return ret_value
 
-    def get_request_no(self, str_year, str_month):
+    def get_project_request(self, str_year, str_month):
         """請求番号を取得する。
 
         Arguments：
@@ -966,15 +966,16 @@ class Project(models.Model):
             request_no = max_request_no.get('request_no__max')
             if request_no and re.match(r"^([0-9]{7}|[0-9]{7}-[0-9]{3})$", request_no):
                 no = request_no[4:7]
-                no = "%03d" % (int(no),)
+                no = "%03d" % (int(no) + 1,)
                 next_request = "%s%s%s" % (str_year[2:], str_month, no)
             else:
                 next_request = "%s%s%s" % (str_year[2:], str_month, "001")
+            project_request = ProjectRequest(project=self, year=str_year, month=str_month, request_no=next_request)
+            return project_request
         else:
             # 存在する場合、そのまま使う、再発行はしません。
             project_request = self.projectrequest_set.filter(year=str_year, month=str_month)[0]
-            next_request = project_request.request_no
-        return next_request
+            return project_request
 
     def delete(self, using=None):
         self.is_deleted = True
@@ -1021,6 +1022,7 @@ class ProjectRequest(models.Model):
                             choices=constants.CHOICE_ATTENDANCE_YEAR, verbose_name=u"対象年")
     month = models.CharField(max_length=2, choices=constants.CHOICE_ATTENDANCE_MONTH, verbose_name=u"対象月")
     request_no = models.CharField(max_length=7, verbose_name=u"請求番号")
+    amount = models.IntegerField(default=0, verbose_name=u"請求金額")
 
 
 class ProjectActivity(models.Model):

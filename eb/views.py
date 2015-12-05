@@ -1,4 +1,4 @@
-# coding: UTF-8
+# coding: utf8
 """
 Created on 2015/08/21
 
@@ -328,12 +328,13 @@ def project_detail(request, project_id):
             order_no = request.GET.get("order_no", None)
             ym = request.GET.get("ym", None)
             bank_id = request.GET.get('bank', None)
+            now = datetime.datetime.now()
             try:
                 bank = BankInfo.objects.get(pk=bank_id)
             except ObjectDoesNotExist:
                 bank = None
-            path = file_gen.generate_request(project, company, request_name, order_no, ym, bank)
-            filename = "請求書（%s年%02d月）.xls" % (int(ym[:4]), int(ym[4:]))
+            path, request_no = file_gen.generate_request(project, company, request_name, order_no, ym, bank)
+            filename = "EB請求書_%s_%s.xls" % (str(request_no), now.strftime("%Y%m%d%H%M%S"))
             response = HttpResponse(open(path, 'rb'), content_type="application/excel")
             response['Content-Disposition'] = "filename=" + urllib.quote(filename)
             # 一時ファイルを削除する。

@@ -483,6 +483,8 @@ def generate_request(project, company, request_name=None, order_no=None, ym=None
     last_day_current_month = common.get_last_day_by_month(date)
     period = u"%s年%s月%s日 ～ %s年%s月%s日" % (first_day.year, first_day.month, first_day.day,
                                          last_day_current_month.year, last_day_current_month.month, last_day_current_month.day)
+
+    project_request = project.get_project_request(year, month)
     # 作業期間
     data['WORK_PERIOD'] = period
     # 注文番号
@@ -494,7 +496,7 @@ def generate_request(project, company, request_name=None, order_no=None, ym=None
     # お支払い期限
     data['REMIT_DATE'] = project.client.get_pay_date(date=date).strftime('%Y/%m/%d')
     # 請求番号
-    data['REQUEST_NO'] = project.get_request_no(year, month)
+    data['REQUEST_NO'] = project_request.request_no
     # 発行日
     now = datetime.date.today()
     data['PUBLISH_DATE'] = u"%d年%02d月%02d日" % (now.year, now.month, now.day)
@@ -653,6 +655,10 @@ def generate_request(project, company, request_name=None, order_no=None, ym=None
     data['ITEM_AMOUNT_ALL'] = data['ITEM_AMOUNT_ATTENDANCE_ALL'] + expenses_amount
     data['ITEM_AMOUNT_ALL_COMMA'] = intcomma(data['ITEM_AMOUNT_ALL'])
 
+    # 請求情報を保存する
+    project_request.amount = data['ITEM_AMOUNT_ALL']
+    project_request.save()
+
     replace_excel_dict(sheet, data)
 
     for i in range(cnt, 0, -1):
@@ -665,7 +671,7 @@ def generate_request(project, company, request_name=None, order_no=None, ym=None
     path = os.path.join(file_folder, file_name)
     book.SaveAs(path, FileFormat=constants.EXCEL_FORMAT_EXCEL2003)
 
-    return path
+    return path, project_request.request_no
 
 
 def get_excel_template(path_file):
