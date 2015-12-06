@@ -6,19 +6,21 @@ function select_filter(id_select, id_input) {
 }
 
 function replaceToFilter(id_select, id_input) {
-    obj = $("#" + id_select);
-    if (obj.length == 1) {
-        obj.attr("size", "9");
-        obj.css("width", "400px");
-        obj.css("height", "17.2em");
-        obj.before("<p id='id_members_filter' style='margin-left: 0px; padding-left:3px;' class='selector-filter'>" +
-        "<label style='width: 12px;'>" +
-        "    <img src='/static/admin/img/selector-search.gif'></img>" +
-        "</label>" +
-        "<input id='" + id_input + "' type='text' placeholder='フィルター' style='width: 367px;' />" +
-        "</p>");
+    if (document.getElementById(id_select).selectedIndex == 0) {
+        obj = $("#" + id_select);
+        if (obj.length == 1) {
+            obj.attr("size", "9");
+            obj.css("width", "400px");
+            obj.css("height", "17.2em");
+            obj.before("<p id='id_members_filter' style='margin-left: 0px; padding-left:3px;' class='selector-filter'>" +
+            "<label style='width: 12px;'>" +
+            "    <img src='/static/admin/img/selector-search.gif'></img>" +
+            "</label>" +
+            "<input id='" + id_input + "' type='text' placeholder='フィルター' style='width: 367px;' />" +
+            "</p>");
 
-        select_filter(id_select, id_input);
+            select_filter(id_select, id_input);
+        }
     }
 }
 
