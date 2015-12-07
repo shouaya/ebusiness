@@ -1,0 +1,30 @@
+{% extends "admin/base_site.html" %}
+
+{% block content %}
+<table>
+    <thead>
+        <tr>
+            <th>名前</th>
+            <th>生年月日</th>
+            <th>住所１</th>
+            <th>住所２</th>
+        </tr>
+    </thead>
+    {% if members %}
+        {% for member in members %}
+            <tbody>
+                <tr>
+                    <td>{{ member.first_name }}&nbsp;{{ member.last_name }}</td>
+                    <td>{{ member.birthday }}</td>
+                    <td>{{ member.address1 }}</td>
+                    <td>{{ member.address2 }}</td>
+                </tr>
+            </tbody>
+        {% endfor %}
+    {% else %}
+        <tr>
+            <td>成功しました。</td>
+        </tr>
+    {% endif %}
+</table>
+{% endblock %}

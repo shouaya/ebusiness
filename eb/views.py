@@ -551,6 +551,7 @@ def member_detail(request, employee_id):
     company = get_company()
     member = Member.objects.get(employee_id=employee_id)
     download = request.GET.get('download', None)
+    member.set_coordinate()
 
     if download == constants.DOWNLOAD_RESUME:
         date = datetime.date.today().strftime("%Y%m")
@@ -674,6 +675,19 @@ def download_client_order(request):
 
 
 @login_required(login_url='/admin/login/')
+def map_position(request):
+    company = get_company()
+    members = Member.objects.public_filter(lat__isnull=False, lng__isnull=False).exclude(lat__exact='', lng__exact='')
+    context = RequestContext(request, {
+        'company': company,
+        'title': u'地図情報',
+        'members': members,
+    })
+    template = loader.get_template('map_position.html')
+    return HttpResponse(template.render(context))
+
+
+@login_required(login_url='/admin/login/')
 def history(request):
     company = get_company()
     context = RequestContext(request, {
@@ -687,6 +701,24 @@ def history(request):
 def logout_view(request):
     logout(request)
     return redirect('index')
+
+
+@login_required(login_url='/admin/login/')
+def sync_coordinate(request):
+    members = Member.objects.public_filter()
+    error_members = []
+    for member in members:
+        if not member.set_coordinate():
+            error_members.append(member)
+
+    context = {
+        'title': u'座標を設定',
+        'site_header': admin.site.site_header,
+        'site_title': admin.site.site_title,
+        'members': error_members
+    }
+    r = render_to_response('sync_coordinate.html', context)
+    return HttpResponse(r)
 
 
 @login_required(login_url='/admin/login/')

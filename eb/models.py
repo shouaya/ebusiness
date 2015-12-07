@@ -6,6 +6,8 @@ Created on 2015/08/20
 """
 import datetime
 import re
+import urllib2
+import xml.etree.ElementTree as ET
 
 from django.db import models
 from django.contrib.auth.models import User, Group, Permission
@@ -54,6 +56,8 @@ class AbstractMember(models.Model):
     post_code = models.CharField(blank=True, null=True, max_length=7, verbose_name=u"郵便番号")
     address1 = models.CharField(blank=True, null=True, max_length=200, verbose_name=u"住所１")
     address2 = models.CharField(blank=True, null=True, max_length=200, verbose_name=u"住所２")
+    lat = models.CharField(blank=True, null=True, max_length=25, verbose_name=u"緯度")
+    lng = models.CharField(blank=True, null=True, max_length=25, verbose_name=u"経度")
     nearest_station = models.CharField(blank=True, null=True, max_length=15, verbose_name=u"最寄駅")
     years_in_japan = models.IntegerField(blank=True, null=True, verbose_name=u"在日年数")
     phone = models.CharField(blank=True, null=True, max_length=11, verbose_name=u"電話番号")
@@ -588,6 +592,28 @@ class Member(AbstractMember):
             return positions[0]
         else:
             return None
+
+    def set_coordinate(self):
+        if self.address1 and not self.lat and not self.lng:
+            address = self.address1
+            if self.address2:
+                address += self.address2
+            try:
+                response = urllib2.urlopen("http://www.geocoding.jp/api/?q={0}".format(address.encode("utf8")))
+                xml = response.read()
+                tree = ET.XML(xml)
+                lat = tree.find(".//coordinate/lat")
+                lng = tree.find(".//coordinate/lng")
+                if lat is not None and lng is not None:
+                    self.lat = lat.text
+                    self.lng = lng.text
+                    self.save()
+                    return True
+                else:
+                    return False
+            except:
+                return False
+        return False
 
     def delete(self, using=None):
         self.is_deleted = True
