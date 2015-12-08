@@ -705,21 +705,39 @@ def logout_view(request):
 
 @login_required(login_url='/admin/login/')
 def sync_coordinate(request):
-    members = Member.objects.public_filter()
-    error_members = []
-    for member in members:
-        if not member.set_coordinate():
-            error_members.append(member)
+    company = get_company()
 
-    context = {
-        'title': u'座標を設定',
-        'site_header': admin.site.site_header,
-        'site_title': admin.site.site_title,
-        'members': error_members
-    }
-    r = render_to_response('sync_coordinate.html', context)
-    return HttpResponse(r)
+    if request.method == 'GET':
+        members = company.get_members_to_set_coordinate()
 
+        context = {
+            'title': u'座標を設定',
+            'site_header': admin.site.site_header,
+            'site_title': admin.site.site_title,
+            'members': members,
+            'count': members.count()
+        }
+        context.update(csrf(request))
+        r = render_to_response('sync_coordinate.html', context)
+        return HttpResponse(r)
+    else:
+        lat = request.POST.get('lat', None)
+        lng = request.POST.get('lng', None)
+        member_id = request.POST.get('member_id', None)
+        d = dict()
+        if lat and lng and member_id:
+            try:
+                member = Member.objects.get(pk=member_id)
+                member.lat = lat
+                member.lng = lng
+                member.coordinate_update_date = datetime.datetime.now()
+                member.save()
+                d['result'] = True
+            except ObjectDoesNotExist:
+                d['result'] = False
+        else:
+            d['result'] = False
+        return HttpResponse(json.dumps(d))
 
 @login_required(login_url='/admin/login/')
 @csrf_protect

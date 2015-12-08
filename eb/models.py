@@ -12,7 +12,7 @@ import xml.etree.ElementTree as ET
 from django.db import models
 from django.contrib.auth.models import User, Group, Permission
 from django.core.exceptions import ObjectDoesNotExist
-from django.db.models import Max
+from django.db.models import Max, Q
 
 
 from utils import common, constants
@@ -58,6 +58,7 @@ class AbstractMember(models.Model):
     address2 = models.CharField(blank=True, null=True, max_length=200, verbose_name=u"住所２")
     lat = models.CharField(blank=True, null=True, max_length=25, verbose_name=u"緯度")
     lng = models.CharField(blank=True, null=True, max_length=25, verbose_name=u"経度")
+    coordinate_update_date = models.DateTimeField(blank=True, null=True, editable=False, verbose_name=u"座標更新日時")
     nearest_station = models.CharField(blank=True, null=True, max_length=15, verbose_name=u"最寄駅")
     years_in_japan = models.IntegerField(blank=True, null=True, verbose_name=u"在日年数")
     phone = models.CharField(blank=True, null=True, max_length=11, verbose_name=u"電話番号")
@@ -378,6 +379,15 @@ class Company(AbstractCompany):
             return members[0]
         else:
             return None
+
+    def get_members_to_set_coordinate(self):
+        now = datetime.datetime.now()
+        last_week = now + datetime.timedelta(days=-7)
+        # １週間前更新したレコード
+        members = Member.objects.public_filter(Q(coordinate_update_date__lt=last_week) |
+                                               Q(coordinate_update_date__isnull=True))
+        members = members.filter(address1__isnull=False).exclude(address1__exact=u'')
+        return members
 
 
 class BankInfo(models.Model):
