@@ -96,6 +96,9 @@ class PublicManager(models.Manager):
 
 class Company(AbstractCompany):
 
+    quotation_file = models.FileField(blank=True, null=True, upload_to="./quotation",
+                                      verbose_name=u"見積書テンプレート")
+
     class Meta:
         verbose_name = verbose_name_plural = u"会社"
 
@@ -671,6 +674,8 @@ class Client(AbstractCompany):
     remark = models.TextField(blank=True, null=True, verbose_name=u"評価")
     comment = models.TextField(blank=True, null=True, verbose_name=u"備考")
     salesperson = models.ForeignKey(Salesperson, blank=True, null=True, verbose_name=u"営業担当")
+    quotation_file = models.FileField(blank=True, null=True, upload_to="./quotation",
+                                      verbose_name=u"見積書テンプレート")
     request_file = models.FileField(blank=True, null=True, upload_to="./request", verbose_name=u"請求書テンプレート")
     is_deleted = models.BooleanField(default=False, editable=False, verbose_name=u"削除フラグ")
     deleted_date = models.DateTimeField(blank=True, null=True, editable=False, verbose_name=u"削除年月日")

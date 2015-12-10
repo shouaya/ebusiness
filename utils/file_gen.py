@@ -427,6 +427,13 @@ def generate_resume(member):
     return output
 
 
+def generate_quotation(project, company):
+    pythoncom.CoInitializeEx(pythoncom.COINIT_MULTITHREADED)
+    template_file = project.client.request_file if project.client.request_file else company.quotation_file
+    if not template_file:
+        raise errors.FileNotExistException(constants.ERROR_TEMPLATE_NOT_EXISTS)
+
+
 def generate_request(project, company, request_name=None, order_no=None, ym=None, bank=None):
     """請求書を出力する。
 

@@ -22,6 +22,7 @@ DOWNLOAD_REQUEST = "request"
 DOWNLOAD_BUSINESS_PLAN = "business_plan"
 DOWNLOAD_MEMBER_LIST = "member_list"
 DOWNLOAD_RESUME = "resume"
+DOWNLOAD_QUOTATION = "quotation"
 
 ERROR_TEMPLATE_NOT_EXISTS = u"テンプレートファイルが存在しません。"
 

@@ -342,8 +342,12 @@ def project_detail(request, project_id):
             return response
         except errors.FileNotExistException, ex:
             return HttpResponse(u"<script>alert('%s');window.close();</script>" % (ex.message,))
+    elif download == constants.DOWNLOAD_QUOTATION:
+        try:
+            pass
+        except errors.FileNotExistException, ex:
+            pass
     else:
-
         context = RequestContext(request, {
             'company': company,
             'title': u'%s - 案件詳細' % (project.name,),
@@ -739,8 +743,8 @@ def sync_coordinate(request):
             d['result'] = False
         return HttpResponse(json.dumps(d))
 
+
 @login_required(login_url='/admin/login/')
-@csrf_protect
 def sync_db(request):
     context = {
         'title': u'社員管理DBのデータを同期する。',
