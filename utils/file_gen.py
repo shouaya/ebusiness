@@ -428,10 +428,67 @@ def generate_resume(member):
 
 
 def generate_quotation(project, company):
+    """見積書を生成する。
+
+    Arguments：
+      project: 対象の案件
+      company: 会社名
+
+    Returns：
+      dict
+
+    Raises：
+      FileNotExistException
+    """
     pythoncom.CoInitializeEx(pythoncom.COINIT_MULTITHREADED)
-    template_file = project.client.request_file if project.client.request_file else company.quotation_file
-    if not template_file:
+    template_file = project.client.quotation_file if project.client.quotation_file else company.quotation_file
+    if not template_file or not os.path.exists(template_file.path):
         raise errors.FileNotExistException(constants.ERROR_TEMPLATE_NOT_EXISTS)
+
+    template_book = get_excel_template(template_file.path)
+    template_sheet = template_book.Worksheets(1)
+    book = get_new_book()
+    cnt = book.Sheets.Count
+    # テンプレートを生成対象ワークブックにコピーする。
+    template_sheet.Copy(None, book.Worksheets(cnt))
+    template_book.Close()
+    sheet = book.Worksheets(cnt + 1)
+
+    data = dict()
+    # 案件名称
+    data['PROJECT_NAME'] = project.name
+    # 業務内容
+    data['PROJECT_DESCRIPTION'] = project.description
+    # 開発期間
+    data['START_DATE'] = u"%s年%s月%s日" % (project.start_date.year, project.start_date.month, project.start_date.day)
+    data['END_DATE'] = u"%s年%s月%s日" % (project.end_date.year, project.end_date.month, project.end_date.day)
+    # 開発場所
+    data['ADDRESS'] = project.address
+
+    # メンバー毎の料金
+    detail_members = []
+    for project_member in project.projectmember_set.public_all():
+        dict_member = dict()
+        dict_member['ITEM_NAME'] = project_member.member.__unicode__()
+        dict_member['ITEM_PRICE'] = project_member.price
+        dict_member['ITEM_PLUS'] = project_member.plus_per_hour
+        dict_member['ITEM_MINUS'] = project_member.minus_per_hour
+        detail_members.append(dict_member)
+
+    data['quotation_details'] = detail_members
+
+    replace_excel_dict(sheet, data)
+
+    for i in range(cnt, 0, -1):
+        book.Worksheets(i).Delete()
+
+    file_folder = os.path.join(os.path.dirname(template_file.path), "temp")
+    if not os.path.exists(file_folder):
+        os.mkdir(file_folder)
+    file_name = "tmp_%s_%s.xls" % (constants.DOWNLOAD_QUOTATION, datetime.datetime.now().strftime("%Y%m%d_%H%M%S%f"))
+    path = os.path.join(file_folder, file_name)
+    book.SaveAs(path, FileFormat=constants.EXCEL_FORMAT_EXCEL2003)
+    return path
 
 
 def generate_request(project, company, request_name=None, order_no=None, ym=None, bank=None):
@@ -726,6 +783,9 @@ def replace_excel_dict(sheet, data):
             # 清算リスト
             if find_cell_by_string(sheet, "{$ITEM_EXPENSES_CATEGORY_AMOUNT$}"):
                 replace_excel_list(sheet, value)
+        elif key == "quotation_details":
+            # 見積書の料金明細
+            replace_excel_list(sheet, value)
         else:
             sheet.Cells.Replace(What="{$%s$}" % (key,), Replacement=value, LookAt=constants.xlPart, MatchCase=False,
                                 SearchFormat=False, ReplaceFormat=False, SearchOrder=constants.xlByRows)

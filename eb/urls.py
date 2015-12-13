@@ -25,6 +25,8 @@ urlpatterns = [
     url(r'^member_detail/(?P<employee_id>[^,/]+).html$', views.member_detail, name='member_detail'),
     url(r'^project/(?P<project_id>[^,/]+)/recommended_member.html$', views.recommended_member_list,
         name='recommended_member'),
+    url(r'^project/quotation/(?P<project_id>[^,/]+).html$', views.download_project_quotation,
+        name='download_project_quotation'),
     url(r'^project/client_order/download/$', views.download_client_order, name='download_client_order'),
     url(r'^member/(?P<employee_id>[^,/]+)/recommended_project.html$', views.recommended_project_list,
         name='recommended_project'),

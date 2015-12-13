@@ -342,11 +342,6 @@ def project_detail(request, project_id):
             return response
         except errors.FileNotExistException, ex:
             return HttpResponse(u"<script>alert('%s');window.close();</script>" % (ex.message,))
-    elif download == constants.DOWNLOAD_QUOTATION:
-        try:
-            pass
-        except errors.FileNotExistException, ex:
-            pass
     else:
         context = RequestContext(request, {
             'company': company,
@@ -665,6 +660,15 @@ def upload_resume(request):
 
     r = render_to_response('upload_file.html', context)
     return HttpResponse(r)
+
+
+def download_project_quotation(request, project_id):
+    company = get_company()
+    project = Project.objects.get(pk=project_id)
+    try:
+        file_gen.generate_quotation(project, company)
+    except errors.FileNotExistException, ex:
+        pass
 
 
 def download_client_order(request):

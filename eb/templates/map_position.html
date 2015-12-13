@@ -16,7 +16,7 @@
             var marker = new google.maps.Marker({
                 position: {lat: {{ member.lat }}, lng: {{ member.lng }} },
                 map: map,
-                title: '{{ member }}  {{ member.address1 }}{% if member.address2 %}{{ member.address2 }}{% endif %}'
+                title: '{{ member }}'
             });
             bounds.extend(myLatLng);
         {% endfor %}

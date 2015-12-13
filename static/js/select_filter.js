@@ -6,7 +6,7 @@ function select_filter(id_select, id_input) {
 }
 
 function replaceToFilter(id_select, id_input) {
-    if (document.getElementById(id_select).selectedIndex == 0) {
+    if (document.getElementById(id_select) != null && document.getElementById(id_select).selectedIndex == 0) {
         obj = $("#" + id_select);
         if (obj.length == 1) {
             obj.attr("size", "9");
