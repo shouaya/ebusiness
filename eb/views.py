@@ -749,7 +749,7 @@ def sync_coordinate(request):
 
 
 @login_required(login_url='/admin/login/')
-def sync_db(request):
+def sync_members(request):
     context = {
         'title': u'社員管理DBのデータを同期する。',
         'site_header': admin.site.site_header,
@@ -759,7 +759,7 @@ def sync_db(request):
     if request.method == 'GET':
         pass
     else:
-        url = request.POST.get("url", None)
+        url = u"http://service.e-business.co.jp:8080/EmployeeManagement/api/employeelist?type=json"
         if not url:
             pass
         else:
@@ -857,7 +857,7 @@ def sync_db(request):
             else:
                 pass
 
-    r = render_to_response('syncdb.html', context)
+    r = render_to_response('sync_members.html', context)
     return HttpResponse(r)
 
 

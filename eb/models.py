@@ -98,6 +98,7 @@ class Company(AbstractCompany):
 
     quotation_file = models.FileField(blank=True, null=True, upload_to="./quotation",
                                       verbose_name=u"見積書テンプレート")
+    request_file = models.FileField(blank=True, null=True, upload_to="./request", verbose_name=u"請求書テンプレート")
 
     class Meta:
         verbose_name = verbose_name_plural = u"会社"

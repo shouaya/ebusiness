@@ -509,10 +509,11 @@ def generate_request(project, company, request_name=None, order_no=None, ym=None
       FileNotExistException
     """
     pythoncom.CoInitializeEx(pythoncom.COINIT_MULTITHREADED)
-    if not project.client.request_file:
+    request_file = project.client.request_file if project.client.request_file else company.request_file
+    if not request_file or not os.path.exists(request_file.path):
         raise errors.FileNotExistException(constants.ERROR_TEMPLATE_NOT_EXISTS)
 
-    template_book = get_excel_template(project.client.request_file.path)
+    template_book = get_excel_template(request_file.path)
     template_sheet = template_book.Worksheets(1)
     book = get_new_book()
     cnt = book.Sheets.Count
@@ -728,7 +729,7 @@ def generate_request(project, company, request_name=None, order_no=None, ym=None
     for i in range(cnt, 0, -1):
         book.Worksheets(i).Delete()
 
-    file_folder = os.path.join(os.path.dirname(project.client.request_file.path), "temp")
+    file_folder = os.path.join(os.path.dirname(request_file.path), "temp")
     if not os.path.exists(file_folder):
         os.mkdir(file_folder)
     file_name = "tmp_%s_%s.xls" % (constants.DOWNLOAD_REQUEST, datetime.datetime.now().strftime("%Y%m%d_%H%M%S%f"))
