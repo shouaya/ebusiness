@@ -60,3 +60,4 @@ target/
 eb/migrations/
 media/request/*
 media/client_order/*
+media/quotation/*
