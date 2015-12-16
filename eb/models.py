@@ -791,6 +791,8 @@ class Project(models.Model):
                                     help_text=u"该项目仅仅是作为项目中各人员时间的默认设置，计算时不会使用该值。")
     max_hours = models.DecimalField(max_digits=5, decimal_places=2, default=180, verbose_name=u"最大時間",
                                     help_text=u"该项目仅仅是作为项目中各人员时间的默认设置，计算时不会使用该值。")
+    is_lump = models.BooleanField(default=False, verbose_name=u"一括フラグ")
+    lump_amount = models.BigIntegerField(default=0, blank=True, null=True, verbose_name=u"一括金額")
     client = models.ForeignKey(Client, null=True, verbose_name=u"関連会社")
     boss = models.ForeignKey(ClientMember, blank=True, null=True, related_name="boss_set", verbose_name=u"案件責任者")
     middleman = models.ForeignKey(ClientMember, blank=True, null=True,

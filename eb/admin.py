@@ -404,6 +404,7 @@ class SalespersonAdmin(admin.ModelAdmin):
 
 
 class ProjectAdmin(admin.ModelAdmin):
+    form = forms.ProjectForm
     list_display = ['name', 'client', 'start_date', 'end_date', 'status', 'salesperson', 'is_deleted']
     list_display_links = ['name']
     list_filter = [ProjectNameListFilter, 'status', 'salesperson', 'is_deleted']

@@ -75,6 +75,20 @@ class SectionForm(forms.ModelForm):
         fields = '__all__'
 
 
+class ProjectForm(forms.ModelForm):
+    class Meta:
+        models = models.Project
+        fields = '__all__'
+
+    def clean(self):
+        cleaned_data = super(ProjectForm, self).clean()
+        is_lump= cleaned_data.get("is_lump")
+        lump_amount = cleaned_data.get("lump_amount")
+        if is_lump:
+            if not lump_amount or lump_amount <= 0:
+                self.add_error('lump_amount', u"一括の場合、一括金額を入力してください。")
+
+
 class MemberForm(forms.ModelForm):
     class Meta:
         model = models.Member

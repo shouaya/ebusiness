@@ -597,75 +597,78 @@ def generate_request(project, company, request_name=None, order_no=None, ym=None
     # 案件内すべてのメンバーを取得する。
     project_members = project.get_project_members_by_month(date)
     members_amount = 0
-    for i, project_member in enumerate(project_members):
-        dict_expenses = dict()
-        # 番号
-        dict_expenses['NO'] = i + 1
-        # 項目
-        dict_expenses['ITEM_NAME'] = project_member.member.__unicode__()
-        # 単価（円）
-        dict_expenses['ITEM_PRICE'] = project_member.price
-        # Min/Max（H）
-        dict_expenses['ITEM_MIN_MAX'] = "%s/%s" % (int(project_member.min_hours), int(project_member.max_hours))
-        attendance = project_member.get_attendance(date.year, date.month)
-        # その他
-        dict_expenses['ITEM_OTHER'] = 0
-        # 基本金額
-        dict_expenses['ITEM_AMOUNT_BASIC'] = project_member.price if attendance else u""
-        # 残業金額
-        if attendance:
-            # 勤務時間
-            dict_expenses['ITEM_WORK_HOURS'] = attendance.total_hours if attendance else u""
-            # 残業時間
-            dict_expenses['ITEM_EXTRA_HOURS'] = attendance.extra_hours if attendance else u""
-            # 率
-            dict_expenses['ITEM_RATE'] = attendance.rate if attendance.rate else 1
-            # 減（円）
-            if project_member.minus_per_hour is None:
-                dict_expenses['ITEM_MINUS_PER_HOUR'] = (project_member.price / project_member.min_hours) \
-                    if attendance else u""
-            else:
-                dict_expenses['ITEM_MINUS_PER_HOUR'] = project_member.minus_per_hour
-            # 増（円）
-            if project_member.plus_per_hour is None:
-                dict_expenses['ITEM_PLUS_PER_HOUR'] = (project_member.price / project_member.max_hours) \
-                    if attendance else u""
-            else:
-                dict_expenses['ITEM_PLUS_PER_HOUR'] = project_member.plus_per_hour
+    if project.is_lump:
+        members_amount = project.lump_amount
+    else:
+        for i, project_member in enumerate(project_members):
+            dict_expenses = dict()
+            # 番号
+            dict_expenses['NO'] = i + 1
+            # 項目
+            dict_expenses['ITEM_NAME'] = project_member.member.__unicode__()
+            # 単価（円）
+            dict_expenses['ITEM_PRICE'] = project_member.price
+            # Min/Max（H）
+            dict_expenses['ITEM_MIN_MAX'] = "%s/%s" % (int(project_member.min_hours), int(project_member.max_hours))
+            attendance = project_member.get_attendance(date.year, date.month)
+            # その他
+            dict_expenses['ITEM_OTHER'] = 0
+            # 基本金額
+            dict_expenses['ITEM_AMOUNT_BASIC'] = project_member.price if attendance else u""
+            # 残業金額
+            if attendance:
+                # 勤務時間
+                dict_expenses['ITEM_WORK_HOURS'] = attendance.total_hours if attendance else u""
+                # 残業時間
+                dict_expenses['ITEM_EXTRA_HOURS'] = attendance.extra_hours if attendance else u""
+                # 率
+                dict_expenses['ITEM_RATE'] = attendance.rate if attendance.rate else 1
+                # 減（円）
+                if project_member.minus_per_hour is None:
+                    dict_expenses['ITEM_MINUS_PER_HOUR'] = (project_member.price / project_member.min_hours) \
+                        if attendance else u""
+                else:
+                    dict_expenses['ITEM_MINUS_PER_HOUR'] = project_member.minus_per_hour
+                # 増（円）
+                if project_member.plus_per_hour is None:
+                    dict_expenses['ITEM_PLUS_PER_HOUR'] = (project_member.price / project_member.max_hours) \
+                        if attendance else u""
+                else:
+                    dict_expenses['ITEM_PLUS_PER_HOUR'] = project_member.plus_per_hour
 
-            if attendance.extra_hours > 0:
-                dict_expenses['ITEM_AMOUNT_EXTRA'] = attendance.extra_hours * dict_expenses['ITEM_PLUS_PER_HOUR']
-                dict_expenses['ITEM_PLUS_PER_HOUR2'] = dict_expenses['ITEM_PLUS_PER_HOUR']
-                dict_expenses['ITEM_MINUS_PER_HOUR2'] = u""
-            elif attendance.extra_hours < 0:
-                dict_expenses['ITEM_AMOUNT_EXTRA'] = attendance.extra_hours * dict_expenses['ITEM_MINUS_PER_HOUR']
+                if attendance.extra_hours > 0:
+                    dict_expenses['ITEM_AMOUNT_EXTRA'] = attendance.extra_hours * dict_expenses['ITEM_PLUS_PER_HOUR']
+                    dict_expenses['ITEM_PLUS_PER_HOUR2'] = dict_expenses['ITEM_PLUS_PER_HOUR']
+                    dict_expenses['ITEM_MINUS_PER_HOUR2'] = u""
+                elif attendance.extra_hours < 0:
+                    dict_expenses['ITEM_AMOUNT_EXTRA'] = attendance.extra_hours * dict_expenses['ITEM_MINUS_PER_HOUR']
+                    dict_expenses['ITEM_PLUS_PER_HOUR2'] = u""
+                    dict_expenses['ITEM_MINUS_PER_HOUR2'] = dict_expenses['ITEM_MINUS_PER_HOUR']
+                else:
+                    dict_expenses['ITEM_AMOUNT_EXTRA'] = 0
+                    dict_expenses['ITEM_PLUS_PER_HOUR2'] = u""
+                    dict_expenses['ITEM_MINUS_PER_HOUR2'] = u""
+                # 基本金額＋残業金額
+                dict_expenses['ITEM_AMOUNT_TOTAL'] = attendance.price
+                # 備考
+                dict_expenses['ITEM_COMMENT'] = attendance.comment
+            else:
+                dict_expenses['ITEM_RATE'] = u""
+                dict_expenses['ITEM_AMOUNT_EXTRA'] = u""
+                dict_expenses['ITEM_PLUS_PER_HOUR'] = u""
+                dict_expenses['ITEM_MINUS_PER_HOUR'] = u""
                 dict_expenses['ITEM_PLUS_PER_HOUR2'] = u""
-                dict_expenses['ITEM_MINUS_PER_HOUR2'] = dict_expenses['ITEM_MINUS_PER_HOUR']
-            else:
-                dict_expenses['ITEM_AMOUNT_EXTRA'] = 0
-                dict_expenses['ITEM_PLUS_PER_HOUR2'] = u""
                 dict_expenses['ITEM_MINUS_PER_HOUR2'] = u""
-            # 基本金額＋残業金額
-            dict_expenses['ITEM_AMOUNT_TOTAL'] = attendance.price
-            # 備考
-            dict_expenses['ITEM_COMMENT'] = attendance.comment
-        else:
-            dict_expenses['ITEM_RATE'] = u""
-            dict_expenses['ITEM_AMOUNT_EXTRA'] = u""
-            dict_expenses['ITEM_PLUS_PER_HOUR'] = u""
-            dict_expenses['ITEM_MINUS_PER_HOUR'] = u""
-            dict_expenses['ITEM_PLUS_PER_HOUR2'] = u""
-            dict_expenses['ITEM_MINUS_PER_HOUR2'] = u""
-            dict_expenses['ITEM_WORK_HOURS'] = u""
-            dict_expenses['ITEM_EXTRA_HOURS'] = u""
-            dict_expenses['ITEM_COMMENT'] = u""
-            # 基本金額＋残業金額
-            dict_expenses['ITEM_AMOUNT_TOTAL'] = project_member.price
+                dict_expenses['ITEM_WORK_HOURS'] = u""
+                dict_expenses['ITEM_EXTRA_HOURS'] = u""
+                dict_expenses['ITEM_COMMENT'] = u""
+                # 基本金額＋残業金額
+                dict_expenses['ITEM_AMOUNT_TOTAL'] = project_member.price
 
-        detail_members.append(dict_expenses)
+            detail_members.append(dict_expenses)
 
-        # 金額合計
-        members_amount += dict_expenses['ITEM_AMOUNT_TOTAL']
+            # 金額合計
+            members_amount += dict_expenses['ITEM_AMOUNT_TOTAL']
     # 番号
     detail_all['NO'] = 1
     # 項目：契約件名に設定
