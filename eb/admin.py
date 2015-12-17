@@ -5,6 +5,7 @@ Created on 2015/08/21
 @author: Yang Wanjun
 """
 import os
+import datetime
 
 from django.http import HttpResponse
 from django.contrib import admin
@@ -550,11 +551,16 @@ class ClientOrderAdmin(admin.ModelAdmin):
     def get_form(self, request, obj=None, **kwargs):
         form = super(ClientOrderAdmin, self).get_form(request, obj, **kwargs)
         project_id = request.GET.get('project_id', None)
+        ym = request.GET.get("ym", None)
         banks = BankInfo.objects.public_all()
         if project_id:
             project = Project.objects.get(pk=project_id)
             form.base_fields['project'].initial = project
             form.base_fields['name'].initial = project.name
+        if ym:
+            first_day = datetime.date(int(ym[:4]), int(ym[4:]), 1)
+            form.base_fields['start_date'].initial = first_day
+            form.base_fields['end_date'].initial = common.get_last_day_by_month(first_day)
         if banks.count() > 0:
             form.base_fields['bank_info'].initial = banks[0]
         return form

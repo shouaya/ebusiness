@@ -27,7 +27,7 @@ from django.db.models import Max
 
 from utils import constants, common, errors, loader as file_loader, file_gen
 from .models import Company, Member, Section, Project, ProjectMember, Salesperson, \
-    MemberAttendance, Subcontractor, BankInfo
+    MemberAttendance, Subcontractor, BankInfo, ClientOrder
 from . import forms
 
 
@@ -208,7 +208,7 @@ def project_list(request):
     params = ""
     o = request.GET.get('o', None)
     dict_order = common.get_ordering_dict(o, ['name', 'client__name', 'salesperson__first_name', 'boss__name',
-                                              'middleman__name'])
+                                              'middleman__name', 'update_date'])
     order_list = common.get_ordering_list(o)
 
     if download == constants.DOWNLOAD_BUSINESS_PLAN:
@@ -257,6 +257,7 @@ def project_list(request):
             'paginator': paginator,
             'salesperson': Salesperson.objects.public_all(),
             'params': params,
+            'orders': "&o=%s" % (o,) if o else "",
             'dict_order': dict_order,
         })
         template = loader.get_template('project_list.html')
@@ -289,9 +290,11 @@ def project_order_list(request):
         params += "&client=%s" % (client,)
 
     all_project_orders = []
-    for project in all_projects:
-        client_order = project.get_order_by_month(ym[:4], ym[4:])
-        all_project_orders.append((project, client_order))
+    if ym:
+        for project in all_projects:
+            client_order = project.get_order_by_month(ym[:4], ym[4:])
+            all_project_orders.append((project, client_order))
+        params += "&ym=%s" % (ym,)
 
     paginator = Paginator(all_project_orders, PAGE_SIZE)
     page = request.GET.get('page')
@@ -308,6 +311,8 @@ def project_order_list(request):
         'projects': projects,
         'paginator': paginator,
         'dict_order': dict_order,
+        'params': params,
+        'orders': "&o=%s" % (o,) if o else "",
         'month_list': common.get_month_list(-1, 1),
         'current_year': str(datetime.date.today().year),
         'current_month': str("%02d" % (datetime.date.today().month,)),
@@ -324,16 +329,18 @@ def project_detail(request, project_id):
 
     if download == constants.DOWNLOAD_REQUEST:
         try:
+            client_order_id = request.GET.get("client_order_id", None)
             request_name = request.GET.get("request_name", None)
             order_no = request.GET.get("order_no", None)
             ym = request.GET.get("ym", None)
             bank_id = request.GET.get('bank', None)
             now = datetime.datetime.now()
+            client_order = ClientOrder.objects.get(pk=client_order_id)
             try:
                 bank = BankInfo.objects.get(pk=bank_id)
             except ObjectDoesNotExist:
                 bank = None
-            path, request_no = file_gen.generate_request(project, company, request_name, order_no, ym, bank)
+            path, request_no = file_gen.generate_request(project, company, client_order, request_name, order_no, ym, bank)
             filename = "EB請求書_%s_%s.xls" % (str(request_no), now.strftime("%Y%m%d%H%M%S"))
             response = HttpResponse(open(path, 'rb'), content_type="application/excel")
             response['Content-Disposition'] = "filename=" + urllib.quote(filename)

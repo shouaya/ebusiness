@@ -799,8 +799,12 @@ class Project(models.Model):
                                   related_name="middleman_set", verbose_name=u"案件連絡者")
     salesperson = models.ForeignKey(Salesperson, blank=True, null=True, verbose_name=u"営業員")
     members = models.ManyToManyField(Member, through='ProjectMember', blank=True, null=True)
+    insert_date = models.DateTimeField(blank=True, null=True, auto_now_add=datetime.datetime.now(), editable=False,
+                                       verbose_name=u"追加日時")
+    update_date = models.DateTimeField(blank=True, null=True, auto_now=datetime.datetime.now(), editable=False,
+                                       verbose_name=u"更新日時")
     is_deleted = models.BooleanField(default=False, editable=False, verbose_name=u"削除フラグ")
-    deleted_date = models.DateTimeField(blank=True, null=True, editable=False, verbose_name=u"削除年月日")
+    deleted_date = models.DateTimeField(blank=True, null=True, editable=False, verbose_name=u"削除日時")
 
     objects = PublicManager(is_deleted=False, client__is_deleted=False)
 
@@ -1039,6 +1043,7 @@ class ClientOrder(models.Model):
     start_date = models.DateField(default=common.get_first_day_current_month(), verbose_name=u"開始日")
     end_date = models.DateField(default=common.get_last_day_current_month(), verbose_name=u"終了日")
     order_no = models.CharField(max_length=20, verbose_name=u"注文番号")
+    order_date = models.DateField(blank=False, null=True, verbose_name=u"注文日")
     bank_info = models.ForeignKey(BankInfo, blank=False, null=True, verbose_name=u"振込先口座")
     order_file = models.FileField(blank=True, null=True, upload_to=get_client_order_path, verbose_name=u"注文書")
     is_deleted = models.BooleanField(default=False, editable=False, verbose_name=u"削除フラグ")
@@ -1048,7 +1053,6 @@ class ClientOrder(models.Model):
 
     class Meta:
         ordering = ['project', 'name', 'start_date', 'end_date']
-        unique_together = ('project', 'start_date', 'end_date')
         verbose_name = verbose_name_plural = u"お客様注文書"
 
     def __unicode__(self):

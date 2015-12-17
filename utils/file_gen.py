@@ -491,7 +491,7 @@ def generate_quotation(project, company):
     return path
 
 
-def generate_request(project, company, request_name=None, order_no=None, ym=None, bank=None):
+def generate_request(project, company, client_order, request_name=None, order_no=None, ym=None, bank=None):
     """請求書を出力する。
 
     Arguments：
@@ -555,16 +555,16 @@ def generate_request(project, company, request_name=None, order_no=None, ym=None
     # 注文番号
     data['ORDER_NO'] = order_no if order_no else u""
     # 注文日
-    data['REQUEST_DATE'] = last_day_current_month.strftime('%Y/%m/%d')
+    data['REQUEST_DATE'] = client_order.order_date.strftime('%Y/%m/%d') if client_order.order_date else ""
     # 契約件名
     data['CONTRACT_NAME'] = request_name if request_name else project.name
     # お支払い期限
     data['REMIT_DATE'] = project.client.get_pay_date(date=date).strftime('%Y/%m/%d')
     # 請求番号
     data['REQUEST_NO'] = project_request.request_no
-    # 発行日
-    now = datetime.date.today()
-    data['PUBLISH_DATE'] = u"%d年%02d月%02d日" % (now.year, now.month, now.day)
+    # 発行日（対象月の最終日）
+    data['PUBLISH_DATE'] = u"%d年%02d月%02d日" % (last_day_current_month.year, last_day_current_month.month,
+                                               last_day_current_month.day)
     # 本社郵便番号
     data['POST_CODE'] = common.get_full_postcode(company.post_code)
     # 本社住所

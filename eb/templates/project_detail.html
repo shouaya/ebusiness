@@ -273,6 +273,7 @@
                                                 <th>注文番号</th>
                                                 <td style="text-align: left;" colspan="3">
                                                     <input type="text" name="order_no" value="{{ client_order.order_no }}"/>
+                                                    <input type="hidden" name="client_order_id" value="{{ client_order.pk }}"/>
                                                 </td>
                                             </tr>
                                             <tr>
@@ -302,7 +303,7 @@
                         {% else %}
                             <td colspan="3"><img width="12px" src="/static/img/icon-warn.png"/></td>
                             <td class="center">
-                                <a href="{% url 'admin:eb_clientorder_add' %}?project_id={{ project.pk }}&from=portal&_popup=1" target="_blank">追加</a>
+                                <a href="{% url 'admin:eb_clientorder_add' %}?project_id={{ project.pk }}&ym={{ year }}{{ month }}&from=portal&_popup=1" target="_blank">追加</a>
                             </td>
                             <td></td>
                         {% endif %}

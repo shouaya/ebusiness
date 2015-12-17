@@ -42,7 +42,7 @@
     <table class="list" cellpadding="0" cellspacing="0">
         <thead>
             <tr>
-                <th>
+                <th style="width: 320px;">
                     {% if dict_order.name.is_in_ordering %}
                         <div class="sortoptions">
                             <a class="sortremove" href="?o={{ dict_order.name.url_list_removed }}{{ params }}"></a>
@@ -56,7 +56,7 @@
                     </div>
                     <div class="clear"></div>
                 </th>
-                <th>
+                <th style="width: 220px;">
                     {% if dict_order.client__name.is_in_ordering %}
                         <div class="sortoptions">
                             <a class="sortremove" href="?o={{ dict_order.client__name.url_list_removed }}{{ params }}"></a>
@@ -70,6 +70,7 @@
                     </div>
                     <div class="clear"></div>
                 </th>
+                <th>メンバー(一部)</th>
                 <th>注文書情報</th>
                 <th></th>
                 <th style="width: 150px;"></th>
@@ -79,10 +80,21 @@
             {% if projects %}
                 {% for project, order in projects %}
                     <tr class="{% cycle 'row1' 'row2' %}">
-                        <td style="width: 250px; white-space: nowrap; overflow: hidden;">
-                            <a href="{% url 'project_detail' project.pk %}" title="{{ project.name }}">{{ project.name }}</a>
+                        <td>
+                            <div style="width: 320px; overflow: hidden; white-space: nowrap;">
+                                <a href="{% url 'project_detail' project.pk %}" title="{{ project.name }}">{{ project.name }}</a>
+                            </div>
                         </td>
-                        <td>{{ project.client.name }}</td>
+                        <td>
+                            <div style="width: 220px; overflow: hidden; white-space: nowrap;">
+                                <a title="{{ project.client.name }}">{{ project.client.name }}</a>
+                            </div>
+                        </td>
+                        <td>
+                            {% for project_member in project.projectmember_set.all|slice:'2' %}
+                                <span>{{ project_member }}</span>;
+                            {% endfor %}
+                        </td>
                         {% if order %}
                             <td><img width="12px" src="/static/img/icon-normal.png"/></td>
                             <td class="center">
@@ -120,7 +132,7 @@
                                             {{ page }}
                                         </span>
                                     {% else %}
-                                        <a href="?page={{ page }}{{ params }}">{{ page }}</a>
+                                        <a href="?page={{ page }}{{ params }}{{ orders }}">{{ page }}</a>
                                     {% endifequal %}
                                 {% endfor %}
                             {% endif %}

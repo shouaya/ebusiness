@@ -43,7 +43,7 @@
     <table class="list" cellpadding="0" cellspacing="0">
         <thead>
             <tr>
-                <th>
+                <th style="width: 320px;">
                     {% if dict_order.name.is_in_ordering %}
                         <div class="sortoptions">
                             <a class="sortremove" href="?o={{ dict_order.name.url_list_removed }}{{ params }}"></a>
@@ -57,7 +57,7 @@
                     </div>
                     <div class="clear"></div>
                 </th>
-                <th>
+                <th style="width: 220px;">
                     {% if dict_order.client__name.is_in_ordering %}
                         <div class="sortoptions">
                             <a class="sortremove" href="?o={{ dict_order.client__name.url_list_removed }}{{ params }}"></a>
@@ -71,7 +71,7 @@
                     </div>
                     <div class="clear"></div>
                 </th>
-                <th>
+                <th style="width: 90px;">
                     {% if dict_order.salesperson__first_name.is_in_ordering %}
                         <div class="sortoptions">
                             <a class="sortremove" href="?o={{ dict_order.salesperson__first_name.url_list_removed }}{{ params }}"></a>
@@ -85,54 +85,53 @@
                     </div>
                     <div class="clear"></div>
                 </th>
-                <th style="width: 75px;">アサイン人数</th>
+                <th style="width: 35px;">人数</th>
+                <th style="width: 70px;">メンバー</th>
+                <th style="width: 50px;">状態</th>
                 <th>
-                    {% if dict_order.boss__name.is_in_ordering %}
+                    {% if dict_order.update_date.is_in_ordering %}
                         <div class="sortoptions">
-                            <a class="sortremove" href="?o={{ dict_order.boss__name.url_list_removed }}{{ params }}"></a>
-                            <span class="sortpriority">{{ dict_order.boss__name.priority }}</span>
-                            <a class="{% if dict_order.boss__name.is_asc %}descending{% else %}ascending{% endif %}"
-                               href="?o={{ dict_order.boss__name.url }}{{ params }}"></a>
+                            <a class="sortremove" href="?o={{ dict_order.update_date.url_list_removed }}{{ params }}"></a>
+                            <span class="sortpriority">{{ dict_order.update_date.priority }}</span>
+                            <a class="{% if dict_order.update_date.is_asc %}descending{% else %}ascending{% endif %}"
+                               href="?o={{ dict_order.update_date.url }}{{ params }}"></a>
                         </div>
                     {% endif %}
                     <div class="text">
-                        <a href="?o={{ dict_order.boss__name.url }}{{ params }}">顧客責任者</a>
+                        <a href="?o={{ dict_order.update_date.url }}{{ params }}">更新日</a>
                     </div>
                     <div class="clear"></div>
                 </th>
-                <th>
-                    {% if dict_order.middleman__name.is_in_ordering %}
-                        <div class="sortoptions">
-                            <a class="sortremove" href="?o={{ dict_order.middleman__name.url_list_removed }}{{ params }}"></a>
-                            <span class="sortpriority">{{ dict_order.middleman__name.priority }}</span>
-                            <a class="{% if dict_order.middleman__name.is_asc %}descending{% else %}ascending{% endif %}"
-                               href="?o={{ dict_order.middleman__name.url }}{{ params }}"></a>
-                        </div>
-                    {% endif %}
-                    <div class="text">
-                        <a href="?o={{ dict_order.middleman__name.url }}{{ params }}">顧客連絡者</a>
-                    </div>
-                    <div class="clear"></div>
-                </th>
-                <th>状態</th>
-                <th></th>
+                <th style="width: 40px;"></th>
             </tr>
         </thead>
         <tbody>
             {% if projects %}
                 {% for project in projects %}
                     <tr class="{% cycle 'row1' 'row2' %}">
-                        <td><a href="{% url 'project_detail' project.pk %}">{{ project.name }}</a></td>
-                        <td>{{ project.client.name }}</td>
+                        <td>
+                            <div style="width: 320px; overflow: hidden; white-space: nowrap;">
+                                <a href="{% url 'project_detail' project.pk %}" title="{{ project.name }}">{{ project.name }}</a>
+                            </div>
+                        </td>
+                        <td>
+                            <div style="width: 220px; overflow: hidden; white-space: nowrap;">
+                                <a title="{{ project.client.name }}">{{ project.client.name }}</a>
+                            </div>
+                        </td>
                         <td>
                             {% if project.salesperson %}
                                 <a href="?salesperson={{ project.salesperson.employee_id }}">{{ project.salesperson }}</a>
                             {% endif %}
                         </td>
                         <td class="center"><a href="{% url 'project_members' project.pk %}">{{ project.get_project_members.count }}</a></td>
-                        <td>{{ project.boss.name }}</td>
-                        <td>{{ project.middleman.name }}</td>
+                        <td>
+                            {% for project_member in project.projectmember_set.all|slice:'1' %}
+                                <span>{{ project_member }}</span>
+                            {% endfor %}
+                        </td>
                         <td class="center"><a href="?status={{ project.status }}">{{ project.get_status_display }}</a></td>
+                        <td>{{ project.update_date|date:'Y/m/d H:i' }}</td>
                         <td class="center"><a href="{% url 'admin:eb_project_change' project.id %}?from=portal&_popup=1" target="_blank">編集</a></td>
                     </tr>
                 {% endfor %}
@@ -156,7 +155,7 @@
                                             {{ page }}
                                         </span>
                                     {% else %}
-                                        <a href="?page={{ page }}{{ params }}">{{ page }}</a>
+                                        <a href="?page={{ page }}{{ params }}{{ orders }}">{{ page }}</a>
                                     {% endifequal %}
                                 {% endfor %}
                             {% endif %}
