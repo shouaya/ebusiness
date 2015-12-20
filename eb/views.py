@@ -358,8 +358,40 @@ def project_detail(request, project_id):
             'order_month_list': project.get_year_month_order_finished(),
             'attendance_month_list': project.get_year_month_attendance_finished(),
         })
+        context.update(csrf(request))
         template = loader.get_template('project_detail.html')
         return HttpResponse(template.render(context))
+
+
+@login_required(login_url='/admin/login/')
+def project_order_member_assign(request, project_id):
+    project = Project.objects.get(pk=project_id)
+    pm_list = request.POST.get("pm_list", None)
+    d = dict()
+    if pm_list:
+        pass
+    else:
+        d['result'] = False
+    return HttpResponse(json.dumps(d))
+
+
+@login_required(login_url='/admin/login/')
+def project_members_by_month(request, project_id):
+    ym = request.GET.get('ym', None)
+    project = Project.objects.get(pk=project_id)
+    project_members = project.get_project_members_by_month(ym=ym)
+    d = dict()
+    member_list = []
+    for project_member in project_members:
+        member = project_member.member
+        d_member = dict()
+        d_member['id'] = member.pk
+        d_member['name'] = member.__unicode__()
+        d_member['start_date'] = project_member.start_date.strftime('%Y/%m/%d') if project_member.start_date else ""
+        d_member['end_date'] = project_member.end_date.strftime('%Y/%m/%d') if project_member.end_date else ""
+        member_list.append(d_member)
+    d['member_list'] = member_list
+    return HttpResponse(json.dumps(d))
 
 
 @login_required(login_url='/admin/login/')

@@ -33,6 +33,24 @@ def get_first_day_current_month():
     return datetime.date(today.year, today.month, 1)
 
 
+def get_first_day_from_ym(ym):
+    if re.match(r"^[0-9]{6}$", ym):
+        try:
+            return datetime.date(int(ym[:4]), int(ym[4:]), 1)
+        except:
+            return None
+    else:
+        return None
+
+
+def get_last_day_from_ym(ym):
+    first_day = get_first_day_from_ym(ym)
+    if first_day:
+        return get_last_day_by_month(first_day)
+    else:
+        return None
+
+
 def get_last_day_current_month():
     return get_last_day_by_month(datetime.date.today())
 

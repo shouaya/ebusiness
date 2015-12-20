@@ -732,6 +732,10 @@ def generate_request(project, company, client_order, request_name=None, order_no
     for i in range(cnt, 0, -1):
         book.Worksheets(i).Delete()
 
+    # GroupBoxを高さを調整する
+    for shape in sheet.Shapes:
+        shape.Height = 66
+
     file_folder = os.path.join(os.path.dirname(request_file.path), "temp")
     if not os.path.exists(file_folder):
         os.mkdir(file_folder)

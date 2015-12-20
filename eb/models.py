@@ -858,11 +858,15 @@ class Project(models.Model):
         members = list(query_set)
         return members
 
-    def get_project_members_by_month(self, date=None):
-        if not date:
+    def get_project_members_by_month(self, date=None, ym=None):
+        if date:
+            first_day = datetime.date(date.year, date.month, 1)
+        elif ym:
+            first_day = common.get_first_day_from_ym(ym)
+        else:
             date = datetime.date.today()
-        first_day = datetime.date(date.year, date.month, 1)
-        last_day = common.get_last_day_by_month(date)
+            first_day = datetime.date(date.year, date.month, 1)
+        last_day = common.get_last_day_by_month(first_day)
         return self.projectmember_set.public_filter(start_date__lte=last_day,
                                                     end_date__gte=first_day).exclude(status='1')
 
@@ -936,7 +940,8 @@ class Project(models.Model):
                                             u"   and co.is_deleted = 0", [ym, ym, self.pk])
         orders = list(query_set)
         if orders:
-            return ClientOrder.objects.get(pk=orders[0].pk)
+            id_list = [order.pk for order in orders]
+            return ClientOrder.objects.public_filter(pk__in=id_list)
         else:
             return None
 
@@ -947,15 +952,21 @@ class Project(models.Model):
           なし
 
         Returns：
-          (対象年月, ClientOrder)
+          (対象年, 対処月, ClientOrder, 注文書数)
 
         Raises：
           なし
         """
         ret_value = []
         for year, month in common.get_year_month_list(self.start_date, self.end_date):
-            client_order = self.get_order_by_month(year, month)
-            ret_value.append((year, month, client_order))
+            client_orders = self.get_order_by_month(year, month)
+            if client_orders:
+                cnt = client_orders.count()
+                project_members_month = self.get_project_members_by_month(ym=year + month)
+                for client_order in client_orders:
+                    ret_value.append((year, month, client_order, cnt, project_members_month))
+            else:
+                ret_value.append((year, month, None, 0, None))
         return ret_value
 
     def get_year_month_attendance_finished(self):
@@ -1046,6 +1057,8 @@ class ClientOrder(models.Model):
     order_date = models.DateField(blank=False, null=True, verbose_name=u"注文日")
     bank_info = models.ForeignKey(BankInfo, blank=False, null=True, verbose_name=u"振込先口座")
     order_file = models.FileField(blank=True, null=True, upload_to=get_client_order_path, verbose_name=u"注文書")
+    member_comma_list = models.CommaSeparatedIntegerField(max_length=255, blank=True, null=True, editable=False,
+                                                          verbose_name=u"メンバー主キーのリスト")
     is_deleted = models.BooleanField(default=False, editable=False, verbose_name=u"削除フラグ")
     deleted_date = models.DateTimeField(blank=True, null=True, editable=False, verbose_name=u"削除年月日")
 

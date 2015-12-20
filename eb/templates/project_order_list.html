@@ -78,7 +78,8 @@
         </thead>
         <tbody>
             {% if projects %}
-                {% for project, order in projects %}
+                {% for project, orders in projects %}
+                {% for order in orders %}
                     <tr class="{% cycle 'row1' 'row2' %}">
                         <td>
                             <div style="width: 320px; overflow: hidden; white-space: nowrap;">
@@ -111,6 +112,7 @@
                             <td></td>
                         {% endif %}
                     </tr>
+                {% endfor %}
                 {% endfor %}
             {% else %}
                 <tr class="row1"><td class="center red" colspan="9">該当する案件がありません。</td></tr>

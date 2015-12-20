@@ -1,6 +1,55 @@
 {% extends "base.html" %}
 
 {% block header %}
+<script type="text/javascript">
+    window.onload = function() {
+    };
+
+    function order_member_assign(id_dialog, ym) {
+        show_dialog(id_dialog);
+    }
+
+    function check_all(obj) {
+        table_id = $(obj).parent().parent().parent().parent()[0].id;
+        if ($(obj).prop('checked')) {
+            $("#" + table_id + " input[name='pm_list']").each( function () {
+                $(this).prop('checked', true);
+            });
+        }
+        else {
+            $("#" + table_id + " input[name='pm_list']").each( function () {
+                $(this).prop('checked', false);
+            });
+        }
+    }
+
+    function save_order_member_assigned(obj) {
+        table_id = $(obj).parent().parent().parent().parent()[0].id;
+        pm_list = "";
+        $("#" + table_id + " input[name='pm_list']").each( function () {
+            if ($(this).prop('checked')) {
+                pm_list = pm_list + $(this).val() + ","
+            }
+        });
+        if (pm_list != "") {
+            $.ajax({
+                type: 'post',
+                url: '{% url "project_order_member_assign" project.pk %}',
+                data: {'csrfmiddlewaretoken': $("input[name='csrfmiddlewaretoken']").val(),
+                       'pm_list':pm_list
+                      },
+                cache: false,
+                async : false, // 默认为true 异步
+                dataType: 'json',
+                success: function(data){
+                    member_list = data.member_list;
+                }
+            });
+        } else {
+            alert("メンバーを選択してください！");
+        }
+    }
+</script>
 {% endblock %}
 
 {% block content %}
@@ -227,6 +276,7 @@
                 <th>注文書あり？</th>
                 <th></th>
                 <th></th>
+                <th></th>
             </tr>
         </thead>
         <tfoot>
@@ -237,15 +287,53 @@
                 <th>注文書あり？</th>
                 <th></th>
                 <th></th>
+                <th></th>
             </tr>
         </tfoot>
         <tbody>
             {% if order_month_list %}
-                {% for year, month, client_order in order_month_list %}
+                {% for year, month, client_order, cnt, project_members_month in order_month_list %}
                     <tr class="{% cycle 'row1' 'row2' %}">
                         <td>{{ year }}年{{ month }}月</td>
                         {% if client_order %}
-                            <td>{{ client_order.name }}</td>
+                            <td>{{ client_order.name }}
+                                {% ifnotequal cnt 1 %}
+                                    <a style="float: right; font-size: 9px;"
+                                       href="javascript:order_member_assign('order_member_assign_{{ client_order.pk }}', '{{ year }}{{ month }}')">要員指定</a>
+                                    <div id="order_member_assign_{{ client_order.pk }}" class="dialog">
+                                        <table id="order_member_list_{{ client_order.pk }}" class="list" cellpadding="0" cellspacing="0">
+                                            <thead>
+                                                <tr>
+                                                    <th style="width: 30px; text-align: center; padding-left: 0px;">
+                                                         <input type="checkbox" onclick="check_all(this)" name="pm_list_all" />
+                                                    </th>
+                                                    <th>名前</th>
+                                                    <th>参加日</th>
+                                                    <th>終了日</th>
+                                                </tr>
+                                            </thead>
+                                            <tfoot>
+                                                <tr>
+                                                    <td colspan="4" style="text-align: right;">
+                                                        {% csrf_token %}
+                                                        <input type="button" onclick="save_order_member_assigned(this)" value="保存"/>
+                                                    </td>
+                                                </tr>
+                                            </tfoot>
+                                            {% for pm in project_members_month %}
+                                                <tr>
+                                                    <td style="text-align: center;">
+                                                        <input type="checkbox" name="pm_list" value="{{ pm.pk }}"/>
+                                                    </td>
+                                                    <td>{{ pm.member }}</td>
+                                                    <td>{{ pm.start_date }}</td>
+                                                    <td>{{ pm.end_date }}</td>
+                                                </tr>
+                                            {% endfor %}
+                                        </table>
+                                    </div>
+                                {% endifnotequal %}
+                            </td>
                             <td>{{ client_order.order_no }}</td>
                             <td>
                                 {% if client_order.order_file %}
@@ -253,6 +341,9 @@
                                 {% else %}
                                     <img width="12px" src="/static/img/icon-warn.png"/>
                                 {% endif %}
+                            </td>
+                            <td class="center">
+                                <a href="{% url 'admin:eb_clientorder_add' %}?project_id={{ project.pk }}&ym={{ year }}{{ month }}&from=portal&_popup=1" target="_blank">追加</a>
                             </td>
                             <td class="center">
                                 <a href="{% url 'admin:eb_clientorder_change' client_order.pk %}?project_id={{ project.pk }}&from=portal&_popup=1" target="_blank">編集</a>
@@ -305,6 +396,7 @@
                             <td class="center">
                                 <a href="{% url 'admin:eb_clientorder_add' %}?project_id={{ project.pk }}&ym={{ year }}{{ month }}&from=portal&_popup=1" target="_blank">追加</a>
                             </td>
+                            <td></td>
                             <td></td>
                         {% endif %}
                     </tr>
