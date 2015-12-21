@@ -818,7 +818,7 @@ class Project(models.Model):
 
     def get_project_members(self):
         # 案件にアサイン人数を取得する。
-        return self.projectmember_set.public_all()
+        return self.projectmember_set.public_filter(is_deleted=False)
 
     def get_recommended_members(self):
         # 如果案件为提案状态则自动推荐待机中的人员及即将待机的人

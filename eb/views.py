@@ -365,32 +365,33 @@ def project_detail(request, project_id):
 
 @login_required(login_url='/admin/login/')
 def project_order_member_assign(request, project_id):
-    project = Project.objects.get(pk=project_id)
     pm_list = request.POST.get("pm_list", None)
+    order_id = request.POST.get("order_id", None)
     d = dict()
-    if pm_list:
-        pass
+    if pm_list and order_id:
+        try:
+            client_order = ClientOrder.objects.get(pk=order_id)
+            client_order.member_comma_list = pm_list.strip(",")
+            client_order.save()
+            d['result'] = True
+            d['message'] = u"成功しました。"
+        except ObjectDoesNotExist:
+            d['result'] = False
+            d['message'] = u"注文書が削除されました。"
     else:
         d['result'] = False
+        d['message'] = u"パラメータは空です。"
     return HttpResponse(json.dumps(d))
 
 
 @login_required(login_url='/admin/login/')
-def project_members_by_month(request, project_id):
-    ym = request.GET.get('ym', None)
-    project = Project.objects.get(pk=project_id)
-    project_members = project.get_project_members_by_month(ym=ym)
+def project_members_by_order(request, order_id):
     d = dict()
-    member_list = []
-    for project_member in project_members:
-        member = project_member.member
-        d_member = dict()
-        d_member['id'] = member.pk
-        d_member['name'] = member.__unicode__()
-        d_member['start_date'] = project_member.start_date.strftime('%Y/%m/%d') if project_member.start_date else ""
-        d_member['end_date'] = project_member.end_date.strftime('%Y/%m/%d') if project_member.end_date else ""
-        member_list.append(d_member)
-    d['member_list'] = member_list
+    try:
+        client_order = ClientOrder.objects.get(pk=order_id)
+        d['pm_list'] = client_order.member_comma_list
+    except ObjectDoesNotExist:
+        d['pm_list'] = ''
     return HttpResponse(json.dumps(d))
 
 
@@ -483,7 +484,7 @@ def project_member_list(request, project_id):
                                               'member__section', 'start_date', 'end_date', 'price'])
     order_list = common.get_ordering_list(o)
 
-    all_project_members = project.projectmember_set.public_all()
+    all_project_members = project.get_project_members()
     if order_list:
         all_project_members = all_project_members.order_by(*order_list)
 

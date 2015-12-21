@@ -5,7 +5,27 @@
     window.onload = function() {
     };
 
-    function order_member_assign(id_dialog, ym) {
+    function order_member_assign(id_dialog, order_id) {
+        table_id = $("#" + id_dialog + " table.list")[0].id;
+        $.ajax({
+            type: 'get',
+            url: '/eb/project_members_by_order/' + order_id + '.html',
+            cache: false,
+            async : false, // 默认为true 异步
+            dataType: 'json',
+            success: function(data){
+                if (data.pm_list != "") {
+                    p_m_list = data.pm_list.split(',');
+                    $("#" + table_id + " input[name='pm_list']").each( function () {
+                        if ($.inArray($(this).val(), p_m_list) >= 0) {
+                            $(this).prop('checked', true);
+                        } else {
+                            $(this).prop('checked', false);
+                        }
+                    });
+                }
+            }
+        });
         show_dialog(id_dialog);
     }
 
@@ -23,7 +43,7 @@
         }
     }
 
-    function save_order_member_assigned(obj) {
+    function save_order_member_assigned(obj, order_id) {
         table_id = $(obj).parent().parent().parent().parent()[0].id;
         pm_list = "";
         $("#" + table_id + " input[name='pm_list']").each( function () {
@@ -36,13 +56,19 @@
                 type: 'post',
                 url: '{% url "project_order_member_assign" project.pk %}',
                 data: {'csrfmiddlewaretoken': $("input[name='csrfmiddlewaretoken']").val(),
-                       'pm_list':pm_list
+                       'pm_list':pm_list,
+                       'order_id': order_id
                       },
                 cache: false,
                 async : false, // 默认为true 异步
                 dataType: 'json',
                 success: function(data){
-                    member_list = data.member_list;
+                    if (data.result == true) {
+                        hide_dialog();
+                        alert(data.message);
+                    } else {
+                        alert(data.message);
+                    }
                 }
             });
         } else {
@@ -299,7 +325,7 @@
                             <td>{{ client_order.name }}
                                 {% ifnotequal cnt 1 %}
                                     <a style="float: right; font-size: 9px;"
-                                       href="javascript:order_member_assign('order_member_assign_{{ client_order.pk }}', '{{ year }}{{ month }}')">要員指定</a>
+                                       href="javascript:order_member_assign('order_member_assign_{{ client_order.pk }}', '{{ client_order.pk }}')">要員指定</a>
                                     <div id="order_member_assign_{{ client_order.pk }}" class="dialog">
                                         <table id="order_member_list_{{ client_order.pk }}" class="list" cellpadding="0" cellspacing="0">
                                             <thead>
@@ -316,7 +342,7 @@
                                                 <tr>
                                                     <td colspan="4" style="text-align: right;">
                                                         {% csrf_token %}
-                                                        <input type="button" onclick="save_order_member_assigned(this)" value="保存"/>
+                                                        <input type="button" onclick="save_order_member_assigned(this, {{ client_order.pk }})" value="保存"/>
                                                     </td>
                                                 </tr>
                                             </tfoot>
