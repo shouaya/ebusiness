@@ -20,6 +20,8 @@ import common
 import errors
 from django.contrib.humanize.templatetags.humanize import intcomma
 
+from eb.models import ProjectMember
+
 
 def generate_resume(member):
     output = StringIO.StringIO()
@@ -595,7 +597,16 @@ def generate_request(project, company, client_order, request_name=None, order_no
     detail_members = []
 
     # 案件内すべてのメンバーを取得する。
-    project_members = project.get_project_members_by_month(date)
+    if len(client_order.get_order_by_month(ym)) > 1:
+        project_members = []
+        if client_order.member_comma_list:
+            for pm_id in client_order.member_comma_list.split(","):
+                try:
+                    project_members.append(ProjectMember.objects.get(pk=int(pm_id)))
+                except:
+                    pass
+    else:
+        project_members = project.get_project_members_by_month(date)
     members_amount = 0
     if project.is_lump:
         members_amount = project.lump_amount
@@ -684,7 +695,7 @@ def generate_request(project, company, client_order, request_name=None, order_no
 
     # 清算リスト
     dict_expenses = {}
-    for expenses in project.get_expenses(date.year, date.month):
+    for expenses in project.get_expenses(date.year, date.month, project_members):
         if expenses.category.name not in dict_expenses:
             dict_expenses[expenses.category.name] = [expenses]
         else:

@@ -8,9 +8,9 @@
             init_select("ym");
         };
 
-        function download_request(project_id, order_no, name, bank_id) {
+        function download_request(order_id, project_id, order_no, name, bank_id) {
             ym = $("#ym").val();
-            window.open("/eb/project/" + project_id + ".html?download=request&order_no=" + order_no + "&request_name=" + name + "&ym=" + ym + "&bank=" + bank_id);
+            window.open("/eb/project/" + project_id + ".html?download=request" + "&client_order_id=" + order_id + "&order_no=" + order_no + "&request_name=" + name + "&ym=" + ym + "&bank=" + bank_id);
         }
     </script>
 {% endblock %}
@@ -70,10 +70,10 @@
                     </div>
                     <div class="clear"></div>
                 </th>
-                <th>メンバー(一部)</th>
-                <th>注文書情報</th>
-                <th></th>
-                <th style="width: 150px;"></th>
+                <th>メンバー</th>
+                <th>注文番号</th>
+                <th style="width: 30px;"></th>
+                <th style="width: 60px;"></th>
             </tr>
         </thead>
         <tbody>
@@ -97,12 +97,12 @@
                             {% endfor %}
                         </td>
                         {% if order %}
-                            <td><img width="12px" src="/static/img/icon-normal.png"/></td>
+                            <td>{{ order.order_no }}</td>
                             <td class="center">
                                 <a href="{% url 'admin:eb_clientorder_change' order.pk %}?project_id={{ project.pk }}&from=portal&_popup=1" target="_blank">編集</a>
                             </td>
                             <td class="center">
-                                <a href="javascript:download_request({{ project.pk }}, '{{ order.order_no }}', '{{ order.name }}', '{{ order.bank_info.pk }}')" target="_blank">請求書ダウンロード</a>
+                                <a href="javascript:download_request({{ order.pk }}, {{ project.pk }}, '{{ order.order_no }}', '{{ order.name }}', '{{ order.bank_info.pk }}')" target="_blank">請求書↓</a>
                             </td>
                         {% else %}
                             <td><img width="12px" src="/static/img/icon-warn.png"/></td>

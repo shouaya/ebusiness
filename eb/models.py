@@ -901,7 +901,7 @@ class Project(models.Model):
         last_day = common.get_last_day_by_month(now)
         return self.projectmember_set.public_filter(start_date__lte=last_day, end_date__gte=first_day)
 
-    def get_expenses(self, year, month):
+    def get_expenses(self, year, month, project_members):
         """指定年月の清算リストを取得する。
 
         Arguments：
@@ -916,7 +916,8 @@ class Project(models.Model):
         """
         return MemberExpenses.objects.filter(project_member__project=self,
                                              year=str(year),
-                                             month=str(month)).order_by('category__name')
+                                             month=str(month),
+                                             project_member__in=project_members).order_by('category__name')
 
     def get_order_by_month(self, year, month):
         """指定年月の注文履歴を取得する。
@@ -943,7 +944,7 @@ class Project(models.Model):
             id_list = [order.pk for order in orders]
             return ClientOrder.objects.public_filter(pk__in=id_list)
         else:
-            return None
+            return []
 
     def get_year_month_order_finished(self):
         """案件の月単位の註文書を取得する。
@@ -1070,6 +1071,9 @@ class ClientOrder(models.Model):
 
     def __unicode__(self):
         return self.name
+
+    def get_order_by_month(self, ym):
+        return self.project.get_order_by_month(ym[:4], ym[4:])
 
     def delete(self, using=None):
         self.is_deleted = True
