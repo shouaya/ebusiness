@@ -79,6 +79,8 @@ class AbstractMember(models.Model):
 
 class PublicManager(models.Manager):
 
+    use_for_related_fields = True
+
     def __init__(self, *args, **kwargs):
         super(PublicManager, self).__init__()
         self.args = args
@@ -933,18 +935,9 @@ class Project(models.Model):
           なし
         """
         ym = year + month
-        query_set = ClientOrder.objects.raw(u"select co.*"
-                                            u"  from eb_clientorder co"
-                                            u" where date_format(co.start_date, '%%Y%%m') <= %s"
-                                            u"   and date_format(co.end_date, '%%Y%%m') >= %s"
-                                            u"   and co.project_id = %s"
-                                            u"   and co.is_deleted = 0", [ym, ym, self.pk])
-        orders = list(query_set)
-        if orders:
-            id_list = [order.pk for order in orders]
-            return ClientOrder.objects.public_filter(pk__in=id_list)
-        else:
-            return []
+        first_day = common.get_first_day_from_ym(ym)
+        last_day = common.get_last_day_by_month(first_day)
+        return self.clientorder_set.public_filter(start_date__lte=last_day, end_date__gte=first_day, is_deleted=False)
 
     def get_year_month_order_finished(self):
         """案件の月単位の註文書を取得する。
@@ -1050,7 +1043,7 @@ def get_client_order_path(instance, filename):
 
 
 class ClientOrder(models.Model):
-    project = models.ForeignKey(Project, verbose_name=u"案件")
+    projects = models.ManyToManyField(Project, verbose_name=u"案件")
     name = models.CharField(max_length=30, verbose_name=u"注文書名称")
     start_date = models.DateField(default=common.get_first_day_current_month(), verbose_name=u"開始日")
     end_date = models.DateField(default=common.get_last_day_current_month(), verbose_name=u"終了日")
@@ -1066,14 +1059,11 @@ class ClientOrder(models.Model):
     objects = PublicManager(is_deleted=False, project__is_deleted=False)
 
     class Meta:
-        ordering = ['project', 'name', 'start_date', 'end_date']
+        ordering = ['name', 'start_date', 'end_date']
         verbose_name = verbose_name_plural = u"お客様注文書"
 
     def __unicode__(self):
         return self.name
-
-    def get_order_by_month(self, ym):
-        return self.project.get_order_by_month(ym[:4], ym[4:])
 
     def delete(self, using=None):
         self.is_deleted = True

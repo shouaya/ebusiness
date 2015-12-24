@@ -533,8 +533,9 @@ class ClientAdmin(admin.ModelAdmin):
 
 
 class ClientOrderAdmin(admin.ModelAdmin):
-    list_display = ['project', 'name', 'start_date', 'end_date', 'is_deleted']
+    list_display = ['name', 'start_date', 'end_date', 'is_deleted']
     list_filter = ['is_deleted']
+    filter_horizontal = ['projects']
     actions = ['delete_objects', 'active_objects']
 
     class Media:
@@ -554,11 +555,11 @@ class ClientOrderAdmin(admin.ModelAdmin):
         ym = request.GET.get("ym", None)
         banks = BankInfo.objects.public_all()
         if project_id:
-            project = Project.objects.get(pk=project_id)
-            form.base_fields['project'].initial = project
-            form.base_fields['name'].initial = project.name
+            project = Project.objects.public_filter(pk=project_id)
+            form.base_fields['projects'].initial = project
+            form.base_fields['name'].initial = project[0].name if project.count() > 0 else ""
         if ym:
-            first_day = datetime.date(int(ym[:4]), int(ym[4:]), 1)
+            first_day = common.get_first_day_from_ym(ym)
             form.base_fields['start_date'].initial = first_day
             form.base_fields['end_date'].initial = common.get_last_day_by_month(first_day)
         if banks.count() > 0:

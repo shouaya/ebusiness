@@ -597,7 +597,7 @@ def generate_request(project, company, client_order, request_name=None, order_no
     detail_members = []
 
     # 案件内すべてのメンバーを取得する。
-    if len(client_order.get_order_by_month(ym)) > 1:
+    if project.get_order_by_month(year, month).count() > 1:
         project_members = []
         if client_order.member_comma_list:
             for pm_id in client_order.member_comma_list.split(","):
@@ -719,7 +719,7 @@ def generate_request(project, company, client_order, request_name=None, order_no
         # 清算がない場合、
         d = dict()
         d['ITEM_EXPENSES_CATEGORY_SUMMARY'] = u""
-        d['ITEM_EXPENSES_CATEGORY_AMOUNT'] = 0
+        d['ITEM_EXPENSES_CATEGORY_AMOUNT'] = u""
         detail_expenses.append(d)
 
     data['detail_all'] = detail_all

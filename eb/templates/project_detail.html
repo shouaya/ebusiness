@@ -372,7 +372,7 @@
                                 <a href="{% url 'admin:eb_clientorder_add' %}?project_id={{ project.pk }}&ym={{ year }}{{ month }}&from=portal&_popup=1" target="_blank">追加</a>
                             </td>
                             <td class="center">
-                                <a href="{% url 'admin:eb_clientorder_change' client_order.pk %}?project_id={{ project.pk }}&from=portal&_popup=1" target="_blank">編集</a>
+                                <a href="{% url 'admin:eb_clientorder_change' client_order.pk %}?from=portal&_popup=1" target="_blank">編集</a>
                             </td>
                             <td class="center">
                                 <a href="javascript:show_dialog('request_gen_{{ year }}{{ month }}_{{ client_order.pk }}')">請求書生成</a>
