@@ -536,6 +536,7 @@ class ClientOrderAdmin(admin.ModelAdmin):
     list_display = ['name', 'start_date', 'end_date', 'is_deleted']
     list_filter = ['is_deleted']
     filter_horizontal = ['projects']
+    search_fields = ['name']
     actions = ['delete_objects', 'active_objects']
 
     class Media:

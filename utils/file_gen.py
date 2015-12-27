@@ -598,6 +598,7 @@ def generate_request(project, company, client_order, request_name=None, order_no
 
     # 案件内すべてのメンバーを取得する。
     if project.get_order_by_month(year, month).count() > 1:
+        # １つの案件に複数の注文書ある場合
         project_members = []
         if client_order.member_comma_list:
             for pm_id in client_order.member_comma_list.split(","):
@@ -605,6 +606,10 @@ def generate_request(project, company, client_order, request_name=None, order_no
                     project_members.append(ProjectMember.objects.get(pk=int(pm_id)))
                 except:
                     pass
+    elif client_order.projects.public_filter(is_deleted=False).count() > 1:
+        # 一つの注文書に複数の案件がある場合
+        projects = client_order.projects.public_filter(is_deleted=False)
+        project_members = ProjectMember.objects.public_filter(project__in=projects)
     else:
         project_members = project.get_project_members_by_month(date)
     members_amount = 0
