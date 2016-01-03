@@ -82,7 +82,7 @@
     <div class="dashboard">
         <div class="dashboard-title">なにをしたいのですか？</div>
         <form action="" method="get">
-            <a href="{% url 'download_project_quotation' project.pk %}" class="button">見積書をダウンロード</a>
+            <a href="{% url 'download_project_quotation' project.pk %}" target="_blank" class="button">見積書をダウンロード</a>
             <a href="{% url 'admin:eb_project_change' project.id %}?from=portal&_popup=1" target="_blank" class="button">案件を編集</a>
             <a href="{% url 'admin:eb_projectmember_add' %}?project_id={{ project.pk }}&from=portal&_popup=1"
                target="_blank" class="button">要員をアサイン</a>
@@ -249,7 +249,10 @@
     <table class="detail" cellpadding="0" cellspacing="0">
         <tr>
             <th>案件名称</th><td>{{ project.name }}</td>
-            <th>関連会社</th><td>{{ project.client.name }}</td>
+            <th>関連会社</th>
+            <td>{{ project.client.name }}
+                <a style="font-size: 9px; float: right;" target="_blank" href="{% url 'admin:eb_client_change' project.client.pk %}?from=portal&_popup=1">編集</a>
+            </td>
         </tr>
         <tr>
             <th>顧客責任者</th><td>{{ project.boss.name }}</td>

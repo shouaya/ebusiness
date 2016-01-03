@@ -531,6 +531,26 @@ class ClientAdmin(admin.ModelAdmin):
     delete_objects.short_description = u"選択されたレコードを削除する。"
     active_objects.short_description = u"選択されたレコードを復活する。"
 
+    def response_change(self, request, obj):
+        if request.GET.get('from') == "portal":
+            return HttpResponse('''
+               <script type="text/javascript">
+                  window.close();
+               </script>''')
+        else:
+            response = super(ClientAdmin, self).response_change(request, obj)
+            return response
+
+    def response_add(self, request, obj, post_url_continue=None):
+        if request.GET.get('from') == "portal":
+            return HttpResponse('''
+               <script type="text/javascript">
+                  window.close();
+               </script>''')
+        else:
+            response = super(ClientAdmin, self).response_add(request, obj)
+            return response
+
 
 class ClientOrderAdmin(admin.ModelAdmin):
     list_display = ['name', 'start_date', 'end_date', 'is_deleted']

@@ -795,6 +795,8 @@ class Project(models.Model):
                                     help_text=u"该项目仅仅是作为项目中各人员时间的默认设置，计算时不会使用该值。")
     is_lump = models.BooleanField(default=False, verbose_name=u"一括フラグ")
     lump_amount = models.BigIntegerField(default=0, blank=True, null=True, verbose_name=u"一括金額")
+    lump_comment = models.CharField(blank=True, null=True, max_length=200, verbose_name=u"一括の備考",
+                                    help_text=u"该项目会作为请求书中備考栏中的值。")
     client = models.ForeignKey(Client, null=True, verbose_name=u"関連会社")
     boss = models.ForeignKey(ClientMember, blank=True, null=True, related_name="boss_set", verbose_name=u"案件責任者")
     middleman = models.ForeignKey(ClientMember, blank=True, null=True,
@@ -991,8 +993,8 @@ class Project(models.Model):
                                                       u"                      and ma.year = %s"
                                                       u"                      and ma.month = %s"
                                                       u"					  and ma.is_deleted = 0)"
-                                                      u"   and pm.start_date <= %s"
                                                       u"   and pm.end_date >= %s"
+                                                      u"   and pm.start_date <= %s"
                                                       u"   and pm.project_id = %s"
                                                       u"   and pm.is_deleted = 0",
                                                       [year, month, first_day, last_day, self.pk])

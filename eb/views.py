@@ -708,7 +708,7 @@ def download_project_quotation(request, project_id):
     try:
         file_gen.generate_quotation(project, company)
     except errors.FileNotExistException, ex:
-        pass
+        return HttpResponse(u"<script>alert('%s');window.close();</script>" % (ex.message,))
 
 
 def download_client_order(request):
