@@ -234,7 +234,7 @@ class MemberAdmin(admin.ModelAdmin):
                      ('address1', 'address2'), 'nearest_station',
                      'country', 'graduate_date', 'phone', 'japanese_description',
                      'certificate', 'skill_description', 'comment')}),
-        (u"勤務情報", {'fields': ('member_type', 'join_date', 'email', 'section', 'company', 'subcontractor', 'salesperson', 'cost', 'is_retired')})
+        (u"勤務情報", {'fields': ('member_type', 'join_date', 'email', 'section', 'company', 'subcontractor', 'salesperson', 'is_retired')})
     )
 
     class Media:
