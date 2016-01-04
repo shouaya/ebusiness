@@ -108,21 +108,8 @@ class Company(AbstractCompany):
     def get_all_members(self, user=None):
         if user:
             if user.is_superuser:
-                query_set = Member.objects.raw(u"select m.* "
-                                               u"  from eb_member m "
-                                               u"  join eb_section s "
-                                               u"    on m.section_id = s.id "
-                                               u" where s.is_on_sales = 1 "
-                                               u"   and m.is_retired = 0 "
-                                               u"   and m.is_deleted = 0 "
-                                               u"   and s.is_deleted = 0 "
-                                               u"union "
-                                               u"select m2.* "
-                                               u"  from eb_member m2 "
-                                               u" where m2.member_type = 4 "
-                                               u"   and m2.is_retired = 0 "
-                                               u"   and m2.is_deleted = 0;")
-                return list(query_set)
+                return Member.objects.filter(Q(section__is_on_sales=True) | Q(member_type=4),
+                                             is_deleted=0, is_retired=0)
             elif common.is_salesperson_director(user) and user.salesperson.section:
                 salesperson_list = user.salesperson.section.salesperson_set.public_all()
                 return Member.objects.public_filter(salesperson__in=salesperson_list, section__is_on_sales=True)
@@ -148,7 +135,19 @@ class Company(AbstractCompany):
                                                "   and m.is_retired = 0"
                                                "   and m.is_deleted = 0"
                                                "   and s.is_deleted = 0"
-                                               "   and pm.is_deleted = 0", [now, now])
+                                               "   and pm.is_deleted = 0"
+                                               " union "
+                                               "select distinct m.*"
+                                               "  from eb_member m"
+                                               "  join eb_projectmember pm on pm.member_id = m.id"
+                                               " where pm.start_date <= %s"
+                                               "   and pm.end_date >= %s"
+                                               "   and pm.status = 2"
+                                               "   and m.member_type = 4"
+                                               "   and m.is_retired = 0"
+                                               "   and m.is_deleted = 0"
+                                               "   and pm.is_deleted = 0"
+                                               , [now, now, now, now])
                 return list(query_set)
             elif common.is_salesperson_director(user) and user.salesperson.section:
                 # 営業部長の場合、部門内すべての社員が見られる
@@ -205,7 +204,21 @@ class Company(AbstractCompany):
                                                "   and s.is_on_sales = 1"
                                                "   and m.is_retired = 0"
                                                "   and m.is_deleted = 0"
-                                               "   and s.is_deleted = 0", [now, now])
+                                               "   and s.is_deleted = 0"
+                                               " union "
+                                               "select distinct m.*"
+                                               "  from eb_member m"
+                                               " where not exists (select 1 "
+                                               "                     from eb_projectmember pm"
+                                               "                    where pm.member_id = m.id"
+                                               "                      and pm.status = 2"
+                                               "                      and pm.is_deleted = 0"
+                                               "                      and pm.start_date <= %s"
+                                               "                      and pm.end_date >= %s)"
+                                               "   and m.member_type = 4"
+                                               "   and m.is_retired = 0"
+                                               "   and m.is_deleted = 0"
+                                               , [now, now, now, now])
                 return list(query_set)
             elif common.is_salesperson_director(user) and user.salesperson.section:
                 # 営業部長の場合、部門内すべての社員が見られる

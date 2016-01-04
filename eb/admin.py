@@ -305,10 +305,11 @@ class MemberAdmin(admin.ModelAdmin):
 class SalespersonAdmin(admin.ModelAdmin):
 
     form = forms.SalespersonForm
-    list_display = ['employee_id', get_full_name, 'email', 'section', 'member_type', 'is_user_created', 'is_deleted']
+    list_display = ['employee_id', get_full_name, 'email', 'section', 'member_type',
+                    'is_user_created', 'is_retired', 'is_deleted']
     list_display_links = [get_full_name]
     search_fields = ['first_name', 'last_name']
-    list_filter = ['member_type', 'section', NoUserFilter, 'is_deleted']
+    list_filter = ['member_type', 'section', NoUserFilter, 'is_retired', 'is_deleted']
     fieldsets = (
         (None, {'fields': ('employee_id',
                            ('first_name', 'last_name'),

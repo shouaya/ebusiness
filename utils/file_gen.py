@@ -111,8 +111,10 @@ def generate_resume(member):
     sheet.merge_range('A10:C10', u"最 寄 駅", title_format_inner)
     sheet.merge_range('A11:C12', u"在日年数", title_format_bottom)
 
-    sheet.merge_range('D5:L5', member.first_name_ja + " " + member.last_name_ja, content_format_top)
-    sheet.merge_range('D6:L7', member.first_name + " " + member.last_name, content_format_inner3)
+    sheet.merge_range('D5:L5', member.first_name_ja + " " + member.last_name_ja if member.last_name_ja else "",
+                      content_format_top)
+    sheet.merge_range('D6:L7', member.first_name + " " + member.last_name if member.last_name else "",
+                      content_format_inner3)
     sheet.merge_range('D8:L9', member.address1, content_format_inner)
     sheet.merge_range('D10:L10', member.nearest_station, content_format_inner)
     sheet.merge_range('D11:L12', u"%s 年" % (member.years_in_japan,) if member.years_in_japan else "",
