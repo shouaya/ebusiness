@@ -222,10 +222,10 @@ function calc_extra_hours_portal(obj) {
 
         // 増（円）と 減（円）
         price = parseFloat(price);
-        plus_per_hour = Math.round(price / max_hours);
-        minus_per_hour = Math.round(price / min_hours);
-        obj_plus.val(plus_per_hour);
-        obj_minus.val(minus_per_hour);
+        plus_per_hour = Math.round(obj_plus.val());
+        minus_per_hour = Math.round(obj_minus.val());
+//        obj_plus.val(plus_per_hour);
+//        obj_minus.val(minus_per_hour);
 
         // 最終価格
         if (extra_hours > 0) {

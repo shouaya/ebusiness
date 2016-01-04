@@ -108,7 +108,21 @@ class Company(AbstractCompany):
     def get_all_members(self, user=None):
         if user:
             if user.is_superuser:
-                return Member.objects.public_filter(section__is_on_sales=True)
+                query_set = Member.objects.raw(u"select m.* "
+                                               u"  from eb_member m "
+                                               u"  join eb_section s "
+                                               u"    on m.section_id = s.id "
+                                               u" where s.is_on_sales = 1 "
+                                               u"   and m.is_retired = 0 "
+                                               u"   and m.is_deleted = 0 "
+                                               u"   and s.is_deleted = 0 "
+                                               u"union "
+                                               u"select m2.* "
+                                               u"  from eb_member m2 "
+                                               u" where m2.member_type = 4 "
+                                               u"   and m2.is_retired = 0 "
+                                               u"   and m2.is_deleted = 0;")
+                return list(query_set)
             elif common.is_salesperson_director(user) and user.salesperson.section:
                 salesperson_list = user.salesperson.section.salesperson_set.public_all()
                 return Member.objects.public_filter(salesperson__in=salesperson_list, section__is_on_sales=True)
