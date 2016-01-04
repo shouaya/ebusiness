@@ -541,14 +541,17 @@ class Member(AbstractMember):
 
     def get_age(self):
         birthday = self.birthday
-        today = datetime.date.today()
-        years = today.year - birthday.year
-        if today.month < birthday.month:
-            years -= 1
-        elif today.month == birthday.month:
-            if today.day <= birthday.day:
+        if birthday:
+            today = datetime.date.today()
+            years = today.year - birthday.year
+            if today.month < birthday.month:
                 years -= 1
-        return years
+            elif today.month == birthday.month:
+                if today.day <= birthday.day:
+                    years -= 1
+            return years
+        else:
+            return None
 
     def get_project_end_date(self):
         # 稼働状態を取得する（待機・稼働中）
@@ -1195,8 +1198,7 @@ class ProjectMember(models.Model):
     is_deleted = models.BooleanField(default=False, editable=False, verbose_name=u"削除フラグ")
     deleted_date = models.DateTimeField(blank=True, null=True, editable=False, verbose_name=u"削除年月日")
 
-    objects = PublicManager(is_deleted=False, project__is_deleted=False, member__is_deleted=False,
-                            member__section__is_deleted=False)
+    objects = PublicManager(is_deleted=False, project__is_deleted=False, member__is_deleted=False)
 
     class Meta:
         verbose_name = verbose_name_plural = u"案件メンバー"
@@ -1370,7 +1372,7 @@ class Degree(models.Model):
     is_deleted = models.BooleanField(default=False, editable=False, verbose_name=u"削除フラグ")
     deleted_date = models.DateTimeField(blank=True, null=True, editable=False, verbose_name=u"削除年月日")
 
-    objects = PublicManager(is_deleted=False, member__is_deleted=False, member__section__is_deleted=False)
+    objects = PublicManager(is_deleted=False, member__is_deleted=False)
 
     class Meta:
         verbose_name = verbose_name_plural = u"学歴"
@@ -1395,7 +1397,7 @@ class HistoryProject(models.Model):
     is_deleted = models.BooleanField(default=False, editable=False, verbose_name=u"削除フラグ")
     deleted_date = models.DateTimeField(blank=True, null=True, editable=False, verbose_name=u"削除年月日")
 
-    objects = PublicManager(is_deleted=False, member__is_deleted=False, member__section__is_deleted=False)
+    objects = PublicManager(is_deleted=False, member__is_deleted=False)
 
     class Meta:
         ordering = ['-start_date']
