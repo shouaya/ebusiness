@@ -19,6 +19,10 @@ section table.list th, section table.list tfoot td {
     background: linear-gradient(#fff, #eee)
 }
 
+section table.list tr:hover {
+    background-color: yellow;
+}
+
 section table.list th {
     font-size: .9em;
     padding-left: 4px;

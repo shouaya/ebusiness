@@ -279,9 +279,6 @@ def project_order_list(request):
 
     all_projects = Project.objects.public_filter(status=4)
 
-    if order_list:
-        all_projects = all_projects.order_by(*order_list)
-
     if name:
         all_projects = all_projects.filter(name__contains=name)
         params += "&name=%s" % (name,)
@@ -290,11 +287,17 @@ def project_order_list(request):
         params += "&client=%s" % (client,)
 
     all_project_orders = []
-    if ym:
-        for project in all_projects:
-            client_order = project.get_order_by_month(ym[:4], ym[4:])
-            all_project_orders.append((project, client_order))
-        params += "&ym=%s" % (ym,)
+    first_day = common.get_first_day_from_ym(ym)
+    last_day = common.get_last_day_by_month(first_day)
+    all_projects = all_projects.filter(start_date__lte=last_day, end_date__gte=first_day)
+    if order_list:
+        all_projects = all_projects.order_by(*order_list)
+    for project in all_projects:
+        client_order = project.get_order_by_month(ym[:4], ym[4:])
+        if not client_order:
+            client_order = [None]
+        all_project_orders.append((project, project.get_project_request(ym[:4], ym[4:]), client_order))
+    params += "&ym=%s" % (ym,)
 
     paginator = Paginator(all_project_orders, PAGE_SIZE)
     page = request.GET.get('page')

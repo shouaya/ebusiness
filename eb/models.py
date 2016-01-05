@@ -1045,6 +1045,8 @@ class Project(models.Model):
         Raises：
           なし
         """
+        if self.pk in (90, 64, 104):
+            pass
         if self.projectrequest_set.filter(year=str_year, month=str_month).count() == 0:
             # 指定年月の請求番号がない場合、請求番号を発行する。
             max_request_no = ProjectRequest.objects.filter(year=str_year, month=str_month).aggregate(Max('request_no'))
@@ -1284,10 +1286,10 @@ class ProjectMember(models.Model):
         except ObjectDoesNotExist:
             return None
 
-    def delete(self, using=None):
-        self.is_deleted = True
-        self.deleted_date = datetime.datetime.now()
-        self.save()
+    # def delete(self, using=None):
+    #     self.is_deleted = True
+    #     self.deleted_date = datetime.datetime.now()
+    #     self.save()
 
 
 class ExpensesCategory(models.Model):
@@ -1358,10 +1360,10 @@ class MemberAttendance(models.Model):
     def __unicode__(self):
         return u"%s %s %s" % (self.project_member, self.get_year_display(), self.get_month_display())
 
-    def delete(self, using=None):
-        self.is_deleted = True
-        self.deleted_date = datetime.datetime.now()
-        self.save()
+    # def delete(self, using=None):
+    #     self.is_deleted = True
+    #     self.deleted_date = datetime.datetime.now()
+    #     self.save()
 
 
 class Degree(models.Model):

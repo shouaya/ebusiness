@@ -711,10 +711,10 @@ class ProjectMemberAdmin(admin.ModelAdmin):
     form = forms.ProjectMemberForm
     search_fields = ['project__name', 'member__first_name', 'member__last_name']
 
-    list_display = ['project', 'display_project_client', 'member', 'start_date', 'end_date', 'status', 'is_deleted']
+    list_display = ['project', 'display_project_client', 'member', 'start_date', 'end_date', 'status']
     filter_horizontal = ['stages']
     list_display_links = ['member']
-    list_filter = ['status', 'is_deleted']
+    list_filter = ['status']
     inlines = (MemberAttendanceInline, MemberExpensesInline)
     actions = ['delete_objects', 'active_objects']
 

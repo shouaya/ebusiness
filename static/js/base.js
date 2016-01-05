@@ -129,8 +129,8 @@ function calc_extra_hours(obj) {
     total_hours = $(obj).val();
     row_id = $(obj).parent().parent().attr("id");
     obj_extra_hours = $("#id_" + row_id + "-extra_hours");
-    obj_plus = $("#id_" + row_id + "-plus_per_hour");
-    obj_minus = $("#id_" + row_id + "-minus_per_hour");
+    obj_plus = $("#id_plus_per_hour");
+    obj_minus = $("#id_minus_per_hour");
     obj_value = $("#id_" + row_id + "-price");                     // 価格
     if (min_hours != "" && max_hours != "" && total_hours != "") {
         min_hours = parseFloat(min_hours);
@@ -146,10 +146,10 @@ function calc_extra_hours(obj) {
 
         // 増（円）と 減（円）
         price = parseFloat(price);
-        plus_per_hour = Math.round(price / max_hours);
-        minus_per_hour = Math.round(price / min_hours);
-        obj_plus.val(plus_per_hour);
-        obj_minus.val(minus_per_hour);
+        plus_per_hour = Math.round(obj_plus.val());
+        minus_per_hour = Math.round(obj_minus.val());
+//        obj_plus.val(plus_per_hour);
+//        obj_minus.val(minus_per_hour);
 
         // 最終価格
         if (extra_hours > 0) {
