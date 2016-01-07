@@ -6,13 +6,47 @@ Created on 2015/08/26
 """
 import re
 import models
-import datetime
 
-from utils import common
 from django import forms
+from django.forms.utils import flatatt
+from django.utils.html import format_html, mark_safe
+from django.core.urlresolvers import reverse
+from django.utils.translation import ugettext_lazy as _
 
 REG_POST_CODE = r"^\d{7}$"
 REG_UPPER_CAMEL = r"^([A-Z][a-z]+)+$"
+
+
+class SearchSelect(forms.Select):
+    def __init__(self, clsModel, attrs=None, choices=()):
+        self.clsModel = clsModel
+        super(SearchSelect, self).__init__(attrs, choices)
+
+    def render(self, name, value, attrs=None, choices=()):
+        if value is None:
+            value = ''
+        final_attrs = self.build_attrs(attrs, name=name)
+        output = ['<div class="related-widget-wrapper">']
+        output.extend([format_html('<select{}>', flatatt(final_attrs))])
+        options = self.render_options(choices, [value])
+        if options:
+            output.append(options)
+        output.append('</select>')
+
+        from django.contrib import admin
+        related_url = reverse(
+            'admin:%s_%s_changelist' % (
+                self.clsModel._meta.app_label,
+                self.clsModel._meta.model_name,
+            ),
+            current_app=admin.site.name,
+        )
+        output.append('<a href="%s%s"'
+                      ' class="related-lookup"'
+                      ' id="lookup_id_%s" title="%s"></a>' %
+                      (related_url, '', name, _('Lookup')))
+        output.append('</div>')
+        return mark_safe('\n'.join(output))
 
 
 class CompanyForm(forms.ModelForm):
@@ -159,6 +193,9 @@ class ProjectMemberForm(forms.ModelForm):
         model = models.ProjectMember
         fields = '__all__'
 
+    member = forms.ModelChoiceField(queryset=models.Member.objects.all(),
+                                    widget=SearchSelect(models.Member),
+                                    label=u"名前")
     price = forms.IntegerField(initial=0,
                                widget=forms.TextInput(attrs={'style': 'width: 70px;',
                                                              'type': 'number',

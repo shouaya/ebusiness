@@ -5,7 +5,6 @@ Created on 2015/08/21
 @author: Yang Wanjun
 """
 import os
-import datetime
 
 from django.http import HttpResponse
 from django.contrib import admin
