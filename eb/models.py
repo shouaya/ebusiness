@@ -530,7 +530,7 @@ class Member(AbstractMember):
     is_deleted = models.BooleanField(default=False, editable=False, verbose_name=u"削除フラグ")
     deleted_date = models.DateTimeField(blank=True, null=True, editable=False, verbose_name=u"削除年月日")
 
-    objects = PublicManager(is_deleted=False, is_retired=False, section__is_deleted=False)
+    objects = PublicManager(is_deleted=False, is_retired=False)
 
     class Meta:
         ordering = ['first_name', 'last_name']
@@ -675,7 +675,7 @@ class PositionShip(models.Model):
     is_deleted = models.BooleanField(default=False, editable=False, verbose_name=u"削除フラグ")
     deleted_date = models.DateTimeField(blank=True, null=True, editable=False, verbose_name=u"削除年月日")
 
-    objects = PublicManager(is_deleted=False, section__is_deleted=False)
+    objects = PublicManager(is_deleted=False)
 
     class Meta:
         ordering = ['position']

@@ -277,7 +277,7 @@ def project_order_list(request):
     dict_order = common.get_ordering_dict(o, ['name', 'client__name'])
     order_list = common.get_ordering_list(o)
 
-    all_projects = Project.objects.public_filter(status=4)
+    all_projects = Project.objects.public_all()
 
     if name:
         all_projects = all_projects.filter(name__contains=name)
@@ -709,7 +709,14 @@ def download_project_quotation(request, project_id):
     company = get_company()
     project = Project.objects.get(pk=project_id)
     try:
-        file_gen.generate_quotation(project, company)
+        now = datetime.datetime.now()
+        path = file_gen.generate_quotation(project, company)
+        filename = "見積書_%s.xls" % (now.strftime("%Y%m%d%H%M%S"),)
+        response = HttpResponse(open(path, 'rb'), content_type="application/excel")
+        response['Content-Disposition'] = "filename=" + urllib.quote(filename)
+        # 一時ファイルを削除する。
+        common.delete_temp_files(os.path.dirname(path))
+        return response
     except errors.FileNotExistException, ex:
         return HttpResponse(u"<script>alert('%s');window.close();</script>" % (ex.message,))
 

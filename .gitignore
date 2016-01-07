@@ -58,6 +58,6 @@ target/
 
 .idea/
 eb/migrations/
-media/request/*
+media/request/temp/*
 media/client_order/*
-media/quotation/*
+media/quotation/temp/*
