@@ -274,8 +274,8 @@
             <th>開始日付</th><td>{{ project.start_date|date:"Y-m-d" }}</td>
             <th>終了日付</th><td>{{ project.end_date|date:"Y-m-d" }}</td>
         </tr>
-        <tr style="height: 70px;">
-            <th valign="top">概要</th><td colspan="3" valign="top">{{ project.description }}</td>
+        <tr style="min-height: 70px;">
+            <th valign="top">概要</th><td colspan="3" valign="top"><pre>{{ project.description }}</pre></td>
         </tr>
         <tr style="height: 70px;">
             <th valign="top">スキル要求</th>

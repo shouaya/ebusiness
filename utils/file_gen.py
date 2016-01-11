@@ -474,12 +474,13 @@ def generate_quotation(project, company):
     for project_member in project.projectmember_set.public_all():
         dict_member = dict()
         dict_member['ITEM_NAME'] = project_member.member.__unicode__()
-        dict_member['ITEM_PRICE'] = project_member.price
+        dict_member['ITEM_PRICE'] = u"￥%s人/月" % (project_member.price,)
         dict_member['ITEM_PLUS'] = project_member.plus_per_hour
         dict_member['ITEM_MINUS'] = project_member.minus_per_hour
         detail_members.append(dict_member)
 
     data['quotation_details'] = detail_members
+    data['details_start_col'] = 3
 
     replace_excel_dict(sheet, data)
 
@@ -811,16 +812,17 @@ def replace_excel_dict(sheet, data):
                 replace_excel_list(sheet, value)
         elif key == "quotation_details":
             # 見積書の料金明細
-            replace_excel_list(sheet, value)
+            replace_excel_list(sheet, value, data['details_start_col'])
         else:
             sheet.Cells.Replace(What="{$%s$}" % (key,), Replacement=value, LookAt=constants.xlPart, MatchCase=False,
                                 SearchFormat=False, ReplaceFormat=False, SearchOrder=constants.xlByRows)
 
 
-def replace_excel_list(sheet, data_list):
+def replace_excel_list(sheet, data_list, details_start_col=None):
     if data_list:
         rows = get_row_span(sheet, data_list[0])
         positions = get_replace_positions(sheet, data_list[0])
+        labels = []
         if positions:
             row, col = positions.values()[0]
             start_cell = sheet.Cells(row + rows, 1)
@@ -833,6 +835,8 @@ def replace_excel_list(sheet, data_list):
             if cnt_all_rows > cnt_current_rows:
                 cnt_extra_rows = cnt_all_rows - cnt_current_rows
                 sheet.Range("%s:%s" % (end_cell.Row, end_cell.Row + cnt_extra_rows - 1)).Insert(Shift=constants.xlDown)
+            if details_start_col:
+                labels = get_replace_labels_position(sheet, row, details_start_col, rows)
         for i, data in enumerate(data_list):
             for key, value in data.iteritems():
                 if key in positions:
@@ -840,6 +844,9 @@ def replace_excel_list(sheet, data_list):
                     sheet.Cells(row + (i * rows), col).Value = value
                     if key in ('ITEM_WORK_HOURS', 'ITEM_RATE'):
                         sheet.Cells(row + (i * rows), col).NumberFormatLocal = u"G/標準"
+            if i > 0:
+                for lbl_row, lbl_col, label in labels:
+                    sheet.Cells(lbl_row + (i * rows), lbl_col).Value = label
 
 
 def find_cell_by_string(sheet, s, after=None):
@@ -895,3 +902,13 @@ def get_replace_positions(sheet, data):
         if cell:
             d[key] = (cell.Row, cell.Column)
     return d
+
+
+def get_replace_labels_position(sheet, start_row, start_col, row_span):
+    labels = []
+    for row in range(start_row, start_row + row_span):
+        for col in range(start_col, sheet.UsedRange.Columns.Count):
+            val = sheet.Cells(row, col).Value
+            if val and val.strip() and val.find("{$") < 0:
+                labels.append((row, col, val))
+    return labels

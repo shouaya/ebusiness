@@ -231,7 +231,7 @@ def project_list(request):
         all_projects = all_projects.order_by(*order_list)
 
     if client:
-        all_projects = [project for project in all_projects if client in project.client.name]
+        all_projects = all_projects.filter(client__name__contains=client)
         params += "&client=%s" % (client,)
 
     if download == constants.DOWNLOAD_BUSINESS_PLAN:
@@ -283,7 +283,7 @@ def project_order_list(request):
         all_projects = all_projects.filter(name__contains=name)
         params += "&name=%s" % (name,)
     if client:
-        all_projects = [project for project in all_projects if client in project.client.name]
+        all_projects = all_projects.filter(client__name__contains=client)
         params += "&client=%s" % (client,)
 
     all_project_orders = []
