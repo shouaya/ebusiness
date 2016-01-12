@@ -431,7 +431,7 @@ def generate_resume(member):
     return output
 
 
-def generate_quotation(project, company):
+def generate_quotation(project, user, company):
     """見積書を生成する。
 
     Arguments：
@@ -459,6 +459,10 @@ def generate_quotation(project, company):
     sheet = book.Worksheets(cnt + 1)
 
     data = dict()
+    # お客様会社名
+    data['CLIENT_COMPANY_NAME'] = project.client.name
+    # 見積書番号
+    data['QUOTATION_NO'] = common.get_quotation_no(user)
     # 案件名称
     data['PROJECT_NAME'] = project.name
     # 業務内容
@@ -466,6 +470,9 @@ def generate_quotation(project, company):
     # 開発期間
     data['START_DATE'] = u"%s年%s月%s日" % (project.start_date.year, project.start_date.month, project.start_date.day)
     data['END_DATE'] = u"%s年%s月%s日" % (project.end_date.year, project.end_date.month, project.end_date.day)
+    # 基準時間
+    data['MIN_HOUR'] = u"%d" % (project.min_hours,)
+    data['MAX_HOUR'] = u"%d" % (project.max_hours,)
     # 開発場所
     data['ADDRESS'] = project.address
 

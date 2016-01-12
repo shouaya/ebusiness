@@ -680,5 +680,17 @@ def get_year_month_list(start_date, end_date, is_reverse=True, add_future=False)
     return ret
 
 
+def get_quotation_no(user):
+    prefix = '#'
+    try:
+        if user and user.salesperson:
+            if user.salesperson.first_name_en:
+                prefix = user.salesperson.first_name_en[0]
+    except:
+        pass
+    today = datetime.date.today()
+    return "EB{0:04d}{1:02d}{2:02d}{3}{4}".format(today.year, today.month, today.day, prefix, "001")
+
+
 if __name__ == "__main__":
     line_counter()

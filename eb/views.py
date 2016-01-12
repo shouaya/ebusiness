@@ -710,7 +710,7 @@ def download_project_quotation(request, project_id):
     project = Project.objects.get(pk=project_id)
     try:
         now = datetime.datetime.now()
-        path = file_gen.generate_quotation(project, company)
+        path = file_gen.generate_quotation(project, request.user, company)
         filename = "見積書_%s.xls" % (now.strftime("%Y%m%d%H%M%S"),)
         response = HttpResponse(open(path, 'rb'), content_type="application/excel")
         response['Content-Disposition'] = "filename=" + urllib.quote(filename)
@@ -835,10 +835,11 @@ def sync_members(request):
                     sex = data.get("sex", None)
                     station = data.get("station", None)
                     if employee_code:
-                        if department_name == u"営業部" or employee_code in ('0126', '0198', '0150'):
+                        if department_name == u"営業部" or employee_code in ('0126', '0198', '0150', '0335'):
                             # 0150 孫雲釵
                             # 0198 劉 暢
                             # 0126 丁 玲
+                            # 0335 蒋杰
                             if Salesperson.objects.filter(employee_id=employee_code).count() == 0:
                                 member = Salesperson(employee_id=employee_code)
                             else:
