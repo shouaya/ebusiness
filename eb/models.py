@@ -811,8 +811,8 @@ class OS(models.Model):
 class Project(models.Model):
     name = models.CharField(blank=False, null=False, max_length=50, verbose_name=u"案件名称")
     description = models.TextField(blank=True, null=True, verbose_name=u"案件概要")
-    skills = models.ManyToManyField(Skill, through='ProjectSkill', blank=True, null=True, verbose_name=u"スキル要求")
-    os = models.ManyToManyField(OS, blank=True, null=True, verbose_name=u"機種／OS")
+    skills = models.ManyToManyField(Skill, through='ProjectSkill', blank=True, verbose_name=u"スキル要求")
+    os = models.ManyToManyField(OS, blank=True, verbose_name=u"機種／OS")
     start_date = models.DateField(blank=True, null=True, verbose_name=u"開始日")
     end_date = models.DateField(blank=True, null=True, verbose_name=u"終了日")
     address = models.CharField(blank=True, null=True, max_length=255, verbose_name=u"作業場所")
@@ -832,7 +832,7 @@ class Project(models.Model):
     middleman = models.ForeignKey(ClientMember, blank=True, null=True,
                                   related_name="middleman_set", verbose_name=u"案件連絡者")
     salesperson = models.ForeignKey(Salesperson, blank=True, null=True, verbose_name=u"営業員")
-    members = models.ManyToManyField(Member, through='ProjectMember', blank=True, null=True)
+    members = models.ManyToManyField(Member, through='ProjectMember', blank=True)
     insert_date = models.DateTimeField(blank=True, null=True, auto_now_add=datetime.datetime.now(), editable=False,
                                        verbose_name=u"追加日時")
     update_date = models.DateTimeField(blank=True, null=True, auto_now=datetime.datetime.now(), editable=False,
@@ -1120,9 +1120,9 @@ class ProjectActivity(models.Model):
     open_date = models.DateTimeField(default=datetime.datetime.now(), verbose_name=u"開催日時")
     address = models.CharField(max_length=255, verbose_name=u"活動場所")
     content = models.TextField(verbose_name=u"活動内容")
-    client_members = models.ManyToManyField(ClientMember, blank=True, null=True, verbose_name=u"参加しているお客様")
-    members = models.ManyToManyField(Member, blank=True, null=True, verbose_name=u"参加している社員")
-    salesperson = models.ManyToManyField(Salesperson, blank=True, null=True, verbose_name=u"参加している営業員")
+    client_members = models.ManyToManyField(ClientMember, blank=True, verbose_name=u"参加しているお客様")
+    members = models.ManyToManyField(Member, blank=True, verbose_name=u"参加している社員")
+    salesperson = models.ManyToManyField(Salesperson, blank=True, verbose_name=u"参加している営業員")
     created_date = models.DateTimeField(auto_now_add=True, editable=False)
     is_deleted = models.BooleanField(default=False, editable=False, verbose_name=u"削除フラグ")
     deleted_date = models.DateTimeField(blank=True, null=True, editable=False, verbose_name=u"削除年月日")
@@ -1196,7 +1196,7 @@ class ProjectMember(models.Model):
     status = models.IntegerField(null=False, default=1,
                                  choices=constants.CHOICE_PROJECT_MEMBER_STATUS, verbose_name=u"ステータス")
     role = models.CharField(default="PG", max_length=2, choices=constants.CHOICE_PROJECT_ROLE, verbose_name=u"作業区分")
-    stages = models.ManyToManyField(ProjectStage, blank=True, null=True, verbose_name=u"作業工程")
+    stages = models.ManyToManyField(ProjectStage, blank=True, verbose_name=u"作業工程")
     is_deleted = models.BooleanField(default=False, editable=False, verbose_name=u"削除フラグ")
     deleted_date = models.DateTimeField(blank=True, null=True, editable=False, verbose_name=u"削除年月日")
 
@@ -1392,10 +1392,10 @@ class HistoryProject(models.Model):
     description = models.TextField(blank=True, null=True, verbose_name=u"案件概要")
     start_date = models.DateField(blank=True, null=True, verbose_name=u"開始日")
     end_date = models.DateField(blank=True, null=True, verbose_name=u"終了日")
-    os = models.ManyToManyField(OS, blank=True, null=True, verbose_name=u"機種／OS")
-    skill = models.ManyToManyField(Skill, blank=True, null=True, verbose_name=u"スキル要求")
+    os = models.ManyToManyField(OS, blank=True, verbose_name=u"機種／OS")
+    skill = models.ManyToManyField(Skill, blank=True, verbose_name=u"スキル要求")
     role = models.CharField(default="PG", max_length=2, choices=constants.CHOICE_PROJECT_ROLE, verbose_name=u"作業区分")
-    stages = models.ManyToManyField(ProjectStage, blank=True, null=True, verbose_name=u"作業工程")
+    stages = models.ManyToManyField(ProjectStage, blank=True, verbose_name=u"作業工程")
     is_deleted = models.BooleanField(default=False, editable=False, verbose_name=u"削除フラグ")
     deleted_date = models.DateTimeField(blank=True, null=True, editable=False, verbose_name=u"削除年月日")
 

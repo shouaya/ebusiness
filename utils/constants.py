@@ -145,3 +145,6 @@ xlByRows = 1
 xlFormulas = -4123
 xlNext = 1
 xlDown = -4121
+
+URL_SYNC_MEMBERS = u"http://service.e-business.co.jp:8080/EmployeeManagement/api/employeelist?type=json"
+URL_CONTRACT = u"http://service.e-business.co.jp:8080/ContractManagement/api/newContract?uid=%s"

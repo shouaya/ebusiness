@@ -9,7 +9,8 @@ import re
 import urllib
 import json
 import os
-import urllib2
+
+import biz
 
 from django.http import HttpResponse
 from django.contrib import admin
@@ -26,7 +27,7 @@ from django.forms.models import modelformset_factory
 from django.db.models import Max
 
 from utils import constants, common, errors, loader as file_loader, file_gen
-from .models import Company, Member, Section, Project, ProjectMember, Salesperson, \
+from .models import Member, Section, Project, ProjectMember, Salesperson, \
     MemberAttendance, Subcontractor, BankInfo, ClientOrder
 from . import forms
 
@@ -34,17 +35,9 @@ from . import forms
 PAGE_SIZE = 50
 
 
-def get_company():
-    company_list = Company.objects.all()
-    if company_list.count() == 0:
-        return None
-    else:
-        return company_list[0]
-
-
 @login_required(login_url='/admin/login/')
 def index(request):
-    company = get_company()
+    company = biz.get_company()
     now = datetime.date.today()
     next_month = common.add_months(now, 1)
     next_2_months = common.add_months(now, 2)
@@ -80,7 +73,7 @@ def index(request):
 
 @login_required(login_url='/admin/login/')
 def employee_list(request):
-    company = get_company()
+    company = biz.get_company()
     status = request.GET.get('status', None)
     first_name = request.GET.get('first_name', None)
     last_name = request.GET.get('last_name', None)
@@ -150,7 +143,7 @@ def employee_list(request):
 
 @login_required(login_url='/admin/login/')
 def section_members(request, name):
-    company = get_company()
+    company = biz.get_company()
     section = Section.objects.get(name=name)
     status = request.GET.get('status', None)
     name = request.GET.get('name', None)
@@ -199,7 +192,7 @@ def section_members(request, name):
 
 @login_required(login_url='/admin/login/')
 def project_list(request):
-    company = get_company()
+    company = biz.get_company()
     status = request.GET.get('status', None)
     name = request.GET.get('name', None)
     client = request.GET.get('client', None)
@@ -265,7 +258,7 @@ def project_list(request):
 
 
 def project_order_list(request):
-    company = get_company()
+    company = biz.get_company()
     name = request.GET.get('name', None)
     client = request.GET.get('client', None)
     ym = request.GET.get('ym', None)
@@ -326,7 +319,7 @@ def project_order_list(request):
 
 @login_required(login_url='/admin/login/')
 def project_detail(request, project_id):
-    company = get_company()
+    company = biz.get_company()
     project = Project.objects.get(pk=project_id)
     download = request.GET.get("download", None)
 
@@ -400,7 +393,7 @@ def project_members_by_order(request, order_id):
 
 @login_required(login_url='/admin/login/')
 def project_attendance_list(request, project_id):
-    company = get_company()
+    company = biz.get_company()
     project = Project.objects.get(pk=project_id)
     ym = request.GET.get('ym', None)
     formset = None
@@ -478,7 +471,7 @@ def project_attendance_list(request, project_id):
 
 @login_required(login_url='/admin/login/')
 def project_member_list(request, project_id):
-    company = get_company()
+    company = biz.get_company()
     status = request.GET.get('status', None)
     project = Project.objects.get(pk=project_id)
     params = ""
@@ -522,7 +515,7 @@ def project_member_list(request, project_id):
 
 @login_required(login_url='/admin/login/')
 def release_list(request):
-    company = get_company()
+    company = biz.get_company()
     period = request.GET.get('period', None)
     params = ""
     if period and re.match(r'[12][0-9]{5}', period):
@@ -590,7 +583,7 @@ def release_list(request):
 
 @login_required(login_url='/admin/login/')
 def member_detail(request, employee_id):
-    company = get_company()
+    company = biz.get_company()
     member = Member.objects.get(employee_id=employee_id)
     download = request.GET.get('download', None)
     member.set_coordinate()
@@ -619,7 +612,7 @@ def member_detail(request, employee_id):
 @login_required(login_url='/admin/login/')
 def member_project_list(request, employee_id):
     status = request.GET.get('status', None)
-    company = get_company()
+    company = biz.get_company()
     member = Member.objects.get(employee_id=employee_id)
     if status and status != '0':
         project_members = ProjectMember.objects.public_filter(member=member, status=status)\
@@ -641,7 +634,7 @@ def member_project_list(request, employee_id):
 @login_required(login_url='/admin/login/')
 def recommended_member_list(request, project_id):
     project = Project.objects.get(pk=project_id)
-    company = get_company()
+    company = biz.get_company()
     dict_skills = project.get_recommended_members()
 
     context = RequestContext(request, {
@@ -656,7 +649,7 @@ def recommended_member_list(request, project_id):
 
 @login_required(login_url='/admin/login/')
 def recommended_project_list(request, employee_id):
-    company = get_company()
+    company = biz.get_company()
     member = Member.objects.get(employee_id=employee_id)
     skills = member.get_skill_list()
     project_id_list = member.get_recommended_projects()
@@ -676,7 +669,7 @@ def recommended_project_list(request, employee_id):
 @login_required(login_url='/admin/login/')
 @csrf_protect
 def upload_resume(request):
-    company = get_company()
+    company = biz.get_company()
     context = {
         'company': company,
         'title': u'履歴書をアップロード',
@@ -706,7 +699,7 @@ def upload_resume(request):
 
 
 def download_project_quotation(request, project_id):
-    company = get_company()
+    company = biz.get_company()
     project = Project.objects.get(pk=project_id)
     try:
         now = datetime.datetime.now()
@@ -734,7 +727,7 @@ def download_client_order(request):
 
 @login_required(login_url='/admin/login/')
 def map_position(request):
-    company = get_company()
+    company = biz.get_company()
     members = Member.objects.public_filter(lat__isnull=False, lng__isnull=False).exclude(lat__exact='', lng__exact='')
     context = RequestContext(request, {
         'company': company,
@@ -747,7 +740,7 @@ def map_position(request):
 
 @login_required(login_url='/admin/login/')
 def history(request):
-    company = get_company()
+    company = biz.get_company()
     context = RequestContext(request, {
         'company': company,
         'title': u'更新履歴',
@@ -763,7 +756,7 @@ def logout_view(request):
 
 @login_required(login_url='/admin/login/')
 def sync_coordinate(request):
-    company = get_company()
+    company = biz.get_company()
 
     if request.method == 'GET':
         members = company.get_members_to_set_coordinate()
@@ -809,146 +802,15 @@ def sync_members(request):
     if request.method == 'GET':
         pass
     else:
-        url = u"http://service.e-business.co.jp:8080/EmployeeManagement/api/employeelist?type=json"
-        if not url:
-            pass
-        else:
-            response = urllib2.urlopen(url)
-            html = response.read()
-            dict_data = json.loads(html.replace("\r", "").replace("\n", ""))
-            message_list = []
-            if 'employeeList' in dict_data:
-                company = get_company()
-                for data in dict_data.get("employeeList"):
-                    employee_code = data.get("id", None)
-                    name = data.get("name", None)
-                    birthday = data.get("birthDate", None)
-                    address = data.get("address", None)
-                    department_name = data.get("department", None)
-                    eb_mail = data.get("ebMailAddress", None)
-                    introduction = data.get("introduction", None)
-                    join_date = data.get("joinDate", None)
-                    name_jp = data.get("kana", None)
-                    private_mail = data.get("mailAddress", None)
-                    phone = data.get("phone", None)
-                    postcode = data.get("postcode", None)
-                    sex = data.get("sex", None)
-                    station = data.get("station", None)
-                    if employee_code:
-                        if department_name == u"営業部" or employee_code in ('0126', '0198', '0150', '0335'):
-                            # 0150 孫雲釵
-                            # 0198 劉 暢
-                            # 0126 丁 玲
-                            # 0335 蒋杰
-                            if Salesperson.objects.filter(employee_id=employee_code).count() == 0:
-                                member = Salesperson(employee_id=employee_code)
-                            else:
-                                # message_list.append(("WARN", name, birthday, address, u"既に存在しているレコードです。"))
-                                continue
-                        else:
-                            if Member.objects.filter(employee_id=employee_code).count() == 0:
-                                member = Member(employee_id=employee_code)
-                            else:
-                                # message_list.append(("WARN", name, birthday, address, u"既に存在しているレコードです。"))
-                                continue
-
-                        try:
-                            # コストを取得する。
-                            member.first_name = common.get_first_last_name(name)[0]
-                            member.last_name = common.get_first_last_name(name)[1]
-                            if name_jp:
-                                lst = common.get_first_last_ja_name(name_jp)
-                                if len(lst) == 2 and lst[0]:
-                                    member.first_name_ja = common.get_first_last_ja_name(name_jp)[0]
-                                    member.last_name_ja = common.get_first_last_ja_name(name_jp)[1]
-                                elif len(lst) == 1:
-                                    member.first_name_ja = common.get_first_last_ja_name(name_jp)[0]
-                            if birthday:
-                                try:
-                                    member.birthday = common.parse_date_from_string(birthday)
-                                except:
-                                    member.birthday = None
-                            else:
-                                member.birthday = datetime.date.today()
-                            member.address1 = address
-                            if department_name:
-                                try:
-                                    section = Section.objects.get(name=department_name)
-                                except ObjectDoesNotExist:
-                                    section = Section(name=department_name)
-                                    section.company = get_company()
-                                    section.save()
-                                member.section = section
-                            member.email = eb_mail
-                            member.private_email = private_mail
-                            member.comment = introduction
-                            if join_date:
-                                member.join_date = common.parse_date_from_string(join_date)
-                            if phone:
-                                member.phone = phone.replace("-", "")
-                            if postcode:
-                                member.post_code = postcode.strip().replace("/", "").replace("-", "").strip()
-                                if len(member.post_code.strip()) == 8:
-                                    member.post_code = member.post_code[3:] + member.post_code[4:]
-                                if len(member.post_code) != 7:
-                                    member.post_code = None
-                            member.nearest_station = station
-                            member.sex = "2" if sex == "0" else "1"
-                            member.cost = get_cost(employee_code)
-                            member.company = company
-                            member.save()
-                            message_list.append(("INFO", name, birthday, address, u"完了"))
-                        except Exception as e:
-                            message_list.append(("ERROR", name, birthday, address, u"エラー：" + e.message))
-                context.update({
-                    'messages': [u"完了しました。"],
-                    'message_list': message_list,
-                    'show_result': True,
-                })
-            else:
-                pass
+        message_list = biz.sync_members()
+        context.update({
+            'messages': [u"完了しました。"],
+            'message_list': message_list,
+            'show_result': True,
+        })
 
     r = render_to_response('sync_members.html', context)
     return HttpResponse(r)
-
-
-def is_retired(code):
-    if code:
-        url = "http://service.e-business.co.jp:8080/ContractManagement/api/newContract?uid=%s" % (code,)
-        response = urllib2.urlopen(url)
-        html = response.read()
-        data = json.loads(html.replace("\r", "").replace("\n", ""))
-        period_list = []
-        for item in data['contractList']:
-            period_list.append(item['EMPLOYMENT_PERIOD_END'])
-        if period_list:
-            latest_period = max(period_list)
-            period_end = common.parse_date_from_string(latest_period, split1=u"-", split2=u"-")
-            if period_end and period_end < datetime.date.today():
-                return True
-    return False
-
-
-def get_cost(code):
-    if code:
-        url = "http://service.e-business.co.jp:8080/ContractManagement/api/newContract?uid=%s" % (code,)
-        response = urllib2.urlopen(url)
-        html = response.read()
-        data = json.loads(html.replace("\r", "").replace("\n", ""))
-        period_list = []
-        for item in data['contractList']:
-            period_list.append(item['EMPLOYMENT_PERIOD_END'])
-        latest_period = None
-        if period_list:
-            latest_period = max(period_list)
-        for item in data['contractList']:
-            if latest_period and item['EMPLOYER_NO'] == code and item['EMPLOYMENT_PERIOD_END'] == latest_period:
-                if item['ALLOWANLE_COST'] != "-":
-                    return item['ALLOWANLE_COST']
-        for item in data['contractList']:
-            if item['EMPLOYER_NO'] == code:
-                return item['ALLOWANLE_COST'] if item['ALLOWANLE_COST'] != "-" else 0
-    return 0
 
 
 @login_required(login_url='/admin/login/')

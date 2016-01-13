@@ -116,3 +116,29 @@ TEMPLATES = [
         },
     },
 ]
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'standard': {
+            'format': "[%(asctime)s] %(levelname)s [%(name)s:%(lineno)s] %(message)s",
+            'datefmt': "%Y/%m/%d %H:%M:%S"
+        },
+    },
+    'handlers': {
+        'sync_members': {
+            'level': 'INFO',
+            'class': 'logging.FileHandler',
+            'formatter': 'standard',
+            'filename': os.path.join(BASE_DIR, "log/batch/sync_members.log"),
+        },
+    },
+    'loggers': {
+        'eb.management.commands.sync_members': {
+            'handlers': ['sync_members'],
+            'level': 'INFO',
+            'propagate': True,
+        },
+    }
+}
