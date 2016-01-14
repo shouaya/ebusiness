@@ -16,7 +16,7 @@ import forms
 from .models import Company, Section, Member, Salesperson, Project, Client, ClientMember, \
     ProjectMember, Skill, ProjectSkill, ProjectActivity, Subcontractor, PositionShip,\
     ProjectStage, OS, HistoryProject, MemberAttendance, Degree, ClientOrder, \
-    create_group_salesperson, MemberExpenses, ExpensesCategory, BankInfo
+    create_group_salesperson, MemberExpenses, ExpensesCategory, BankInfo, History
 from utils import common
 
 
@@ -763,6 +763,8 @@ class ProjectMemberAdmin(admin.ModelAdmin):
             form.base_fields['project'].initial = project
             form.base_fields['start_date'].initial = project.start_date
             form.base_fields['end_date'].initial = project.end_date
+            form.base_fields['min_hours'].initial = project.min_hours
+            form.base_fields['max_hours'].initial = project.max_hours
         employee_id = request.GET.get('employee_id', None)
         if employee_id:
             form.base_fields['member'].initial = Member.objects.get(employee_id=employee_id)
@@ -951,6 +953,29 @@ class HistoryProjectAdmin(admin.ModelAdmin):
     active_objects.short_description = u"選択されたレコードを復活する。"
 
 
+class HistoryAdmin(admin.ModelAdmin):
+    list_display = ['start_datetime', 'end_datetime', 'location']
+    list_filter = ['location']
+
+    def has_delete_permission(self, request, obj=None):
+        if request.user.username == u"admin":
+            return True
+        else:
+            return False
+
+    def has_add_permission(self, request):
+        if request.user.username == u"admin":
+            return True
+        else:
+            return False
+
+    def has_change_permission(self, request, obj=None):
+        if request.user.username == u"admin":
+            return True
+        else:
+            return False
+
+
 # Register your models here.
 admin.site.register(Company, CompanyAdmin)
 admin.site.register(BankInfo, BankInfoAdmin)
@@ -972,6 +997,7 @@ admin.site.register(ProjectStage)
 admin.site.register(OS)
 admin.site.register(ExpensesCategory)
 admin.site.register(HistoryProject, HistoryProjectAdmin)
+admin.site.register(History, HistoryAdmin)
 
 admin.site.site_header = u'社員営業状況管理システム'
 admin.site.site_title = u'管理サイト'

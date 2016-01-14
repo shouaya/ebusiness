@@ -139,6 +139,9 @@ CHOICE_TAX_RATE = ((Decimal('0.00'), u"税なし"),
                    (Decimal('0.08'), u"8％"))
 CHOICE_DECIMAL_TYPE = (('0', u"四捨五入"),
                        ('1', u"切り捨て"))
+CHOICE_DEV_LOCATION = (('01', u"東大島"),
+                       ('02', u"田町"),
+                       ('03', u"府中"))
 
 xlPart = 2
 xlByRows = 1

@@ -13,6 +13,7 @@ from django.db import models
 from django.contrib.auth.models import User, Group, Permission
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Max, Q
+from django.utils import timezone
 
 
 from utils import common, constants
@@ -50,7 +51,7 @@ class AbstractMember(models.Model):
     country = models.CharField(blank=True, null=True, max_length=20, verbose_name=u"国籍・地域")
     birthday = models.DateField(blank=True, null=True, verbose_name=u"生年月日")
     graduate_date = models.DateField(blank=True, null=True, verbose_name=u"卒業年月日")
-    join_date = models.DateField(blank=True, null=True, default=datetime.date.today(), verbose_name=u"入社年月日")
+    join_date = models.DateField(blank=True, null=True, default=timezone.now, verbose_name=u"入社年月日")
     email = models.EmailField(blank=True, null=True, verbose_name=u"メールアドレス")
     private_email = models.EmailField(blank=True, null=True, verbose_name=u"個人メールアドレス")
     post_code = models.CharField(blank=True, null=True, max_length=7, verbose_name=u"郵便番号")
@@ -101,6 +102,8 @@ class Company(AbstractCompany):
     quotation_file = models.FileField(blank=True, null=True, upload_to="./quotation",
                                       verbose_name=u"見積書テンプレート")
     request_file = models.FileField(blank=True, null=True, upload_to="./request", verbose_name=u"請求書テンプレート")
+    request_lump_file = models.FileField(blank=True, null=True, upload_to="./request",
+                                         verbose_name=u"請求書テンプレート(一括)")
 
     class Meta:
         verbose_name = verbose_name_plural = u"会社"
@@ -709,7 +712,8 @@ class Client(AbstractCompany):
     salesperson = models.ForeignKey(Salesperson, blank=True, null=True, verbose_name=u"営業担当")
     quotation_file = models.FileField(blank=True, null=True, upload_to="./quotation",
                                       verbose_name=u"見積書テンプレート")
-    request_file = models.FileField(blank=True, null=True, upload_to="./request", verbose_name=u"請求書テンプレート")
+    request_file = models.FileField(blank=True, null=True, upload_to="./request", verbose_name=u"請求書テンプレート",
+                                    help_text=u"如果该项目为空，则使用EB自己的模板。")
     is_deleted = models.BooleanField(default=False, editable=False, verbose_name=u"削除フラグ")
     deleted_date = models.DateTimeField(blank=True, null=True, editable=False, verbose_name=u"削除年月日")
 
@@ -1344,8 +1348,6 @@ class MemberAttendance(models.Model):
     rate = models.DecimalField(max_digits=3, decimal_places=2, default=1, verbose_name=u"率")
     total_hours = models.DecimalField(max_digits=5, decimal_places=2, verbose_name=u"合計時間")
     extra_hours = models.DecimalField(max_digits=5, decimal_places=2, default=0, verbose_name=u"残業時間")
-    # plus_per_hour = models.IntegerField(blank=True, null=True, verbose_name=u"増（円）")
-    # minus_per_hour = models.IntegerField(blank=True, null=True, verbose_name=u"減（円）")
     price = models.IntegerField(default=0, verbose_name=u"価格")
     comment = models.CharField(blank=True, null=True, max_length=50, verbose_name=u"備考")
     is_deleted = models.BooleanField(default=False, editable=False, verbose_name=u"削除フラグ")
@@ -1355,6 +1357,7 @@ class MemberAttendance(models.Model):
 
     class Meta:
         ordering = ['project_member', 'year', 'month']
+        unique_together = ('project_member', 'year', 'month')
         verbose_name = verbose_name_plural = u"勤務時間"
 
     def __unicode__(self):
@@ -1472,6 +1475,17 @@ class HistoryProject(models.Model):
         self.is_deleted = True
         self.deleted_date = datetime.datetime.now()
         self.save()
+
+
+class History(models.Model):
+    start_datetime = models.DateTimeField(default=timezone.now, verbose_name=u"開始日時")
+    end_datetime = models.DateTimeField(default=timezone.now, verbose_name=u"終了日時")
+    location = models.CharField(max_length=1, choices=constants.CHOICE_DEV_LOCATION, verbose_name=u"作業場所")
+    description = models.TextField(verbose_name=u"詳細")
+
+    class Meta:
+        ordering = ['-start_datetime']
+        verbose_name = verbose_name_plural = u"開発履歴"
 
 
 def create_group_salesperson():

@@ -521,7 +521,10 @@ def generate_request(project, company, client_order, request_name=None, order_no
       FileNotExistException
     """
     pythoncom.CoInitializeEx(pythoncom.COINIT_MULTITHREADED)
-    request_file = project.client.request_file if project.client.request_file else company.request_file
+    if project.is_lump:
+        request_file = company.request_lump_file
+    else:
+        request_file = project.client.request_file if project.client.request_file else company.request_file
     if not request_file or not os.path.exists(request_file.path):
         raise errors.FileNotExistException(constants.ERROR_TEMPLATE_NOT_EXISTS)
 
