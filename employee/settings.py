@@ -67,11 +67,11 @@ DATABASES = {
 
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'eb',
+        'NAME': 'eb_sales',
         'USER': 'root',
-        'PASSWORD': 'root',
-        'HOST': '',
-        'PORT': '',
+        'PASSWORD': 'eb2016',
+        'HOST': '54.65.139.168',
+        'PORT': '3306',
     }
 }
 
