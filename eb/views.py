@@ -28,7 +28,7 @@ from django.db.models import Max
 
 from utils import constants, common, errors, loader as file_loader, file_gen
 from .models import Member, Section, Project, ProjectMember, Salesperson, \
-    MemberAttendance, Subcontractor, BankInfo, ClientOrder
+    MemberAttendance, Subcontractor, BankInfo, ClientOrder, History
 from . import forms
 
 
@@ -744,6 +744,7 @@ def history(request):
     context = RequestContext(request, {
         'company': company,
         'title': u'更新履歴',
+        'histories': History.objects.all(),
     })
     template = loader.get_template('history.html')
     return HttpResponse(template.render(context))

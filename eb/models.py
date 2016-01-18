@@ -1480,7 +1480,7 @@ class HistoryProject(models.Model):
 class History(models.Model):
     start_datetime = models.DateTimeField(default=timezone.now, verbose_name=u"開始日時")
     end_datetime = models.DateTimeField(default=timezone.now, verbose_name=u"終了日時")
-    location = models.CharField(max_length=1, choices=constants.CHOICE_DEV_LOCATION, verbose_name=u"作業場所")
+    location = models.CharField(max_length=2, choices=constants.CHOICE_DEV_LOCATION, verbose_name=u"作業場所")
     description = models.TextField(verbose_name=u"詳細")
 
     class Meta:
