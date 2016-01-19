@@ -4,6 +4,7 @@
     <meta charset="utf-8"/>
     <title>{{ title }}</title>
 
+    <link rel="shortcut icon" type="image/png" href="/static/img/favicon.ico"/>
     <link rel="stylesheet" type="text/css" href="/static/css/base.css">
     <link rel="stylesheet" type="text/css" href="/static/css/header.css">
     <link rel="stylesheet" type="text/css" href="/static/css/section.css">
@@ -58,9 +59,6 @@
                     </li>
                     <li><a href="{% url 'release_list' %}">リリース状況一覧</a></li>
                     <li><a href="{% url 'admin:index' %}">管理サイト</a>
-                        <ul>
-                            <li><a href="{% url 'history' %}">開発履歴</a> </li>
-                        </ul>
                     </li>
                 </ul>
             </div>

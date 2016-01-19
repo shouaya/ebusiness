@@ -975,6 +975,26 @@ class HistoryAdmin(admin.ModelAdmin):
         else:
             return False
 
+    def response_change(self, request, obj):
+        if request.GET.get('from') == "portal":
+            return HttpResponse('''
+               <script type="text/javascript">
+                  window.close();
+               </script>''')
+        else:
+            response = super(HistoryAdmin, self).response_change(request, obj)
+            return response
+
+    def response_add(self, request, obj, post_url_continue=None):
+        if request.GET.get('from') == "portal":
+            return HttpResponse('''
+               <script type="text/javascript">
+                  window.close();
+               </script>''')
+        else:
+            response = super(HistoryAdmin, self).response_add(request, obj)
+            return response
+
 
 # Register your models here.
 admin.site.register(Company, CompanyAdmin)

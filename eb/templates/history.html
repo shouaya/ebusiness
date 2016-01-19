@@ -9,25 +9,28 @@
 {% block content %}
     <div class="dashboard">
         <div class="dashboard-title">更新履歴</div>
-        <table cellspacing="0" cellpadding="0" class="list">
-            <thead>
-                <tr>
-                    <th>開始日時</th>
-                    <th>終了日時</th>
-                    <th>作業場所</th>
-                    <th>作業内容</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for history in histories %}
-                    <tr class="{% cycle 'row1' 'row2' %}">
-                        <td>{{ history.start_datetime }}</td>
-                        <td>{{ history.end_datetime }}</td>
-                        <td>{{ history.get_location_display }}</td>
-                        <td>{{ history.description }}</td>
-                    </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+        <form>
+            <a href="{% url 'admin:eb_history_add' %}?from=portal&_popup=1" class="button" target="_blank">履歴追加</a>
+        </form>
     </div>
+    <table cellspacing="0" cellpadding="0" class="list">
+        <thead>
+            <tr>
+                <th>開始日時</th>
+                <th>終了日時</th>
+                <th>作業場所</th>
+                <th>作業内容</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for history in histories %}
+                <tr class="{% cycle 'row1' 'row2' %}">
+                    <td>{{ history.start_datetime }}</td>
+                    <td>{{ history.end_datetime }}</td>
+                    <td>{{ history.get_location_display }}</td>
+                    <td>{{ history.description }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
 {% endblock %}
