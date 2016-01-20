@@ -84,29 +84,29 @@ class NoUserFilter(admin.SimpleListFilter):
 
 class ProjectSkillInline(admin.TabularInline):
     model = ProjectSkill
-    extra = 1
+    extra = 0
 
 
 class ProjectMemberInline(admin.TabularInline):
     model = ProjectMember
     form = forms.ProjectMemberForm
-    extra = 1
+    extra = 0
 
 
 class MemberExpensesInline(admin.TabularInline):
     model = MemberExpenses
-    extra = 1
+    extra = 0
 
 
 class MemberAttendanceInline(admin.TabularInline):
     form = forms.MemberAttendanceForm
     model = MemberAttendance
-    extra = 1
+    extra = 0
 
 
 class DegreeInline(admin.TabularInline):
     model = Degree
-    extra = 1
+    extra = 0
 
 
 def get_full_name(obj):
@@ -418,6 +418,14 @@ class ProjectAdmin(admin.ModelAdmin):
               '/static/js/filterlist.js',
               '/static/js/select_filter.js',
               '/static/js/base.js')
+
+    def _create_formsets(self, request, obj, change):
+        formsets, inline_instances = super(ProjectAdmin, self)._create_formsets(request, obj, change)
+        for fm in formsets:
+            if fm.model == ProjectMember:
+                fm.form.base_fields['min_hours'].initial = obj.min_hours
+                fm.form.base_fields['max_hours'].initial = obj.max_hours
+        return formsets, inline_instances
 
     def get_actions(self, request):
         actions = super(ProjectAdmin, self).get_actions(request)

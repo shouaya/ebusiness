@@ -52,6 +52,11 @@
                     </tr>
                 </thead>
                 {% endif %}
+                {% if form.errors %}
+                <tr>
+                    <td colspan="{{ form.visible_fields|length }}">{{ form.errors.as_ul }}</td>
+                </tr>
+                {% endif %}
                 <tr class="{% cycle row1,row2 %}" id="id_form-{{ forloop.counter0 }}">
                     {% for field in form.visible_fields %}
                         <td>

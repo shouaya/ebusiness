@@ -492,11 +492,7 @@ class Section(models.Model):
         verbose_name = verbose_name_plural = u"部署"
 
     def __unicode__(self):
-        if not self.description:
-            return self.name
-        else:
-            desc = self.description[:7] + "..." if len(self.description) > 10 else self.description
-            return u"%s(%s)" % (self.name, desc)
+        return self.name
 
     def delete(self, using=None):
         self.is_deleted = True
@@ -1346,8 +1342,13 @@ class MemberAttendance(models.Model):
                             choices=constants.CHOICE_ATTENDANCE_YEAR, verbose_name=u"対象年")
     month = models.CharField(max_length=2, choices=constants.CHOICE_ATTENDANCE_MONTH, verbose_name=u"対象月")
     rate = models.DecimalField(max_digits=3, decimal_places=2, default=1, verbose_name=u"率")
+    basic_price = models.IntegerField(default=0, editable=False, verbose_name=u"単価")
     total_hours = models.DecimalField(max_digits=5, decimal_places=2, verbose_name=u"合計時間")
     extra_hours = models.DecimalField(max_digits=5, decimal_places=2, default=0, verbose_name=u"残業時間")
+    min_hours = models.DecimalField(max_digits=5, decimal_places=2, default=160, editable=False, verbose_name=u"基準時間")
+    max_hours = models.DecimalField(max_digits=5, decimal_places=2, default=180, editable=False, verbose_name=u"最大時間")
+    plus_per_hour = models.IntegerField(default=0, editable=False, verbose_name=u"増（円）")
+    minus_per_hour = models.IntegerField(default=0, editable=False, verbose_name=u"減（円）")
     price = models.IntegerField(default=0, verbose_name=u"価格")
     comment = models.CharField(blank=True, null=True, max_length=50, verbose_name=u"備考")
     is_deleted = models.BooleanField(default=False, editable=False, verbose_name=u"削除フラグ")
@@ -1363,10 +1364,15 @@ class MemberAttendance(models.Model):
     def __unicode__(self):
         return u"%s %s %s" % (self.project_member, self.get_year_display(), self.get_month_display())
 
-    # def delete(self, using=None):
-    #     self.is_deleted = True
-    #     self.deleted_date = datetime.datetime.now()
-    #     self.save()
+    def save(self, force_insert=False, force_update=False, using=None,
+             update_fields=None):
+        if self.pk is None:
+            self.basic_price = self.project_member.price
+            self.min_hours = self.project_member.min_hours
+            self.max_hours = self.project_member.max_hours
+            self.plus_per_hour = self.project_member.plus_per_hour
+            self.minus_per_hour = self.project_member.minus_per_hour
+        super(MemberAttendance, self).save(force_insert, force_update, using, update_fields)
 
 
 class Degree(models.Model):
