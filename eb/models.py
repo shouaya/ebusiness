@@ -835,7 +835,7 @@ class Project(models.Model):
     members = models.ManyToManyField(Member, through='ProjectMember', blank=True)
     insert_date = models.DateTimeField(blank=True, null=True, auto_now_add=datetime.datetime.now(), editable=False,
                                        verbose_name=u"追加日時")
-    update_date = models.DateTimeField(blank=True, null=True, auto_now=datetime.datetime.now(), editable=False,
+    update_date = models.DateTimeField(blank=True, null=True, auto_now=True, editable=False,
                                        verbose_name=u"更新日時")
     is_deleted = models.BooleanField(default=False, editable=False, verbose_name=u"削除フラグ")
     deleted_date = models.DateTimeField(blank=True, null=True, editable=False, verbose_name=u"削除日時")
@@ -1112,6 +1112,12 @@ class ProjectRequest(models.Model):
     month = models.CharField(max_length=2, choices=constants.CHOICE_ATTENDANCE_MONTH, verbose_name=u"対象月")
     request_no = models.CharField(max_length=7, verbose_name=u"請求番号")
     amount = models.IntegerField(default=0, verbose_name=u"請求金額")
+    created_date = models.DateTimeField(null=True, auto_now_add=True, editable=False)
+    updated_date = models.DateTimeField(null=True, auto_now=True, editable=False)
+
+    class Meta:
+        ordering = ['-request_no']
+        verbose_name = verbose_name_plural = u"案件請求情報"
 
 
 class ProjectActivity(models.Model):

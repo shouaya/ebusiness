@@ -514,6 +514,44 @@ def project_member_list(request, project_id):
 
 
 @login_required(login_url='/admin/login/')
+def project_turnover(request):
+    company = biz.get_company()
+    ym = request.GET.get('ym', None)
+    if not ym:
+        today = datetime.date.today()
+        ym = "%s%02d" % (today.year, today.month)
+
+    first_day = common.get_first_day_from_ym(ym)
+    last_day = common.get_last_day_by_month(first_day)
+    all_projects = Project.objects.public_filter(start_date__lte=last_day, end_date__gte=first_day)
+
+    all_projects_list = []
+    for project in all_projects:
+        all_projects_list.append((project, project.get_project_members_by_month(ym=ym)))
+
+    paginator = Paginator(all_projects_list, PAGE_SIZE)
+    page = request.GET.get('page')
+    try:
+        projects = paginator.page(page)
+    except PageNotAnInteger:
+        projects = paginator.page(1)
+    except EmptyPage:
+        projects = paginator.page(paginator.num_pages)
+
+    context = RequestContext(request, {
+        'company': company,
+        'title': u'案件の売上情報',
+        'projects': projects,
+        'paginator': paginator,
+        'month_list': common.get_month_list(-1, 1),
+        'current_year': str(datetime.date.today().year),
+        'current_month': str("%02d" % (datetime.date.today().month,)),
+    })
+    template = loader.get_template('project_turnover.html')
+    return HttpResponse(template.render(context))
+
+
+@login_required(login_url='/admin/login/')
 def release_list(request):
     company = biz.get_company()
     period = request.GET.get('period', None)

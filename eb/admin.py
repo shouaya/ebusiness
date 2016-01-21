@@ -16,7 +16,7 @@ import forms
 from .models import Company, Section, Member, Salesperson, Project, Client, ClientMember, \
     ProjectMember, Skill, ProjectSkill, ProjectActivity, Subcontractor, PositionShip,\
     ProjectStage, OS, HistoryProject, MemberAttendance, Degree, ClientOrder, \
-    create_group_salesperson, MemberExpenses, ExpensesCategory, BankInfo, History
+    create_group_salesperson, MemberExpenses, ExpensesCategory, BankInfo, History, ProjectRequest
 from utils import common
 
 
@@ -799,6 +799,24 @@ class ProjectMemberAdmin(admin.ModelAdmin):
             return response
 
 
+class ProjectRequestAdmin(admin.ModelAdmin):
+    list_display = ['project', 'year', 'month', 'request_no', 'amount']
+    search_fields = ['project', 'request_no']
+    list_display_links = ['project', 'request_no']
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        if request.user.username == u"admin":
+            return True
+        else:
+            return False
+
+
 class ProjectActivityAdmin(admin.ModelAdmin):
 
     list_display = ['project', 'name', 'open_date', 'address', 'get_client_members', 'get_salesperson', 'is_deleted']
@@ -1017,6 +1035,7 @@ admin.site.register(Client, ClientAdmin)
 admin.site.register(ClientOrder, ClientOrderAdmin)
 admin.site.register(ClientMember, ClientMemberAdmin)
 admin.site.register(ProjectMember, ProjectMemberAdmin)
+admin.site.register(ProjectRequest, ProjectRequestAdmin)
 # admin.site.register(MemberAttendance, MemberAttendanceAdmin)
 admin.site.register(ProjectActivity, ProjectActivityAdmin)
 admin.site.register(Subcontractor, SubcontractorAdmin)
