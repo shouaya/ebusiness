@@ -320,14 +320,12 @@ class MemberAttendanceFormSet(forms.ModelForm):
                                                                      'style': 'width: 42px; '
                                                                               'background-color: transparent;'
                                                                               'border: 0px;',
-                                                                     'type': 'number',
                                                                      'readonly': 'readonly'}),
                                        label=u"増（円）")
     minus_per_hour = forms.IntegerField(widget=forms.TextInput(attrs={'onblur': "calc_price_for_minus_portal(this)",
                                                                       'style': 'width: 42px;'
                                                                                'background-color: transparent;'
                                                                                'border: 0px;',
-                                                                      'type': 'number',
                                                                       'readonly': 'readonly'}),
                                         label=u"減（円）")
     price = forms.IntegerField(initial=0,

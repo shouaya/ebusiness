@@ -31,7 +31,7 @@ urlpatterns = [
         name='recommended_member'),
     url(r'^project/quotation/(?P<project_id>[^,/]+).html$', views.download_project_quotation,
         name='download_project_quotation'),
-    url(r'^project_turnover.html$', views.project_turnover, name='project_turnover'),
+    url(r'^client_turnover.html$', views.client_turnover, name='client_turnover'),
     url(r'^project/client_order/download/$', views.download_client_order, name='download_client_order'),
     url(r'^member/(?P<employee_id>[^,/]+)/recommended_project.html$', views.recommended_project_list,
         name='recommended_project'),

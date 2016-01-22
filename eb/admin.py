@@ -10,6 +10,7 @@ from django.http import HttpResponse
 from django.contrib import admin
 from django.contrib import messages
 from django.contrib.auth.models import User
+from django.contrib.auth.admin import UserAdmin
 from django.utils.translation import ugettext_lazy as _
 
 import forms
@@ -115,12 +116,60 @@ get_full_name.short_description = u"名前"
 get_full_name.admin_order_field = "first_name"
 
 
-class CompanyAdmin(admin.ModelAdmin):
-
-    form = forms.CompanyForm
+class BaseAdmin(admin.ModelAdmin):
 
     class Media:
-        js = ('http://ajaxzip3.googlecode.com/svn/trunk/ajaxzip3/ajaxzip3.js',)
+        js = ('http://ajaxzip3.googlecode.com/svn/trunk/ajaxzip3/ajaxzip3.js',
+              '/static/js/jquery-2.1.4.min.js',
+              '/static/js/filterlist.js',
+              '/static/js/select_filter.js',
+              '/static/js/base.js')
+
+    def response_change(self, request, obj):
+        if request.GET.get('from') == "portal":
+            return HttpResponse('''
+               <script type="text/javascript">
+                  window.close();
+               </script>''')
+        else:
+            response = super(BaseAdmin, self).response_change(request, obj)
+            return response
+
+    def response_add(self, request, obj, post_url_continue=None):
+        if request.GET.get('from') == "portal":
+            return HttpResponse('''
+               <script type="text/javascript">
+                  window.close();
+               </script>''')
+        else:
+            response = super(BaseAdmin, self).response_add(request, obj)
+            return response
+
+
+class AdminOnlyAdmin(BaseAdmin):
+
+    def has_delete_permission(self, request, obj=None):
+        if request.user.username == u"admin":
+            return True
+        else:
+            return False
+
+    def has_add_permission(self, request):
+        if request.user.username == u"admin":
+            return True
+        else:
+            return False
+
+    def has_change_permission(self, request, obj=None):
+        if request.user.username == u"admin":
+            return True
+        else:
+            return False
+
+
+class CompanyAdmin(BaseAdmin):
+
+    form = forms.CompanyForm
 
     def has_delete_permission(self, request, obj=None):
         # 削除禁止
@@ -134,7 +183,7 @@ class CompanyAdmin(admin.ModelAdmin):
             return True
 
 
-class BankInfoAdmin(admin.ModelAdmin):
+class BankInfoAdmin(BaseAdmin):
 
     list_display = ['bank_name', 'is_deleted']
     actions = ['delete_objects', 'active_objects']
@@ -167,7 +216,7 @@ class BankInfoAdmin(admin.ModelAdmin):
     active_objects.short_description = u"選択されたレコードを復活する。"
 
 
-class SectionAdmin(admin.ModelAdmin):
+class SectionAdmin(BaseAdmin):
 
     form = forms.SectionForm
     list_display = ['name', 'is_on_sales', 'is_deleted']
@@ -208,7 +257,7 @@ class SectionAdmin(admin.ModelAdmin):
     active_objects.short_description = u"選択されたレコードを復活する。"
 
 
-class MemberAdmin(admin.ModelAdmin):
+class MemberAdmin(BaseAdmin):
 
     form = forms.MemberForm
     list_display = ['employee_id', get_full_name, 'section', 'subcontractor', 'salesperson',
@@ -235,12 +284,6 @@ class MemberAdmin(admin.ModelAdmin):
                      'certificate', 'skill_description', 'comment')}),
         (u"勤務情報", {'fields': ('member_type', 'join_date', 'email', 'section', 'company', 'subcontractor', 'salesperson', 'is_retired')})
     )
-
-    class Media:
-        js = ('http://ajaxzip3.googlecode.com/svn/trunk/ajaxzip3/ajaxzip3.js',
-              '/static/js/jquery-2.1.4.min.js',
-              '/static/js/filterlist.js',
-              '/static/js/select_filter.js')
 
     def get_actions(self, request):
         actions = super(MemberAdmin, self).get_actions(request)
@@ -280,28 +323,8 @@ class MemberAdmin(admin.ModelAdmin):
     delete_objects.short_description = u"選択されたレコードを削除する。"
     active_objects.short_description = u"選択されたレコードを復活する。"
 
-    def response_change(self, request, obj):
-        if request.GET.get('from') == "portal":
-            return HttpResponse('''
-               <script type="text/javascript">
-                  window.close();
-               </script>''')
-        else:
-            response = super(MemberAdmin, self).response_change(request, obj)
-            return response
 
-    def response_add(self, request, obj, post_url_continue=None):
-        if request.GET.get('from') == "portal":
-            return HttpResponse('''
-               <script type="text/javascript">
-                  window.close();
-               </script>''')
-        else:
-            response = super(MemberAdmin, self).response_add(request, obj)
-            return response
-
-
-class SalespersonAdmin(admin.ModelAdmin):
+class SalespersonAdmin(BaseAdmin):
 
     form = forms.SalespersonForm
     list_display = ['employee_id', get_full_name, 'email', 'section', 'member_type',
@@ -324,9 +347,6 @@ class SalespersonAdmin(admin.ModelAdmin):
         (u"勤務情報", {'fields': ('member_type', 'email', 'section', 'company', 'is_retired')})
     )
     actions = ['create_users', 'delete_objects', 'active_objects']
-
-    class Media:
-        js = ('http://ajaxzip3.googlecode.com/svn/trunk/ajaxzip3/ajaxzip3.js',)
 
     def get_actions(self, request):
         actions = super(SalespersonAdmin, self).get_actions(request)
@@ -404,20 +424,14 @@ class SalespersonAdmin(admin.ModelAdmin):
     active_objects.short_description = u"選択されたレコードを復活する。"
 
 
-class ProjectAdmin(admin.ModelAdmin):
+class ProjectAdmin(BaseAdmin):
     form = forms.ProjectForm
     list_display = ['name', 'client', 'start_date', 'end_date', 'status', 'salesperson', 'is_deleted']
     list_display_links = ['name']
     list_filter = [ProjectNameListFilter, 'status', 'salesperson', 'is_deleted']
-    search_fields = ['name']
+    search_fields = ['name', 'client__name']
     inlines = (ProjectSkillInline, ProjectMemberInline)
     actions = ['delete_objects', 'active_objects']
-
-    class Media:
-        js = ('/static/js/jquery-2.1.4.min.js',
-              '/static/js/filterlist.js',
-              '/static/js/select_filter.js',
-              '/static/js/base.js')
 
     def _create_formsets(self, request, obj, change):
         formsets, inline_instances = super(ProjectAdmin, self)._create_formsets(request, obj, change)
@@ -472,37 +486,14 @@ class ProjectAdmin(admin.ModelAdmin):
     delete_objects.short_description = u"選択されたレコードを削除する。"
     active_objects.short_description = u"選択されたレコードを復活する。"
 
-    def response_add(self, request, obj, post_url_continue=None):
-        if request.GET.get('from') == "portal":
-            return HttpResponse('''
-               <script type="text/javascript">
-                  window.close();
-               </script>''')
-        else:
-            response = super(ProjectAdmin, self).response_add(request, obj)
-            return response
 
-    def response_change(self, request, obj):
-        if request.GET.get('from') == "portal":
-            return HttpResponse('''
-               <script type="text/javascript">
-                  window.close();
-               </script>''')
-        else:
-            response = super(ProjectAdmin, self).response_change(request, obj)
-            return response
-
-
-class ClientAdmin(admin.ModelAdmin):
+class ClientAdmin(BaseAdmin):
 
     form = forms.ClientForm
 
     list_display = ['name', 'is_request_uploaded', 'is_deleted']
     list_filter = ['is_deleted']
     actions = ['delete_objects', 'active_objects']
-
-    class Media:
-        js = ('http://ajaxzip3.googlecode.com/svn/trunk/ajaxzip3/ajaxzip3.js',)
 
     def is_request_uploaded(self, obj):
         if obj.request_file and os.path.exists(obj.request_file.path):
@@ -539,38 +530,13 @@ class ClientAdmin(admin.ModelAdmin):
     delete_objects.short_description = u"選択されたレコードを削除する。"
     active_objects.short_description = u"選択されたレコードを復活する。"
 
-    def response_change(self, request, obj):
-        if request.GET.get('from') == "portal":
-            return HttpResponse('''
-               <script type="text/javascript">
-                  window.close();
-               </script>''')
-        else:
-            response = super(ClientAdmin, self).response_change(request, obj)
-            return response
 
-    def response_add(self, request, obj, post_url_continue=None):
-        if request.GET.get('from') == "portal":
-            return HttpResponse('''
-               <script type="text/javascript">
-                  window.close();
-               </script>''')
-        else:
-            response = super(ClientAdmin, self).response_add(request, obj)
-            return response
-
-
-class ClientOrderAdmin(admin.ModelAdmin):
+class ClientOrderAdmin(BaseAdmin):
     list_display = ['name', 'start_date', 'end_date', 'is_deleted']
     list_filter = ['is_deleted']
     filter_horizontal = ['projects']
     search_fields = ['name']
     actions = ['delete_objects', 'active_objects']
-
-    class Media:
-        js = ('/static/js/jquery-2.1.4.min.js',
-              '/static/js/filterlist.js',
-              '/static/js/select_filter.js')
 
     def get_actions(self, request):
         actions = super(ClientOrderAdmin, self).get_actions(request)
@@ -615,37 +581,14 @@ class ClientOrderAdmin(admin.ModelAdmin):
     delete_objects.short_description = u"選択されたレコードを削除する。"
     active_objects.short_description = u"選択されたレコードを復活する。"
 
-    def response_change(self, request, obj):
-        if request.GET.get('from') == "portal":
-            return HttpResponse('''
-               <script type="text/javascript">
-                  window.close();
-               </script>''')
-        else:
-            response = super(ClientOrderAdmin, self).response_change(request, obj)
-            return response
 
-    def response_add(self, request, obj, post_url_continue=None):
-        if request.GET.get('from') == "portal":
-            return HttpResponse('''
-               <script type="text/javascript">
-                  window.close();
-               </script>''')
-        else:
-            response = super(ClientOrderAdmin, self).response_add(request, obj)
-            return response
-
-
-class SubcontractorAdmin(admin.ModelAdmin):
+class SubcontractorAdmin(BaseAdmin):
 
     form = forms.SubcontractorForm
 
     list_display = ['name', 'is_deleted']
     list_filter = ['is_deleted']
     actions = ['delete_objects', 'active_objects']
-
-    class Media:
-        js = ('http://ajaxzip3.googlecode.com/svn/trunk/ajaxzip3/ajaxzip3.js',)
 
     def get_actions(self, request):
         actions = super(SubcontractorAdmin, self).get_actions(request)
@@ -674,7 +617,7 @@ class SubcontractorAdmin(admin.ModelAdmin):
     active_objects.short_description = u"選択されたレコードを復活する。"
 
 
-class ClientMemberAdmin(admin.ModelAdmin):
+class ClientMemberAdmin(BaseAdmin):
 
     list_display = ['name', 'email', 'client', 'is_deleted']
     list_filter = ['is_deleted']
@@ -713,10 +656,10 @@ class ClientMemberAdmin(admin.ModelAdmin):
     active_objects.short_description = u"選択されたレコードを復活する。"
 
 
-class ProjectMemberAdmin(admin.ModelAdmin):
+class ProjectMemberAdmin(BaseAdmin):
 
     form = forms.ProjectMemberForm
-    search_fields = ['project__name', 'member__first_name', 'member__last_name']
+    search_fields = ['project__name', 'project__client__name', 'member__first_name', 'member__last_name']
 
     list_display = ['project', 'display_project_client', 'member', 'start_date', 'end_date', 'status']
     filter_horizontal = ['stages']
@@ -724,12 +667,6 @@ class ProjectMemberAdmin(admin.ModelAdmin):
     list_filter = ['status']
     inlines = (MemberAttendanceInline, MemberExpensesInline)
     actions = ['delete_objects', 'active_objects']
-
-    class Media:
-        js = ('/static/js/jquery-2.1.4.min.js',
-              '/static/js/filterlist.js',
-              '/static/js/select_filter.js',
-              '/static/js/base.js')
 
     def get_actions(self, request):
         actions = super(ProjectMemberAdmin, self).get_actions(request)
@@ -778,28 +715,8 @@ class ProjectMemberAdmin(admin.ModelAdmin):
             form.base_fields['member'].initial = Member.objects.get(employee_id=employee_id)
         return form
 
-    def response_change(self, request, obj):
-        if request.GET.get('from') == "portal":
-            return HttpResponse('''
-               <script type="text/javascript">
-                  window.close();
-               </script>''')
-        else:
-            response = super(ProjectMemberAdmin, self).response_change(request, obj)
-            return response
 
-    def response_add(self, request, obj, post_url_continue=None):
-        if request.GET.get('from') == "portal":
-            return HttpResponse('''
-               <script type="text/javascript">
-                  window.close();
-               </script>''')
-        else:
-            response = super(ProjectMemberAdmin, self).response_add(request, obj)
-            return response
-
-
-class ProjectRequestAdmin(admin.ModelAdmin):
+class ProjectRequestAdmin(BaseAdmin):
     list_display = ['project', 'year', 'month', 'request_no', 'amount']
     search_fields = ['project', 'request_no']
     list_display_links = ['project', 'request_no']
@@ -817,7 +734,7 @@ class ProjectRequestAdmin(admin.ModelAdmin):
             return False
 
 
-class ProjectActivityAdmin(admin.ModelAdmin):
+class ProjectActivityAdmin(BaseAdmin):
 
     list_display = ['project', 'name', 'open_date', 'address', 'get_client_members', 'get_salesperson', 'is_deleted']
     list_filter = ['is_deleted']
@@ -825,11 +742,6 @@ class ProjectActivityAdmin(admin.ModelAdmin):
     actions = ['delete_objects', 'active_objects']
 
     filter_horizontal = ['client_members', 'salesperson', 'members']
-
-    class Media:
-        js = ('/static/js/jquery-2.1.4.min.js',
-              '/static/js/filterlist.js',
-              '/static/js/select_filter.js')
 
     def get_actions(self, request):
         actions = super(ProjectActivityAdmin, self).get_actions(request)
@@ -879,40 +791,19 @@ class ProjectActivityAdmin(admin.ModelAdmin):
     delete_objects.short_description = u"選択されたレコードを削除する。"
     active_objects.short_description = u"選択されたレコードを復活する。"
 
-    def response_change(self, request, obj):
-        if request.GET.get('from') == "portal":
-            return HttpResponse('''
-               <script type="text/javascript">
-                  window.close();
-               </script>''')
-        else:
-            response = super(ProjectActivityAdmin, self).response_change(request, obj)
-            return response
-
-    def response_add(self, request, obj, post_url_continue=None):
-        if request.GET.get('from') == "portal":
-            return HttpResponse('''
-               <script type="text/javascript">
-                  window.close();
-               </script>''')
-        else:
-            response = super(ProjectActivityAdmin, self).response_add(request, obj)
-            return response
-
     get_client_members.short_description = u"参加しているお客様"
     get_salesperson.short_description = u"参加している営業員"
 
 
-class PositionShipAdmin(admin.ModelAdmin):
+class ProjectStageAdmin(AdminOnlyAdmin):
+    pass
+
+
+class PositionShipAdmin(BaseAdmin):
 
     list_display = ['position', 'member', 'is_deleted']
     list_filter = ['is_deleted']
     actions = ['delete_objects', 'active_objects']
-
-    class Media:
-        js = ('/static/js/jquery-2.1.4.min.js',
-              '/static/js/filterlist.js',
-              '/static/js/select_filter.js')
 
     def get_actions(self, request):
         actions = super(PositionShipAdmin, self).get_actions(request)
@@ -941,16 +832,11 @@ class PositionShipAdmin(admin.ModelAdmin):
     active_objects.short_description = u"選択されたレコードを復活する。"
 
 
-class HistoryProjectAdmin(admin.ModelAdmin):
+class HistoryProjectAdmin(BaseAdmin):
     list_display = ['name', 'member', 'is_deleted']
     list_filter = ['is_deleted']
     filter_horizontal = ['os', 'skill', 'stages']
     actions = ['delete_objects', 'active_objects']
-
-    class Media:
-        js = ('/static/js/jquery-2.1.4.min.js',
-              '/static/js/filterlist.js',
-              '/static/js/select_filter.js')
 
     def get_actions(self, request):
         actions = super(HistoryProjectAdmin, self).get_actions(request)
@@ -979,47 +865,9 @@ class HistoryProjectAdmin(admin.ModelAdmin):
     active_objects.short_description = u"選択されたレコードを復活する。"
 
 
-class HistoryAdmin(admin.ModelAdmin):
+class HistoryAdmin(BaseAdmin):
     list_display = ['start_datetime', 'end_datetime', 'location']
     list_filter = ['location']
-
-    def has_delete_permission(self, request, obj=None):
-        if request.user.username == u"admin":
-            return True
-        else:
-            return False
-
-    def has_add_permission(self, request):
-        if request.user.username == u"admin":
-            return True
-        else:
-            return False
-
-    def has_change_permission(self, request, obj=None):
-        if request.user.username == u"admin":
-            return True
-        else:
-            return False
-
-    def response_change(self, request, obj):
-        if request.GET.get('from') == "portal":
-            return HttpResponse('''
-               <script type="text/javascript">
-                  window.close();
-               </script>''')
-        else:
-            response = super(HistoryAdmin, self).response_change(request, obj)
-            return response
-
-    def response_add(self, request, obj, post_url_continue=None):
-        if request.GET.get('from') == "portal":
-            return HttpResponse('''
-               <script type="text/javascript">
-                  window.close();
-               </script>''')
-        else:
-            response = super(HistoryAdmin, self).response_add(request, obj)
-            return response
 
 
 # Register your models here.
@@ -1040,11 +888,18 @@ admin.site.register(ProjectRequest, ProjectRequestAdmin)
 admin.site.register(ProjectActivity, ProjectActivityAdmin)
 admin.site.register(Subcontractor, SubcontractorAdmin)
 admin.site.register(PositionShip, PositionShipAdmin)
-admin.site.register(ProjectStage)
+admin.site.register(ProjectStage, ProjectStageAdmin)
 admin.site.register(OS)
 admin.site.register(ExpensesCategory)
 admin.site.register(HistoryProject, HistoryProjectAdmin)
 admin.site.register(History, HistoryAdmin)
+
+UserAdmin.list_display = ('username', 'email', 'first_name', 'last_name',
+                          'is_superuser', 'is_staff', 'is_active', 'date_joined')
+UserAdmin.list_filter = ('is_staff', 'is_superuser', 'is_active')
+
+admin.site.unregister(User)
+admin.site.register(User, UserAdmin)
 
 admin.site.site_header = u'社員営業状況管理システム'
 admin.site.site_title = u'管理サイト'

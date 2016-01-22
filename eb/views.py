@@ -410,12 +410,14 @@ def project_attendance_list(request, project_id):
         str_month = ym[4:]
         date = datetime.date(int(str_year), int(str_month), 1)
         if request.method == 'GET':
+            initial_form_count = 0
             try:
                 project_members = project.get_project_members_by_month(date)
                 dict_initials = []
                 for project_member in project_members:
                     attendance = project_member.get_attendance(date.year, date.month)
                     if attendance:
+                        initial_form_count += 1
                         d = {'id': attendance.pk,
                              'pk': attendance.pk,
                              'project_member': attendance.project_member,
@@ -433,7 +435,8 @@ def project_attendance_list(request, project_id):
                              'comment': attendance.comment,
                              }
                     else:
-                        d = {'project_member': project_member,
+                        d = {'id': u"",
+                             'project_member': project_member,
                              'year': str_year,
                              'month': str_month,
                              'basic_price': project_member.price,
@@ -444,16 +447,17 @@ def project_attendance_list(request, project_id):
                              }
                     dict_initials.append(d)
                 AttendanceFormSet = modelformset_factory(MemberAttendance, form=forms.MemberAttendanceFormSet, extra=len(project_members))
+                dict_initials.sort(key=lambda item: item['id'])
                 formset = AttendanceFormSet(queryset=MemberAttendance.objects.none(), initial=dict_initials)
             except Exception as e:
                 print e.message
 
-            context.update({'formset': formset})
+            context.update({'formset': formset, 'initial_form_count': initial_form_count})
 
             r = render_to_response('project_attendance_list.html', context)
             return HttpResponse(r)
         else:
-            AttendanceFormSet = modelformset_factory(MemberAttendance, form=forms.MemberAttendanceForm, extra=0)
+            AttendanceFormSet = modelformset_factory(MemberAttendance, form=forms.MemberAttendanceFormSet, extra=0)
             formset = AttendanceFormSet(request.POST)
             if formset.is_valid():
                 attendance_list = formset.save(commit=False)
@@ -514,7 +518,7 @@ def project_member_list(request, project_id):
 
 
 @login_required(login_url='/admin/login/')
-def project_turnover(request):
+def client_turnover(request):
     company = biz.get_company()
     ym = request.GET.get('ym', None)
     if not ym:
@@ -540,14 +544,14 @@ def project_turnover(request):
 
     context = RequestContext(request, {
         'company': company,
-        'title': u'案件の売上情報',
+        'title': u'お客様の売上情報',
         'projects': projects,
         'paginator': paginator,
         'month_list': common.get_month_list(-1, 1),
         'current_year': str(datetime.date.today().year),
         'current_month': str("%02d" % (datetime.date.today().month,)),
     })
-    template = loader.get_template('project_turnover.html')
+    template = loader.get_template('client_turnover.html')
     return HttpResponse(template.render(context))
 
 
