@@ -52,9 +52,9 @@ def index(request):
     working_members = biz.get_working_members(request.user)
     waiting_members = biz.get_waiting_members(request.user)
 
-    current_month = company.get_release_current_month(request.user)
-    next_month = company.get_release_next_month(request.user)
-    next_2_month = company.get_release_next_2_month(request.user)
+    current_month = biz.get_release_current_month(request.user)
+    next_month = biz.get_release_next_month(request.user)
+    next_2_month = biz.get_release_next_2_month(request.user)
 
     context = RequestContext(request, {
         'company': company,
@@ -62,10 +62,10 @@ def index(request):
         'filter_list': filter_list,
         'member_count': member_count,
         'working_member_count': working_members.count(),
-        'waiting_member_count': len(waiting_members),
-        'current_month_count': len(current_month),
-        'next_month_count': len(next_month),
-        'next_2_month_count': len(next_2_month),
+        'waiting_member_count': waiting_members.count(),
+        'current_month_count': current_month.count(),
+        'next_month_count': next_month.count(),
+        'next_2_month_count': next_2_month.count(),
     })
     template = loader.get_template('home.html')
     return HttpResponse(template.render(context))

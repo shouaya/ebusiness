@@ -72,6 +72,8 @@ class AbstractMember(models.Model):
     skill_description = models.TextField(blank=True, null=True, verbose_name=u"得意")
     comment = models.TextField(blank=True, null=True, verbose_name=u"備考")
     user = models.OneToOneField(User, blank=True, null=True)
+    is_notify = models.BooleanField(default=False, verbose_name=u"メール通知")
+    notify_type = models.IntegerField(blank=True, null=True, choices=constants.CHOICE_NOTIFY_TYPE, verbose_name=u"通知種類")
     is_retired = models.BooleanField(blank=False, null=False, default=False, verbose_name=u"退職")
 
     class Meta:
@@ -107,63 +109,6 @@ class Company(AbstractCompany):
 
     class Meta:
         verbose_name = verbose_name_plural = u"会社"
-
-    def get_release_members_by_month(self, date, user=None):
-        date_first_day = datetime.date(date.year, date.month, 1)
-        next_month = common.add_months(date, 1)
-        date_next_month = datetime.date(next_month.year, next_month.month, 1)
-        if user:
-            if user.is_superuser:
-                # 管理員の場合全部見られる
-                query_set = Member.objects.raw("select distinct m.*"
-                                               "  from eb_member m"
-                                               "  join eb_section s on s.id = m.section_id and s.is_deleted = 0"
-                                               "  join eb_projectmember pm on pm.member_id = m.id"
-                                               " where pm.end_date >= %s"
-                                               "   and pm.end_date < %s"
-                                               "   and m.is_deleted = 0"
-                                               "   and pm.is_deleted = 0", [date_first_day, date_next_month])
-                return list(query_set)
-            elif common.is_salesperson_director(user) and user.salesperson.section:
-                # 営業部長の場合、部門内すべての社員が見られる
-                salesperson_list = user.salesperson.section.salesperson_set.public_all()
-                id_list = [str(salesperson.id) for salesperson in salesperson_list]
-                query_set = Member.objects.raw("select distinct m.*"
-                                               "  from eb_member m"
-                                               "  join eb_section s on s.id = m.section_id and s.is_deleted = 0"
-                                               "  join eb_projectmember pm on pm.member_id = m.id"
-                                               " where pm.end_date >= %s"
-                                               "   and pm.end_date < %s"
-                                               "   and m.is_deleted = 0"
-                                               "   and pm.is_deleted = 0"
-                                               "   and m.salesperson_id in (" + ",".join(id_list) + ")",
-                                               [date_first_day, date_next_month])
-                return list(query_set)
-            elif common.is_salesperson(user):
-                # 営業員の場合、担当している社員だけ見られる
-                query_set = Member.objects.raw("select distinct m.*"
-                                               "  from eb_member m"
-                                               "  join eb_section s on s.id = m.section_id and s.is_deleted = 0"
-                                               "  join eb_projectmember pm on pm.member_id = m.id"
-                                               " where pm.end_date >= %s"
-                                               "   and pm.end_date < %s"
-                                               "   and m.salesperson_id = %s"
-                                               "   and m.is_deleted = 0"
-                                               "   and pm.is_deleted = 0",
-                                               [date_first_day, date_next_month, user.salesperson.id])
-                return list(query_set)
-        return []
-
-    def get_release_current_month(self, user=None):
-        return self.get_release_members_by_month(datetime.date.today(), user)
-
-    def get_release_next_month(self, user=None):
-        next_month = common.add_months(datetime.date.today(), 1)
-        return self.get_release_members_by_month(next_month, user)
-
-    def get_release_next_2_month(self, user=None):
-        next_2_month = common.add_months(datetime.date.today(), 2)
-        return self.get_release_members_by_month(next_2_month, user)
 
     def get_projects(self, status=0):
         """ステータスによって、該当する全ての案件を取得する。
@@ -358,6 +303,58 @@ class Salesperson(AbstractMember):
 
     def __unicode__(self):
         return u"%s %s" % (self.first_name, self.last_name)
+
+    def get_all_members(self):
+        if self.member_type == 0 and self.section:
+            # 営業部長の場合、部門内すべての社員が見られる
+            salesperson_list = self.section.salesperson_set.public_all()
+            return Member.objects.public_filter(salesperson__in=salesperson_list)
+        else:
+            # 営業員の場合、担当している社員だけ見られる
+            return Member.objects.public_filter(salesperson=self)
+
+    def get_working_members(self):
+        now = datetime.date.today()
+        if self.member_type == 0 and self.section:
+            # 営業部長の場合、部門内すべての社員が見られる
+            salesperson_list = self.section.salesperson_set.public_all()
+            return Member.objects.public_filter(projectmember__start_date__lte=now,
+                                                projectmember__end_date__gte=now,
+                                                projectmember__status=2,
+                                                salesperson__in=salesperson_list)
+        else:
+            # 営業員の場合、担当している社員だけ見られる
+            return Member.objects.public_filter(projectmember__start_date__lte=now,
+                                                projectmember__end_date__gte=now,
+                                                projectmember__status=2,
+                                                salesperson=self)
+
+    def get_waiting_members(self):
+        if self.member_type == 0 and self.section:
+            # 営業部長の場合、部門内すべての社員が見られる
+            working_members = self.get_working_members()
+            return self.get_all_members().exclude(pk__in=working_members)
+        else:
+            # 営業員の場合、担当している社員だけ見られる
+            working_members = self.get_working_members()
+            return self.get_all_members().exclude(pk__in=working_members)
+
+    def get_release_members_month(self, date):
+        first_day = common.get_first_day_by_month(date)
+        last_day = common.get_last_day_by_month(date)
+        return self.get_working_members().filter(projectmember__end_date__gte=first_day,
+                                                 projectmember__end_date__lte=last_day)
+
+    def get_notify_mail_list(self):
+        if self.is_notify:
+            if self.notify_type == 1:
+                return [self.email]
+            elif self.notify_type == 2:
+                return [self.private_email]
+            elif self.notify_type == 3:
+                return [self.email, self.private_email]
+
+        return []
 
     def delete(self, using=None):
         self.is_deleted = True

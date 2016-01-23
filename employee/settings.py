@@ -27,6 +27,12 @@ TEMPLATE_DEBUG = True
 ALLOWED_HOSTS = []
 NUMBER_GROUPING = 3
 
+EMAIL_HOST = 'smtp.e-business.co.jp'
+EMAIL_HOST_USER = 'yangwanjun@e-business.co.jp'
+EMAIL_HOST_PASSWORD = 'finalsquall2005'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+DOMAIN_NAME = 'http://sales.e-business.co.jp'
 
 # Application definition
 
@@ -67,11 +73,11 @@ DATABASES = {
 
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'eb',
+        'NAME': 'eb_sales',
         'USER': 'root',
-        'PASSWORD': 'root',
-        'HOST': '',
-        'PORT': '',
+        'PASSWORD': 'eb2016',
+        'HOST': '54.65.139.168',
+        'PORT': '3306',
     }
 }
 
@@ -122,7 +128,7 @@ LOGGING = {
     'disable_existing_loggers': False,
     'formatters': {
         'standard': {
-            'format': "[%(asctime)s] %(levelname)s [PROCESS:%(process)d] [%(thread)d [%(module)s:%(lineno)s] %(message)s",
+            'format': "[%(asctime)s] %(levelname)s [PROCESS:%(process)d] [%(module)s:%(lineno)s] %(message)s",
             'datefmt': "%Y/%m/%d %H:%M:%S"
         },
     },
@@ -133,10 +139,21 @@ LOGGING = {
             'formatter': 'standard',
             'filename': os.path.join(BASE_DIR, "log/batch/sync_members.log"),
         },
+        'notify': {
+            'level': 'INFO',
+            'class': 'logging.FileHandler',
+            'formatter': 'standard',
+            'filename': os.path.join(BASE_DIR, "log/batch/notify.log"),
+        },
     },
     'loggers': {
         'eb.management.commands.sync_members': {
             'handlers': ['sync_members'],
+            'level': 'INFO',
+            'propagate': True,
+        },
+        'eb.management.commands.notify': {
+            'handlers': ['notify'],
             'level': 'INFO',
             'propagate': True,
         },

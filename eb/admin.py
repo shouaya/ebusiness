@@ -282,7 +282,7 @@ class MemberAdmin(BaseAdmin):
                      ('address1', 'address2'), 'nearest_station',
                      'country', 'graduate_date', 'phone', 'japanese_description',
                      'certificate', 'skill_description', 'comment')}),
-        (u"勤務情報", {'fields': ('member_type', 'join_date', 'email', 'section', 'company', 'subcontractor', 'salesperson', 'is_retired')})
+        (u"勤務情報", {'fields': ('member_type', 'join_date', 'email', 'is_notify', 'notify_type', 'section', 'company', 'subcontractor', 'salesperson', 'is_retired')})
     )
 
     def get_actions(self, request):
@@ -340,11 +340,12 @@ class SalespersonAdmin(BaseAdmin):
                            'birthday')}),
         (u'詳細情報',
          {'classes': ('collapse',),
-          'fields': (('sex', 'is_married'),
+          'fields': ('private_email',
+                     ('sex', 'is_married'),
                      'post_code',
                      ('address1', 'address2'),
                      'country', 'graduate_date', 'phone', 'japanese_description', 'certificate', 'comment')}),
-        (u"勤務情報", {'fields': ('member_type', 'email', 'section', 'company', 'is_retired')})
+        (u"勤務情報", {'fields': ('member_type', 'email', 'is_notify', 'notify_type', 'section', 'company', 'is_retired')})
     )
     actions = ['create_users', 'delete_objects', 'active_objects']
 

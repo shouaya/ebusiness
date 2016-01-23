@@ -1,0 +1,64 @@
+<pre>{% for salesperson in directors %}{{ salesperson }}&nbsp;様&nbsp;{% endfor %}：
+
+お疲れ様です、営業支援システムの管理員です。
+
+今日の社員稼働状況及びリリース状況について、ご報告致します。
+</pre>
+<div>
+    <table cellpadding="2" cellspacing="0" border="1">
+        <thead>
+            <tr>
+                <th rowspan="2" style="width: 90px;">担当者名</th>
+                <th rowspan="2" style="width: 50px;">社員数</th>
+                <th rowspan="2" style="width: 50px;">稼働中</th>
+                <th rowspan="2" style="width: 50px;">待機中</th>
+                <th colspan="3">リリース状況</th>
+            </tr>
+            <tr>
+                <th style="width: 50px;">今月</th>
+                <th style="width: 50px;">来月</th>
+                <th style="width: 50px;">再来月</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for status_info in status_list %}
+                <tr>
+                    <td>{{ status_info.salesperson }}</td>
+                    <td style="text-align: center;">{{ status_info.all_member_count }}</td>
+                    <td style="text-align: center;">{{ status_info.working_member_count }}</td>
+                    <td style="text-align: center;">
+                        <a href="{{ domain }}{% url 'employee_list' %}?status=waiting&salesperson={{ status_info.salesperson.employee_id }}"
+                            target="_blank">
+                            {{ status_info.waiting_member_count }}
+                        </a>
+                    </td>
+                    <td style="text-align: center;">{{ status_info.current_month_count }}</td>
+                    <td style="text-align: center;">{{ status_info.next_month_count }}</td>
+                    <td style="text-align: center;">{{ status_info.next_2_month_count }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+        <tfoot>
+            <tr>
+                <td style="text-align: center;">合計</td>
+                <td style="text-align: center;">{{ summary.all_member_count }}</td>
+                <td style="text-align: center;">{{ summary.working_member_count }}</td>
+                <td style="text-align: center;">{{ summary.waiting_member_count }}</td>
+                <td style="text-align: center;">{{ summary.current_month_count }}</td>
+                <td style="text-align: center;">{{ summary.next_month_count }}</td>
+                <td style="text-align: center;">{{ summary.next_2_month_count }}</td>
+            </tr>
+        </tfoot>
+    </table>
+</div>
+<br/>
+<div>以上です、ご確認のほどよろしくお願いいたします。</div>
+<br/>
+<pre>
+========================================================
+これは「営業支援システム」より自動送信しています。
+本メールへの返信には回答を差しあげておりません。ご了承ください。
+
+※ 由于数据还没有充分录入进来, 以上数据并不代表真实情况, 仅作为参考使用.
+========================================================
+</pre>

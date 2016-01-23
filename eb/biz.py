@@ -11,6 +11,7 @@ import datetime
 import models
 
 from django.db.models import Q
+from django.contrib.auth.models import User
 from django.core.exceptions import ObjectDoesNotExist
 
 from utils import common, constants
@@ -24,17 +25,20 @@ def get_company():
         return company_list[0]
 
 
+def get_admin_user():
+    try:
+        return User.objects.get(username='admin')
+    except ObjectDoesNotExist:
+        return None
+
+
 def get_all_members(user=None):
     if user:
         if user.is_superuser:
             return models.Member.objects.public_filter(Q(section__is_on_sales=True) | Q(member_type=4))
-        elif common.is_salesperson_director(user) and user.salesperson.section:
-            salesperson_list = user.salesperson.section.salesperson_set.public_all()
-            return models.Member.objects.public_filter(salesperson__in=salesperson_list)
         elif common.is_salesperson(user):
-            return models.Member.objects.public_filter(salesperson=user.salesperson)
-        else:
-            return models.Member.objects.none()
+            return user.salesperson.get_all_members()
+
     return models.Member.objects.none()
 
 
@@ -48,22 +52,9 @@ def get_working_members(user=None):
                                                           projectmember__end_date__gte=now,
                                                           projectmember__status=2)
             return members
-        elif common.is_salesperson_director(user) and user.salesperson.section:
-            # 営業部長の場合、部門内すべての社員が見られる
-            salesperson_list = user.salesperson.section.salesperson_set.public_all()
-            members = models.Member.objects.public_filter(Q(section__is_on_sales=True) | Q(member_type=4),
-                                                          projectmember__start_date__lte=now,
-                                                          projectmember__end_date__gte=now,
-                                                          projectmember__status=2,
-                                                          salesperson__in=salesperson_list)
-            return members
         elif common.is_salesperson(user):
             # 営業員の場合、担当している社員だけ見られる
-            members = models.Member.objects.public_filter(projectmember__start_date__lte=now,
-                                                          projectmember__end_date__gte=now,
-                                                          projectmember__status=2,
-                                                          salesperson=user.salesperson)
-            return members
+            return user.salesperson.get_working_members()
 
     return models.Member.objects.none()
 
@@ -75,18 +66,37 @@ def get_waiting_members(user=None):
             working_members = get_working_members(user)
             members = get_all_members(user).exclude(pk__in=working_members)
             return members
-        elif common.is_salesperson_director(user) and user.salesperson.section:
-            # 営業部長の場合、部門内すべての社員が見られる
-            working_members = get_working_members(user)
-            members = get_all_members(user).exclude(pk__in=working_members)
-            return members
         elif common.is_salesperson(user):
             # 営業員の場合、担当している社員だけ見られる
-            working_members = get_working_members(user)
-            members = get_all_members(user).exclude(pk__in=working_members)
-            return members
+            return user.salesperson.get_waiting_members()
 
     return models.Member.objects.none()
+
+
+def get_release_members_by_month(date, user=None):
+    last_day = common.get_last_day_by_month(date)
+    if user:
+        if user.is_superuser:
+            # 管理員の場合全部見られる
+            return get_all_members(user).filter(projectmember__end_date__lte=last_day)
+        elif common.is_salesperson(user):
+            # 営業員の場合、担当している社員だけ見られる
+            return user.salesperson.get_release_members_month(date)
+    return models.Member.objects.none()
+
+
+def get_release_current_month(user=None):
+    return get_release_members_by_month(datetime.date.today(), user)
+
+
+def get_release_next_month(user=None):
+    next_month = common.add_months(datetime.date.today(), 1)
+    return get_release_members_by_month(next_month, user)
+
+
+def get_release_next_2_month(user=None):
+    next_2_month = common.add_months(datetime.date.today(), 2)
+    return get_release_members_by_month(next_2_month, user)
 
 
 def sync_members():
@@ -222,3 +232,40 @@ def company_turnover_month(ym, client_id=None):
         client_turnovers.append(d)
 
     return client_turnovers
+
+
+def get_salesperson_director():
+    return models.Salesperson.objects.public_filter(member_type=0, is_notify=True)
+
+
+def get_members_information():
+    status_list = []
+    today = datetime.date.today()
+    next_month = common.add_months(today, 1)
+    next_2_month = common.add_months(today, 1)
+    summary = {'all_member_count': 0,
+               'working_member_count': 0,
+               'waiting_member_count': 0,
+               'current_month_count': 0,
+               'next_month_count': 0,
+               'next_2_month_count': 0,
+               }
+    for salesperson in models.Salesperson.objects.public_filter(user__isnull=False, member_type=5):
+        d = dict()
+        d['salesperson'] = salesperson
+        d['all_member_count'] = salesperson.get_all_members().count()
+        d['working_member_count'] = salesperson.get_working_members().count()
+        d['waiting_member_count'] = salesperson.get_waiting_members().count()
+        d['current_month_count'] = salesperson.get_release_members_month(today).count()
+        d['next_month_count'] = salesperson.get_release_members_month(next_month).count()
+        d['next_2_month_count'] = salesperson.get_release_members_month(next_2_month).count()
+        status_list.append(d)
+
+        summary['all_member_count'] += d['all_member_count']
+        summary['working_member_count'] += d['working_member_count']
+        summary['waiting_member_count'] += d['waiting_member_count']
+        summary['current_month_count'] += d['current_month_count']
+        summary['next_month_count'] += d['next_month_count']
+        summary['next_2_month_count'] += d['next_2_month_count']
+
+    return status_list, summary

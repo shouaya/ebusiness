@@ -142,6 +142,11 @@ class MemberForm(forms.ModelForm):
         post_code = cleaned_data.get("post_code")
         first_name_en = cleaned_data.get("first_name_en")
         last_name_en = cleaned_data.get("last_name_en")
+        email = cleaned_data.get("email")
+        private_email = cleaned_data.get("private_email")
+        is_notify = cleaned_data.get("is_notify")
+        notify_type = cleaned_data.get("notify_type")
+
         if post_code and not re.match(REG_POST_CODE, post_code):
             self.add_error('post_code', u"正しい郵便番号を入力してください。")
         if member_type == 4:
@@ -162,6 +167,19 @@ class MemberForm(forms.ModelForm):
             self.add_error('company', u"会社と協力会社が同時に選択されてはいけません。")
             self.add_error('subcontractor', u"会社と協力会社が同時に選択されてはいけません。")
 
+        if is_notify:
+            if not notify_type:
+                self.add_error('notify_type', u"通知種類を選択してください。")
+            if notify_type == 1 and not email:
+                self.add_error('notify_type', u"メールアドレスを追加してください。")
+            elif notify_type == 2 and not private_email:
+                self.add_error('notify_type', u"個人メールアドレスを追加してください。")
+            elif notify_type == 3 and (not email or not private_email):
+                self.add_error('notify_type', u"メールアドレス及び個人メールアドレスを追加してください。")
+        else:
+            if notify_type:
+                self.add_error('notify_type', u"メール通知を選択してない場合、通知種類を選択しないようにしてください。")
+
 
 class SalespersonForm(forms.ModelForm):
     class Meta:
@@ -179,6 +197,10 @@ class SalespersonForm(forms.ModelForm):
         post_code = cleaned_data.get("post_code")
         first_name_en = cleaned_data.get("first_name_en")
         last_name_en = cleaned_data.get("last_name_en")
+        email = cleaned_data.get("email")
+        private_email = cleaned_data.get("private_email")
+        is_notify = cleaned_data.get("is_notify")
+        notify_type = cleaned_data.get("notify_type")
         if post_code and not re.match(REG_POST_CODE, post_code):
             self.add_error('post_code', u"正しい郵便番号を入力してください。")
         # ローマ名のチェック
@@ -186,6 +208,18 @@ class SalespersonForm(forms.ModelForm):
             self.add_error('first_name_en', u"先頭文字は大文字にしてください（例：Zhang）")
         if last_name_en and not re.match(REG_UPPER_CAMEL, last_name_en):
             self.add_error('last_name_en', u"漢字ごとに先頭文字は大文字にしてください（例：XiaoWang）")
+        if is_notify:
+            if not notify_type:
+                self.add_error('notify_type', u"通知種類を選択してください。")
+            if notify_type == 1 and not email:
+                self.add_error('notify_type', u"メールアドレスを追加してください。")
+            elif notify_type == 2 and not private_email:
+                self.add_error('notify_type', u"個人メールアドレスを追加してください。")
+            elif notify_type == 3 and (not email or not private_email):
+                self.add_error('notify_type', u"メールアドレス及び個人メールアドレスを追加してください。")
+        else:
+            if notify_type:
+                self.add_error('notify_type', u"メール通知を選択してない場合、通知種類を選択しないようにしてください。")
 
 
 class ProjectMemberForm(forms.ModelForm):

@@ -141,6 +141,9 @@ CHOICE_DECIMAL_TYPE = (('0', u"四捨五入"),
 CHOICE_DEV_LOCATION = (('01', u"東大島"),
                        ('02', u"田町"),
                        ('03', u"府中"))
+CHOICE_NOTIFY_TYPE = ((1, u"EBのメールアドレス"),
+                      (2, u"個人メールアドレス"),
+                      (3, u"EBと個人両方のメールアドレス"))
 
 xlPart = 2
 xlByRows = 1
