@@ -9,10 +9,10 @@ import re
 import urllib2
 import xml.etree.ElementTree as ET
 
-from django.db import models
+from django.db import models, connection
 from django.contrib.auth.models import User, Group, Permission
 from django.core.exceptions import ObjectDoesNotExist
-from django.db.models import Max, Q
+from django.db.models import Max, Q, Sum
 from django.utils import timezone
 
 
@@ -107,162 +107,6 @@ class Company(AbstractCompany):
 
     class Meta:
         verbose_name = verbose_name_plural = u"会社"
-
-    def get_all_members(self, user=None):
-        if user:
-            if user.is_superuser:
-                return Member.objects.filter(Q(section__is_on_sales=True) | Q(member_type=4),
-                                             is_deleted=0, is_retired=0)
-            elif common.is_salesperson_director(user) and user.salesperson.section:
-                salesperson_list = user.salesperson.section.salesperson_set.public_all()
-                return Member.objects.public_filter(salesperson__in=salesperson_list, section__is_on_sales=True)
-            elif common.is_salesperson(user):
-                return Member.objects.public_filter(salesperson=user.salesperson, section__is_on_sales=True)
-            else:
-                return Member.objects.public_filter(pk=-1)
-        return Member.objects.public_filter(section__is_on_sales=True)
-
-    def get_working_members(self, user=None):
-        now = datetime.date.today()
-        if user:
-            if user.is_superuser:
-                # 管理員の場合全部見られる
-                query_set = Member.objects.raw("select distinct m.*"
-                                               "  from eb_member m"
-                                               "  join eb_projectmember pm on pm.member_id = m.id"
-                                               "  join eb_section s on s.id = m.section_id"
-                                               " where pm.start_date <= %s"
-                                               "   and pm.end_date >= %s"
-                                               "   and pm.status = 2"
-                                               "   and s.is_on_sales = 1"
-                                               "   and m.is_retired = 0"
-                                               "   and m.is_deleted = 0"
-                                               "   and s.is_deleted = 0"
-                                               "   and pm.is_deleted = 0"
-                                               " union "
-                                               "select distinct m.*"
-                                               "  from eb_member m"
-                                               "  join eb_projectmember pm on pm.member_id = m.id"
-                                               " where pm.start_date <= %s"
-                                               "   and pm.end_date >= %s"
-                                               "   and pm.status = 2"
-                                               "   and m.member_type = 4"
-                                               "   and m.is_retired = 0"
-                                               "   and m.is_deleted = 0"
-                                               "   and pm.is_deleted = 0"
-                                               , [now, now, now, now])
-                return list(query_set)
-            elif common.is_salesperson_director(user) and user.salesperson.section:
-                # 営業部長の場合、部門内すべての社員が見られる
-                salesperson_list = user.salesperson.section.salesperson_set.public_all()
-                id_list = [str(salesperson.id) for salesperson in salesperson_list]
-                query_set = Member.objects.raw("select distinct m.*"
-                                               "  from eb_member m"
-                                               "  join eb_projectmember pm on pm.member_id = m.id"
-                                               "  join eb_section s on s.id = m.section_id"
-                                               " where pm.start_date <= %s"
-                                               "   and pm.end_date >= %s"
-                                               "   and pm.status = 2"
-                                               "   and s.is_on_sales = 1"
-                                               "   and m.is_retired = 0"
-                                               "   and m.is_deleted = 0"
-                                               "   and s.is_deleted = 0"
-                                               "   and pm.is_deleted = 0"
-                                               "   and m.salesperson_id in (" + ",".join(id_list) + ")", [now, now])
-                return list(query_set)
-            elif common.is_salesperson(user):
-                # 営業員の場合、担当している社員だけ見られる
-                query_set = Member.objects.raw("select distinct m.*"
-                                               "  from eb_member m"
-                                               "  join eb_projectmember pm on pm.member_id = m.id"
-                                               "  join eb_section s on s.id = m.section_id"
-                                               " where pm.start_date <= %s"
-                                               "   and pm.end_date >= %s"
-                                               "   and pm.status = 2"
-                                               "   and m.salesperson_id = %s"
-                                               "   and m.is_retired = 0"
-                                               "   and s.is_on_sales = 1"
-                                               "   and m.is_deleted = 0"
-                                               "   and s.is_deleted = 0"
-                                               "   and pm.is_deleted = 0", [now, now, user.salesperson.id])
-                return list(query_set)
-
-        return []
-
-    def get_waiting_members(self, user=None):
-        now = datetime.date.today()
-        if user:
-            if user.is_superuser:
-                # 管理員の場合全部見られる
-                query_set = Member.objects.raw("select distinct m.*"
-                                               "  from eb_member m"
-                                               "  join eb_section s on s.id = m.section_id"
-                                               " where not exists (select 1 "
-                                               "                     from eb_projectmember pm"
-                                               "                    where pm.member_id = m.id"
-                                               "                      and pm.status = 2"
-                                               "                      and pm.is_deleted = 0"
-                                               "                      and pm.start_date <= %s"
-                                               "                      and pm.end_date >= %s)"
-                                               "   and s.is_on_sales = 1"
-                                               "   and m.is_retired = 0"
-                                               "   and m.is_deleted = 0"
-                                               "   and s.is_deleted = 0"
-                                               " union "
-                                               "select distinct m.*"
-                                               "  from eb_member m"
-                                               " where not exists (select 1 "
-                                               "                     from eb_projectmember pm"
-                                               "                    where pm.member_id = m.id"
-                                               "                      and pm.status = 2"
-                                               "                      and pm.is_deleted = 0"
-                                               "                      and pm.start_date <= %s"
-                                               "                      and pm.end_date >= %s)"
-                                               "   and m.member_type = 4"
-                                               "   and m.is_retired = 0"
-                                               "   and m.is_deleted = 0"
-                                               , [now, now, now, now])
-                return list(query_set)
-            elif common.is_salesperson_director(user) and user.salesperson.section:
-                # 営業部長の場合、部門内すべての社員が見られる
-                salesperson_list = user.salesperson.section.salesperson_set.public_all()
-                id_list = [str(salesperson.id) for salesperson in salesperson_list]
-                query_set = Member.objects.raw("select distinct m.*"
-                                               "  from eb_member m"
-                                               "  join eb_section s on s.id = m.section_id"
-                                               " where not exists (select 1 "
-                                               "                     from eb_projectmember pm"
-                                               "                    where pm.member_id = m.id"
-                                               "                      and pm.status = 2"
-                                               "                      and pm.is_deleted = 0"
-                                               "                      and pm.start_date <= %s"
-                                               "                      and pm.end_date >= %s)"
-                                               "   and s.is_on_sales = 1"
-                                               "   and m.is_retired = 0"
-                                               "   and m.is_deleted = 0"
-                                               "   and s.is_deleted = 0"
-                                               "   and m.salesperson_id in (" + ",".join(id_list) + ")", [now, now])
-                return list(query_set)
-            elif common.is_salesperson(user):
-                # 営業員の場合、担当している社員だけ見られる
-                query_set = Member.objects.raw("select distinct m.*"
-                                               "  from eb_member m"
-                                               "  join eb_section s on s.id = m.section_id"
-                                               " where not exists (select 1 "
-                                               "                     from eb_projectmember pm"
-                                               "                    where pm.member_id = m.id"
-                                               "                      and pm.status = 2"
-                                               "                      and pm.is_deleted = 0"
-                                               "                      and pm.start_date <= %s"
-                                               "                      and pm.end_date >= %s)"
-                                               "   and m.salesperson_id = %s"
-                                               "   and m.is_retired = 0"
-                                               "   and m.is_deleted = 0"
-                                               "   and s.is_deleted = 0"
-                                               "   and s.is_on_sales = 1", [now, now, user.salesperson.id])
-                return list(query_set)
-
-        return []
 
     def get_release_members_by_month(self, date, user=None):
         date_first_day = datetime.date(date.year, date.month, 1)
@@ -739,6 +583,87 @@ class Client(AbstractCompany):
             pay_day = int(self.payment_day)
             return datetime.date(pay_month.year, pay_month.month, pay_day)
 
+    def get_turnover_month(self, date):
+        """お客様の売上情報を取得する。
+
+        Arguments：
+          date: 指定する月
+
+        Returns：
+          Date
+
+        Raises：
+          なし
+        """
+        if not date:
+            date = datetime.date.today()
+
+        first_day = common.get_first_day_by_month(date)
+        last_day = common.get_last_day_by_month(date)
+        cost = ProjectMember.objects.public_filter(project__client=self,
+                                                   start_date__lte=last_day,
+                                                   end_date__gte=first_day)\
+            .aggregate(cost=Sum('member__cost'))
+        cost = cost.get('cost', 0) if cost.get('cost', 0) else 0
+
+        amount = ProjectRequest.objects.filter(project__client=self,
+                                               year='%04d' % (date.year,),
+                                               month='%02d' % (date.month,))\
+            .aggregate(amount=Sum('amount'))
+        amount = amount.get('amount', 0) if amount.get('amount', 0) else 0
+
+        profit = amount - cost
+        return {'cost': cost, 'price': amount, 'profit': profit}
+
+    def get_turnover_month_detail(self, date):
+        """要員毎の売上情報を取得する。
+
+        Arguments：
+          date: 指定する月
+
+        Returns：
+          Date
+
+        Raises：
+          なし
+        """
+        first_day = common.get_first_day_by_month(date)
+        last_day = common.get_last_day_by_month(date)
+
+        cursor = connection.cursor()
+        cursor.execute(u"select pm.project_id, p.name as project_name, m.employee_id"
+                       u"     , concat(m.first_name, ' ', m.last_name) as member_name"
+                       u"     , pm.start_date, pm.end_date"
+                       u"     , ifnull(m.cost, 0) as cost"
+                       u"     , ifnull(ma.price, 0) as price"
+                       u"     , ifnull(ma.price, 0) - ifnull(m.cost, 0) as profit"
+                       u"  from eb_projectmember pm"
+                       u"  join eb_member m on m.id = pm.member_id"
+                       u"  join eb_project p on p.id = pm.project_id"
+                       u"  left join eb_memberattendance ma on ma.project_member_id = pm.id"
+                       u"		 and ma.year = %s and ma.month = %s"
+                       u" where p.client_id = %s"
+                       u"   and pm.start_date <= %s"
+                       u"   and pm.end_date >= %s"
+                       u"   and pm.is_deleted = 0"
+                       u"   and pm.status = 2"
+                       u" order by p.name", [str(date.year), '%02d' % (date.month,), self.pk, last_day, first_day])
+        members = []
+        for project_id, project_name, employee_id, member_name, start_date, end_date, cost, price, profit \
+                in cursor.fetchall():
+            d = dict()
+            d['project_id'] = project_id
+            d['project_name'] = project_name
+            d['employee_id'] = employee_id
+            d['member_name'] = member_name
+            d['start_date'] = start_date
+            d['end_date'] = end_date
+            d['cost'] = cost
+            d['price'] = price
+            d['profit'] = profit
+            members.append(d)
+        return members
+
     def delete(self, using=None):
         self.is_deleted = True
         self.deleted_date = datetime.datetime.now()
@@ -1110,13 +1035,14 @@ class ProjectRequest(models.Model):
     year = models.CharField(max_length=4, default=str(datetime.date.today().year),
                             choices=constants.CHOICE_ATTENDANCE_YEAR, verbose_name=u"対象年")
     month = models.CharField(max_length=2, choices=constants.CHOICE_ATTENDANCE_MONTH, verbose_name=u"対象月")
-    request_no = models.CharField(max_length=7, verbose_name=u"請求番号")
+    request_no = models.CharField(max_length=7, unique=True, verbose_name=u"請求番号")
     amount = models.IntegerField(default=0, verbose_name=u"請求金額")
     created_date = models.DateTimeField(null=True, auto_now_add=True, editable=False)
     updated_date = models.DateTimeField(null=True, auto_now=True, editable=False)
 
     class Meta:
         ordering = ['-request_no']
+        unique_together = ('project', 'year', 'month')
         verbose_name = verbose_name_plural = u"案件請求情報"
 
 
@@ -1351,8 +1277,8 @@ class MemberAttendance(models.Model):
     basic_price = models.IntegerField(default=0, editable=False, verbose_name=u"単価")
     total_hours = models.DecimalField(max_digits=5, decimal_places=2, verbose_name=u"合計時間")
     extra_hours = models.DecimalField(max_digits=5, decimal_places=2, default=0, verbose_name=u"残業時間")
-    min_hours = models.DecimalField(max_digits=5, decimal_places=2, default=160, editable=False, verbose_name=u"基準時間")
-    max_hours = models.DecimalField(max_digits=5, decimal_places=2, default=180, editable=False, verbose_name=u"最大時間")
+    min_hours = models.DecimalField(max_digits=5, decimal_places=2, default=0, editable=False, verbose_name=u"基準時間")
+    max_hours = models.DecimalField(max_digits=5, decimal_places=2, default=0, editable=False, verbose_name=u"最大時間")
     plus_per_hour = models.IntegerField(default=0, editable=False, verbose_name=u"増（円）")
     minus_per_hour = models.IntegerField(default=0, editable=False, verbose_name=u"減（円）")
     price = models.IntegerField(default=0, verbose_name=u"価格")
@@ -1498,6 +1424,11 @@ class History(models.Model):
     class Meta:
         ordering = ['-start_datetime']
         verbose_name = verbose_name_plural = u"開発履歴"
+
+    def get_hours(self):
+        td = self.end_datetime - self.start_datetime
+        hours = td.seconds / 3600.0
+        return round(hours, 1)
 
 
 def create_group_salesperson():

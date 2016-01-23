@@ -23,6 +23,10 @@ def add_months(source_date, months=1):
     return datetime.date(year, month, day)
 
 
+def get_first_day_by_month(source_date):
+    return datetime.date(source_date.year, source_date.month, 1)
+
+
 def get_last_day_by_month(source_date):
     next_month = add_months(source_date, 1)
     return next_month + datetime.timedelta(days=-source_date.day)

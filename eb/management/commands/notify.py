@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 
 
 class Command(BaseCommand):
-    help = u'社員ＤＢから社員の情報を導入する。'
+    help = u'メール通知。'
 
     def handle(self, *args, **options):
         try:

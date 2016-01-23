@@ -14,7 +14,6 @@
     <div class="dashboard">
         <div class="dashboard-title">なにをしたいのですか？</div>
         <form action="" method="get">
-            <span>案件名称: </span><input type="text" id="name" name="name" style="width: 100px;"/>
             <label for="ym">対象年月</label>
             <select name="ym" id="ym">
                 {% for year, month in month_list %}
@@ -35,8 +34,7 @@
     <table class="list" cellpadding="0" cellspacing="0">
         <thead>
             <tr>
-                <th style="width: 250px">関連会社</th>
-                <th style="width: 320px;">
+                <th>
                     {% if dict_order.name.is_in_ordering %}
                         <div class="sortoptions">
                             <a class="sortremove" href="?o={{ dict_order.name.url_list_removed }}{{ params }}"></a>
@@ -46,46 +44,40 @@
                         </div>
                     {% endif %}
                     <div class="text">
-                        <a href="?o={{ dict_order.name.url }}{{ params }}">案件名称</a>
+                        <a href="?o={{ dict_order.name.url }}{{ params }}">お客様名称</a>
                     </div>
                     <div class="clear"></div>
                 </th>
-                <th>注文番号</th>
-                <th>請求番号</th>
-                <th>請求金額</th>
-                <th style="width: 30px;"></th>
-                <th style="width: 60px;"></th>
+                <th>コスト</th>
+                <th>売上</th>
+                <th>利益</th>
             </tr>
         </thead>
         <tbody>
-            {% if projects %}
-                {% for project, members in projects %}
-                    <tr class="row1">
+            {% if clients %}
+                {% for client in clients %}
+                    <tr class="{% cycle 'row1' 'row2' %}">
                         <td>
-                            <div style="width: 250px; overflow: hidden; white-space: nowrap;">
-                                {{ project.client }}
-                            </div>
+                            <a href="{% url 'client_turnover_details' client.id %}?ym={{ ym }}">{{ client.name }}</a>
                         </td>
-                        <td>
-                            <div style="width: 320px; overflow: hidden; white-space: nowrap;">
-                                <a href="{% url 'project_detail' project.pk %}" title="{{ project.name }}">{{ project.name }}</a>
-                            </div>
+                        <td style="text-align: right">
+                            {{ client.cost|intcomma }}
+                        </td>
+                        <td style="text-align: right">
+                            {{ client.price|intcomma }}
+                        </td>
+                        <td style="text-align: right">
+                            {{ client.profit|intcomma }}
                         </td>
                     </tr>
-                    {% for member in members %}
-                        <tr class="row2">
-                            <td> {{ member }}</td>
-                            <td></td>
-                        </tr>
-                    {% endfor %}
                 {% endfor %}
             {% else %}
-                <tr class="row1"><td class="center red" colspan="11">該当する案件がありません。</td></tr>
+                <tr class="row1"><td class="center red" colspan="4">売上情報がありません。</td></tr>
             {% endif %}
         </tbody>
         <tfoot>
             <tr>
-                <td colspan="9">
+                <td>
                     <div class="pagination">
                         <span class="step-links">
                             {% if projects.has_previous %}
@@ -111,6 +103,9 @@
                         </span>
                     </div>
                 </td>
+                <td style="text-align: right"> {{ summary.cost|intcomma }}</td>
+                <td style="text-align: right"> {{ summary.price|intcomma }}</td>
+                <td style="text-align: right"> {{ summary.profit|intcomma }}</td>
             </tr>
         </tfoot>
     </table>

@@ -28,7 +28,7 @@ from django.db.models import Max
 
 from utils import constants, common, errors, loader as file_loader, file_gen
 from .models import Member, Section, Project, ProjectMember, Salesperson, \
-    MemberAttendance, Subcontractor, BankInfo, ClientOrder, History
+    MemberAttendance, Subcontractor, BankInfo, ClientOrder, History, Client
 from . import forms
 
 
@@ -48,9 +48,9 @@ def index(request):
                    'next_2_months_year': next_2_months.year,
                    'next_2_months_month': next_2_months.month}
 
-    member_count = company.get_all_members(request.user).count()
-    working_members = company.get_working_members(request.user)
-    waiting_members = company.get_waiting_members(request.user)
+    member_count = biz.get_all_members(request.user).count()
+    working_members = biz.get_working_members(request.user)
+    waiting_members = biz.get_waiting_members(request.user)
 
     current_month = company.get_release_current_month(request.user)
     next_month = company.get_release_next_month(request.user)
@@ -61,7 +61,7 @@ def index(request):
         'title': 'Home',
         'filter_list': filter_list,
         'member_count': member_count,
-        'working_member_count': len(working_members),
+        'working_member_count': working_members.count(),
         'waiting_member_count': len(waiting_members),
         'current_month_count': len(current_month),
         'next_month_count': len(next_month),
@@ -86,7 +86,7 @@ def employee_list(request):
     dict_order = common.get_ordering_dict(o, ['first_name', 'section', 'salesperson__first_name'])
     order_list = common.get_ordering_list(o)
 
-    all_members = company.get_all_members(request.user)
+    all_members = biz.get_all_members(request.user)
 
     if salesperson:
         salesperson_obj = Salesperson.objects.get(employee_id=salesperson)
@@ -518,7 +518,47 @@ def project_member_list(request, project_id):
 
 
 @login_required(login_url='/admin/login/')
-def client_turnover(request):
+def company_turnover_month(request):
+    company = biz.get_company()
+    ym = request.GET.get('ym', None)
+    first_day = common.get_first_day_current_month()
+    prev_month = first_day + datetime.timedelta(days=-1)
+    if not ym:
+        ym = "%s%02d" % (prev_month.year, prev_month.month)
+
+    client_turnovers = biz.company_turnover_month(ym)
+    summary = {'price': 0, 'cost': 0, 'profit': 0}
+    for turnover in client_turnovers:
+        summary['price'] += turnover['price']
+        summary['cost'] += turnover['cost']
+        summary['profit'] += turnover['profit']
+
+    paginator = Paginator(client_turnovers, PAGE_SIZE)
+    page = request.GET.get('page')
+    try:
+        clients = paginator.page(page)
+    except PageNotAnInteger:
+        clients = paginator.page(1)
+    except EmptyPage:
+        clients = paginator.page(paginator.num_pages)
+
+    context = RequestContext(request, {
+        'company': company,
+        'title': u'月の売上情報',
+        'clients': clients,
+        'summary': summary,
+        'paginator': paginator,
+        'month_list': common.get_month_list(-1, 1),
+        'ym': ym,
+        'current_year': str(prev_month.year),
+        'current_month': str("%02d" % (prev_month.month,)),
+    })
+    template = loader.get_template('company_turnover_month.html')
+    return HttpResponse(template.render(context))
+
+
+@login_required(login_url='/admin/login/')
+def client_turnover_details(request, client_id):
     company = biz.get_company()
     ym = request.GET.get('ym', None)
     if not ym:
@@ -526,32 +566,35 @@ def client_turnover(request):
         ym = "%s%02d" % (today.year, today.month)
 
     first_day = common.get_first_day_from_ym(ym)
-    last_day = common.get_last_day_by_month(first_day)
-    all_projects = Project.objects.public_filter(start_date__lte=last_day, end_date__gte=first_day)
+    client = Client.objects.get(pk=client_id)
+    client_turnovers = client.get_turnover_month_detail(first_day)
+    client_turnover = biz.company_turnover_month(ym, client_id)[0]
 
-    all_projects_list = []
-    for project in all_projects:
-        all_projects_list.append((project, project.get_project_members_by_month(ym=ym)))
+    summary = {'price': 0, 'cost': 0, 'profit': 0}
+    for turnover in client_turnovers:
+        summary['price'] += turnover['price']
+        summary['cost'] += turnover['cost']
+        summary['profit'] += turnover['profit']
 
-    paginator = Paginator(all_projects_list, PAGE_SIZE)
+    paginator = Paginator(client_turnovers, PAGE_SIZE)
     page = request.GET.get('page')
     try:
-        projects = paginator.page(page)
+        members = paginator.page(page)
     except PageNotAnInteger:
-        projects = paginator.page(1)
+        members = paginator.page(1)
     except EmptyPage:
-        projects = paginator.page(paginator.num_pages)
+        members = paginator.page(paginator.num_pages)
 
     context = RequestContext(request, {
         'company': company,
-        'title': u'お客様の売上情報',
-        'projects': projects,
+        'client': client,
+        'title': u'月の売上情報',
+        'members': members,
+        'summary': summary,
+        'client_turnover': client_turnover,
         'paginator': paginator,
-        'month_list': common.get_month_list(-1, 1),
-        'current_year': str(datetime.date.today().year),
-        'current_month': str("%02d" % (datetime.date.today().month,)),
     })
-    template = loader.get_template('client_turnover.html')
+    template = loader.get_template('client_turnover_details.html')
     return HttpResponse(template.render(context))
 
 
@@ -783,10 +826,17 @@ def map_position(request):
 @login_required(login_url='/admin/login/')
 def history(request):
     company = biz.get_company()
+
+    histories = History.objects.all()
+    total_hours = 0
+    for h in histories:
+        total_hours += h.get_hours()
+
     context = RequestContext(request, {
         'company': company,
         'title': u'更新履歴',
-        'histories': History.objects.all(),
+        'histories': histories,
+        'total_hours': total_hours,
     })
     template = loader.get_template('history.html')
     return HttpResponse(template.render(context))

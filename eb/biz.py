@@ -10,6 +10,7 @@ import datetime
 
 import models
 
+from django.db.models import Q
 from django.core.exceptions import ObjectDoesNotExist
 
 from utils import common, constants
@@ -21,6 +22,71 @@ def get_company():
         return None
     else:
         return company_list[0]
+
+
+def get_all_members(user=None):
+    if user:
+        if user.is_superuser:
+            return models.Member.objects.public_filter(Q(section__is_on_sales=True) | Q(member_type=4))
+        elif common.is_salesperson_director(user) and user.salesperson.section:
+            salesperson_list = user.salesperson.section.salesperson_set.public_all()
+            return models.Member.objects.public_filter(salesperson__in=salesperson_list)
+        elif common.is_salesperson(user):
+            return models.Member.objects.public_filter(salesperson=user.salesperson)
+        else:
+            return models.Member.objects.none()
+    return models.Member.objects.none()
+
+
+def get_working_members(user=None):
+    now = datetime.date.today()
+    if user:
+        if user.is_superuser:
+            # 管理員の場合全部見られる
+            members = models.Member.objects.public_filter(Q(section__is_on_sales=True) | Q(member_type=4),
+                                                          projectmember__start_date__lte=now,
+                                                          projectmember__end_date__gte=now,
+                                                          projectmember__status=2)
+            return members
+        elif common.is_salesperson_director(user) and user.salesperson.section:
+            # 営業部長の場合、部門内すべての社員が見られる
+            salesperson_list = user.salesperson.section.salesperson_set.public_all()
+            members = models.Member.objects.public_filter(Q(section__is_on_sales=True) | Q(member_type=4),
+                                                          projectmember__start_date__lte=now,
+                                                          projectmember__end_date__gte=now,
+                                                          projectmember__status=2,
+                                                          salesperson__in=salesperson_list)
+            return members
+        elif common.is_salesperson(user):
+            # 営業員の場合、担当している社員だけ見られる
+            members = models.Member.objects.public_filter(projectmember__start_date__lte=now,
+                                                          projectmember__end_date__gte=now,
+                                                          projectmember__status=2,
+                                                          salesperson=user.salesperson)
+            return members
+
+    return models.Member.objects.none()
+
+
+def get_waiting_members(user=None):
+    if user:
+        if user.is_superuser:
+            # 管理員の場合全部見られる
+            working_members = get_working_members(user)
+            members = get_all_members(user).exclude(pk__in=working_members)
+            return members
+        elif common.is_salesperson_director(user) and user.salesperson.section:
+            # 営業部長の場合、部門内すべての社員が見られる
+            working_members = get_working_members(user)
+            members = get_all_members(user).exclude(pk__in=working_members)
+            return members
+        elif common.is_salesperson(user):
+            # 営業員の場合、担当している社員だけ見られる
+            working_members = get_working_members(user)
+            members = get_all_members(user).exclude(pk__in=working_members)
+            return members
+
+    return models.Member.objects.none()
 
 
 def sync_members():
@@ -136,3 +202,23 @@ def get_cost(code):
             if item['EMPLOYER_NO'] == code:
                 return item['ALLOWANLE_COST'] if item['ALLOWANLE_COST'] != "-" else 0
     return 0
+
+
+def company_turnover_month(ym, client_id=None):
+    first_day = common.get_first_day_from_ym(ym)
+
+    client_turnovers = []
+
+    if client_id:
+        clients = models.Client.objects.public_filter(pk=client_id)
+    else:
+        clients = models.Client.objects.public_all()
+
+    for client in clients:
+        d = dict()
+        d['id'] = client.pk
+        d['name'] = client.name
+        d.update(client.get_turnover_month(first_day))
+        client_turnovers.append(d)
+
+    return client_turnovers

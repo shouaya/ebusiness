@@ -67,11 +67,11 @@ DATABASES = {
 
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'eb_sales',
+        'NAME': 'eb',
         'USER': 'root',
-        'PASSWORD': 'eb2016',
-        'HOST': '54.65.139.168',
-        'PORT': '3306',
+        'PASSWORD': 'root',
+        'HOST': '',
+        'PORT': '',
     }
 }
 
@@ -122,7 +122,7 @@ LOGGING = {
     'disable_existing_loggers': False,
     'formatters': {
         'standard': {
-            'format': "[%(asctime)s] %(levelname)s [%(name)s:%(lineno)s] %(message)s",
+            'format': "[%(asctime)s] %(levelname)s [PROCESS:%(process)d] [%(thread)d [%(module)s:%(lineno)s] %(message)s",
             'datefmt': "%Y/%m/%d %H:%M:%S"
         },
     },
