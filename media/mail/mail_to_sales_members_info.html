@@ -1,4 +1,4 @@
-<pre>{% for salesperson in directors %}{{ salesperson }}&nbsp;様&nbsp;{% endfor %}：
+<pre>{% for salesperson in salesperson_list %}{{ salesperson }}&nbsp;様&nbsp;{% endfor %}：
 
 お疲れ様です、営業支援システムの管理員です。
 
@@ -38,6 +38,7 @@
                 </tr>
             {% endfor %}
         </tbody>
+        {% if summary %}
         <tfoot>
             <tr>
                 <td style="text-align: center;">合計</td>
@@ -49,6 +50,7 @@
                 <td style="text-align: center;">{{ summary.next_2_month_count }}</td>
             </tr>
         </tfoot>
+        {% endif %}
     </table>
 </div>
 <br/>

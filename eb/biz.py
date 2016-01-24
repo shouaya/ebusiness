@@ -267,14 +267,19 @@ def company_turnover_month(ym, client_id=None):
 
 
 def get_salesperson_director():
+    """営業の管理者を取得する。
+    """
     return models.Salesperson.objects.public_filter(member_type=0, is_notify=True)
+
+
+def get_salesperson_members():
+    """営業のメンバーを取得する。
+    """
+    return models.Salesperson.objects.public_filter(member_type=5, is_notify=True)
 
 
 def get_members_information():
     status_list = []
-    today = datetime.date.today()
-    next_month = common.add_months(today, 1)
-    next_2_month = common.add_months(today, 1)
     summary = {'all_member_count': 0,
                'working_member_count': 0,
                'waiting_member_count': 0,
