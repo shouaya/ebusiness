@@ -73,30 +73,62 @@ def get_waiting_members(user=None):
     return models.Member.objects.none()
 
 
-def get_release_members_by_month(date, user=None):
+def get_project_members_month(date):
+    """指定月の案件メンバー全部取得する。
+
+    :param date 指定月
+    """
+    first_day = common.get_first_day_by_month(date)
+    today = datetime.date.today()
+    if date.year == today.year and date.month == today.month:
+        first_day = today
     last_day = common.get_last_day_by_month(date)
-    if user:
-        if user.is_superuser:
-            # 管理員の場合全部見られる
-            return get_all_members(user).filter(projectmember__end_date__lte=last_day)
-        elif common.is_salesperson(user):
-            # 営業員の場合、担当している社員だけ見られる
-            return user.salesperson.get_release_members_month(date)
-    return models.Member.objects.none()
+    return models.ProjectMember.objects.public_filter(end_date__gte=first_day,
+                                                      end_date__lte=last_day,
+                                                      status=2)
 
 
-def get_release_current_month(user=None):
-    return get_release_members_by_month(datetime.date.today(), user)
+def get_release_members_by_month(date, salesperson=None, is_superuser=False):
+    """指定営業員配下の案件メンバー取得する。
+
+    :param date 指定月
+    :param salesperson 指定営業員配下の案件メンバー
+    :param is_superuser スーパーユーザ
+    """
+    if salesperson:
+        return get_project_members_month(date).filter(member__salesperson__in=salesperson.get_under_salesperson())
+    elif is_superuser:
+        return get_project_members_month(date)
+    return models.ProjectMember.objects.none()
 
 
-def get_release_next_month(user=None):
+def get_release_current_month(salesperson=None, is_superuser=False):
+    """指定営業員配下の当月の案件メンバー取得する。
+
+    :param salesperson 指定営業員配下の案件メンバー
+    :param is_superuser スーパーユーザ
+    """
+    return get_release_members_by_month(datetime.date.today(), salesperson, is_superuser)
+
+
+def get_release_next_month(salesperson=None, is_superuser=False):
+    """指定営業員配下の来月の案件メンバー取得する。
+
+    :param salesperson 指定営業員配下の案件メンバー
+    :param is_superuser スーパーユーザ
+    """
     next_month = common.add_months(datetime.date.today(), 1)
-    return get_release_members_by_month(next_month, user)
+    return get_release_members_by_month(next_month, salesperson, is_superuser)
 
 
-def get_release_next_2_month(user=None):
+def get_release_next_2_month(salesperson=None, is_superuser=False):
+    """指定営業員配下の再来月の案件メンバー取得する。
+
+    :param salesperson 指定営業員配下の案件メンバー
+    :param is_superuser スーパーユーザ
+    """
     next_2_month = common.add_months(datetime.date.today(), 2)
-    return get_release_members_by_month(next_2_month, user)
+    return get_release_members_by_month(next_2_month, salesperson, is_superuser)
 
 
 def sync_members():
@@ -256,9 +288,9 @@ def get_members_information():
         d['all_member_count'] = salesperson.get_all_members().count()
         d['working_member_count'] = salesperson.get_working_members().count()
         d['waiting_member_count'] = salesperson.get_waiting_members().count()
-        d['current_month_count'] = salesperson.get_release_members_month(today).count()
-        d['next_month_count'] = salesperson.get_release_members_month(next_month).count()
-        d['next_2_month_count'] = salesperson.get_release_members_month(next_2_month).count()
+        d['current_month_count'] = get_release_current_month(salesperson).count()
+        d['next_month_count'] = get_release_next_month(salesperson).count()
+        d['next_2_month_count'] = get_release_next_2_month(salesperson).count()
         status_list.append(d)
 
         summary['all_member_count'] += d['all_member_count']

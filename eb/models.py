@@ -307,8 +307,7 @@ class Salesperson(AbstractMember):
     def get_all_members(self):
         if self.member_type == 0 and self.section:
             # 営業部長の場合、部門内すべての社員が見られる
-            salesperson_list = self.section.salesperson_set.public_all()
-            return Member.objects.public_filter(salesperson__in=salesperson_list)
+            return Member.objects.public_filter(salesperson__in=self.get_under_salesperson())
         else:
             # 営業員の場合、担当している社員だけ見られる
             return Member.objects.public_filter(salesperson=self)
@@ -317,11 +316,10 @@ class Salesperson(AbstractMember):
         now = datetime.date.today()
         if self.member_type == 0 and self.section:
             # 営業部長の場合、部門内すべての社員が見られる
-            salesperson_list = self.section.salesperson_set.public_all()
             return Member.objects.public_filter(projectmember__start_date__lte=now,
                                                 projectmember__end_date__gte=now,
                                                 projectmember__status=2,
-                                                salesperson__in=salesperson_list)
+                                                salesperson__in=self.get_under_salesperson())
         else:
             # 営業員の場合、担当している社員だけ見られる
             return Member.objects.public_filter(projectmember__start_date__lte=now,
@@ -339,11 +337,13 @@ class Salesperson(AbstractMember):
             working_members = self.get_working_members()
             return self.get_all_members().exclude(pk__in=working_members)
 
-    def get_release_members_month(self, date):
-        first_day = common.get_first_day_by_month(date)
-        last_day = common.get_last_day_by_month(date)
-        return self.get_working_members().filter(projectmember__end_date__gte=first_day,
-                                                 projectmember__end_date__lte=last_day)
+    def get_under_salesperson(self):
+        """部下の営業員を取得する、部下がない場合自分を返す。
+        """
+        if self.member_type == 0 and self.section:
+            return self.section.salesperson_set.public_all()
+        else:
+            return [self]
 
     def get_notify_mail_list(self):
         if self.is_notify:

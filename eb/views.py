@@ -52,9 +52,15 @@ def index(request):
     working_members = biz.get_working_members(request.user)
     waiting_members = biz.get_waiting_members(request.user)
 
-    current_month = biz.get_release_current_month(request.user)
-    next_month = biz.get_release_next_month(request.user)
-    next_2_month = biz.get_release_next_2_month(request.user)
+    is_superuser = False
+    salesperson = None
+    if request.user.is_superuser:
+        is_superuser = True
+    else:
+        salesperson = request.user.salesperson
+    current_month = biz.get_release_current_month(salesperson, is_superuser)
+    next_month = biz.get_release_next_month(salesperson, is_superuser)
+    next_2_month = biz.get_release_next_2_month(salesperson, is_superuser)
 
     context = RequestContext(request, {
         'company': company,
@@ -611,34 +617,16 @@ def release_list(request):
         year = datetime.datetime.now().year
         month = datetime.datetime.now().month
     start_date = datetime.datetime(year, month, 1)
-    end_date = common.add_months(start_date, 1)
     o = request.GET.get('o', None)
     dict_order = common.get_ordering_dict(o, ['member__first_name', 'project__name', 'start_date', 'end_date'])
     order_list = common.get_ordering_list(o)
 
-    if request.user:
-        if request.user.is_superuser:
-            # 管理員の場合全部見られる
-            all_project_members = ProjectMember.objects.public_filter(end_date__gte=start_date,
-                                                                      end_date__lt=end_date).order_by('end_date')
-        elif common.is_salesperson_director(request.user) and request.user.salesperson.section:
-            # 営業部長の場合、部門内すべての社員が見られる
-            salesperson_list = request.user.salesperson.section.salesperson_set.public_all()
-            all_project_members = ProjectMember.objects.public_filter(end_date__gte=start_date,
-                                                                      end_date__lt=end_date,
-                                                                      member__salesperson__in=salesperson_list).\
-                order_by('end_date')
-        elif common.is_salesperson(request.user):
-            # 営業員の場合、担当している社員だけ見られる
-            all_project_members = ProjectMember.objects.public_filter(end_date__gte=start_date,
-                                                                      end_date__lt=end_date,
-                                                                      member__salesperson=request.user.salesperson).\
-                order_by('end_date')
-        else:
-            all_project_members = ProjectMember.objects.public_filter(pk=-1)
+    if request.user.is_superuser:
+        all_project_members = biz.get_project_members_month(start_date)
+    elif hasattr(request.user, 'salesperson'):
+        all_project_members = biz.get_release_members_by_month(start_date, request.user.salesperson)
     else:
-        all_project_members = ProjectMember.objects.public_filter(end_date__gte=start_date,
-                                                                  end_date__lt=end_date).order_by('end_date')
+        all_project_members = biz.get_release_members_by_month(start_date, None)
     if order_list:
         all_project_members = all_project_members.order_by(*order_list)
 
