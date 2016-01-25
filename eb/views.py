@@ -740,6 +740,79 @@ def recommended_project_list(request, employee_id):
 
 
 @login_required(login_url='/admin/login/')
+def subcontractor_list(request):
+    company = biz.get_company()
+    name = request.GET.get('name', None)
+    o = request.GET.get('o', None)
+    dict_order = common.get_ordering_dict(o, ['name'])
+    order_list = common.get_ordering_list(o)
+    params = ""
+
+    all_subcontractors = Subcontractor.objects.public_all()
+    if name:
+        all_subcontractors = all_subcontractors.filter(name__contains=name)
+        params += "&name=%s" % (name,)
+    if order_list:
+        all_subcontractors = all_subcontractors.order_by(*order_list)
+
+    paginator = Paginator(all_subcontractors, PAGE_SIZE)
+    page = request.GET.get('page')
+    try:
+        subcontractors = paginator.page(page)
+    except PageNotAnInteger:
+        subcontractors = paginator.page(1)
+    except EmptyPage:
+        subcontractors = paginator.page(paginator.num_pages)
+
+    context = RequestContext(request, {
+        'company': company,
+        'title': u'協力会社一覧',
+        'subcontractors': subcontractors,
+        'paginator': paginator,
+        'params': params,
+        'orders': "&o=%s" % (o,) if o else "",
+        'dict_order': dict_order,
+        'bp_count': Member.objects.public_filter(subcontractor__isnull=False).count(),
+    })
+    template = loader.get_template('subcontractor_list.html')
+    return HttpResponse(template.render(context))
+
+
+@login_required(login_url='/admin/login/')
+def subcontractor_members(request, subcontractor_id):
+    company = biz.get_company()
+    o = request.GET.get('o', None)
+    dict_order = common.get_ordering_dict(o, ['first_name'])
+    order_list = common.get_ordering_list(o)
+
+    subcontractor = Subcontractor.objects.get(pk=subcontractor_id)
+    all_members = subcontractor.member_set.all()
+    if order_list:
+        all_members = all_members.order_by(*order_list)
+
+    paginator = Paginator(all_members, PAGE_SIZE)
+    page = request.GET.get('page')
+    try:
+        members = paginator.page(page)
+    except PageNotAnInteger:
+        members = paginator.page(1)
+    except EmptyPage:
+        members = paginator.page(paginator.num_pages)
+
+    context = RequestContext(request, {
+        'company': company,
+        'title': u'協力会社の契約社員',
+        'subcontractor': subcontractor,
+        'members': members,
+        'paginator': paginator,
+        'orders': "&o=%s" % (o,) if o else "",
+        'dict_order': dict_order,
+    })
+    template = loader.get_template('subcontractor_members.html')
+    return HttpResponse(template.render(context))
+
+
+@login_required(login_url='/admin/login/')
 @csrf_protect
 def upload_resume(request):
     company = biz.get_company()
@@ -796,6 +869,23 @@ def download_client_order(request):
             response = HttpResponse(open(path, 'rb'), content_type="application/excel")
             response['Content-Disposition'] = "filename=" + urllib.quote(filename.encode("utf8"))
             return response
+
+
+@login_required(login_url='/admin/login/')
+def download_subcontractor_order(request, subcontractor_id):
+    company = biz.get_company()
+    ym = request.GET.get('ym', None)
+    subcontractor = Subcontractor.objects.get(pk=subcontractor_id)
+
+    try:
+        data = biz.generate_order_data(company, subcontractor, request.user, ym)
+        output = biz.generate_order(company, data)
+        filename = biz.get_order_filename(subcontractor, data['ORDER_NO'])
+        response = HttpResponse(output, content_type="application/ms-excel")
+        response['Content-Disposition'] = "filename=" + urllib.quote(filename.encode('utf-8')) + ".xlsx"
+        return response
+    except errors.FileNotExistException, ex:
+        return HttpResponse(u"<script>alert('%s');window.close();</script>" % (ex.message,))
 
 
 @login_required(login_url='/admin/login/')

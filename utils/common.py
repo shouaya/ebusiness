@@ -696,5 +696,17 @@ def get_quotation_no(user):
     return "EB{0:04d}{1:02d}{2:02d}{3}{4}".format(today.year, today.month, today.day, prefix, "001")
 
 
+def get_excel_replacements(text):
+    """エクセルの置換文字列を取得する。
+
+    :param text セルの文字列
+    :return 置換文字列
+    """
+    return re.findall(constants.REG_EXCEL_REPLACEMENT, text, re.U)
+
+
 if __name__ == "__main__":
-    line_counter()
+    # line_counter()
+    for text in [u"注文番号：{$ORDER_NO$}", u"注文番号：{$ORDER_NO$} TEL:{$TEL$} ",
+                 u"注文番号：{$ORDER_NO$", u"注文番号：ORDER_NO", u"注文番号：{$ORDER_NO"]:
+        print text.ljust(50), get_excel_replacements(text)

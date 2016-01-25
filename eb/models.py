@@ -106,6 +106,8 @@ class Company(AbstractCompany):
     request_file = models.FileField(blank=True, null=True, upload_to="./request", verbose_name=u"請求書テンプレート")
     request_lump_file = models.FileField(blank=True, null=True, upload_to="./request",
                                          verbose_name=u"請求書テンプレート(一括)")
+    order_file = models.FileField(blank=True, null=True, upload_to="./eb_order", verbose_name=u"註文書テンプレート",
+                                  help_text=u"協力会社への註文書。")
 
     class Meta:
         verbose_name = verbose_name_plural = u"会社"
@@ -390,6 +392,16 @@ class Member(AbstractMember):
                 if today.day <= birthday.day:
                     years -= 1
             return years
+        else:
+            return None
+
+    def get_current_project_member(self):
+        """現在実施中の案件アサイン情報を取得する
+        """
+        now = datetime.datetime.now()
+        projects = self.projectmember_set.public_filter(end_date__gte=now, start_date__lte=now, status=2)
+        if projects.count() > 0:
+            return projects[0]
         else:
             return None
 

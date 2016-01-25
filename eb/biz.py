@@ -4,6 +4,7 @@ Created on 2016/01/12
 
 @author: Yang Wanjun
 """
+import os
 import urllib2
 import json
 import datetime
@@ -14,7 +15,10 @@ from django.db.models import Q
 from django.contrib.auth.models import User
 from django.core.exceptions import ObjectDoesNotExist
 
-from utils import common, constants
+from openpyxl import load_workbook
+from openpyxl.writer.excel import save_virtual_workbook
+
+from utils import common, constants, errors
 
 
 def get_company():
@@ -154,10 +158,12 @@ def sync_members():
             sex = data.get("sex", None)
             station = data.get("station", None)
             if employee_code:
-                if department_name == u"営業部" or employee_code in ('0126', '0198', '0150', '0335'):
+                if department_name == u"営業部" or employee_code in ('0123', '0126', '0198', '0150', '0249', '0335'):
+                    # 0123 馬婷婷
                     # 0150 孫雲釵
                     # 0198 劉 暢
                     # 0126 丁 玲
+                    # 0249 齋藤 善次
                     # 0335 蒋杰
                     if models.Salesperson.objects.filter(employee_id=employee_code).count() == 0:
                         member = models.Salesperson(employee_id=employee_code)
@@ -306,3 +312,110 @@ def get_members_information():
         summary['next_2_month_count'] += d['next_2_month_count']
 
     return status_list, summary
+
+
+def get_order_no(user):
+    """注文番号を取得する。
+
+    :param user ログインしているユーザ
+    """
+    prefix = '#'
+    today = datetime.date.today()
+    if hasattr(user, 'salesperson'):
+        if user.salesperson.first_name_en:
+            prefix = user.salesperson.first_name_en[0]
+
+    return "EB{0:04d}{1:02d}{2:02d}{3}{4}".format(today.year, today.month, today.day, prefix, "01")
+
+
+def get_order_filename(subcontractor, order_no):
+    """生成した註文書の名称を取得する。
+
+    :param subcontractor 発注先
+    :param order_no 請求番号
+    :return 註文書の名称
+    """
+    return u"{0}_{1}".format(order_no, subcontractor.name)
+
+
+def get_user_profile(user):
+    """ログインしているユーザの詳細情報を取得する。
+
+    :param user ログインしているユーザ
+    """
+    if hasattr(user, 'salesperson'):
+        return user.salesperson
+    return None
+
+
+def generate_order(company, data):
+    """註文書を生成する。
+
+    :param company 発注元会社
+    :param data 註文書の出力データ
+    :return エクセルのバイナリー
+    """
+    # members = subcontractor.member_set.all()
+
+    # テンプレートを取得する
+    order_file = company.order_file
+    if not order_file or not os.path.exists(order_file.path):
+        raise errors.FileNotExistException(constants.ERROR_TEMPLATE_NOT_EXISTS)
+
+    # 新しいエクセルを作成する。
+    wb = load_workbook(order_file.path)
+    ws = wb.active
+    for row in ws.rows:
+        for cell in row:
+            if cell and cell.value:
+                replacements = common.get_excel_replacements(cell.value)
+                if replacements:
+                    for replacement in replacements:
+                        val = data.get(replacement, "{$" + replacement + "$}")
+                        cell.value = cell.value.replace("{$" + replacement + "$}", val)
+
+    return save_virtual_workbook(wb)
+
+
+def generate_order_data(company, subcontractor, user, ym):
+    """註文書を生成するために使うデータを生成する。
+
+    :param company 発注元会社
+    :param subcontractor 発注先
+    :param user ログインしているユーザ
+    :param ym 対象年月
+    :return エクセルのバイナリー
+    """
+    data = dict()
+    # 注文番号
+    data['ORDER_NO'] = get_order_no(user)
+    # 発行年月日
+    date = datetime.date.today()
+    data['PUBLISH_DATE'] = u"%s年%02d月%02d日" % (date.year, date.month, date.day)
+    # 下請け会社名
+    data['SUBCONTRACTOR_NAME'] = subcontractor.name
+    # 作成者
+    salesperson = get_user_profile(user)
+    data['AUTHOR_FIRST_NAME'] = salesperson.first_name if salesperson else ''
+    # 会社名
+    data['COMPANY_NAME'] = company.name
+    # 本社郵便番号
+    data['POST_CODE'] = common.get_full_postcode(company.post_code)
+    # 本社電話番号
+    data['TEL'] = company.tel
+    # 代表取締役
+    member = company.get_master()
+    data['MASTER'] = u"%s %s" % (member.first_name, member.last_name) if member else ""
+    # 本社住所
+    data['ADDRESS1'] = company.address1
+    data['ADDRESS2'] = company.address2
+    # 作業期間
+    if not ym:
+        first_day = common.get_first_day_current_month()
+    else:
+        first_day = common.get_first_day_from_ym(ym)
+    last_day = common.get_last_day_by_month(first_day)
+    data['START_DATE'] = u"%s年%02d月%02d日" % (first_day.year, first_day.month, first_day.day)
+    data['END_DATE'] = u"%s年%02d月%02d日" % (last_day.year, last_day.month, last_day.day)
+
+    return data
