@@ -28,7 +28,7 @@ from django.db.models import Max
 
 from utils import constants, common, errors, loader as file_loader, file_gen
 from .models import Member, Section, Project, ProjectMember, Salesperson, \
-    MemberAttendance, Subcontractor, BankInfo, ClientOrder, History, Client
+    MemberAttendance, Subcontractor, BankInfo, ClientOrder, History, Client, BpMemberOrderInfo
 from . import forms
 
 
@@ -779,7 +779,7 @@ def subcontractor_list(request):
 
 
 @login_required(login_url='/admin/login/')
-def subcontractor_members(request, subcontractor_id):
+def subcontractor_detail(request, subcontractor_id):
     company = biz.get_company()
     o = request.GET.get('o', None)
     dict_order = common.get_ordering_dict(o, ['first_name'])
@@ -801,15 +801,96 @@ def subcontractor_members(request, subcontractor_id):
 
     context = RequestContext(request, {
         'company': company,
-        'title': u'協力会社の契約社員',
+        'title': u'%s | 協力会社' % (subcontractor.name,),
         'subcontractor': subcontractor,
         'members': members,
         'paginator': paginator,
         'orders': "&o=%s" % (o,) if o else "",
         'dict_order': dict_order,
+        'order_month_list': subcontractor.get_year_month_order_finished(),
     })
-    template = loader.get_template('subcontractor_members.html')
+    template = loader.get_template('subcontractor_detail.html')
     return HttpResponse(template.render(context))
+
+
+@login_required(login_url='/admin/login/')
+def subcontractor_members(request, subcontractor_id):
+    company = biz.get_company()
+    subcontractor = Subcontractor.objects.get(pk=subcontractor_id)
+    ym = request.GET.get('ym', None)
+
+    context = RequestContext(request, {
+        'company': company,
+        'title': u'注文情報入力 | %s | 協力会社' % (subcontractor.name,),
+        'subcontractor': subcontractor,
+    })
+    context.update(csrf(request))
+
+    if ym:
+        str_year = ym[:4]
+        str_month = ym[4:]
+    else:
+        str_year = str(datetime.date.today().year)
+        str_month = '%02d' % (datetime.date.today().month,)
+        ym = str_year + str_month
+
+    if request.method == 'GET':
+        initial_form_count = 0
+        first_day = common.get_first_day_from_ym(ym)
+        last_day = common.get_last_day_by_month(first_day)
+        # 現在案件実施中のメンバーを取得する。
+        members = subcontractor.member_set.filter(projectmember__start_date__lte=last_day,
+                                                  projectmember__end_date__gte=first_day)
+        dict_initials = []
+        for member in members:
+            bp_member_info = member.get_bp_member_info(first_day)
+            if bp_member_info:
+                initial_form_count += 1
+                d = {'id': bp_member_info.pk,
+                     'pk': bp_member_info.pk,
+                     'member': bp_member_info.member,
+                     'year': bp_member_info.year,
+                     'month': bp_member_info.month,
+                     'cost': member.cost,
+                     'plus_per_hour': bp_member_info.plus_per_hour,
+                     'minus_per_hour': bp_member_info.minus_per_hour,
+                     'comment': bp_member_info.comment,
+                     }
+            else:
+                d = {'id': u"",
+                     'member': member,
+                     'year': str_year,
+                     'month': str_month,
+                     'cost': member.cost,
+                     'plus_per_hour': biz.get_bm_member_plus_per_hour(member.cost),
+                     'minus_per_hour': biz.get_bm_member_minus_per_hour(member.cost),
+                     'comment': "",
+                     }
+            dict_initials.append(d)
+        BpOrderInfoFormSet = modelformset_factory(BpMemberOrderInfo, form=forms.BpMemberOrderInfoFormSet,
+                                                  extra=len(members))
+        dict_initials.sort(key=lambda item: item['id'])
+        formset = BpOrderInfoFormSet(queryset=BpMemberOrderInfo.objects.none(), initial=dict_initials)
+
+        context.update({'formset': formset, 'initial_form_count': initial_form_count})
+
+        r = render_to_response('subcontractor_members.html', context)
+        return HttpResponse(r)
+    else:
+        BpOrderInfoFormSet = modelformset_factory(BpMemberOrderInfo, form=forms.BpMemberOrderInfoFormSet, extra=0)
+        formset = BpOrderInfoFormSet(request.POST)
+        if formset.is_valid():
+            bp_member_list = formset.save(commit=False)
+            for i, bp_member in enumerate(bp_member_list):
+                if not bp_member.pk:
+                    bp_member_id = request.POST.get("form-%s-id" % (i,), None)
+                    bp_member.pk = int(bp_member_id) if bp_member_id else None
+                bp_member.save()
+            return redirect("/eb/subcontractor_detail/%s.html" % (subcontractor.pk,))
+        else:
+            context.update({'formset': formset})
+            r = render_to_response('subcontractor_members.html', context)
+            return HttpResponse(r)
 
 
 @login_required(login_url='/admin/login/')

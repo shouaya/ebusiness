@@ -11,7 +11,7 @@ import datetime
 
 import models
 
-from django.db.models import Q
+from django.db.models import Q, Max
 from django.contrib.auth.models import User
 from django.core.exceptions import ObjectDoesNotExist
 
@@ -319,13 +319,21 @@ def get_order_no(user):
 
     :param user ログインしているユーザ
     """
-    prefix = '#'
+    prefix = '@'
     today = datetime.date.today()
     if hasattr(user, 'salesperson'):
         if user.salesperson.first_name_en:
             prefix = user.salesperson.first_name_en[0]
 
-    return "EB{0:04d}{1:02d}{2:02d}{3}{4}".format(today.year, today.month, today.day, prefix, "01")
+    order_no = "EB{0:04d}{1:02d}{2:02d}{3}".format(today.year, today.month, today.day, prefix)
+    max_order_no = models.SubcontractorOrder.objects.public_filter(order_no__startswith=order_no)\
+        .aggregate(Max('order_no'))
+    max_order_no = max_order_no.get('order_no__max')
+    if max_order_no:
+        index = int(max_order_no[-2:]) + 1
+    else:
+        index = 1
+    return "{0}{1:02d}".format(order_no, index)
 
 
 def get_order_filename(subcontractor, order_no):
@@ -335,7 +343,8 @@ def get_order_filename(subcontractor, order_no):
     :param order_no 請求番号
     :return 註文書の名称
     """
-    return u"{0}_{1}".format(order_no, subcontractor.name)
+    now = datetime.datetime.now()
+    return u"{0}_{1}_{2}".format(order_no, subcontractor.name, now.strftime('%Y%m%d%H%M%S'))
 
 
 def get_user_profile(user):
@@ -387,8 +396,6 @@ def generate_order_data(company, subcontractor, user, ym):
     :return エクセルのバイナリー
     """
     data = dict()
-    # 注文番号
-    data['ORDER_NO'] = get_order_no(user)
     # 発行年月日
     date = datetime.date.today()
     data['PUBLISH_DATE'] = u"%s年%02d月%02d日" % (date.year, date.month, date.day)
@@ -418,4 +425,35 @@ def generate_order_data(company, subcontractor, user, ym):
     data['START_DATE'] = u"%s年%02d月%02d日" % (first_day.year, first_day.month, first_day.day)
     data['END_DATE'] = u"%s年%02d月%02d日" % (last_day.year, last_day.month, last_day.day)
 
+    # 注文情報を追加する
+    try:
+        order = models.SubcontractorOrder.objects.get(subcontractor=subcontractor,
+                                                      year=first_day.year,
+                                                      month=first_day.month)
+        data['ORDER_NO'] = get_order_no(user)
+    except ObjectDoesNotExist:
+        data['ORDER_NO'] = get_order_no(user)
+        order = models.SubcontractorOrder(subcontractor=subcontractor,
+                                          order_no=data['ORDER_NO'],
+                                          year=str(first_day.year),
+                                          month="%02d" % (first_day.month,))
+    order.save()
     return data
+
+
+def get_bm_member_plus_per_hour(cost):
+    """他者技術者の増を取得する。
+
+    :param cost コスト
+    :return
+    """
+    return cost / 180
+
+
+def get_bm_member_minus_per_hour(cost):
+    """他者技術者の減を取得する。
+
+    :param cost コスト
+    :return
+    """
+    return cost / 160

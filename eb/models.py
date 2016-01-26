@@ -12,7 +12,7 @@ import xml.etree.ElementTree as ET
 from django.db import models, connection
 from django.contrib.auth.models import User, Group, Permission
 from django.core.exceptions import ObjectDoesNotExist
-from django.db.models import Max, Q, Sum
+from django.db.models import Max, Min, Q, Sum
 from django.utils import timezone
 
 
@@ -261,6 +261,49 @@ class Subcontractor(AbstractCompany):
     class Meta:
         ordering = ['name']
         verbose_name = verbose_name_plural = u"協力会社"
+
+    def get_start_date(self):
+        """
+        協力社員のアサイン情報の一番古い日付を取得する。
+        :return:
+        """
+        members = self.member_set.all()
+        min_start_date = ProjectMember.objects.public_filter(member__in=members).aggregate(Min('start_date'))
+        start_date = min_start_date.get('start_date__min')
+        return start_date if start_date else datetime.date.today()
+
+    def get_end_date(self):
+        """
+        協力社員のアサイン情報の一番最後日付を取得する。
+        :return:
+        """
+        members = self.member_set.all()
+        max_end_date = ProjectMember.objects.public_filter(member__in=members).aggregate(Max('end_date'))
+        end_date = max_end_date.get('end_date__max')
+        return end_date if end_date else datetime.date.today()
+
+    def get_year_month_order_finished(self):
+        """
+        月単位の註文情報を取得する。
+        :return:
+        """
+        ret_value = []
+        for year, month in common.get_year_month_list(self.get_start_date(), self.get_end_date()):
+            first_day = datetime.date(int(year), int(month), 1)
+            last_day = common.get_last_day_by_month(first_day)
+            try:
+                subcontractor_order = SubcontractorOrder.objects.get(subcontractor=self, year=year, month=month)
+            except ObjectDoesNotExist:
+                subcontractor_order = None
+            members = self.member_set.filter(projectmember__start_date__lte=last_day,
+                                             projectmember__end_date__gte=first_day)
+            bp_members = BpMemberOrderInfo.objects.public_filter(member__in=members, year=year, month=month)
+            if members.count() > 0 and members.count() == bp_members.count():
+                is_finished = True
+            else:
+                is_finished = False
+            ret_value.append((year, month, subcontractor_order, is_finished))
+        return ret_value
 
     def delete(self, using=None):
         self.is_deleted = True
@@ -512,6 +555,18 @@ class Member(AbstractMember):
             except:
                 return False
         return False
+
+    def get_bp_member_info(self, date):
+        """
+        他者技術者の場合、注文の詳細情報を取得する。
+        :param date 対象年月
+        :return:
+        """
+        members = self.bpmemberorderinfo_set.filter(year=str(date.year), month="%02d" % (date.month,))
+        if members.count() > 0:
+            return members[0]
+        else:
+            return None
 
     def delete(self, using=None):
         self.is_deleted = True
@@ -767,7 +822,7 @@ class Project(models.Model):
                                   related_name="middleman_set", verbose_name=u"案件連絡者")
     salesperson = models.ForeignKey(Salesperson, blank=True, null=True, verbose_name=u"営業員")
     members = models.ManyToManyField(Member, through='ProjectMember', blank=True)
-    insert_date = models.DateTimeField(blank=True, null=True, auto_now_add=datetime.datetime.now(), editable=False,
+    insert_date = models.DateTimeField(blank=True, null=True, auto_now_add=True, editable=False,
                                        verbose_name=u"追加日時")
     update_date = models.DateTimeField(blank=True, null=True, auto_now=True, editable=False,
                                        verbose_name=u"更新日時")
@@ -1314,6 +1369,55 @@ class MemberAttendance(models.Model):
             self.plus_per_hour = self.project_member.plus_per_hour
             self.minus_per_hour = self.project_member.minus_per_hour
         super(MemberAttendance, self).save(force_insert, force_update, using, update_fields)
+
+
+class SubcontractorOrder(models.Model):
+    subcontractor = models.ForeignKey(Subcontractor, verbose_name=u"協力会社")
+    order_no = models.CharField(max_length=14, unique=True, verbose_name=u"注文番号")
+    year = models.CharField(max_length=4, default=str(datetime.date.today().year),
+                            choices=constants.CHOICE_ATTENDANCE_YEAR, verbose_name=u"対象年")
+    month = models.CharField(max_length=2, choices=constants.CHOICE_ATTENDANCE_MONTH, verbose_name=u"対象月")
+    created_date = models.DateTimeField(auto_now_add=True, editable=False, verbose_name=u"追加日時")
+    updated_date = models.DateTimeField(auto_now=True, editable=False, verbose_name=u"更新日時")
+    is_deleted = models.BooleanField(default=False, editable=False, verbose_name=u"削除フラグ")
+    deleted_date = models.DateTimeField(blank=True, null=True, editable=False, verbose_name=u"削除日時")
+
+    objects = PublicManager(is_deleted=False, subcontractor__is_deleted=False)
+
+    def __unicode__(self):
+        return self.order_no
+
+    class Meta:
+        unique_together = ('subcontractor', 'year', 'month')
+        verbose_name = verbose_name_plural = u"ＢＰ註文書"
+
+    def delete(self, using=None):
+        self.is_deleted = True
+        self.deleted_date = datetime.datetime.now()
+        self.save()
+
+
+class BpMemberOrderInfo(models.Model):
+    member = models.ForeignKey(Member, verbose_name=u"協力社員")
+    year = models.CharField(max_length=4, default=str(datetime.date.today().year),
+                            choices=constants.CHOICE_ATTENDANCE_YEAR, verbose_name=u"対象年")
+    month = models.CharField(max_length=2, choices=constants.CHOICE_ATTENDANCE_MONTH, verbose_name=u"対象月")
+    plus_per_hour = models.IntegerField(default=0, verbose_name=u"増（円）")
+    minus_per_hour = models.IntegerField(default=0, verbose_name=u"減（円）")
+    comment = models.CharField(blank=True, null=True, max_length=50, verbose_name=u"備考")
+    is_deleted = models.BooleanField(default=False, editable=False, verbose_name=u"削除フラグ")
+    deleted_date = models.DateTimeField(blank=True, null=True, editable=False, verbose_name=u"削除年月日")
+
+    objects = PublicManager(is_deleted=False, member__is_deleted=False)
+
+    class Meta:
+        unique_together = ('member', 'year', 'month')
+        verbose_name = verbose_name_plural = u"協力社員の注文情報"
+
+    def delete(self, using=None):
+        self.is_deleted = True
+        self.deleted_date = datetime.datetime.now()
+        self.save()
 
 
 class Degree(models.Model):

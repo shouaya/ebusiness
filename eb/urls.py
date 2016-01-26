@@ -37,6 +37,8 @@ urlpatterns = [
     url(r'^member/(?P<employee_id>[^,/]+)/recommended_project.html$', views.recommended_project_list,
         name='recommended_project'),
     url(r'^subcontractor_list.html$', views.subcontractor_list, name='subcontractor_list'),
+    url(r'^subcontractor_detail/(?P<subcontractor_id>[0-9]+).html$', views.subcontractor_detail,
+        name='subcontractor_detail'),
     url(r'^subcontractor_members/(?P<subcontractor_id>[0-9]+).html$', views.subcontractor_members,
         name='subcontractor_members'),
     url(r'^subcontractor_order/(?P<subcontractor_id>[0-9]+).html$', views.download_subcontractor_order,

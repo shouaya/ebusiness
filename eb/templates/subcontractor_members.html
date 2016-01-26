@@ -4,144 +4,67 @@
 {% block header %}
     <script type="text/javascript">
         window.onload = function() {
-            init_select("name");
+            obj_list = $("select")
+            obj_list.attr("disabled", "disabled");
+            for (i=0; i<=obj_list.length; i++) {
+                obj = $(obj_list[i])
+                obj.after("<input type='hidden' value='" + obj.val() + "' name='" + obj.attr("name") + "'/>");
+            }
         };
     </script>
 {% endblock %}
 
 {% block content %}
     <div class="dashboard">
-        <div class="dashboard-title">なにをしたいのですか？</div>
-        <form action="" method="get">
-            <a href="{% url 'download_subcontractor_order' subcontractor.pk %}" target="_blank" class="button">註文書ダウンロード</a>
-            <a href="javascript:show_dialog('order_replace_info')" class="button">註文書の置換文字列</a>
-        </form>
+        <div class="dashboard-title">注文情報入力</div>
     </div>
-    <div id="mask" onclick="hide_dialog()" class="mask">
-    </div>
-    <div id="order_replace_info" class="dialog" style="width: 700px;">
-        <table width="100%" cellpadding="0" cellspacing="0">
-            <tr>
-                <th>{$ORDER_NO$}</th>
-                <td>注文番号</td>
-                <th>{$PUBLISH_DATE$}</th>
-                <td>年月日</td>
-            </tr>
-            <tr>
-                <th class="sep">{$SUBCONTRACTOR_NAME$}</th>
-                <td class="sep">下請け会社名</td>
-                <th class="sep">{$AUTHOR_FIRST_NAME$}</th>
-                <td class="sep">作成者</td>
-            </tr>
-            <tr>
-                <th>{$POST_CODE$}</th>
-                <td>本社郵便番号</td>
-                <th>{$TEL$}</th>
-                <td>本社電話番号</td>
-            </tr>
-            <tr>
-                <th>{$COMPANY_NAME$}</th>
-                <td>会社名</td>
-                <th>{$MASTER$}</th>
-                <td>代表取締役</td>
-            </tr>
-            <tr>
-                <th class="sep">{$ADDRESS1$}</th>
-                <td class="sep">本社住所1</td>
-                <th class="sep">{$ADDRESS2$}</th>
-                <td class="sep">本社住所2</td>
-            </tr>
-            <tr>
-                <th>{$PROJECT_NAME$}</th>
-                <td>案件名称</td>
-                <th>{$PROJECT_LEADER$}</th>
-                <td>作業責任者</td>
-            </tr>
-            <tr>
-                <th>{$START_DATE$}</th>
-                <td>開発期間（開始）</td>
-                <th>{$END_DATE$}</th>
-                <td>開発期間（終了）</td>
-            </tr>
-            <tr>
-                <th>{$MIN_HOUR$}</th>
-                <td>基準時間（最小値）</td>
-                <th>{$MAX_HOUR$}</th>
-                <td>基準時間（最大値）</td>
-            </tr>
-        </table>
-    </div>
-    <table class="list" cellpadding="0" cellspacing="0">
-        <thead>
-            <tr>
-                <th>
-                    {% if dict_order.first_name.is_in_ordering %}
-                        <div class="sortoptions">
-                            <a class="sortremove" href="?o={{ dict_order.first_name.url_list_removed }}{{ params }}"></a>
-                            <span class="sortpriority">{{ dict_order.first_name.priority }}</span>
-                            <a class="{% if dict_order.first_name.is_asc %}descending{% else %}ascending{% endif %}"
-                               href="?o={{ dict_order.first_name.url }}{{ params }}"></a>
-                        </div>
-                    {% endif %}
-                    <div class="text">
-                        <a href="?o={{ dict_order.first_name.url }}{{ params }}">名前</a>
-                    </div>
-                    <div class="clear"></div>
-                </th>
-                <th>案件</th>
-                <th>開始日</th>
-                <th>終了日</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% if members %}
-                {% for member in members %}
-                    <tr class="{% cycle 'row1' 'row2' %}">
-                        <td>
-                            <a href="{% url 'member_detail' member.employee_id %}">{{ member }}</a>
-                        </td>
-                        <td>
-                            {{ member.get_current_project_member.project }}
-                        </td>
-                        <td>{{ member.get_current_project_member.start_date|date:'Y-m-d' }}</td>
-                        <td>{{ member.get_current_project_member.end_date|date:'Y-m-d' }}</td>
+    <table class="detail" cellpadding="0" cellspacing="0">
+        <tr>
+            <th>協力会社名称</th><td>{{ subcontractor }}</td>
+        </tr>
+    </table>
+    <form method="post" action="">
+        {% csrf_token %}
+        {{ formset.management_form }}
+        <script type="text/javascript">
+            $("#id_form-INITIAL_FORMS").val({{ initial_form_count }});
+        </script>
+        <table id="formset" class="list" cellpadding="0"  cellspacing="0">
+            {% for form in formset.forms %}
+                {% if forloop.first %}
+                <thead>
+                    <tr>
+                        {% for field in form.visible_fields %}
+                            <th>{{ field.label|capfirst }}</th>
+                        {% endfor %}
                     </tr>
-                {% endfor %}
-            {% else %}
-                <tr class="row1"><td class="center red" colspan="4">協力会社がありません。</td></tr>
-            {% endif %}
-        </tbody>
-        <tfoot>
-            <tr>
-                <td>
-                    <div class="pagination">
-                        <span class="step-links">
-                            {% if projects.has_previous %}
-                                <a href="?page={{ projects.previous_page_number }}{{ params }}">&lt;</a>
-                            {% endif %}
-
-                            {% if paginator.page_range|length > 1 %}
-                                {% for page in paginator.page_range %}
-                                    {% ifequal page projects.number %}
-                                        <span class="current">
-                                            {{ page }}
-                                        </span>
-                                    {% else %}
-                                        <a href="?page={{ page }}{{ params }}{{ orders }}">{{ page }}</a>
-                                    {% endifequal %}
+                </thead>
+                {% endif %}
+                {% if form.non_field_errors %}
+                    <tr><td colspan="{{ form.visible_fields|length }}">{{ form.non_field_errors }}</td></tr>
+                {% endif %}
+                <tr class="{% cycle row1,row2 %}" id="id_form-{{ forloop.counter0 }}">
+                    {% for field in form.visible_fields %}
+                        <td>
+                            {# Include the hidden fields in the form #}
+                            {% if forloop.first %}
+                                {% for hidden in form.hidden_fields %}
+                                    {{ hidden }}
                                 {% endfor %}
                             {% endif %}
-
-                            {% if projects.has_next %}
-                                <a href="?page={{ projects.next_page_number }}{{ params }}">&gt;</a>
-                            {% endif %}
-                            <span>{{ paginator.count }} 件</span>
-                        </span>
-                    </div>
-                </td>
-                <td style="text-align: center;">{{ bp_count }}</td>
-                <td colspan="2"></td>
-            </tr>
-        </tfoot>
-    </table>
+                            {{ field.errors.as_ul }}
+                            {{ field }}
+                        </td>
+                    {% endfor %}
+                </tr>
+            {% endfor %}
+            <tfoot>
+                <tr>
+                    {% if formset.forms %}
+                        <td style="height: 30px;" colspan="13"><input type="submit" value="保存" class="right btnOk"/></td>
+                    {% endif %}
+                </tr>
+            </tfoot>
+        </table>
+    </form>
 {% endblock %}

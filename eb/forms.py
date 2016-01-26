@@ -366,3 +366,16 @@ class MemberAttendanceFormSet(forms.ModelForm):
                                widget=forms.TextInput(attrs={'style': 'width: 70px;',
                                                              'type': 'number'}),
                                label=u"価格")
+
+
+class BpMemberOrderInfoFormSet(forms.ModelForm):
+    class Meta:
+        model = models.BpMemberOrderInfo
+        fields = '__all__'
+
+    cost = forms.IntegerField(initial=0,
+                              widget=forms.TextInput(attrs={'style': 'width: 70px;'
+                                                                     'background-color: transparent;'
+                                                                     'border: 0px;',
+                                                            'readonly': 'readonly'}),
+                              label=u"価格")

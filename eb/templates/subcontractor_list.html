@@ -44,7 +44,7 @@
                 {% for subcontractor in subcontractors %}
                     <tr class="{% cycle 'row1' 'row2' %}">
                         <td>
-                            <a href="{% url 'subcontractor_members' subcontractor.pk %}">{{ subcontractor.name }}</a>
+                            <a href="{% url 'subcontractor_detail' subcontractor.pk %}">{{ subcontractor.name }}</a>
                         </td>
                         <td style="text-align: center">
                             {{ subcontractor.member_set.count }}
