@@ -378,4 +378,4 @@ class BpMemberOrderInfoFormSet(forms.ModelForm):
                                                                      'background-color: transparent;'
                                                                      'border: 0px;',
                                                             'readonly': 'readonly'}),
-                              label=u"価格")
+                              label=u"コスト")

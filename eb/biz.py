@@ -14,6 +14,7 @@ import models
 from django.db.models import Q, Max
 from django.contrib.auth.models import User
 from django.core.exceptions import ObjectDoesNotExist
+from django.contrib.humanize.templatetags import humanize
 
 from openpyxl import load_workbook
 from openpyxl.writer.excel import save_virtual_workbook
@@ -374,6 +375,19 @@ def generate_order(company, data):
     # 新しいエクセルを作成する。
     wb = load_workbook(order_file.path)
     ws = wb.active
+    replace_excel_dict(ws, data)
+    replace_excel_list(ws, data['MEMBERS'])
+
+    return save_virtual_workbook(wb)
+
+
+def replace_excel_dict(ws, data):
+    """エクセルの文字列を置換する。
+
+    :param ws: エクセルのワークシート
+    :param data 出力データ
+    :return:
+    """
     for row in ws.rows:
         for cell in row:
             if cell and cell.value:
@@ -383,7 +397,46 @@ def generate_order(company, data):
                         val = data.get(replacement, "{$" + replacement + "$}")
                         cell.value = cell.value.replace("{$" + replacement + "$}", val)
 
-    return save_virtual_workbook(wb)
+
+def replace_excel_list(ws, items):
+    """エクセルの繰り返す部分を置換する。
+
+    :param ws: エクセルのワークシート
+    :param items 出力データ
+    :return:
+    """
+    if not items:
+        return
+
+    def get_positions(cell1, cell2):
+        ret_value = []
+        for sub_row in ws[cell1.coordinate: cell2.coordinate]:
+            for sub_cell in sub_row:
+                ret_value.append((sub_cell.row, sub_cell.column, sub_cell.value))
+        return ret_value
+
+    try:
+        # 足りない行を追加する。
+        start_cell = ws.get_named_range("ITERATOR_START")[0]
+        end_cell = ws.get_named_range("ITERATOR_END")[0]
+        row_span = end_cell.row - start_cell.row + 1
+        if len(items) > 1:
+            append_rows = (len(items) - 1) * row_span
+            ws.insert_rows(end_cell.row + 1, append_rows, above=True, copy_style=True)
+
+        positions = get_positions(start_cell, end_cell)
+        for i, item in enumerate(items):
+            for r, c, text in positions:
+                if text:
+                    replacements = common.get_excel_replacements(text)
+                    if replacements:
+                        for replacement in replacements:
+                            val = item.get(replacement, "{$" + replacement + "$}")
+                            text = text.replace("{$" + replacement + "$}", val)
+                    ws.cell(c + str(r + (i * row_span))).value = text
+
+    except Exception as ex:
+        print ex.message
 
 
 def generate_order_data(company, subcontractor, user, ym):
@@ -401,6 +454,8 @@ def generate_order_data(company, subcontractor, user, ym):
     data['PUBLISH_DATE'] = u"%s年%02d月%02d日" % (date.year, date.month, date.day)
     # 下請け会社名
     data['SUBCONTRACTOR_NAME'] = subcontractor.name
+    # 委託業務責任者（乙）
+    data['SUBCONTRACTOR_MASTER'] = subcontractor.president
     # 作成者
     salesperson = get_user_profile(user)
     data['AUTHOR_FIRST_NAME'] = salesperson.first_name if salesperson else ''
@@ -425,12 +480,25 @@ def generate_order_data(company, subcontractor, user, ym):
     data['START_DATE'] = u"%s年%02d月%02d日" % (first_day.year, first_day.month, first_day.day)
     data['END_DATE'] = u"%s年%02d月%02d日" % (last_day.year, last_day.month, last_day.day)
 
+    members = []
+    # 全ての協力社員の注文情報を取得する。
+    for member in subcontractor.get_members_by_month(first_day):
+        bp_member_info = member.get_bp_member_info(first_day)
+        members.append({'ITEM_NAME': member.__unicode__(),  # 協力社員名前
+                        'ITEM_COST': humanize.intcomma(member.cost),  # 月額基本料金
+                        'ITEM_MIN_HOUR': humanize.intcomma(bp_member_info.min_hours),  # 基準時間（最小値）
+                        'ITEM_MAX_HOUR': humanize.intcomma(bp_member_info.max_hours),  # 基準時間（最大値）
+                        'ITEM_PLUS_PER_HOUR': humanize.intcomma(bp_member_info.plus_per_hour),  # 超過単価
+                        'ITEM_MINUS_PER_HOUR': humanize.intcomma(bp_member_info.minus_per_hour),  # 不足単価
+                        })
+    data['MEMBERS'] = members
+
     # 注文情報を追加する
     try:
         order = models.SubcontractorOrder.objects.get(subcontractor=subcontractor,
-                                                      year=first_day.year,
-                                                      month=first_day.month)
-        data['ORDER_NO'] = get_order_no(user)
+                                                      year=str(first_day.year),
+                                                      month="%02d" % (first_day.month,))
+        data['ORDER_NO'] = order.order_no
     except ObjectDoesNotExist:
         data['ORDER_NO'] = get_order_no(user)
         order = models.SubcontractorOrder(subcontractor=subcontractor,
@@ -439,21 +507,3 @@ def generate_order_data(company, subcontractor, user, ym):
                                           month="%02d" % (first_day.month,))
     order.save()
     return data
-
-
-def get_bm_member_plus_per_hour(cost):
-    """他者技術者の増を取得する。
-
-    :param cost コスト
-    :return
-    """
-    return cost / 180
-
-
-def get_bm_member_minus_per_hour(cost):
-    """他者技術者の減を取得する。
-
-    :param cost コスト
-    :return
-    """
-    return cost / 160

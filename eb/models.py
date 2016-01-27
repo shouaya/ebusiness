@@ -282,6 +282,18 @@ class Subcontractor(AbstractCompany):
         end_date = max_end_date.get('end_date__max')
         return end_date if end_date else datetime.date.today()
 
+    def get_members_by_month(self, date):
+        """
+        指定月の協力社員情報を取得する
+        :param date: 指定月
+        :return:
+        """
+        first_day = common.get_first_day_by_month(date)
+        last_day = common.get_last_day_by_month(first_day)
+        members = self.member_set.filter(projectmember__start_date__lte=last_day,
+                                         projectmember__end_date__gte=first_day)
+        return members
+
     def get_year_month_order_finished(self):
         """
         月単位の註文情報を取得する。
@@ -290,13 +302,11 @@ class Subcontractor(AbstractCompany):
         ret_value = []
         for year, month in common.get_year_month_list(self.get_start_date(), self.get_end_date()):
             first_day = datetime.date(int(year), int(month), 1)
-            last_day = common.get_last_day_by_month(first_day)
             try:
                 subcontractor_order = SubcontractorOrder.objects.get(subcontractor=self, year=year, month=month)
             except ObjectDoesNotExist:
                 subcontractor_order = None
-            members = self.member_set.filter(projectmember__start_date__lte=last_day,
-                                             projectmember__end_date__gte=first_day)
+            members = self.get_members_by_month(first_day)
             bp_members = BpMemberOrderInfo.objects.public_filter(member__in=members, year=year, month=month)
             if members.count() > 0 and members.count() == bp_members.count():
                 is_finished = True
@@ -1402,6 +1412,8 @@ class BpMemberOrderInfo(models.Model):
     year = models.CharField(max_length=4, default=str(datetime.date.today().year),
                             choices=constants.CHOICE_ATTENDANCE_YEAR, verbose_name=u"対象年")
     month = models.CharField(max_length=2, choices=constants.CHOICE_ATTENDANCE_MONTH, verbose_name=u"対象月")
+    min_hours = models.DecimalField(max_digits=5, decimal_places=2, default=160, verbose_name=u"基準時間")
+    max_hours = models.DecimalField(max_digits=5, decimal_places=2, default=180, verbose_name=u"最大時間")
     plus_per_hour = models.IntegerField(default=0, verbose_name=u"増（円）")
     minus_per_hour = models.IntegerField(default=0, verbose_name=u"減（円）")
     comment = models.CharField(blank=True, null=True, max_length=50, verbose_name=u"備考")

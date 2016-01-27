@@ -837,10 +837,8 @@ def subcontractor_members(request, subcontractor_id):
     if request.method == 'GET':
         initial_form_count = 0
         first_day = common.get_first_day_from_ym(ym)
-        last_day = common.get_last_day_by_month(first_day)
         # 現在案件実施中のメンバーを取得する。
-        members = subcontractor.member_set.filter(projectmember__start_date__lte=last_day,
-                                                  projectmember__end_date__gte=first_day)
+        members = subcontractor.get_members_by_month(first_day)
         dict_initials = []
         for member in members:
             bp_member_info = member.get_bp_member_info(first_day)
@@ -851,6 +849,8 @@ def subcontractor_members(request, subcontractor_id):
                      'member': bp_member_info.member,
                      'year': bp_member_info.year,
                      'month': bp_member_info.month,
+                     'min_hours': bp_member_info.min_hours,
+                     'max_hours': bp_member_info.max_hours,
                      'cost': member.cost,
                      'plus_per_hour': bp_member_info.plus_per_hour,
                      'minus_per_hour': bp_member_info.minus_per_hour,
@@ -861,9 +861,11 @@ def subcontractor_members(request, subcontractor_id):
                      'member': member,
                      'year': str_year,
                      'month': str_month,
+                     'min_hours': 160,
+                     'max_hours': 180,
                      'cost': member.cost,
-                     'plus_per_hour': biz.get_bm_member_plus_per_hour(member.cost),
-                     'minus_per_hour': biz.get_bm_member_minus_per_hour(member.cost),
+                     'plus_per_hour': member.cost / 180,
+                     'minus_per_hour': member.cost / 160,
                      'comment': "",
                      }
             dict_initials.append(d)

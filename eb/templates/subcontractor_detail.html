@@ -19,7 +19,7 @@
     </div>
     <div id="mask" onclick="hide_dialog()" class="mask">
     </div>
-    <div id="order_replace_info" class="dialog" style="width: 700px;">
+    <div id="order_replace_info" class="dialog" style="width: 800px;">
         <table width="100%" cellpadding="0" cellspacing="0">
             <tr>
                 <th>{$ORDER_NO$}</th>
@@ -28,10 +28,18 @@
                 <td>年月日</td>
             </tr>
             <tr>
-                <th class="sep">{$SUBCONTRACTOR_NAME$}</th>
-                <td class="sep">下請け会社名</td>
                 <th class="sep">{$AUTHOR_FIRST_NAME$}</th>
-                <td class="sep">作成者</td>
+                <td class="sep" colspan="3">作成者</td>
+            </tr>
+            <tr>
+                <th>{$SUBCONTRACTOR_NAME$}</th>
+                <td colspan="3">下請け会社名</td>
+            </tr>
+            <tr>
+                <th class="sep">{$SUBCONTRACTOR_MIDDLEMAN$}</th>
+                <td class="sep">連絡窓口担当者（乙）</td>
+                <th class="sep">{$SUBCONTRACTOR_MASTER$}</th>
+                <td class="sep">委託業務責任者（乙）</td>
             </tr>
             <tr>
                 <th>{$POST_CODE$}</th>
@@ -43,13 +51,17 @@
                 <th>{$COMPANY_NAME$}</th>
                 <td>会社名</td>
                 <th>{$MASTER$}</th>
-                <td>代表取締役</td>
+                <td>委託業務責任者（甲）</td>
             </tr>
             <tr>
-                <th class="sep">{$ADDRESS1$}</th>
-                <td class="sep">本社住所1</td>
-                <th class="sep">{$ADDRESS2$}</th>
-                <td class="sep">本社住所2</td>
+                <th>{$ADDRESS1$}</th>
+                <td>本社住所1</td>
+                <th>{$ADDRESS2$}</th>
+                <td>本社住所2</td>
+            </tr>
+            <tr>
+                <th class="sep">{$MIDDLEMAN$}</th>
+                <td class="sep" colspan="3">連絡窓口担当者（甲）</td>
             </tr>
             <tr>
                 <th>{$PROJECT_NAME$}</th>
@@ -58,16 +70,28 @@
                 <td>作業責任者</td>
             </tr>
             <tr>
-                <th>{$START_DATE$}</th>
-                <td>開発期間（開始）</td>
-                <th>{$END_DATE$}</th>
-                <td>開発期間（終了）</td>
+                <th class="sep">{$START_DATE$}</th>
+                <td class="sep">開発期間（開始）</td>
+                <th class="sep">{$END_DATE$}</th>
+                <td class="sep">開発期間（終了）</td>
             </tr>
             <tr>
-                <th>{$MIN_HOUR$}</th>
+                <th>{$ITEM_NAME$}</th>
+                <td>協力社員名前</td>
+                <th>{$ITEM_COST$}</th>
+                <td>月額基本料金</td>
+            </tr>
+            <tr>
+                <th>{$ITEM_MIN_HOUR$}</th>
                 <td>基準時間（最小値）</td>
-                <th>{$MAX_HOUR$}</th>
+                <th>{$ITEM_MAX_HOUR$}</th>
                 <td>基準時間（最大値）</td>
+            </tr>
+            <tr>
+                <th>{$ITEM_PLUS_PER_HOUR$}</th>
+                <td>超過単価</td>
+                <th>{$ITEM_MINUS_PER_HOUR$}</th>
+                <td>不足単価</td>
             </tr>
         </table>
     </div>
@@ -77,6 +101,7 @@
                 <th>対象年月</th>
                 <th>注文情報</th>
                 <th>注文番号</th>
+                <th>最後の作成日時</th>
                 <th></th>
             </tr>
         </thead>
@@ -92,6 +117,7 @@
                                 </a>
                             </td>
                             <td>{{ order.order_no }}</td>
+                            <td>{{ order.updated_date|date:'Y/m/d H:i' }}</td>
                             <td style="text-align: center">
                                 <a href="{% url 'download_subcontractor_order' subcontractor.pk %}?ym={{ year }}{{ month }}"
                                    target="_blank">
@@ -105,6 +131,7 @@
                                 </a>
                             </td>
                             <td><img width="12px" src="/static/img/icon-warn.png"/></td>
+                            <td></td>
                             <td></td>
                         {% endif %}
                     </tr>
