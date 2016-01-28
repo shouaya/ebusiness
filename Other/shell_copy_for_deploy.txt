@@ -1,0 +1,7 @@
+﻿sudo mkdir eb_sales
+sudo chmod a+rw eb_sales
+sudo cp eb_sales_bk/employee/settings.py eb_sales/employee/settings.py
+sudo rm eb_sales/eb/migrations/*
+sudo cp eb_sales_bk/eb/migrations/* eb_sales/eb/migrations/
+
+sudo chown -R www-data eb_sales

@@ -373,6 +373,20 @@ class BpMemberOrderInfoFormSet(forms.ModelForm):
         model = models.BpMemberOrderInfo
         fields = '__all__'
 
+    min_hours = forms.DecimalField(max_digits=5, decimal_places=2, initial=160,
+                                   widget=forms.TextInput(attrs={'style': 'width: 60px;',
+                                                                 'type': 'number'}),
+                                   label=u"基準時間", required=True)
+    max_hours = forms.DecimalField(max_digits=5, decimal_places=2, initial=180,
+                                   widget=forms.TextInput(attrs={'style': 'width: 60px;',
+                                                                 'type': 'number'}),
+                                   label=u"最大時間", required=True)
+    plus_per_hour = forms.IntegerField(widget=forms.TextInput(attrs={'style': 'width: 60px;',
+                                                                     'type': 'number'}),
+                                       label=u"増（円）")
+    minus_per_hour = forms.IntegerField(widget=forms.TextInput(attrs={'style': 'width: 60px;',
+                                                                      'type': 'number'}),
+                                        label=u"減（円）")
     cost = forms.IntegerField(initial=0,
                               widget=forms.TextInput(attrs={'style': 'width: 70px;'
                                                                      'background-color: transparent;'
