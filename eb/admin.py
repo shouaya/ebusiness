@@ -282,7 +282,7 @@ class MemberAdmin(BaseAdmin):
                      ('address1', 'address2'), 'nearest_station',
                      'country', 'graduate_date', 'phone', 'japanese_description',
                      'certificate', 'skill_description', 'comment')}),
-        (u"勤務情報", {'fields': ('member_type', 'join_date', 'email', 'is_notify', 'notify_type', 'section', 'company', 'subcontractor', 'salesperson', 'is_retired')})
+        (u"勤務情報", {'fields': ['member_type', 'join_date', 'email', 'is_notify', 'notify_type', 'section', 'company', 'subcontractor', 'salesperson', 'is_retired']})
     )
 
     def get_actions(self, request):
@@ -302,6 +302,23 @@ class MemberAdmin(BaseAdmin):
             return query_set.filter(salesperson__in=salesperson_list)
         else:
             return query_set.filter(salesperson=request.user.salesperson)
+
+    def change_view(self, request, object_id, form_url='', extra_context=None):
+        member = Member.objects.get(pk=object_id)
+        if member.member_type == 4:
+            if self.fieldsets[2][1]['fields'].count('cost') == 0:
+                self.fieldsets[2][1]['fields'].insert(-2, 'cost')
+        else:
+            try:
+                self.fieldsets[2][1]['fields'].remove('cost')
+            except ValueError:
+                pass
+        return super(MemberAdmin, self).change_view(request, object_id, form_url, extra_context)
+
+    def add_view(self, request, form_url='', extra_context=None):
+        if self.fieldsets[2][1]['fields'].count('cost') == 0:
+            self.fieldsets[2][1]['fields'].insert(-2, 'cost')
+        return super(MemberAdmin, self).add_view(request, form_url, extra_context)
 
     def delete_objects(self, request, queryset):
         cnt = 0

@@ -489,7 +489,7 @@ def generate_quotation(project, user, company):
     data['quotation_details'] = detail_members
     data['details_start_col'] = 3
 
-    replace_excel_dict(sheet, data)
+    replace_excel_dict2(sheet, data)
 
     for i in range(cnt, 0, -1):
         book.Worksheets(i).Delete()
@@ -756,7 +756,7 @@ def generate_request(project, company, client_order, request_name=None, order_no
     project_request.amount = data['ITEM_AMOUNT_ALL']
     project_request.save()
 
-    replace_excel_dict(sheet, data)
+    replace_excel_dict2(sheet, data)
 
     for i in range(cnt, 0, -1):
         book.Worksheets(i).Delete()
@@ -794,7 +794,7 @@ def get_new_book():
     return book
 
 
-def replace_excel_dict(sheet, data):
+def replace_excel_dict2(sheet, data):
     """エクセルの文字列を置換する。
 
     Arguments：
@@ -812,23 +812,23 @@ def replace_excel_dict(sheet, data):
     for key, value in data.iteritems():
         if key == "detail_all":
             if find_cell_by_string(sheet, "{$ITEM_NAME_ATTENDANCE_TOTAL$}"):
-                replace_excel_dict(sheet, value)
+                replace_excel_dict2(sheet, value)
         elif key == "detail_members":
             if find_cell_by_string(sheet, "{$ITEM_PRICE$}"):
-                replace_excel_list(sheet, value)
+                replace_excel_list2(sheet, value)
         elif key == "detail_expenses":
             # 清算リスト
             if find_cell_by_string(sheet, "{$ITEM_EXPENSES_CATEGORY_AMOUNT$}"):
-                replace_excel_list(sheet, value)
+                replace_excel_list2(sheet, value)
         elif key == "quotation_details":
             # 見積書の料金明細
-            replace_excel_list(sheet, value, data['details_start_col'])
+            replace_excel_list2(sheet, value, data['details_start_col'])
         else:
             sheet.Cells.Replace(What="{$%s$}" % (key,), Replacement=value, LookAt=constants.xlPart, MatchCase=False,
                                 SearchFormat=False, ReplaceFormat=False, SearchOrder=constants.xlByRows)
 
 
-def replace_excel_list(sheet, data_list, details_start_col=None):
+def replace_excel_list2(sheet, data_list, details_start_col=None):
     if data_list:
         rows = get_row_span(sheet, data_list[0])
         positions = get_replace_positions(sheet, data_list[0])
@@ -922,3 +922,94 @@ def get_replace_labels_position(sheet, start_row, start_col, row_span):
             if val and val.strip() and val.find("{$") < 0:
                 labels.append((row, col, val))
     return labels
+
+
+def generate_order(company, data):
+    """註文書を生成する。
+
+    :param company 発注元会社
+    :param data 註文書の出力データ
+    :return エクセルのバイナリー
+    """
+    # テンプレートを取得する
+    order_file = company.order_file
+    if not order_file or not os.path.exists(order_file.path):
+        raise errors.FileNotExistException(constants.ERROR_TEMPLATE_NOT_EXISTS)
+
+    pythoncom.CoInitializeEx(pythoncom.COINIT_MULTITHREADED)
+    # 新しいエクセルを作成する。
+    template_book = get_excel_template(order_file.path)
+    template_sheet = template_book.Worksheets(1)
+    book = get_new_book()
+    cnt = book.Sheets.Count
+    # テンプレートを生成対象ワークブックにコピーする。
+    template_sheet.Copy(None, book.Worksheets(cnt))
+    template_book.Close()
+    sheet = book.Worksheets(cnt + 1)
+    replace_excel_dict(sheet, data['DETAIL'])
+    replace_excel_list(sheet, data['MEMBERS'])
+
+    for i in range(cnt, 0, -1):
+        book.Worksheets(i).Delete()
+
+    file_folder = os.path.join(os.path.dirname(order_file.path), "temp")
+    if not os.path.exists(file_folder):
+        os.mkdir(file_folder)
+    file_name = "tmp_%s_%s.xls" % (constants.DOWNLOAD_ORDER, datetime.datetime.now().strftime("%Y%m%d_%H%M%S%f"))
+    path = os.path.join(file_folder, file_name)
+    # 一時ファイルを削除する。
+    common.delete_temp_files(os.path.dirname(path))
+    book.SaveAs(path, FileFormat=constants.EXCEL_FORMAT_EXCEL2003)
+
+    return path
+
+
+def replace_excel_dict(sheet, detail):
+    """エクセルの文字列を置換する。
+
+    :param sheet: エクセルのワークシート
+    :param detail 出力データ
+    :return:
+    """
+    for key, value in detail.iteritems():
+        sheet.Cells.Replace(What="{$%s$}" % (key,), Replacement=value, LookAt=constants.xlPart, MatchCase=False,
+                            SearchFormat=False, ReplaceFormat=False, SearchOrder=constants.xlByRows)
+
+
+def replace_excel_list(sheet, items):
+    """エクセルの繰り返す部分を置換する。
+
+    :param sheet: エクセルのワークシート
+    :param items 出力データ
+    :return:
+    """
+    if not items:
+        return
+
+    def get_positions(cell1, cell2):
+        ret_value = []
+        for sub_r in range(cell1.Row, cell2.Row + 1):
+            for sub_c in range(cell1.Column, cell2.Column + 1):
+                ret_value.append((sub_r, sub_c, sheet.Cells(sub_r, sub_c).Value))
+        return ret_value
+
+    try:
+        # 足りない行を追加する。
+        start_cell = sheet.Range('ITERATOR_START')
+        end_cell = sheet.Range('ITERATOR_END')
+        row_span = end_cell.row - start_cell.row + 1
+        if len(items) > 1:
+            cnt_extra_rows = (len(items) - 1) * row_span
+            sheet.Range("%s:%s" % (end_cell.Row + 1, end_cell.Row + cnt_extra_rows)).Insert(Shift=constants.xlDown)
+        positions = get_positions(start_cell, end_cell)
+        for i, item in enumerate(items):
+            for r, c, text in positions:
+                if text:
+                    replacements = common.get_excel_replacements(text)
+                    if replacements:
+                        for replacement in replacements:
+                            val = item.get(replacement, "{$" + replacement + "$}")
+                            text = text.replace("{$" + replacement + "$}", val)
+                    sheet.Cells(r + (i * row_span), c).Value = text
+    except Exception as ex:
+        print ex.message

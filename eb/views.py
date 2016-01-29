@@ -851,7 +851,7 @@ def subcontractor_members(request, subcontractor_id):
                      'month': bp_member_info.month,
                      'min_hours': bp_member_info.min_hours,
                      'max_hours': bp_member_info.max_hours,
-                     'cost': member.cost,
+                     'cost': bp_member_info.cost,
                      'plus_per_hour': bp_member_info.plus_per_hour,
                      'minus_per_hour': bp_member_info.minus_per_hour,
                      'comment': bp_member_info.comment,
@@ -962,10 +962,10 @@ def download_subcontractor_order(request, subcontractor_id):
 
     try:
         data = biz.generate_order_data(company, subcontractor, request.user, ym)
-        output = biz.generate_order(company, data)
+        path = file_gen.generate_order(company, data)
         filename = biz.get_order_filename(subcontractor, data['ORDER_NO'])
-        response = HttpResponse(output, content_type="application/ms-excel")
-        response['Content-Disposition'] = "filename=" + urllib.quote(filename.encode('utf-8')) + ".xlsx"
+        response = HttpResponse(open(path, 'rb'), content_type="application/excel")
+        response['Content-Disposition'] = "filename=" + urllib.quote(filename.encode('UTF-8'))
         return response
     except errors.FileNotExistException, ex:
         return HttpResponse(u"<script>alert('%s');window.close();</script>" % (ex.message,))

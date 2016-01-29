@@ -61,3 +61,4 @@ eb/migrations/
 media/request/temp/*
 media/client_order/*
 media/quotation/temp/*
+media/eb_order/temp/*

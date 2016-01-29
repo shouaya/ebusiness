@@ -4,7 +4,6 @@ Created on 2016/01/12
 
 @author: Yang Wanjun
 """
-import os
 import urllib2
 import json
 import datetime
@@ -16,10 +15,7 @@ from django.contrib.auth.models import User
 from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.humanize.templatetags import humanize
 
-from openpyxl import load_workbook
-from openpyxl.writer.excel import save_virtual_workbook
-
-from utils import common, constants, errors
+from utils import common, constants
 
 
 def get_company():
@@ -320,7 +316,7 @@ def get_order_no(user):
 
     :param user ログインしているユーザ
     """
-    prefix = '@'
+    prefix = '-'
     today = datetime.date.today()
     if hasattr(user, 'salesperson'):
         if user.salesperson.first_name_en:
@@ -345,7 +341,7 @@ def get_order_filename(subcontractor, order_no):
     :return 註文書の名称
     """
     now = datetime.datetime.now()
-    return u"{0}_{1}_{2}".format(order_no, subcontractor.name, now.strftime('%Y%m%d%H%M%S'))
+    return u"{0}_{1}_{2}.xls".format(order_no, subcontractor.name, now.strftime('%Y%m%d%H%M%S'))
 
 
 def get_user_profile(user):
@@ -358,87 +354,6 @@ def get_user_profile(user):
     return None
 
 
-def generate_order(company, data):
-    """註文書を生成する。
-
-    :param company 発注元会社
-    :param data 註文書の出力データ
-    :return エクセルのバイナリー
-    """
-    # members = subcontractor.member_set.all()
-
-    # テンプレートを取得する
-    order_file = company.order_file
-    if not order_file or not os.path.exists(order_file.path):
-        raise errors.FileNotExistException(constants.ERROR_TEMPLATE_NOT_EXISTS)
-
-    # 新しいエクセルを作成する。
-    wb = load_workbook(order_file.path)
-    ws = wb.active
-    replace_excel_dict(ws, data)
-    replace_excel_list(ws, data['MEMBERS'])
-
-    return save_virtual_workbook(wb)
-
-
-def replace_excel_dict(ws, data):
-    """エクセルの文字列を置換する。
-
-    :param ws: エクセルのワークシート
-    :param data 出力データ
-    :return:
-    """
-    for row in ws.rows:
-        for cell in row:
-            if cell and cell.value:
-                replacements = common.get_excel_replacements(cell.value)
-                if replacements:
-                    for replacement in replacements:
-                        val = data.get(replacement, "{$" + replacement + "$}")
-                        cell.value = cell.value.replace("{$" + replacement + "$}", val)
-
-
-def replace_excel_list(ws, items):
-    """エクセルの繰り返す部分を置換する。
-
-    :param ws: エクセルのワークシート
-    :param items 出力データ
-    :return:
-    """
-    if not items:
-        return
-
-    def get_positions(cell1, cell2):
-        ret_value = []
-        for sub_row in ws[cell1.coordinate: cell2.coordinate]:
-            for sub_cell in sub_row:
-                ret_value.append((sub_cell.row, sub_cell.column, sub_cell.value))
-        return ret_value
-
-    try:
-        # 足りない行を追加する。
-        start_cell = ws.get_named_range("ITERATOR_START")[0]
-        end_cell = ws.get_named_range("ITERATOR_END")[0]
-        row_span = end_cell.row - start_cell.row + 1
-        if len(items) > 1:
-            append_rows = (len(items) - 1) * row_span
-            ws.insert_rows(end_cell.row + 1, append_rows, above=True, copy_style=True)
-
-        positions = get_positions(start_cell, end_cell)
-        for i, item in enumerate(items):
-            for r, c, text in positions:
-                if text:
-                    replacements = common.get_excel_replacements(text)
-                    if replacements:
-                        for replacement in replacements:
-                            val = item.get(replacement, "{$" + replacement + "$}")
-                            text = text.replace("{$" + replacement + "$}", val)
-                    ws.cell(c + str(r + (i * row_span))).value = text
-
-    except Exception as ex:
-        print ex.message
-
-
 def generate_order_data(company, subcontractor, user, ym):
     """註文書を生成するために使うデータを生成する。
 
@@ -448,37 +363,37 @@ def generate_order_data(company, subcontractor, user, ym):
     :param ym 対象年月
     :return エクセルのバイナリー
     """
-    data = dict()
+    data = {'DETAIL': {}}
     # 発行年月日
     date = datetime.date.today()
-    data['PUBLISH_DATE'] = u"%s年%02d月%02d日" % (date.year, date.month, date.day)
+    data['DETAIL']['PUBLISH_DATE'] = u"%s年%02d月%02d日" % (date.year, date.month, date.day)
     # 下請け会社名
-    data['SUBCONTRACTOR_NAME'] = subcontractor.name
+    data['DETAIL']['SUBCONTRACTOR_NAME'] = subcontractor.name
     # 委託業務責任者（乙）
-    data['SUBCONTRACTOR_MASTER'] = subcontractor.president
+    data['DETAIL']['SUBCONTRACTOR_MASTER'] = subcontractor.president
     # 作成者
     salesperson = get_user_profile(user)
-    data['AUTHOR_FIRST_NAME'] = salesperson.first_name if salesperson else ''
+    data['DETAIL']['AUTHOR_FIRST_NAME'] = salesperson.first_name if salesperson else ''
     # 会社名
-    data['COMPANY_NAME'] = company.name
+    data['DETAIL']['COMPANY_NAME'] = company.name
     # 本社郵便番号
-    data['POST_CODE'] = common.get_full_postcode(company.post_code)
+    data['DETAIL']['POST_CODE'] = common.get_full_postcode(company.post_code)
     # 本社電話番号
-    data['TEL'] = company.tel
+    data['DETAIL']['TEL'] = company.tel
     # 代表取締役
     member = company.get_master()
-    data['MASTER'] = u"%s %s" % (member.first_name, member.last_name) if member else ""
+    data['DETAIL']['MASTER'] = u"%s %s" % (member.first_name, member.last_name) if member else ""
     # 本社住所
-    data['ADDRESS1'] = company.address1
-    data['ADDRESS2'] = company.address2
+    data['DETAIL']['ADDRESS1'] = company.address1
+    data['DETAIL']['ADDRESS2'] = company.address2
     # 作業期間
     if not ym:
         first_day = common.get_first_day_current_month()
     else:
         first_day = common.get_first_day_from_ym(ym)
     last_day = common.get_last_day_by_month(first_day)
-    data['START_DATE'] = u"%s年%02d月%02d日" % (first_day.year, first_day.month, first_day.day)
-    data['END_DATE'] = u"%s年%02d月%02d日" % (last_day.year, last_day.month, last_day.day)
+    data['DETAIL']['START_DATE'] = u"%s年%02d月%02d日" % (first_day.year, first_day.month, first_day.day)
+    data['DETAIL']['END_DATE'] = u"%s年%02d月%02d日" % (last_day.year, last_day.month, last_day.day)
 
     members = []
     # 全ての協力社員の注文情報を取得する。

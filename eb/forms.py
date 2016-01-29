@@ -388,8 +388,6 @@ class BpMemberOrderInfoFormSet(forms.ModelForm):
                                                                       'type': 'number'}),
                                         label=u"減（円）")
     cost = forms.IntegerField(initial=0,
-                              widget=forms.TextInput(attrs={'style': 'width: 70px;'
-                                                                     'background-color: transparent;'
-                                                                     'border: 0px;',
-                                                            'readonly': 'readonly'}),
+                              widget=forms.TextInput(attrs={'style': 'width: 70px;',
+                                                            'type': 'number'}),
                               label=u"コスト")
