@@ -29,7 +29,7 @@ def get_first_day_by_month(source_date):
 
 def get_last_day_by_month(source_date):
     next_month = add_months(source_date, 1)
-    return next_month + datetime.timedelta(days=-source_date.day)
+    return next_month + datetime.timedelta(days=-next_month.day)
 
 
 def get_first_day_current_month():

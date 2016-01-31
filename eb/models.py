@@ -708,8 +708,9 @@ class Client(AbstractCompany):
         cursor.execute(u"select pm.project_id, p.name as project_name, m.employee_id"
                        u"     , concat(m.first_name, ' ', m.last_name) as member_name"
                        u"     , pm.start_date, pm.end_date"
+                       u"     , pm.price as base_price"
                        u"     , ifnull(m.cost, 0) as cost"
-                       u"     , ifnull(ma.price, 0) as price"
+                       u"     , ifnull(ma.price, 0) as total_price"
                        u"     , ifnull(ma.price, 0) - ifnull(m.cost, 0) as profit"
                        u"  from eb_projectmember pm"
                        u"  join eb_member m on m.id = pm.member_id"
@@ -723,7 +724,7 @@ class Client(AbstractCompany):
                        u"   and pm.status = 2"
                        u" order by p.name", [str(date.year), '%02d' % (date.month,), self.pk, last_day, first_day])
         members = []
-        for project_id, project_name, employee_id, member_name, start_date, end_date, cost, price, profit \
+        for project_id, project_name, employee_id, member_name, start_date, end_date, base_price, cost, total_price, profit \
                 in cursor.fetchall():
             d = dict()
             d['project_id'] = project_id
@@ -732,8 +733,9 @@ class Client(AbstractCompany):
             d['member_name'] = member_name
             d['start_date'] = start_date
             d['end_date'] = end_date
+            d['base_price'] = base_price
             d['cost'] = cost
-            d['price'] = price
+            d['total_price'] = total_price
             d['profit'] = profit
             members.append(d)
         return members

@@ -571,14 +571,16 @@ def client_turnover_details(request, client_id):
         today = datetime.date.today()
         ym = "%s%02d" % (today.year, today.month)
 
+    params = '&ym=' + ym
     first_day = common.get_first_day_from_ym(ym)
     client = Client.objects.get(pk=client_id)
     client_turnovers = client.get_turnover_month_detail(first_day)
     client_turnover = biz.company_turnover_month(ym, client_id)[0]
 
-    summary = {'price': 0, 'cost': 0, 'profit': 0}
+    summary = {'base_price': 0, 'total_price': 0, 'cost': 0, 'profit': 0}
     for turnover in client_turnovers:
-        summary['price'] += turnover['price']
+        summary['base_price'] += turnover['base_price']
+        summary['total_price'] += turnover['total_price']
         summary['cost'] += turnover['cost']
         summary['profit'] += turnover['profit']
 
@@ -599,6 +601,7 @@ def client_turnover_details(request, client_id):
         'summary': summary,
         'client_turnover': client_turnover,
         'paginator': paginator,
+        'params': params,
     })
     template = loader.get_template('client_turnover_details.html')
     return HttpResponse(template.render(context))
@@ -963,7 +966,7 @@ def download_subcontractor_order(request, subcontractor_id):
     try:
         data = biz.generate_order_data(company, subcontractor, request.user, ym)
         path = file_gen.generate_order(company, data)
-        filename = biz.get_order_filename(subcontractor, data['ORDER_NO'])
+        filename = biz.get_order_filename(subcontractor, data['DETAIL']['ORDER_NO'])
         response = HttpResponse(open(path, 'rb'), content_type="application/excel")
         response['Content-Disposition'] = "filename=" + urllib.quote(filename.encode('UTF-8'))
         return response

@@ -29,6 +29,7 @@
                 <th>開始日</th>
                 <th>終了日</th>
                 <th>コスト</th>
+                <th>単価</th>
                 <th>売上</th>
                 <th>利益</th>
             </tr>
@@ -46,12 +47,13 @@
                         <td>{{ member.start_date|date:"Y-m-d" }}</td>
                         <td>{{ member.end_date|date:"Y-m-d" }}</td>
                         <td style="text-align: right">{{ member.cost|intcomma }}</td>
-                        <td style="text-align: right">{{ member.price|intcomma }}</td>
+                        <td style="text-align: right">{{ member.base_price|intcomma }}</td>
+                        <td style="text-align: right">{{ member.total_price|intcomma }}</td>
                         <td style="text-align: right">{{ member.profit|intcomma }}</td>
                     </tr>
                 {% endfor %}
             {% else %}
-                <tr class="row1"><td class="center red" colspan="7">売上情報がありません。</td></tr>
+                <tr class="row1"><td class="center red" colspan="8">売上情報がありません。</td></tr>
             {% endif %}
         </tbody>
         <tfoot>
@@ -83,7 +85,8 @@
                     </div>
                 </td>
                 <td style="text-align: right"> {{ summary.cost|intcomma }}</td>
-                <td style="text-align: right"> {{ summary.price|intcomma }}</td>
+                <td style="text-align: right"> {{ summary.base_price|intcomma }}</td>
+                <td style="text-align: right"> {{ summary.total_price|intcomma }}</td>
                 <td style="text-align: right"> {{ summary.profit|intcomma }}</td>
             </tr>
         </tfoot>
