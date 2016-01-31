@@ -343,7 +343,7 @@ def project_detail(request, project_id):
             except ObjectDoesNotExist:
                 bank = None
             path, request_no = file_gen.generate_request(project, company, client_order, request_name, order_no, ym, bank)
-            filename = "EB請求書_%s_%s.xls" % (str(request_no), now.strftime("%Y%m%d%H%M%S"))
+            filename = "EB請求書_%s_%s_%s.xls" % (str(request_no), project.client.name.encode('UTF-8'), now.strftime("%Y%m%d%H%M%S"))
             response = HttpResponse(open(path, 'rb'), content_type="application/excel")
             response['Content-Disposition'] = "filename=" + urllib.quote(filename)
             # 一時ファイルを削除する。
