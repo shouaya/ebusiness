@@ -990,10 +990,13 @@ class Project(models.Model):
             if client_orders:
                 cnt = client_orders.count()
                 project_members_month = self.get_project_members_by_month(ym=year + month)
+                project_request = self.get_project_request(year, month)
+                if project_request and not project_request.pk:
+                    project_request = None
                 for client_order in client_orders:
-                    ret_value.append((year, month, client_order, cnt, project_members_month))
+                    ret_value.append((year, month, client_order, cnt, project_members_month, project_request))
             else:
-                ret_value.append((year, month, None, 0, None))
+                ret_value.append((year, month, None, 0, None, project_request))
         return ret_value
 
     def get_year_month_attendance_finished(self):
@@ -1046,8 +1049,6 @@ class Project(models.Model):
         Raises：
           なし
         """
-        if self.pk in (90, 64, 104):
-            pass
         if self.projectrequest_set.filter(year=str_year, month=str_month).count() == 0:
             # 指定年月の請求番号がない場合、請求番号を発行する。
             max_request_no = ProjectRequest.objects.filter(year=str_year, month=str_month).aggregate(Max('request_no'))
@@ -1541,6 +1542,23 @@ class HistoryProject(models.Model):
         self.is_deleted = True
         self.deleted_date = datetime.datetime.now()
         self.save()
+
+
+class Issue(models.Model):
+    title = models.CharField(max_length=30, verbose_name=u"タイトル")
+    content = models.TextField(verbose_name=u"内容")
+    user = models.ForeignKey(User, editable=False, verbose_name=u"作成者")
+    status = models.CharField(max_length=1, default=1, choices=constants.CHOICE_ISSUE_STATUS,
+                              verbose_name=u"ステータス")
+    created_date = models.DateTimeField(auto_now_add=True, verbose_name=u"作成日時")
+    updated_date = models.DateTimeField(auto_now=True, verbose_name=u"更新日時")
+
+    class Meta:
+        ordering = ['-created_date']
+        verbose_name = verbose_name_plural = u"課題管理表"
+
+    def __unicode__(self):
+        return self.title
 
 
 class History(models.Model):

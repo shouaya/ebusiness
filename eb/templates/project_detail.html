@@ -334,6 +334,7 @@
                 <th>注文書あり？</th>
                 <th></th>
                 <th></th>
+                <th style="width: 70px;">請求書番号</th>
                 <th></th>
             </tr>
         </thead>
@@ -346,11 +347,12 @@
                 <th></th>
                 <th></th>
                 <th></th>
+                <th></th>
             </tr>
         </tfoot>
         <tbody>
             {% if order_month_list %}
-                {% for year, month, client_order, cnt, project_members_month in order_month_list %}
+                {% for year, month, client_order, cnt, project_members_month, project_request in order_month_list %}
                     <tr class="{% cycle 'row1' 'row2' %}">
                         <td>{{ year }}年{{ month }}月</td>
                         {% if client_order %}
@@ -406,6 +408,9 @@
                             <td class="center">
                                 <a href="{% url 'admin:eb_clientorder_change' client_order.pk %}?from=portal&_popup=1" target="_blank">編集</a>
                             </td>
+                            <td>
+                                {{ project_request.request_no }}
+                            </td>
                             <td class="center">
                                 <a href="javascript:show_dialog('request_gen_{{ year }}{{ month }}_{{ client_order.pk }}')">請求書生成</a>
                                 <div id="request_gen_{{ year }}{{ month }}_{{ client_order.pk }}" class="dialog">
@@ -456,11 +461,12 @@
                             </td>
                             <td></td>
                             <td></td>
+                            <td></td>
                         {% endif %}
                     </tr>
                 {% endfor %}
             {% else %}
-                <tr class="row1"><td class="center red" colspan="6">注文履歴がありません。</td></tr>
+                <tr class="row1"><td class="center red" colspan="7">注文履歴がありません。</td></tr>
             {% endif %}
         </tbody>
     </table>

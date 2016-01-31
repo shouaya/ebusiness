@@ -29,7 +29,7 @@ NUMBER_GROUPING = 3
 
 EMAIL_HOST = 'smtp.e-business.co.jp'
 EMAIL_HOST_USER = 'yangwanjun@e-business.co.jp'
-EMAIL_HOST_PASSWORD = 'finalsquall2005'
+EMAIL_HOST_PASSWORD = ''
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 DOMAIN_NAME = 'http://sales.e-business.co.jp'

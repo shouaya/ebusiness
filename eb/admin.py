@@ -17,7 +17,7 @@ import forms
 from .models import Company, Section, Member, Salesperson, Project, Client, ClientMember, \
     ProjectMember, Skill, ProjectSkill, ProjectActivity, Subcontractor, PositionShip,\
     ProjectStage, OS, HistoryProject, MemberAttendance, Degree, ClientOrder, \
-    create_group_salesperson, MemberExpenses, ExpensesCategory, BankInfo, History, ProjectRequest
+    create_group_salesperson, MemberExpenses, ExpensesCategory, BankInfo, History, ProjectRequest, Issue
 from utils import common
 
 
@@ -883,6 +883,15 @@ class HistoryProjectAdmin(BaseAdmin):
     active_objects.short_description = u"選択されたレコードを復活する。"
 
 
+class IssueAdmin(BaseAdmin):
+    list_display = ['title', 'user', 'status', 'created_date']
+    list_filter = ['status']
+
+    def save_model(self, request, obj, form, change):
+        obj.user = request.user
+        obj.save()
+
+
 class HistoryAdmin(BaseAdmin):
     list_display = ['start_datetime', 'end_datetime', 'location']
     list_filter = ['location']
@@ -910,6 +919,7 @@ admin.site.register(ProjectStage, ProjectStageAdmin)
 admin.site.register(OS)
 admin.site.register(ExpensesCategory)
 admin.site.register(HistoryProject, HistoryProjectAdmin)
+admin.site.register(Issue, IssueAdmin)
 admin.site.register(History, HistoryAdmin)
 
 UserAdmin.list_display = ('username', 'email', 'first_name', 'last_name',

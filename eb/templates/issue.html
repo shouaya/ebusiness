@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+
+{% block header %}
+{% endblock %}
+
+{% block content %}
+    <div class="dashboard">
+        <div class="dashboard-title">課題管理票</div>
+        <form>
+            <a href="{% url 'admin:eb_issue_add' %}?from=portal&_popup=1" class="button" target="_blank">課題追加</a>
+        </form>
+    </div>
+    <table cellspacing="0" cellpadding="0" class="list">
+        <thead>
+            <tr>
+                <th style="width: 30px;">番号</th>
+                <th style="width: 150px;">タイトル</th>
+                <th style="width: 125px;">提出日時</th>
+                <th>作成者</th>
+                <th style="width: 70px;">ステータス</th>
+                <th>内容</th>
+                <th style="width: 30px;"></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for issue in issues %}
+                <tr class="{% cycle 'row1' 'row2' %}">
+                    <td>{{ issue.pk }}</td>
+                    <td>{{ issue.title }}</td>
+                    <td>{{ issue.created_date|date:'Y-m-d H:i' }}</td>
+                    <td>{{ issue.user }}</td>
+                    <td>{{ issue.get_status_display }}</td>
+                    <td>{{ issue.content }}</td>
+                    <td style="text-align: center;"><a href="{% url 'admin:eb_issue_change' issue.pk %}?from=portal&_popup=1" target="_blank">編集</a></td>
+                </tr>
+            {% endfor %}
+        </tbody>
+        <tfoot>
+            <tr>
+                <th>番号</th>
+                <th>タイトル</th>
+                <th>提出日時</th>
+                <th>作成者</th>
+                <th>ステータス</th>
+                <th>内容</th>
+                <th></th>
+            </tr>
+        </tfoot>
+    </table>
+{% endblock %}

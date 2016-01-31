@@ -251,13 +251,15 @@ def get_cost(code):
 
 def company_turnover_month(ym, client_id=None):
     first_day = common.get_first_day_from_ym(ym)
+    last_day = common.get_last_day_by_month(first_day)
 
     client_turnovers = []
 
     if client_id:
         clients = models.Client.objects.public_filter(pk=client_id)
     else:
-        clients = models.Client.objects.public_all()
+        clients = models.Client.objects.public_filter(project__start_date__lte=last_day,
+                                                      project__end_date__gte=first_day).distinct()
 
     for client in clients:
         d = dict()

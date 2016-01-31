@@ -28,7 +28,7 @@ from django.db.models import Max
 
 from utils import constants, common, errors, loader as file_loader, file_gen
 from .models import Member, Section, Project, ProjectMember, Salesperson, \
-    MemberAttendance, Subcontractor, BankInfo, ClientOrder, History, Client, BpMemberOrderInfo
+    MemberAttendance, Subcontractor, BankInfo, ClientOrder, History, Client, BpMemberOrderInfo, Issue
 from . import forms
 
 
@@ -984,6 +984,19 @@ def map_position(request):
         'members': members,
     })
     template = loader.get_template('map_position.html')
+    return HttpResponse(template.render(context))
+
+
+@login_required(login_url='/admin/login/')
+def issue(request):
+
+    issues = Issue.objects.all()
+
+    context = RequestContext(request, {
+        'title': u'課題管理票',
+        'issues': issues,
+    })
+    template = loader.get_template('issue.html')
     return HttpResponse(template.render(context))
 
 
