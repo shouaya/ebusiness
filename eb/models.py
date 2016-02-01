@@ -655,6 +655,9 @@ class Client(AbstractCompany):
             return common.get_last_day_by_month(pay_month)
         else:
             pay_day = int(self.payment_day)
+            last_day = common.get_last_day_by_month(pay_month)
+            if last_day.day < pay_day:
+                return last_day
             return datetime.date(pay_month.year, pay_month.month, pay_day)
 
     def get_turnover_month(self, date):
@@ -1390,7 +1393,9 @@ class SubcontractorOrder(models.Model):
     year = models.CharField(max_length=4, default=str(datetime.date.today().year),
                             choices=constants.CHOICE_ATTENDANCE_YEAR, verbose_name=u"対象年")
     month = models.CharField(max_length=2, choices=constants.CHOICE_ATTENDANCE_MONTH, verbose_name=u"対象月")
+    created_user = models.ForeignKey(User, editable=False, verbose_name=u"作成者")
     created_date = models.DateTimeField(auto_now_add=True, editable=False, verbose_name=u"追加日時")
+    updated_user = models.ForeignKey(User, editable=False, verbose_name=u"更新者")
     updated_date = models.DateTimeField(auto_now=True, editable=False, verbose_name=u"更新日時")
     is_deleted = models.BooleanField(default=False, editable=False, verbose_name=u"削除フラグ")
     deleted_date = models.DateTimeField(blank=True, null=True, editable=False, verbose_name=u"削除日時")

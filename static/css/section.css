@@ -123,6 +123,22 @@ section .row2 {
     background: #FFF;
 }
 
+section .issue_status1 {
+    background: #FFF; /* 提出中 */
+}
+
+section .issue_status2 {
+    background: lightblue; /* 対応中 */
+}
+
+section .issue_status3 {
+    background: blue; /* 対応完了 */
+}
+
+section .issue_status4 {
+    background: lightgray; /* クローズ */
+}
+
 section div.dashboard {
     margin-top: 10px;
     margin-bottom: 10px;

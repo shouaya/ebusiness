@@ -24,7 +24,7 @@
         </thead>
         <tbody>
             {% for issue in issues %}
-                <tr class="{% cycle 'row1' 'row2' %}">
+                <tr class="issue_status{{ issue.status }}">
                     <td>{{ issue.pk }}</td>
                     <td>{{ issue.title }}</td>
                     <td>{{ issue.created_date|date:'Y-m-d H:i' }}</td>

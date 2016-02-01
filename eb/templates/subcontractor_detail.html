@@ -102,6 +102,7 @@
                 <th>注文情報</th>
                 <th>注文番号</th>
                 <th>最後の作成日時</th>
+                <th>作成者</th>
                 <th></th>
             </tr>
         </thead>
@@ -118,6 +119,7 @@
                             </td>
                             <td>{{ order.order_no }}</td>
                             <td>{{ order.updated_date|date:'Y/m/d H:i' }}</td>
+                            <td>{{ order.user }}</td>
                             <td style="text-align: center">
                                 <a href="{% url 'download_subcontractor_order' subcontractor.pk %}?ym={{ year }}{{ month }}"
                                    target="_blank">
@@ -131,6 +133,7 @@
                                 </a>
                             </td>
                             <td><img width="12px" src="/static/img/icon-warn.png"/></td>
+                            <td></td>
                             <td></td>
                             <td></td>
                         {% endif %}
@@ -179,7 +182,7 @@
                     </tr>
                 {% endfor %}
             {% else %}
-                <tr class="row1"><td class="center red" colspan="4">協力会社がありません。</td></tr>
+                <tr class="row1"><td class="center red" colspan="4">協力社員がいません。</td></tr>
             {% endif %}
         </tbody>
         <tfoot>

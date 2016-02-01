@@ -416,11 +416,13 @@ def generate_order_data(company, subcontractor, user, ym):
                                                       year=str(first_day.year),
                                                       month="%02d" % (first_day.month,))
         data['DETAIL']['ORDER_NO'] = order.order_no
+        order.updated_user = user
     except ObjectDoesNotExist:
         data['DETAIL']['ORDER_NO'] = get_order_no(user)
         order = models.SubcontractorOrder(subcontractor=subcontractor,
                                           order_no=data['ORDER_NO'],
                                           year=str(first_day.year),
                                           month="%02d" % (first_day.month,))
+        order.created_user = user
     order.save()
     return data
