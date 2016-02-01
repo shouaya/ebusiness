@@ -713,7 +713,7 @@ def generate_request(project, company, client_order, request_name=None, order_no
 
     # 清算リスト
     dict_expenses = {}
-    for expenses in project.get_expenses(date.year, date.month, project_members):
+    for expenses in project.get_expenses(date.year, '%02d' % (date.month,), project_members):
         if expenses.category.name not in dict_expenses:
             dict_expenses[expenses.category.name] = [expenses]
         else:

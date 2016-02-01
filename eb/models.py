@@ -951,7 +951,7 @@ class Project(models.Model):
         """
         return MemberExpenses.objects.filter(project_member__project=self,
                                              year=str(year),
-                                             month=str(month),
+                                             month=str(month)   ,
                                              project_member__in=project_members).order_by('category__name')
 
     def get_order_by_month(self, year, month):
@@ -996,7 +996,7 @@ class Project(models.Model):
                 for client_order in client_orders:
                     ret_value.append((year, month, client_order, cnt, project_members_month, project_request))
             else:
-                ret_value.append((year, month, None, 0, None, project_request))
+                ret_value.append((year, month, None, 0, None, None))
         return ret_value
 
     def get_year_month_attendance_finished(self):
