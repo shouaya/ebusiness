@@ -1393,9 +1393,11 @@ class SubcontractorOrder(models.Model):
     year = models.CharField(max_length=4, default=str(datetime.date.today().year),
                             choices=constants.CHOICE_ATTENDANCE_YEAR, verbose_name=u"対象年")
     month = models.CharField(max_length=2, choices=constants.CHOICE_ATTENDANCE_MONTH, verbose_name=u"対象月")
-    created_user = models.ForeignKey(User, editable=False, verbose_name=u"作成者")
+    created_user = models.ForeignKey(User, related_name='created_orders', null=True,
+                                     editable=False, verbose_name=u"作成者")
     created_date = models.DateTimeField(auto_now_add=True, editable=False, verbose_name=u"追加日時")
-    updated_user = models.ForeignKey(User, editable=False, verbose_name=u"更新者")
+    updated_user = models.ForeignKey(User, related_name='updated_orders', null=True,
+                                     editable=False, verbose_name=u"更新者")
     updated_date = models.DateTimeField(auto_now=True, editable=False, verbose_name=u"更新日時")
     is_deleted = models.BooleanField(default=False, editable=False, verbose_name=u"削除フラグ")
     deleted_date = models.DateTimeField(blank=True, null=True, editable=False, verbose_name=u"削除日時")

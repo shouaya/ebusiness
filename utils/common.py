@@ -59,12 +59,19 @@ def get_last_day_current_month():
     return get_last_day_by_month(datetime.date.today())
 
 
-def get_month_list(start=0, end=2):
-    today = datetime.date.today()
+def get_month_list(start_index=0, end_index=2, start_ym=None):
     month_list = []
-    for i in range(start, end + 1):
-        next_month = add_months(today, i)
-        month_list.append((str(next_month.year), "%02d" % (next_month.month,)))
+    today = datetime.date.today()
+    if start_index:
+        for i in range(start_index, end_index + 1):
+            next_month = add_months(today, i)
+            month_list.append((str(next_month.year), "%02d" % (next_month.month,)))
+    elif start_ym:
+        first_day = get_first_day_from_ym(start_ym)
+        for i in range((today.year * 12 + today.month) - (first_day.year * 12 + first_day.month)):
+            next_month = add_months(first_day, i)
+            month_list.append((str(next_month.year), "%02d" % (next_month.month,)))
+
     return month_list
 
 

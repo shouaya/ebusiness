@@ -554,7 +554,7 @@ def company_turnover_month(request):
         'clients': clients,
         'summary': summary,
         'paginator': paginator,
-        'month_list': common.get_month_list(-1, 1),
+        'month_list': biz.get_turnover_months(),
         'ym': ym,
         'current_year': str(prev_month.year),
         'current_month': str("%02d" % (prev_month.month,)),

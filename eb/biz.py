@@ -10,7 +10,7 @@ import datetime
 
 import models
 
-from django.db.models import Q, Max
+from django.db.models import Q, F, Max, Min
 from django.contrib.auth.models import User
 from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.humanize.templatetags import humanize
@@ -130,6 +130,21 @@ def get_release_next_2_month(salesperson=None, is_superuser=False):
     """
     next_2_month = common.add_months(datetime.date.today(), 2)
     return get_release_members_by_month(next_2_month, salesperson, is_superuser)
+
+
+def get_turnover_months():
+    """売り上げ集計対象月のリストを返す
+
+    案件請求情報の開始年月から、現在までの対象月を取得する。
+
+    :return:
+    """
+    dict_min_year = models.ProjectRequest.objects.all().aggregate(Min('year'))
+    min_year = dict_min_year.get('year__min')
+    if min_year:
+        min_month = models.ProjectRequest.objects.filter(year=min_year).aggregate(Min('month')).get('month__min')
+        return common.get_month_list(start_ym=(str(min_year) + str(min_month)))
+    return []
 
 
 def sync_members():
