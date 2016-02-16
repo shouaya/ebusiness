@@ -280,3 +280,33 @@ section .errorlist {
     background: #c11;
     color: #fff;
 }
+
+section div#login {
+    width: 400px;
+    margin: 150px auto;
+    border: 1px solid gray;
+    background-color: #fff;
+    border-radius: 15px;
+    box-shadow: 2px 2px 5px #333333;
+    padding: 25px 25px 15px 5px;
+}
+
+section div#login img {
+    width: 80px;
+    margin-top: 15px;
+}
+
+section div#login input {
+    width: 250px;
+    border-radius: 5px;
+    padding: 3px;
+}
+
+section div#login label {
+    line-height: 2;
+}
+
+section div#login button {
+    padding: 5px 10px;
+    margin: 5px 0px;
+}

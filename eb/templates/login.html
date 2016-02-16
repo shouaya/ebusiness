@@ -11,48 +11,41 @@
     <link rel="stylesheet" type="text/css" href="/static/css/footer.css">
 </head>
 <body>
-	<header>
-        <div class="container">
-            <div class="header-top">
-                <img class="logo" src="/static/img/logo.gif" />
-                <span style="color: gray;">E-Business Inc.</span>
-                <div class="login-info">
-                </div>
-            </div>
-            <div class="header-nav">
-            </div>
-        </div>
-    </header>
     <section>
-        <div class="container">
-            <div id="login">
-                <form class="form-horizontal" name="LoginForm" action="/eb/login/" method="post">
-                {% csrf_token %}
-                {% if next %}
-                    <input type="hidden" name="next" value="{{ next }}" />
-                {% endif %}
-                <div class="control-group">
-                    <label class="control-label" for="username">Username</label>
-                    <div class="controls">
-                        <input type="text" id="username" name="username"  placeholder="Username">
-                    </div>
-                </div>
-                <div class="control-group">
-                    <label class="control-label" for="password">Password</label>
-                    <div class="controls">
-                        <input type="password" name="password" id="password" placeholder="Password">
-                    </div>
-                </div>
-                <div class="control-group">
-                    <div class="controls">
-                        <button type="submit" class="btn">Login</button>
-                    </div>
-                </div>
-                </form>
-            </div>
+        <div id="login">
+            <table>
+                <tr>
+                    <td valign="top">
+                        <img class="logo" src="/static/img/logo.gif" />
+                    </td>
+                    <td>
+                        <form class="form-horizontal" name="LoginForm" action="/eb/login/" method="post">
+                        {% csrf_token %}
+                        {% if next %}
+                            <input type="hidden" name="next" value="{{ next }}" />
+                        {% endif %}
+                        <div class="control-group">
+                            <label class="control-label" for="username">ユーザー名：</label>
+                            <div class="controls">
+                                <input type="text" id="username" name="username"  placeholder="Username">
+                            </div>
+                        </div>
+                        <div class="control-group">
+                            <label class="control-label" for="password">パスワード：</label>
+                            <div class="controls">
+                                <input type="password" name="password" id="password" placeholder="Password">
+                            </div>
+                        </div>
+                        <div class="control-group">
+                            <div class="controls">
+                                <button type="submit" class="btn">Login</button>
+                            </div>
+                        </div>
+                        </form>
+                    </td>
+                </tr>
+            </table>
         </div>
     </section>
-	<footer>
-    </footer>
 </body>
 </html>
