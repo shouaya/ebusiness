@@ -261,13 +261,13 @@ class MemberAdmin(BaseAdmin):
 
     form = forms.MemberForm
     list_display = ['employee_id', get_full_name, 'section', 'subcontractor', 'salesperson',
-                    'user', 'is_retired', 'is_deleted']
+                    'is_user_created', 'is_retired', 'is_deleted']
     list_display_links = [get_full_name]
     list_filter = ['member_type', 'section', 'salesperson', NoUserFilter,
                    'is_retired', 'is_deleted']
     search_fields = ['first_name', 'last_name']
     inlines = (DegreeInline,)
-    actions = ['delete_objects', 'active_objects']
+    actions = ['create_users', 'delete_objects', 'active_objects']
     fieldsets = (
         (None, {'fields': ('employee_id',
                            ('first_name', 'last_name'),
@@ -290,6 +290,12 @@ class MemberAdmin(BaseAdmin):
         if 'delete_selected' in actions:
             del actions['delete_selected']
         return actions
+
+    def is_user_created(self, obj):
+        return obj.user is not None
+    is_user_created.short_description = u"ユーザ作成"
+    is_user_created.admin_order_field = "user"
+    is_user_created.boolean = True
 
     def get_queryset(self, request):
         query_set = admin.ModelAdmin.get_queryset(self, request)
@@ -339,6 +345,30 @@ class MemberAdmin(BaseAdmin):
 
     delete_objects.short_description = u"選択されたレコードを削除する。"
     active_objects.short_description = u"選択されたレコードを復活する。"
+
+    def create_users(self, request, queryset):
+        if request.user.is_superuser:
+            cnt = 0
+            for member in queryset.filter(user__isnull=True):
+                if member.email:
+                    name = member.email
+                    pwd = common.get_default_password(member)
+                    user = User.objects.create_user(name, member.email, pwd)
+                    user.is_staff = False
+                    user.first_name = member.first_name
+                    user.last_name = member.last_name
+                    user.save()
+                    member.user = user
+                    member.save()
+                    cnt += 1
+            if cnt:
+                self.message_user(request, u"選択された営業員にユーザが作成されました。")
+            else:
+                self.message_user(request, u"すでに作成済みなので、再作成する必要がありません。", messages.WARNING)
+        else:
+            self.message_user(request, u"権限がありません！", messages.ERROR)
+
+    create_users.short_description = u"ユーザを作成する"
 
 
 class SalespersonAdmin(BaseAdmin):

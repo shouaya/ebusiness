@@ -89,47 +89,56 @@ def get_project_members_month(date):
                                                       status=2)
 
 
-def get_release_members_by_month(date, salesperson=None, is_superuser=False):
+def get_release_members_by_month(date, salesperson=None, is_superuser=False, user=None):
     """指定営業員配下の案件メンバー取得する。
 
     :param date 指定月
     :param salesperson 指定営業員配下の案件メンバー
     :param is_superuser スーパーユーザ
+    :param user: ログインしているユーザ
     """
     if salesperson:
         return get_project_members_month(date).filter(member__salesperson__in=salesperson.get_under_salesperson())
     elif is_superuser:
         return get_project_members_month(date)
+    elif user:
+        if user.is_superuser:
+            return get_release_members_by_month(date, is_superuser=True)
+        elif hasattr(user, 'salesperson'):
+            return get_release_members_by_month(date, salesperson=user.salesperson)
     return models.ProjectMember.objects.none()
 
 
-def get_release_current_month(salesperson=None, is_superuser=False):
+def get_release_current_month(salesperson=None, is_superuser=False, user=None):
     """指定営業員配下の当月の案件メンバー取得する。
 
     :param salesperson 指定営業員配下の案件メンバー
     :param is_superuser スーパーユーザ
+    :param user: ログインしているユーザ
     """
-    return get_release_members_by_month(datetime.date.today(), salesperson, is_superuser)
+    return get_release_members_by_month(datetime.date.today(), salesperson, is_superuser, user)
 
 
-def get_release_next_month(salesperson=None, is_superuser=False):
+def get_release_next_month(salesperson=None, is_superuser=False, user=None):
     """指定営業員配下の来月の案件メンバー取得する。
 
     :param salesperson 指定営業員配下の案件メンバー
     :param is_superuser スーパーユーザ
+    :param user: ログインしているユーザ
     """
     next_month = common.add_months(datetime.date.today(), 1)
-    return get_release_members_by_month(next_month, salesperson, is_superuser)
+    return get_release_members_by_month(next_month, salesperson, is_superuser, user)
 
 
-def get_release_next_2_month(salesperson=None, is_superuser=False):
+def get_release_next_2_month(salesperson=None, is_superuser=False, user=None):
     """指定営業員配下の再来月の案件メンバー取得する。
 
     :param salesperson 指定営業員配下の案件メンバー
     :param is_superuser スーパーユーザ
+    :param user: ログインしているユーザ
     """
     next_2_month = common.add_months(datetime.date.today(), 2)
-    return get_release_members_by_month(next_2_month, salesperson, is_superuser)
+    return get_release_members_by_month(next_2_month, salesperson, is_superuser, user)
 
 
 def get_turnover_months():

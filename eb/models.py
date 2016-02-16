@@ -71,7 +71,6 @@ class AbstractMember(models.Model):
     certificate = models.TextField(blank=True, null=True, verbose_name=u"資格の説明")
     skill_description = models.TextField(blank=True, null=True, verbose_name=u"得意")
     comment = models.TextField(blank=True, null=True, verbose_name=u"備考")
-    user = models.OneToOneField(User, blank=True, null=True)
     is_notify = models.BooleanField(default=False, verbose_name=u"メール通知")
     notify_type = models.IntegerField(blank=True, null=True, choices=constants.CHOICE_NOTIFY_TYPE, verbose_name=u"通知種類")
     is_retired = models.BooleanField(blank=False, null=False, default=False, verbose_name=u"退職")
@@ -346,6 +345,7 @@ class Section(models.Model):
 
 class Salesperson(AbstractMember):
 
+    user = models.OneToOneField(User, blank=True, null=True)
     member_type = models.IntegerField(default=5, choices=constants.CHOICE_SALESPERSON_TYPE, verbose_name=u"社員区分")
     is_deleted = models.BooleanField(default=False, editable=False, verbose_name=u"削除フラグ")
     deleted_date = models.DateTimeField(blank=True, null=True, editable=False, verbose_name=u"削除年月日")
@@ -418,6 +418,7 @@ class Salesperson(AbstractMember):
 
 
 class Member(AbstractMember):
+    user = models.OneToOneField(User, blank=True, null=True)
     member_type = models.IntegerField(default=0, choices=constants.CHOICE_MEMBER_TYPE, verbose_name=u"社員区分")
     salesperson = models.ForeignKey(Salesperson, blank=True, null=True, verbose_name=u"営業員")
     subcontractor = models.ForeignKey(Subcontractor, blank=True, null=True, verbose_name=u"協力会社")
