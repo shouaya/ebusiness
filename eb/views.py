@@ -16,7 +16,7 @@ from django.http import HttpResponse
 from django.contrib import admin
 from django.template import RequestContext, loader
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
-from django.contrib.auth import logout
+from django.contrib.auth import logout, authenticate, login
 from django.shortcuts import redirect, render_to_response
 from django.views.decorators.csrf import csrf_protect
 from django.template.context_processors import csrf
@@ -35,7 +35,7 @@ from . import forms
 PAGE_SIZE = 50
 
 
-@login_required(login_url='/admin/login/')
+@login_required(login_url='/eb/login/')
 def index(request):
     company = biz.get_company()
     now = datetime.date.today()
@@ -52,15 +52,9 @@ def index(request):
     working_members = biz.get_working_members(request.user)
     waiting_members = biz.get_waiting_members(request.user)
 
-    is_superuser = False
-    salesperson = None
-    if request.user.is_superuser:
-        is_superuser = True
-    else:
-        salesperson = request.user.salesperson
-    current_month = biz.get_release_current_month(salesperson, is_superuser)
-    next_month = biz.get_release_next_month(salesperson, is_superuser)
-    next_2_month = biz.get_release_next_2_month(salesperson, is_superuser)
+    current_month = biz.get_release_current_month(user=request.user)
+    next_month = biz.get_release_next_month(user=request.user)
+    next_2_month = biz.get_release_next_2_month(user=request.user)
 
     context = RequestContext(request, {
         'company': company,
@@ -77,7 +71,7 @@ def index(request):
     return HttpResponse(template.render(context))
 
 
-@login_required(login_url='/admin/login/')
+@login_required(login_url='/eb/login/')
 def employee_list(request):
     company = biz.get_company()
     status = request.GET.get('status', None)
@@ -147,7 +141,7 @@ def employee_list(request):
         return HttpResponse(template.render(context))
 
 
-@login_required(login_url='/admin/login/')
+@login_required(login_url='/eb/login/')
 def section_members(request, name):
     company = biz.get_company()
     section = Section.objects.get(name=name)
@@ -196,7 +190,7 @@ def section_members(request, name):
     return HttpResponse(template.render(context))
 
 
-@login_required(login_url='/admin/login/')
+@login_required(login_url='/eb/login/')
 def project_list(request):
     company = biz.get_company()
     status = request.GET.get('status', None)
@@ -323,7 +317,7 @@ def project_order_list(request):
     return HttpResponse(template.render(context))
 
 
-@login_required(login_url='/admin/login/')
+@login_required(login_url='/eb/login/')
 def project_detail(request, project_id):
     company = biz.get_company()
     project = Project.objects.get(pk=project_id)
@@ -365,7 +359,7 @@ def project_detail(request, project_id):
         return HttpResponse(template.render(context))
 
 
-@login_required(login_url='/admin/login/')
+@login_required(login_url='/eb/login/')
 def project_order_member_assign(request, project_id):
     pm_list = request.POST.get("pm_list", None)
     order_id = request.POST.get("order_id", None)
@@ -386,7 +380,7 @@ def project_order_member_assign(request, project_id):
     return HttpResponse(json.dumps(d))
 
 
-@login_required(login_url='/admin/login/')
+@login_required(login_url='/eb/login/')
 def project_members_by_order(request, order_id):
     d = dict()
     try:
@@ -397,7 +391,7 @@ def project_members_by_order(request, order_id):
     return HttpResponse(json.dumps(d))
 
 
-@login_required(login_url='/admin/login/')
+@login_required(login_url='/eb/login/')
 def project_attendance_list(request, project_id):
     company = biz.get_company()
     project = Project.objects.get(pk=project_id)
@@ -479,7 +473,7 @@ def project_attendance_list(request, project_id):
                 return HttpResponse(r)
 
 
-@login_required(login_url='/admin/login/')
+@login_required(login_url='/eb/login/')
 def project_member_list(request, project_id):
     company = biz.get_company()
     status = request.GET.get('status', None)
@@ -523,7 +517,7 @@ def project_member_list(request, project_id):
     return HttpResponse(template.render(context))
 
 
-@login_required(login_url='/admin/login/')
+@login_required(login_url='/eb/login/')
 def company_turnover_month(request):
     company = biz.get_company()
     ym = request.GET.get('ym', None)
@@ -563,7 +557,7 @@ def company_turnover_month(request):
     return HttpResponse(template.render(context))
 
 
-@login_required(login_url='/admin/login/')
+@login_required(login_url='/eb/login/')
 def client_turnover_details(request, client_id):
     company = biz.get_company()
     ym = request.GET.get('ym', None)
@@ -607,7 +601,7 @@ def client_turnover_details(request, client_id):
     return HttpResponse(template.render(context))
 
 
-@login_required(login_url='/admin/login/')
+@login_required(login_url='/eb/login/')
 def release_list(request):
     company = biz.get_company()
     period = request.GET.get('period', None)
@@ -657,7 +651,7 @@ def release_list(request):
     return HttpResponse(template.render(context))
 
 
-@login_required(login_url='/admin/login/')
+@login_required(login_url='/eb/login/')
 def member_detail(request, employee_id):
     company = biz.get_company()
     member = Member.objects.get(employee_id=employee_id)
@@ -685,7 +679,7 @@ def member_detail(request, employee_id):
         return HttpResponse(template.render(context))
 
 
-@login_required(login_url='/admin/login/')
+@login_required(login_url='/eb/login/')
 def member_project_list(request, employee_id):
     status = request.GET.get('status', None)
     company = biz.get_company()
@@ -707,7 +701,7 @@ def member_project_list(request, employee_id):
     return HttpResponse(template.render(context))
 
 
-@login_required(login_url='/admin/login/')
+@login_required(login_url='/eb/login/')
 def recommended_member_list(request, project_id):
     project = Project.objects.get(pk=project_id)
     company = biz.get_company()
@@ -723,7 +717,7 @@ def recommended_member_list(request, project_id):
     return HttpResponse(template.render(context))
 
 
-@login_required(login_url='/admin/login/')
+@login_required(login_url='/eb/login/')
 def recommended_project_list(request, employee_id):
     company = biz.get_company()
     member = Member.objects.get(employee_id=employee_id)
@@ -742,7 +736,7 @@ def recommended_project_list(request, employee_id):
     return HttpResponse(template.render(context))
 
 
-@login_required(login_url='/admin/login/')
+@login_required(login_url='/eb/login/')
 def subcontractor_list(request):
     company = biz.get_company()
     name = request.GET.get('name', None)
@@ -781,7 +775,7 @@ def subcontractor_list(request):
     return HttpResponse(template.render(context))
 
 
-@login_required(login_url='/admin/login/')
+@login_required(login_url='/eb/login/')
 def subcontractor_detail(request, subcontractor_id):
     company = biz.get_company()
     o = request.GET.get('o', None)
@@ -816,7 +810,7 @@ def subcontractor_detail(request, subcontractor_id):
     return HttpResponse(template.render(context))
 
 
-@login_required(login_url='/admin/login/')
+@login_required(login_url='/eb/login/')
 def subcontractor_members(request, subcontractor_id):
     company = biz.get_company()
     subcontractor = Subcontractor.objects.get(pk=subcontractor_id)
@@ -898,7 +892,7 @@ def subcontractor_members(request, subcontractor_id):
             return HttpResponse(r)
 
 
-@login_required(login_url='/admin/login/')
+@login_required(login_url='/eb/login/')
 @csrf_protect
 def upload_resume(request):
     company = biz.get_company()
@@ -957,7 +951,7 @@ def download_client_order(request):
             return response
 
 
-@login_required(login_url='/admin/login/')
+@login_required(login_url='/eb/login/')
 def download_subcontractor_order(request, subcontractor_id):
     company = biz.get_company()
     ym = request.GET.get('ym', None)
@@ -974,7 +968,7 @@ def download_subcontractor_order(request, subcontractor_id):
         return HttpResponse(u"<script>alert('%s');window.close();</script>" % (ex.message,))
 
 
-@login_required(login_url='/admin/login/')
+@login_required(login_url='/eb/login/')
 def map_position(request):
     company = biz.get_company()
     members = Member.objects.public_filter(lat__isnull=False, lng__isnull=False).exclude(lat__exact='', lng__exact='')
@@ -987,7 +981,7 @@ def map_position(request):
     return HttpResponse(template.render(context))
 
 
-@login_required(login_url='/admin/login/')
+@login_required(login_url='/eb/login/')
 def issue(request):
 
     issues = Issue.objects.all()
@@ -1000,7 +994,7 @@ def issue(request):
     return HttpResponse(template.render(context))
 
 
-@login_required(login_url='/admin/login/')
+@login_required(login_url='/eb/login/')
 def history(request):
     company = biz.get_company()
 
@@ -1019,12 +1013,7 @@ def history(request):
     return HttpResponse(template.render(context))
 
 
-def logout_view(request):
-    logout(request)
-    return redirect('index')
-
-
-@login_required(login_url='/admin/login/')
+@login_required(login_url='/eb/login/')
 def sync_coordinate(request):
     company = biz.get_company()
 
@@ -1061,7 +1050,7 @@ def sync_coordinate(request):
         return HttpResponse(json.dumps(d))
 
 
-@login_required(login_url='/admin/login/')
+@login_required(login_url='/eb/login/')
 def sync_members(request):
     context = {
         'title': u'社員管理DBのデータを同期する。',
@@ -1083,7 +1072,7 @@ def sync_members(request):
     return HttpResponse(r)
 
 
-@login_required(login_url='/admin/login/')
+@login_required(login_url='/eb/login/')
 def sync_db2(request):
     context = {
         'title': u'社員管理DBのデータを同期する。',
@@ -1126,3 +1115,24 @@ def sync_db2(request):
 
     r = render_to_response('syncdb2.html', context)
     return HttpResponse(r)
+
+
+def login_user(request):
+    logout(request)
+    username = password = ''
+    if request.POST:
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+
+    user = authenticate(username=username, password=password)
+    if user is not None:
+        if user.is_active:
+            login(request, user)
+            return redirect('index')
+
+    return render_to_response('login.html', context_instance=RequestContext(request))
+
+
+def logout_view(request):
+    logout(request)
+    return redirect('index')

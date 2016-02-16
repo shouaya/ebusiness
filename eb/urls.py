@@ -46,9 +46,10 @@ urlpatterns = [
     url(r'^map_position.html$', views.map_position, name='map_position'),
     url(r'^issue.html$', views.issue, name='issue'),
     url(r'^history.html$', views.history, name='history'),
-    url(r'^logout/$', views.logout_view, name='logout_view'),
     url(r"^sync_coordinate.html", views.sync_coordinate, name="sync_coordinate"),
     url(r"^sync_members.html", views.sync_members, name="sync_members"),
     url(r"^syncdb2.html", views.sync_db2, name="syncdb2"),
     url(r"^upload_file.html$", views.upload_resume, name="upload_file"),
+    url(r'^login/$', views.login_user, name='login'),
+    url(r'^logout/$', views.logout_view, name='logout_view'),
 ]
