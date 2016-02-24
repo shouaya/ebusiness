@@ -518,7 +518,7 @@ def project_member_list(request, project_id):
 
 
 @login_required(login_url='/eb/login/')
-def company_turnover_month(request):
+def client_turnover_month(request):
     company = biz.get_company()
     ym = request.GET.get('ym', None)
     first_day = common.get_first_day_current_month()
@@ -526,7 +526,7 @@ def company_turnover_month(request):
     if not ym:
         ym = "%s%02d" % (prev_month.year, prev_month.month)
 
-    client_turnovers = biz.company_turnover_month(ym)
+    client_turnovers = biz.client_turnover_month(ym)
     summary = {'price': 0, 'cost': 0, 'profit': 0}
     for turnover in client_turnovers:
         summary['price'] += turnover['price']
@@ -553,7 +553,7 @@ def company_turnover_month(request):
         'current_year': str(prev_month.year),
         'current_month': str("%02d" % (prev_month.month,)),
     })
-    template = loader.get_template('company_turnover_month.html')
+    template = loader.get_template('client_turnover_month.html')
     return HttpResponse(template.render(context))
 
 
@@ -569,7 +569,7 @@ def client_turnover_details(request, client_id):
     first_day = common.get_first_day_from_ym(ym)
     client = Client.objects.get(pk=client_id)
     client_turnovers = client.get_turnover_month_detail(first_day)
-    client_turnover = biz.company_turnover_month(ym, client_id)[0]
+    client_turnover = biz.client_turnover_month(ym, client_id)[0]
 
     summary = {'base_price': 0, 'total_price': 0, 'cost': 0, 'profit': 0}
     for turnover in client_turnovers:

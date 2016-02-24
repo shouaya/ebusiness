@@ -273,7 +273,7 @@ def get_cost(code):
     return 0
 
 
-def company_turnover_month(ym, client_id=None):
+def client_turnover_month(ym, client_id=None):
     first_day = common.get_first_day_from_ym(ym)
     last_day = common.get_last_day_by_month(first_day)
 

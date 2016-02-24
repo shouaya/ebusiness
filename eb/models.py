@@ -664,14 +664,8 @@ class Client(AbstractCompany):
     def get_turnover_month(self, date):
         """お客様の売上情報を取得する。
 
-        Arguments：
-          date: 指定する月
-
-        Returns：
-          Date
-
-        Raises：
-          なし
+        :param date: 指定年月
+        :return 取引先の指定年月のコストと売上と利益のDict
         """
         if not date:
             date = datetime.date.today()
@@ -684,6 +678,7 @@ class Client(AbstractCompany):
             .aggregate(cost=Sum('member__cost'))
         cost = cost.get('cost', 0) if cost.get('cost', 0) else 0
 
+        # 請求書から売上を取得する
         amount = ProjectRequest.objects.filter(project__client=self,
                                                year='%04d' % (date.year,),
                                                month='%02d' % (date.month,))\
