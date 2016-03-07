@@ -2,8 +2,6 @@
 
 section {
     font-size: 13px;
-    background: url("/static/img/bg_section.gif") repeat-x top left;
-    min-height: 700px;
     padding-top: 10px;
 }
 

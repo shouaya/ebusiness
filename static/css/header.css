@@ -2,6 +2,7 @@
 
 header {
     background: url("/static/img/bg_navi.gif") repeat-x bottom left;
+    background-color: #fff;
 	height: 120px;
 }
 
