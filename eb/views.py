@@ -336,8 +336,13 @@ def project_detail(request, project_id):
                 bank = BankInfo.objects.get(pk=bank_id)
             except ObjectDoesNotExist:
                 bank = None
-            path, request_no = file_gen.generate_request(project, company, client_order, request_name, order_no, ym, bank)
-            filename = "EB請求書_%s_%s_%s.xls" % (str(request_no), project.client.name.encode('UTF-8'), now.strftime("%Y%m%d%H%M%S"))
+            project_request = project.get_project_request(ym[:4], ym[4:])
+            project_request.request_name = request_name if request_name else project.name
+            data = biz.generate_request_data(company, project, client_order, bank, ym, project_request)
+            path = file_gen.generate_request(company, project, data)
+            project_request.created_user = request.user if not project_request.pk else project_request.created_user
+            project_request.updated_user = request.user
+            filename = "EB請求書_%s_%s_%s.xls" % (str(project_request.request_no), project.client.name.encode('UTF-8'), now.strftime("%Y%m%d%H%M%S"))
             response = HttpResponse(open(path, 'rb'), content_type="application/excel")
             response['Content-Disposition'] = "filename=" + urllib.quote(filename)
             # 一時ファイルを削除する。

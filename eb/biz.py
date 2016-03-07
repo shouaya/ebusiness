@@ -10,7 +10,7 @@ import datetime
 
 import models
 
-from django.db.models import Q, F, Max, Min
+from django.db.models import Q, Max, Min
 from django.contrib.auth.models import User
 from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.humanize.templatetags import humanize
@@ -449,4 +449,164 @@ def generate_order_data(company, subcontractor, user, ym):
                                           month="%02d" % (first_day.month,))
         order.created_user = user
     order.save()
+    return data
+
+
+def get_request_members_in_project(project, client_order, ym):
+    """指定案件の指定注文書の中に、対象のメンバーを取得する。
+
+    :param project: 指定案件
+    :param client_order: 指定注文書
+    :param ym: 対象年月
+    :return: メンバーのリスト
+    """
+    if client_order.projects.public_filter(is_deleted=False).count() > 1:
+        # 一つの注文書に複数の案件がある場合
+        projects = client_order.projects.public_filter(is_deleted=False)
+        project_members = models.ProjectMember.objects.public_filter(project__in=projects)
+    elif project.get_order_by_month(ym[:4], ym[4:]).count() > 1:
+        # １つの案件に複数の注文書ある場合
+        project_members = []
+        if client_order.member_comma_list:
+            for pm_id in client_order.member_comma_list.split(","):
+                try:
+                    project_members.append(models.ProjectMember.objects.get(pk=int(pm_id)))
+                except ObjectDoesNotExist:
+                    pass
+    else:
+        project_members = project.get_project_members_by_month(ym=ym)
+    return project_members
+
+
+def generate_request_data(company, project, client_order, bank_info, ym, project_request):
+    first_day = common.get_first_day_from_ym(ym)
+    last_day = common.get_last_day_by_month(first_day)
+    data = {'DETAIL': {}}
+    # お客様郵便番号
+    data['DETAIL']['CLIENT_POST_CODE'] = common.get_full_postcode(project.client.post_code)
+    # お客様住所
+    data['DETAIL']['CLIENT_ADDRESS'] = project.client.address1 + project.client.address2
+    # お客様電話番号
+    data['DETAIL']['CLIENT_TEL'] = project.client.tel
+    # お客様名称
+    data['DETAIL']['CLIENT_COMPANY_NAME'] = project.client.name
+    # 作業期間
+    data['DETAIL']['WORK_PERIOD'] = first_day.strftime(u'%Y年%m月%d日'.encode('utf-8')).decode('utf-8') + u" ～ " + last_day.strftime(u'%Y年%m月%d日'.encode('utf-8')).decode('utf-8')
+    # 注文番号
+    data['DETAIL']['ORDER_NO'] = client_order.order_no if client_order.order_no else u""
+    # 注文日
+    data['DETAIL']['REQUEST_DATE'] = client_order.order_date.strftime('%Y/%m/%d') if client_order.order_date else ""
+    # 契約件名
+    data['DETAIL']['CONTRACT_NAME'] = project_request.request_name
+    # お支払い期限
+    data['DETAIL']['REMIT_DATE'] = project.client.get_pay_date(date=first_day).strftime('%Y/%m/%d')
+    # 請求番号
+    data['DETAIL']['REQUEST_NO'] = project_request.request_no
+    # 発行日（対象月の最終日）
+    data['DETAIL']['PUBLISH_DATE'] = last_day.strftime(u"%Y年%m月%d日".encode('utf-8')).decode('utf-8')
+    # 本社郵便番号
+    data['DETAIL']['POST_CODE'] = common.get_full_postcode(company.post_code)
+    # 本社住所
+    data['DETAIL']['ADDRESS'] = company.address1 + company.address2
+    # 会社名
+    data['DETAIL']['COMPANY_NAME'] = company.name
+    # 代表取締役
+    member = company.get_master()
+    data['DETAIL']['MASTER'] = u"%s %s" % (member.first_name, member.last_name) if member else ""
+    # 本社電話番号
+    data['DETAIL']['TEL'] = company.tel
+    # 振込先銀行名称
+    data['DETAIL']['BANK_NAME'] = bank_info.bank_name if bank_info else u""
+    # 支店番号
+    data['DETAIL']['BRANCH_NO'] = bank_info.branch_no if bank_info else u""
+    # 支店名称
+    data['DETAIL']['BRANCH_NAME'] = bank_info.branch_name if bank_info else u""
+    # 預金種類
+    data['DETAIL']['ACCOUNT_TYPE'] = bank_info.get_account_type_display() if bank_info else u""
+    # 口座番号
+    data['DETAIL']['ACCOUNT_NUMBER'] = bank_info.account_number if bank_info else u""
+    # 口座名義人
+    data['DETAIL']['BANK_ACCOUNT_HOLDER'] = bank_info.account_holder if bank_info else u""
+
+    # 全員の合計明細
+    detail_all = dict()
+    # メンバー毎の明細
+    detail_members = []
+
+    project_members = get_request_members_in_project(project, client_order, ym)
+    members_amount = 0
+    if project.is_lump:
+        members_amount = project.lump_amount
+        # 番号
+        detail_all['NO'] = u"1"
+        # 項目：契約件名に設定
+        detail_all['ITEM_NAME_ATTENDANCE_TOTAL'] = data['DETAIL']['CONTRACT_NAME']
+        # 数量
+        detail_all['ITEM_COUNT'] = u"1"
+        # 単位
+        detail_all['ITEM_UNIT'] = u"一式"
+        # 金額
+        detail_all['ITEM_AMOUNT_ATTENDANCE_ALL'] = members_amount
+        # 備考
+        detail_all['ITEM_COMMENT'] = project.lump_comment if project.is_lump else u""
+    else:
+        for i, project_member in enumerate(project_members):
+            dict_expenses = dict()
+            # 番号
+            dict_expenses['NO'] = str(i + 1)
+            # 項目
+            dict_expenses['ITEM_NAME'] = project_member.member.__unicode__()
+            # 単価（円）
+            dict_expenses['ITEM_PRICE'] = project_member.price
+            # Min/Max（H）
+            dict_expenses['ITEM_MIN_MAX'] = "%s/%s" % (int(project_member.min_hours), int(project_member.max_hours))
+            dict_expenses.update(project_member.get_attendance_dict(first_day.year, first_day.month))
+            # 金額合計
+            members_amount += dict_expenses['ITEM_AMOUNT_TOTAL']
+            detail_members.append(dict_expenses)
+
+    # 清算リスト
+    dict_expenses = {}
+    for expenses in project.get_expenses(first_day.year, '%02d' % (first_day.month,), project_members):
+        if expenses.category.name not in dict_expenses:
+            dict_expenses[expenses.category.name] = [expenses]
+        else:
+            dict_expenses[expenses.category.name].append(expenses)
+    detail_expenses = []
+    expenses_amount = 0
+    for key, value in dict_expenses.iteritems():
+        d = dict()
+        member_list = []
+        amount = 0
+        for expenses in value:
+            member_list.append(expenses.project_member.member.first_name +
+                               expenses.project_member.member.last_name +
+                               u"￥%s" % (expenses.price,))
+            amount += expenses.price
+            expenses_amount += expenses.price
+        d['ITEM_EXPENSES_CATEGORY_SUMMARY'] = u"%s(%s)" % (key, u"、".join(member_list))
+        d['ITEM_EXPENSES_CATEGORY_AMOUNT'] = amount
+        detail_expenses.append(d)
+    # if not dict_expenses:
+    #     # 清算がない場合、
+    #     d = dict()
+    #     d['ITEM_EXPENSES_CATEGORY_SUMMARY'] = u""
+    #     d['ITEM_EXPENSES_CATEGORY_AMOUNT'] = u""
+    #     detail_expenses.append(d)
+
+    data['detail_all'] = detail_all
+    data['MEMBERS'] = detail_members
+    data['EXPENSES'] = detail_expenses  # 清算リスト
+    data['DETAIL']['ITEM_AMOUNT_ATTENDANCE'] = members_amount
+    if project.client.decimal_type == '0':
+        data['DETAIL']['ITEM_AMOUNT_ATTENDANCE_TAX'] = int(round(members_amount * project.client.tax_rate))
+    else:
+        # 出勤のトータル金額の税金
+        data['DETAIL']['ITEM_AMOUNT_ATTENDANCE_TAX'] = int(members_amount * project.client.tax_rate)
+    data['DETAIL']['ITEM_AMOUNT_ATTENDANCE_ALL'] = members_amount + int(data['DETAIL']['ITEM_AMOUNT_ATTENDANCE_TAX'])
+    data['DETAIL']['ITEM_AMOUNT_ALL'] = int(data['DETAIL']['ITEM_AMOUNT_ATTENDANCE_ALL']) + expenses_amount
+    data['DETAIL']['ITEM_AMOUNT_ALL_COMMA'] = humanize.intcomma(data['DETAIL']['ITEM_AMOUNT_ALL'])
+
+    project_request.amount = data['DETAIL']['ITEM_AMOUNT_ALL']
+
     return data

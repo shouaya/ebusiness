@@ -489,7 +489,7 @@ def generate_quotation(project, user, company):
     data['quotation_details'] = detail_members
     data['details_start_col'] = 3
 
-    replace_excel_dict2(sheet, data)
+    replace_excel_dict(sheet, data)
 
     for i in range(cnt, 0, -1):
         book.Worksheets(i).Delete()
@@ -503,22 +503,13 @@ def generate_quotation(project, user, company):
     return path
 
 
-def generate_request(project, company, client_order, request_name=None, order_no=None, ym=None, bank=None):
-    """請求書を出力する。
+def generate_request(company, project, data):
+    """請求書を生成する。
 
-    Arguments：
-      project: 対象の案件
-      company: 会社名
-      request_name: 請求書名称
-      request_no: 請求番号
-      order_no: 注文番号
-      ym: 対象年月
-
-    Returns：
-      dict
-
-    Raises：
-      FileNotExistException
+    :param company:
+    :param project:
+    :param data:
+    :return:
     """
     pythoncom.CoInitializeEx(pythoncom.COINIT_MULTITHREADED)
     if project.is_lump:
@@ -537,233 +528,13 @@ def generate_request(project, company, client_order, request_name=None, order_no
     template_book.Close()
     sheet = book.Worksheets(cnt + 1)
 
-    date = datetime.date.today()
-    if ym:
-        try:
-            year = ym[:4]
-            month = ym[4:]
-            date = datetime.date(int(year), int(month), 1)
-        except:
-            year = str(date.year)
-            month = "%02d" % (date.month,)
-    else:
-        year = str(date.year)
-        month = "%02d" % (date.month,)
-
-    data = dict()
-    # お客様郵便番号
-    data['CLIENT_POST_CODE'] = common.get_full_postcode(project.client.post_code)
-    # お客様住所
-    data['CLIENT_ADDRESS'] = project.client.address1 + project.client.address2
-    # お客様電話番号
-    data['CLIENT_TEL'] = project.client.tel
-    # お客様名称
-    data['CLIENT_COMPANY_NAME'] = project.client.name
-    first_day = datetime.date(date.year, date.month, 1)
-    last_day_current_month = common.get_last_day_by_month(date)
-    period = u"%s年%s月%s日 ～ %s年%s月%s日" % (first_day.year, first_day.month, first_day.day,
-                                         last_day_current_month.year, last_day_current_month.month, last_day_current_month.day)
-
-    project_request = project.get_project_request(year, month)
-    # 作業期間
-    data['WORK_PERIOD'] = period
-    # 注文番号
-    data['ORDER_NO'] = order_no if order_no else u""
-    # 注文日
-    data['REQUEST_DATE'] = client_order.order_date.strftime('%Y/%m/%d') if client_order.order_date else ""
-    # 契約件名
-    data['CONTRACT_NAME'] = request_name if request_name else project.name
-    # お支払い期限
-    data['REMIT_DATE'] = project.client.get_pay_date(date=date).strftime('%Y/%m/%d')
-    # 請求番号
-    data['REQUEST_NO'] = project_request.request_no
-    # 発行日（対象月の最終日）
-    data['PUBLISH_DATE'] = u"%d年%02d月%02d日" % (last_day_current_month.year, last_day_current_month.month,
-                                               last_day_current_month.day)
-    # 本社郵便番号
-    data['POST_CODE'] = common.get_full_postcode(company.post_code)
-    # 本社住所
-    data['ADDRESS'] = company.address1 + company.address2
-    # 会社名
-    data['COMPANY_NAME'] = company.name
-    member = company.get_master()
-    # 代表取締役
-    data['MASTER'] = u"%s %s" % (member.first_name, member.last_name) if member else ""
-    # 本社電話番号
-    data['TEL'] = company.tel
-    # 振込先銀行名称
-    data['BANK_NAME'] = bank.bank_name if bank else u""
-    # 支店番号
-    data['BRANCH_NO'] = bank.branch_no if bank else u""
-    # 支店名称
-    data['BRANCH_NAME'] = bank.branch_name if bank else u""
-    # 預金種類
-    data['ACCOUNT_TYPE'] = bank.get_account_type_display() if bank else u""
-    # 口座番号
-    data['ACCOUNT_NUMBER'] = bank.account_number if bank else u""
-    # 口座名義人
-    data['BANK_ACCOUNT_HOLDER'] = bank.account_holder if bank else u""
-
-    # 全員の合計明細
-    detail_all = dict()
-    # メンバー毎の明細
-    detail_members = []
-
-    # 案件内すべてのメンバーを取得する。
-    if client_order.projects.public_filter(is_deleted=False).count() > 1:
-        # 一つの注文書に複数の案件がある場合
-        projects = client_order.projects.public_filter(is_deleted=False)
-        project_members = ProjectMember.objects.public_filter(project__in=projects)
-    elif project.get_order_by_month(year, month).count() > 1:
-        # １つの案件に複数の注文書ある場合
-        project_members = []
-        if client_order.member_comma_list:
-            for pm_id in client_order.member_comma_list.split(","):
-                try:
-                    project_members.append(ProjectMember.objects.get(pk=int(pm_id)))
-                except:
-                    pass
-    else:
-        project_members = project.get_project_members_by_month(date)
-    members_amount = 0
-    if project.is_lump:
-        members_amount = project.lump_amount
-    else:
-        for i, project_member in enumerate(project_members):
-            dict_expenses = dict()
-            # 番号
-            dict_expenses['NO'] = i + 1
-            # 項目
-            dict_expenses['ITEM_NAME'] = project_member.member.__unicode__()
-            # 単価（円）
-            dict_expenses['ITEM_PRICE'] = project_member.price
-            # Min/Max（H）
-            dict_expenses['ITEM_MIN_MAX'] = "%s/%s" % (int(project_member.min_hours), int(project_member.max_hours))
-            attendance = project_member.get_attendance(date.year, date.month)
-            # その他
-            dict_expenses['ITEM_OTHER'] = 0
-            # 基本金額
-            dict_expenses['ITEM_AMOUNT_BASIC'] = project_member.price if attendance else u""
-            # 残業金額
-            if attendance:
-                # 勤務時間
-                dict_expenses['ITEM_WORK_HOURS'] = attendance.total_hours if attendance else u""
-                # 残業時間
-                dict_expenses['ITEM_EXTRA_HOURS'] = attendance.extra_hours if attendance else u""
-                # 率
-                dict_expenses['ITEM_RATE'] = attendance.rate if attendance.rate else 1
-                # 減（円）
-                if project_member.minus_per_hour is None:
-                    dict_expenses['ITEM_MINUS_PER_HOUR'] = (project_member.price / project_member.min_hours) \
-                        if attendance else u""
-                else:
-                    dict_expenses['ITEM_MINUS_PER_HOUR'] = project_member.minus_per_hour
-                # 増（円）
-                if project_member.plus_per_hour is None:
-                    dict_expenses['ITEM_PLUS_PER_HOUR'] = (project_member.price / project_member.max_hours) \
-                        if attendance else u""
-                else:
-                    dict_expenses['ITEM_PLUS_PER_HOUR'] = project_member.plus_per_hour
-
-                if attendance.extra_hours > 0:
-                    dict_expenses['ITEM_AMOUNT_EXTRA'] = attendance.extra_hours * dict_expenses['ITEM_PLUS_PER_HOUR']
-                    dict_expenses['ITEM_PLUS_PER_HOUR2'] = dict_expenses['ITEM_PLUS_PER_HOUR']
-                    dict_expenses['ITEM_MINUS_PER_HOUR2'] = u""
-                elif attendance.extra_hours < 0:
-                    dict_expenses['ITEM_AMOUNT_EXTRA'] = attendance.extra_hours * dict_expenses['ITEM_MINUS_PER_HOUR']
-                    dict_expenses['ITEM_PLUS_PER_HOUR2'] = u""
-                    dict_expenses['ITEM_MINUS_PER_HOUR2'] = dict_expenses['ITEM_MINUS_PER_HOUR']
-                else:
-                    dict_expenses['ITEM_AMOUNT_EXTRA'] = 0
-                    dict_expenses['ITEM_PLUS_PER_HOUR2'] = u""
-                    dict_expenses['ITEM_MINUS_PER_HOUR2'] = u""
-                # 基本金額＋残業金額
-                dict_expenses['ITEM_AMOUNT_TOTAL'] = attendance.price
-                # 備考
-                dict_expenses['ITEM_COMMENT'] = attendance.comment
-            else:
-                dict_expenses['ITEM_RATE'] = u""
-                dict_expenses['ITEM_AMOUNT_EXTRA'] = u""
-                dict_expenses['ITEM_PLUS_PER_HOUR'] = u""
-                dict_expenses['ITEM_MINUS_PER_HOUR'] = u""
-                dict_expenses['ITEM_PLUS_PER_HOUR2'] = u""
-                dict_expenses['ITEM_MINUS_PER_HOUR2'] = u""
-                dict_expenses['ITEM_WORK_HOURS'] = u""
-                dict_expenses['ITEM_EXTRA_HOURS'] = u""
-                dict_expenses['ITEM_COMMENT'] = u""
-                # 基本金額＋残業金額
-                dict_expenses['ITEM_AMOUNT_TOTAL'] = project_member.price
-
-            detail_members.append(dict_expenses)
-
-            # 金額合計
-            members_amount += dict_expenses['ITEM_AMOUNT_TOTAL']
-    # 番号
-    detail_all['NO'] = 1
-    # 項目：契約件名に設定
-    detail_all['ITEM_NAME_ATTENDANCE_TOTAL'] = data['CONTRACT_NAME']
-    # 数量
-    detail_all['ITEM_COUNT'] = 1
-    # 単位
-    detail_all['ITEM_UNIT'] = u"一式"
-    # 金額
-    detail_all['ITEM_AMOUNT_ATTENDANCE_ALL'] = members_amount
-    # 備考
-    detail_all['ITEM_COMMENT'] = project.lump_comment if project.is_lump else u""
-
-    # 清算リスト
-    dict_expenses = {}
-    for expenses in project.get_expenses(date.year, '%02d' % (date.month,), project_members):
-        if expenses.category.name not in dict_expenses:
-            dict_expenses[expenses.category.name] = [expenses]
-        else:
-            dict_expenses[expenses.category.name].append(expenses)
-    detail_expenses = []
-    expenses_amount = 0
-    for key, value in dict_expenses.iteritems():
-        d = dict()
-        member_list = []
-        amount = 0
-        for expenses in value:
-            member_list.append(expenses.project_member.member.first_name +
-                               expenses.project_member.member.last_name +
-                               u"￥%s" % (expenses.price,))
-            amount += expenses.price
-            expenses_amount += expenses.price
-        d['ITEM_EXPENSES_CATEGORY_SUMMARY'] = u"%s(%s)" % (key, u"、".join(member_list))
-        d['ITEM_EXPENSES_CATEGORY_AMOUNT'] = amount
-        detail_expenses.append(d)
-    if not dict_expenses:
-        # 清算がない場合、
-        d = dict()
-        d['ITEM_EXPENSES_CATEGORY_SUMMARY'] = u""
-        d['ITEM_EXPENSES_CATEGORY_AMOUNT'] = u""
-        detail_expenses.append(d)
-
-    data['detail_all'] = detail_all
-    data['detail_members'] = detail_members
-    data['detail_expenses'] = detail_expenses  # 清算リスト
-    data['ITEM_AMOUNT_ATTENDANCE'] = members_amount
-    if project.client.decimal_type == '0':
-        data['ITEM_AMOUNT_ATTENDANCE_TAX'] = int(round(members_amount * project.client.tax_rate))
-    else:
-        data['ITEM_AMOUNT_ATTENDANCE_TAX'] = int(members_amount * project.client.tax_rate)  # 出勤のトータル金額の税金
-    data['ITEM_AMOUNT_ATTENDANCE_ALL'] = members_amount + data['ITEM_AMOUNT_ATTENDANCE_TAX']
-    data['ITEM_AMOUNT_ALL'] = data['ITEM_AMOUNT_ATTENDANCE_ALL'] + expenses_amount
-    data['ITEM_AMOUNT_ALL_COMMA'] = intcomma(data['ITEM_AMOUNT_ALL'])
-
-    # 請求情報を保存する
-    project_request.amount = data['ITEM_AMOUNT_ALL']
-    project_request.save()
-
-    replace_excel_dict2(sheet, data)
+    replace_excel_dict(sheet, data['DETAIL'])
+    replace_excel_dict(sheet, data['detail_all'])
+    replace_excel_list(sheet, data['MEMBERS'])
+    replace_excel_list(sheet, data['EXPENSES'], range_start="EXPENSES_START", range_end="EXPENSES_END")
 
     for i in range(cnt, 0, -1):
         book.Worksheets(i).Delete()
-
-    # GroupBoxを高さを調整する
-    for shape in sheet.Shapes:
-        shape.Height = 66
 
     file_folder = os.path.join(os.path.dirname(request_file.path), "temp")
     if not os.path.exists(file_folder):
@@ -772,7 +543,7 @@ def generate_request(project, company, client_order, request_name=None, order_no
     path = os.path.join(file_folder, file_name)
     book.SaveAs(path, FileFormat=constants.EXCEL_FORMAT_EXCEL2003)
 
-    return path, project_request.request_no
+    return path
 
 
 def get_excel_template(path_file):
@@ -794,71 +565,6 @@ def get_new_book():
     return book
 
 
-def replace_excel_dict2(sheet, data):
-    """エクセルの文字列を置換する。
-
-    Arguments：
-      sheet: エクセルのシート
-      data: 置換する対象
-
-    Returns：
-      なし
-
-    Raises：
-      なし
-    """
-    if not data:
-        return
-    for key, value in data.iteritems():
-        if key == "detail_all":
-            if find_cell_by_string(sheet, "{$ITEM_NAME_ATTENDANCE_TOTAL$}"):
-                replace_excel_dict2(sheet, value)
-        elif key == "detail_members":
-            if find_cell_by_string(sheet, "{$ITEM_PRICE$}"):
-                replace_excel_list2(sheet, value)
-        elif key == "detail_expenses":
-            # 清算リスト
-            if find_cell_by_string(sheet, "{$ITEM_EXPENSES_CATEGORY_AMOUNT$}"):
-                replace_excel_list2(sheet, value)
-        elif key == "quotation_details":
-            # 見積書の料金明細
-            replace_excel_list2(sheet, value, data['details_start_col'])
-        else:
-            sheet.Cells.Replace(What="{$%s$}" % (key,), Replacement=value, LookAt=constants.xlPart, MatchCase=False,
-                                SearchFormat=False, ReplaceFormat=False, SearchOrder=constants.xlByRows)
-
-
-def replace_excel_list2(sheet, data_list, details_start_col=None):
-    if data_list:
-        rows = get_row_span(sheet, data_list[0])
-        positions = get_replace_positions(sheet, data_list[0])
-        labels = []
-        if positions:
-            row, col = positions.values()[0]
-            start_cell = sheet.Cells(row + rows, 1)
-            end_cell = find_cell_by_string(sheet, "*", after=start_cell)
-            # 必要行数
-            cnt_all_rows = rows * len(data_list)
-            # 既存の行数
-            cnt_current_rows = end_cell.Row - (start_cell.Row - 1)
-            # 足りない行数
-            if cnt_all_rows > cnt_current_rows:
-                cnt_extra_rows = cnt_all_rows - cnt_current_rows
-                sheet.Range("%s:%s" % (end_cell.Row, end_cell.Row + cnt_extra_rows - 1)).Insert(Shift=constants.xlDown)
-            if details_start_col:
-                labels = get_replace_labels_position(sheet, row, details_start_col, rows)
-        for i, data in enumerate(data_list):
-            for key, value in data.iteritems():
-                if key in positions:
-                    row, col = positions[key]
-                    sheet.Cells(row + (i * rows), col).Value = value
-                    if key in ('ITEM_WORK_HOURS', 'ITEM_RATE'):
-                        sheet.Cells(row + (i * rows), col).NumberFormatLocal = u"G/標準"
-            if i > 0:
-                for lbl_row, lbl_col, label in labels:
-                    sheet.Cells(lbl_row + (i * rows), lbl_col).Value = label
-
-
 def find_cell_by_string(sheet, s, after=None):
     if after:
         return sheet.Cells.Find(What=s, LookIn=constants.xlFormulas, After=after, LookAt=constants.xlPart,
@@ -868,28 +574,6 @@ def find_cell_by_string(sheet, s, after=None):
         return sheet.Cells.Find(What=s, LookIn=constants.xlFormulas, LookAt=constants.xlPart,
                                 SearchOrder=constants.xlByRows, SearchDirection=constants.xlNext,
                                 MatchCase=False, MatchByte=False, SearchFormat=False)
-
-
-def get_row_span(sheet, data):
-    """明細の一行は何行跨いでいるのかを示す。
-
-    Arguments：
-      sheet: エクセルのシート
-      data: 置換する対象
-
-    Returns：
-      なし
-
-    Raises：
-      なし
-    """
-    rows = []
-    for key in data.keys():
-        replace_key = "{$%s$}" % (key,)
-        cell = find_cell_by_string(sheet, replace_key)
-        if cell:
-            rows.append(cell.Row)
-    return max(rows) - min(rows) + 1
 
 
 def get_replace_positions(sheet, data):
@@ -976,32 +660,48 @@ def replace_excel_dict(sheet, detail):
                             SearchFormat=False, ReplaceFormat=False, SearchOrder=constants.xlByRows)
 
 
-def replace_excel_list(sheet, items):
+def replace_excel_list(sheet, items, range_start='ITERATOR_START', range_end='ITERATOR_END'):
     """エクセルの繰り返す部分を置換する。
 
     :param sheet: エクセルのワークシート
     :param items 出力データ
+    :param range_start:
+    :param range_end:
     :return:
     """
-    if not items:
-        return
-
     def get_positions(cell1, cell2):
         ret_value = []
         for sub_r in range(cell1.Row, cell2.Row + 1):
             for sub_c in range(cell1.Column, cell2.Column + 1):
-                ret_value.append((sub_r, sub_c, sheet.Cells(sub_r, sub_c).Value))
+                if sheet.Cells(sub_r, sub_c).Value:
+                    ret_value.append((sub_r, sub_c, sheet.Cells(sub_r, sub_c).Value))
         return ret_value
+
+    def get_row_span(sub_position):
+        sub_rows = 0
+        prev_r = 0
+        for sub_r, sub_c, sub_text in sub_position:
+            if not prev_r or prev_r != sub_r:
+                prev_r = sub_r
+                sub_rows += 1
+        return sub_rows
 
     try:
         # 足りない行を追加する。
-        start_cell = sheet.Range('ITERATOR_START')
-        end_cell = sheet.Range('ITERATOR_END')
-        row_span = end_cell.row - start_cell.row + 1
-        if len(items) > 1:
-            cnt_extra_rows = (len(items) - 1) * row_span
-            sheet.Range("%s:%s" % (end_cell.Row + 1, end_cell.Row + cnt_extra_rows)).Insert(Shift=constants.xlDown)
+        start_cell = sheet.Range(range_start)
+        end_cell = sheet.Range(range_end)
         positions = get_positions(start_cell, end_cell)
+        if not items:
+            for r, c, text in positions:
+                sheet.Cells(r, c).Value = ""
+            return
+
+        row_span = get_row_span(positions)
+        existed_rows = end_cell.row - start_cell.row + 1
+        if len(items) > 1 and len(items) * row_span > existed_rows:
+            # 行が足りない場合は追加する。
+            cnt_extra_rows = len(items) * row_span - existed_rows
+            sheet.Range("%s:%s" % (end_cell.Row + 1, end_cell.Row + cnt_extra_rows)).Insert(Shift=constants.xlDown)
         for i, item in enumerate(items):
             for r, c, text in positions:
                 if text:
@@ -1009,6 +709,8 @@ def replace_excel_list(sheet, items):
                     if replacements:
                         for replacement in replacements:
                             val = item.get(replacement, "{$" + replacement + "$}")
+                            if not isinstance(val, str) and not isinstance(val, unicode):
+                                val = str(val)
                             text = text.replace("{$" + replacement + "$}", val)
                     sheet.Cells(r + (i * row_span), c).Value = text
     except Exception as ex:

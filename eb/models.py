@@ -1112,8 +1112,13 @@ class ProjectRequest(models.Model):
                             choices=constants.CHOICE_ATTENDANCE_YEAR, verbose_name=u"対象年")
     month = models.CharField(max_length=2, choices=constants.CHOICE_ATTENDANCE_MONTH, verbose_name=u"対象月")
     request_no = models.CharField(max_length=7, unique=True, verbose_name=u"請求番号")
+    request_name = models.CharField(max_length=50, blank=True, null=True, verbose_name=u"請求名称")
     amount = models.IntegerField(default=0, verbose_name=u"請求金額")
+    created_user = models.ForeignKey(User, related_name='created_requests', null=True,
+                                     editable=False, verbose_name=u"作成者")
     created_date = models.DateTimeField(null=True, auto_now_add=True, editable=False)
+    updated_user = models.ForeignKey(User, related_name='updated_requests', null=True,
+                                     editable=False, verbose_name=u"更新者")
     updated_date = models.DateTimeField(null=True, auto_now=True, editable=False)
 
     class Meta:
@@ -1279,25 +1284,67 @@ class ProjectMember(models.Model):
     def get_attendance(self, year, month):
         """指定された年月によって、該当するメンバーの勤怠情報を取得する。
 
-        Arguments：
-          year: 対象年
-          month: 対象月
-
-        Returns：
-          MemberAttendanceのインスタンス、または None
-
-        Raises：
-          なし
+        :param year: 対象年
+        :param month: 対象月
+        :return: MemberAttendanceのインスタンス、または None
         """
         try:
             return self.memberattendance_set.get(year=str(year), month="%02d" % (month,))
         except ObjectDoesNotExist:
             return None
 
-    # def delete(self, using=None):
-    #     self.is_deleted = True
-    #     self.deleted_date = datetime.datetime.now()
-    #     self.save()
+    def get_attendance_dict(self, year, month):
+        """指定された年月の出勤情報を取得する。
+
+        :param year: 対象年
+        :param month: 対象月
+        :return:
+        """
+        attendance = self.get_attendance(year, month)
+        d = dict()
+        # 基本金額
+        d['ITEM_AMOUNT_BASIC'] = self.price if attendance else u""
+        # 勤務時間
+        d['ITEM_WORK_HOURS'] = attendance.total_hours if attendance else u""
+        # 残業時間
+        d['ITEM_EXTRA_HOURS'] = attendance.extra_hours if attendance else u""
+        # 率
+        d['ITEM_RATE'] = attendance.rate if attendance and attendance.rate else 1
+        # 減（円）
+        if self.minus_per_hour is None:
+            d['ITEM_MINUS_PER_HOUR'] = (self.price / self.min_hours) if attendance else u""
+        else:
+            d['ITEM_MINUS_PER_HOUR'] = self.minus_per_hour
+        # 増（円）
+        if self.plus_per_hour is None:
+            d['ITEM_PLUS_PER_HOUR'] = (self.price / self.max_hours) if attendance else u""
+        else:
+            d['ITEM_PLUS_PER_HOUR'] = self.plus_per_hour
+
+        if attendance and attendance.extra_hours > 0:
+            d['ITEM_AMOUNT_EXTRA'] = attendance.extra_hours * d['ITEM_PLUS_PER_HOUR']
+            d['ITEM_PLUS_PER_HOUR2'] = d['ITEM_PLUS_PER_HOUR']
+            d['ITEM_MINUS_PER_HOUR2'] = u""
+        elif attendance and attendance.extra_hours < 0:
+            d['ITEM_AMOUNT_EXTRA'] = attendance.extra_hours * d['ITEM_MINUS_PER_HOUR']
+            d['ITEM_PLUS_PER_HOUR2'] = u""
+            d['ITEM_MINUS_PER_HOUR2'] = d['ITEM_MINUS_PER_HOUR']
+        else:
+            d['ITEM_AMOUNT_EXTRA'] = 0
+            d['ITEM_PLUS_PER_HOUR2'] = u""
+            d['ITEM_MINUS_PER_HOUR2'] = u""
+        # 基本金額＋残業金額
+        d['ITEM_AMOUNT_TOTAL'] = attendance.price if attendance else self.price
+        # 備考
+        d['ITEM_COMMENT'] = attendance.comment if attendance else u""
+        d['ITEM_OTHER'] = u""
+
+        return d
+
+    def delete(self, using=None):
+        self.is_deleted = True
+        self.deleted_date = datetime.datetime.now()
+        self.save()
 
 
 class ExpensesCategory(models.Model):
