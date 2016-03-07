@@ -286,10 +286,14 @@ def project_order_list(request):
     if order_list:
         all_projects = all_projects.order_by(*order_list)
     for project in all_projects:
-        client_order = project.get_order_by_month(ym[:4], ym[4:])
-        if not client_order:
-            client_order = [None]
-        all_project_orders.append((project, project.get_project_request(ym[:4], ym[4:]), client_order))
+        client_orders = project.get_order_by_month(ym[:4], ym[4:])
+        if client_orders.count() == 0:
+            all_project_orders.append((project, None, None))
+        else:
+            for client_order in client_orders:
+                all_project_orders.append((project,
+                                           project.get_project_request(ym[:4], ym[4:], client_order),
+                                           client_order))
     params += "&ym=%s" % (ym,)
 
     paginator = Paginator(all_project_orders, PAGE_SIZE)

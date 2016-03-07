@@ -950,7 +950,7 @@ class Project(models.Model):
         """
         return MemberExpenses.objects.filter(project_member__project=self,
                                              year=str(year),
-                                             month=str(month)   ,
+                                             month=str(month),
                                              project_member__in=project_members).order_by('category__name')
 
     def get_order_by_month(self, year, month):
