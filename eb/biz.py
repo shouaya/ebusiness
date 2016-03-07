@@ -587,12 +587,6 @@ def generate_request_data(company, project, client_order, bank_info, ym, project
         d['ITEM_EXPENSES_CATEGORY_SUMMARY'] = u"%s(%s)" % (key, u"、".join(member_list))
         d['ITEM_EXPENSES_CATEGORY_AMOUNT'] = amount
         detail_expenses.append(d)
-    # if not dict_expenses:
-    #     # 清算がない場合、
-    #     d = dict()
-    #     d['ITEM_EXPENSES_CATEGORY_SUMMARY'] = u""
-    #     d['ITEM_EXPENSES_CATEGORY_AMOUNT'] = u""
-    #     detail_expenses.append(d)
 
     data['detail_all'] = detail_all
     data['MEMBERS'] = detail_members

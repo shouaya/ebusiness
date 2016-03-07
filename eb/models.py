@@ -989,10 +989,13 @@ class Project(models.Model):
             if client_orders:
                 cnt = client_orders.count()
                 project_members_month = self.get_project_members_by_month(ym=year + month)
-                project_request = self.get_project_request(year, month)
-                if project_request and not project_request.pk:
-                    project_request = None
+                old_project_request = self.get_project_request(year, month)
                 for client_order in client_orders:
+                    project_request = self.get_project_request(year, month, client_order)
+                    if project_request and not project_request.pk:
+                        project_request = old_project_request
+                    if project_request and not project_request.pk:
+                        project_request = None
                     ret_value.append((year, month, client_order, cnt, project_members_month, project_request))
             else:
                 ret_value.append((year, month, None, 0, None, None))
@@ -1035,7 +1038,7 @@ class Project(models.Model):
                 ret_value.append((year + month, False if len(project_members) > 0 else True))
         return ret_value
 
-    def get_project_request(self, str_year, str_month):
+    def get_project_request(self, str_year, str_month, client_order=None):
         """請求番号を取得する。
 
         Arguments：
@@ -1043,12 +1046,12 @@ class Project(models.Model):
           str_month: 対象月
 
         Returns：
-          "yyyymm001"の請求番号
+          "yymm001"の請求番号
 
         Raises：
           なし
         """
-        if self.projectrequest_set.filter(year=str_year, month=str_month).count() == 0:
+        if self.projectrequest_set.filter(year=str_year, month=str_month, client_order=client_order).count() == 0:
             # 指定年月の請求番号がない場合、請求番号を発行する。
             max_request_no = ProjectRequest.objects.filter(year=str_year, month=str_month).aggregate(Max('request_no'))
             request_no = max_request_no.get('request_no__max')
@@ -1058,11 +1061,13 @@ class Project(models.Model):
                 next_request = "%s%s%s" % (str_year[2:], str_month, no)
             else:
                 next_request = "%s%s%s" % (str_year[2:], str_month, "001")
-            project_request = ProjectRequest(project=self, year=str_year, month=str_month, request_no=next_request)
+            project_request = ProjectRequest(project=self, client_order=client_order,
+                                             year=str_year, month=str_month, request_no=next_request)
             return project_request
         else:
             # 存在する場合、そのまま使う、再発行はしません。
-            project_request = self.projectrequest_set.filter(year=str_year, month=str_month)[0]
+            project_request = self.projectrequest_set.filter(year=str_year, month=str_month,
+                                                             client_order=client_order)[0]
             return project_request
 
     def delete(self, using=None):
@@ -1108,6 +1113,7 @@ class ClientOrder(models.Model):
 
 class ProjectRequest(models.Model):
     project = models.ForeignKey(Project, verbose_name=u"案件")
+    client_order = models.ForeignKey(ClientOrder, blank=True, null=True, verbose_name=u"注文書")
     year = models.CharField(max_length=4, default=str(datetime.date.today().year),
                             choices=constants.CHOICE_ATTENDANCE_YEAR, verbose_name=u"対象年")
     month = models.CharField(max_length=2, choices=constants.CHOICE_ATTENDANCE_MONTH, verbose_name=u"対象月")
@@ -1123,7 +1129,7 @@ class ProjectRequest(models.Model):
 
     class Meta:
         ordering = ['-request_no']
-        unique_together = ('project', 'year', 'month')
+        unique_together = ('project', 'client_order', 'year', 'month')
         verbose_name = verbose_name_plural = u"案件請求情報"
 
 
@@ -1376,7 +1382,7 @@ class MemberExpenses(models.Model):
     is_deleted = models.BooleanField(default=False, editable=False, verbose_name=u"削除フラグ")
     deleted_date = models.DateTimeField(blank=True, null=True, editable=False, verbose_name=u"削除年月日")
 
-    # objects = PublicManager(is_deleted=False, project_member__is_deleted=False, category__is_deleted=False)
+    objects = PublicManager(is_deleted=False, project_member__is_deleted=False, category__is_deleted=False)
 
     class Meta:
         ordering = ['project_member', 'year', 'month']
@@ -1385,10 +1391,10 @@ class MemberExpenses(models.Model):
     def __unicode__(self):
         return u"%s %s %s" % (self.project_member, self.get_year_display(), self.get_month_display())
 
-    # def delete(self, using=None):
-    #     self.is_deleted = True
-    #     self.deleted_date = datetime.datetime.now()
-    #     self.save()
+    def delete(self, using=None):
+        self.is_deleted = True
+        self.deleted_date = datetime.datetime.now()
+        self.save()
 
 
 class MemberAttendance(models.Model):
@@ -1602,6 +1608,10 @@ class Issue(models.Model):
                               verbose_name=u"ステータス")
     created_date = models.DateTimeField(auto_now_add=True, verbose_name=u"作成日時")
     updated_date = models.DateTimeField(auto_now=True, verbose_name=u"更新日時")
+    is_deleted = models.BooleanField(default=False, editable=False, verbose_name=u"削除フラグ")
+    deleted_date = models.DateTimeField(blank=True, null=True, editable=False, verbose_name=u"削除年月日")
+
+    objects = PublicManager(is_deleted=False, member__is_deleted=False)
 
     class Meta:
         ordering = ['-created_date']
@@ -1610,12 +1620,21 @@ class Issue(models.Model):
     def __unicode__(self):
         return self.title
 
+    def delete(self, using=None):
+        self.is_deleted = True
+        self.deleted_date = datetime.datetime.now()
+        self.save()
+
 
 class History(models.Model):
     start_datetime = models.DateTimeField(default=timezone.now, verbose_name=u"開始日時")
     end_datetime = models.DateTimeField(default=timezone.now, verbose_name=u"終了日時")
     location = models.CharField(max_length=2, choices=constants.CHOICE_DEV_LOCATION, verbose_name=u"作業場所")
     description = models.TextField(verbose_name=u"詳細")
+    is_deleted = models.BooleanField(default=False, editable=False, verbose_name=u"削除フラグ")
+    deleted_date = models.DateTimeField(blank=True, null=True, editable=False, verbose_name=u"削除年月日")
+
+    objects = PublicManager(is_deleted=False, member__is_deleted=False)
 
     class Meta:
         ordering = ['-start_datetime']
@@ -1625,6 +1644,11 @@ class History(models.Model):
         td = self.end_datetime - self.start_datetime
         hours = td.seconds / 3600.0
         return round(hours, 1)
+
+    def delete(self, using=None):
+        self.is_deleted = True
+        self.deleted_date = datetime.datetime.now()
+        self.save()
 
 
 def create_group_salesperson():

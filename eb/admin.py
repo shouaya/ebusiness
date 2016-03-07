@@ -267,7 +267,7 @@ class MemberAdmin(BaseAdmin):
                    'is_retired', 'is_deleted']
     search_fields = ['first_name', 'last_name']
     inlines = (DegreeInline,)
-    actions = ['create_users', 'delete_objects', 'active_objects']
+    actions = ['create_users', 'delete_objects', 'active_objects', 'member_retire']
     fieldsets = (
         (None, {'fields': ('employee_id',
                            ('first_name', 'last_name'),
@@ -343,8 +343,13 @@ class MemberAdmin(BaseAdmin):
                 cnt += 1
         self.message_user(request,  str(cnt) + u"件選択された対象が復活しました。")
 
+    def member_retire(self, request, queryset):
+        cnt = queryset.update(is_retired=True)
+        self.message_user(request,  str(cnt) + u"件選択されたメンバーが退職しました。")
+
     delete_objects.short_description = u"選択されたレコードを削除する。"
     active_objects.short_description = u"選択されたレコードを復活する。"
+    member_retire.short_description = u"選択されたメンバーを退職する"
 
     def create_users(self, request, queryset):
         if request.user.is_superuser:
