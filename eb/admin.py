@@ -932,6 +932,18 @@ class HistoryAdmin(BaseAdmin):
     list_filter = ['location']
 
 
+class CustomUserAdmin(UserAdmin):
+    list_display = ['username', 'email', 'first_name', 'last_name',
+                    'is_superuser', 'is_staff', 'is_active', 'date_joined']
+    list_filter = ['is_staff', 'is_superuser', 'is_active']
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+
 # Register your models here.
 admin.site.register(Company, CompanyAdmin)
 admin.site.register(BankInfo, BankInfoAdmin)
@@ -957,12 +969,8 @@ admin.site.register(HistoryProject, HistoryProjectAdmin)
 admin.site.register(Issue, IssueAdmin)
 admin.site.register(History, HistoryAdmin)
 
-UserAdmin.list_display = ('username', 'email', 'first_name', 'last_name',
-                          'is_superuser', 'is_staff', 'is_active', 'date_joined')
-UserAdmin.list_filter = ('is_staff', 'is_superuser', 'is_active')
-
 admin.site.unregister(User)
-admin.site.register(User, UserAdmin)
+admin.site.register(User, CustomUserAdmin)
 
 admin.site.site_header = u'社員営業状況管理システム'
 admin.site.site_title = u'管理サイト'

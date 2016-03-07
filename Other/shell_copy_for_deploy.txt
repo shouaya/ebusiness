@@ -5,3 +5,4 @@ sudo rm eb_sales/eb/migrations/*
 sudo cp eb_sales_bk/eb/migrations/* eb_sales/eb/migrations/
 
 sudo chown -R www-data eb_sales
+sudo chown -R ubuntu eb_sales
