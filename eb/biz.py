@@ -51,7 +51,8 @@ def get_working_members(user=None):
             members = models.Member.objects.public_filter(Q(section__is_on_sales=True) | Q(member_type=4),
                                                           projectmember__start_date__lte=now,
                                                           projectmember__end_date__gte=now,
-                                                          projectmember__status=2)
+                                                          projectmember__is_deleted=False,
+                                                          projectmember__status=2).distinct()
             return members
         elif common.is_salesperson(user):
             # 営業員の場合、担当している社員だけ見られる

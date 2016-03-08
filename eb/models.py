@@ -462,7 +462,7 @@ class Member(AbstractMember):
     def get_project_end_date(self):
         # 稼働状態を取得する（待機・稼働中）
         now = datetime.datetime.now()
-        projects = self.projectmember_set.public_filter(end_date__gt=now, start_date__lte=now, status=2)
+        projects = self.projectmember_set.public_filter(end_date__gte=now, start_date__lte=now, status=2)
         if projects.count() > 0:
             return projects[0].end_date
         else:
