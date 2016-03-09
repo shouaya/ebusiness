@@ -721,7 +721,8 @@ class Client(AbstractCompany):
                        u"   and pm.end_date >= %s"
                        u"   and pm.is_deleted = 0"
                        u"   and pm.status = 2"
-                       u" order by p.name", [str(date.year), '%02d' % (date.month,), self.pk, last_day, first_day])
+                       u" order by p.name, concat(m.first_name, ' ', m.last_name) "
+                       , [str(date.year), '%02d' % (date.month,), self.pk, last_day, first_day])
         members = []
         for project_id, project_name, employee_id, member_name, start_date, end_date, base_price, cost, total_price, profit \
                 in cursor.fetchall():

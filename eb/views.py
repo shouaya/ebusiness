@@ -543,6 +543,9 @@ def client_turnover_month(request):
         summary['cost'] += turnover['cost']
         summary['profit'] += turnover['profit']
 
+    chart_data = biz.chart_clients_turnover_month(client_turnovers)
+    chart_categories = ",".join(chart_data['categories'])
+
     paginator = Paginator(client_turnovers, PAGE_SIZE)
     page = request.GET.get('page')
     try:
@@ -562,6 +565,9 @@ def client_turnover_month(request):
         'ym': ym,
         'current_year': str(prev_month.year),
         'current_month': str("%02d" % (prev_month.month,)),
+        'chart_categories': chart_categories,
+        'chart_cost': chart_data['cost_list'],
+        'chart_price': chart_data['price_list'],
     })
     template = loader.get_template('client_turnover_month.html')
     return HttpResponse(template.render(context))

@@ -10,6 +10,7 @@ import datetime
 
 import models
 
+from chartit import DataPool, Chart
 from django.db.models import Q, Max, Min
 from django.contrib.auth.models import User
 from django.core.exceptions import ObjectDoesNotExist
@@ -605,3 +606,14 @@ def generate_request_data(company, project, client_order, bank_info, ym, project
     project_request.amount = data['DETAIL']['ITEM_AMOUNT_ALL']
 
     return data
+
+
+def chart_clients_turnover_month(client_turnovers):
+    categories = []
+    cost_list = []
+    price_list = []
+    for turnover in client_turnovers:
+        categories.append(u'"%s"' % (turnover['name'],))
+        cost_list.append(turnover['cost'])
+        price_list.append(turnover['price'])
+    return {'categories': categories, 'cost_list': cost_list, 'price_list': price_list}
