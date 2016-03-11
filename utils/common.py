@@ -75,6 +75,14 @@ def get_month_list(start_index=0, end_index=2, start_ym=None):
     return month_list
 
 
+def get_month_list2(start_date, end_date):
+    month_list = []
+    for i in range((end_date.year * 12 + end_date.month) - (start_date.year * 12 + start_date.month)):
+        next_month = add_months(start_date, i)
+        month_list.append((str(next_month.year), "%02d" % (next_month.month,)))
+    return month_list
+
+
 def get_ordering_dict(data, fields):
     """ＵＲＬからの引数を解析し、並び順を取得する。
 

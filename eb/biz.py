@@ -10,7 +10,6 @@ import datetime
 
 import models
 
-from chartit import DataPool, Chart
 from django.db.models import Q, Max, Min
 from django.contrib.auth.models import User
 from django.core.exceptions import ObjectDoesNotExist
@@ -295,6 +294,21 @@ def client_turnover_month(ym, client_id=None):
         client_turnovers.append(d)
 
     return client_turnovers
+
+
+def client_turnover_projects_month(ym, client):
+    first_day = common.get_first_day_from_ym(ym)
+    last_day = common.get_last_day_by_month(first_day)
+    projects = client.project_set.public_filter(start_date__lte=last_day,
+                                                end_date__gte=first_day)
+    project_turnovers = []
+    for project in projects:
+        d = dict()
+        d['id'] = project.pk
+        d['name'] = project.name
+        d.update(project.get_turnover_month(ym))
+        project_turnovers.append(d)
+    return project_turnovers
 
 
 def get_salesperson_director():
@@ -616,4 +630,23 @@ def chart_clients_turnover_month(client_turnovers):
         categories.append(u'"%s"' % (turnover['name'],))
         cost_list.append(turnover['cost'])
         price_list.append(turnover['price'])
+    return {'categories': categories, 'cost_list': cost_list, 'price_list': price_list}
+
+
+def chart_client_turnover_months(client):
+    """お客様の取引開始日から今までの月単位の売上リストを取得する。
+
+    :param client: 対象お客様の売上
+    :return:
+    """
+    month_list = client.get_turnover_months()
+    categories = []
+    cost_list = []
+    price_list = []
+    for year, month in month_list:
+        ym = year + month
+        client_turnover = client_turnover_month(ym, client.pk)[0]
+        categories.append(ym)
+        cost_list.append(client_turnover['cost'])
+        price_list.append(client_turnover['price'])
     return {'categories': categories, 'cost_list': cost_list, 'price_list': price_list}

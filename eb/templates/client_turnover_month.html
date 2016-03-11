@@ -10,6 +10,12 @@
             init_select("ym");
         };
         $(function () {
+            Highcharts.setOptions({
+                lang: {
+                    decimalPoint: '.',
+                    thousandsSep: ','
+                }
+            });
             $('#container').highcharts({
                 chart: {
                     type: 'column'
@@ -18,7 +24,7 @@
                     text: '{{ ym|slice:":4" }}年{{ ym|slice:"4:" }}月のお客様別売上情報'
                 },
                 subtitle: {
-                    text: 'Source: WorldClimate.com'
+                    text: '売上情報は請求書の金額から集計している、請求書が全部作成していない場合、正しい売上が取得できません。'
                 },
                 xAxis: {
                     categories: [{{ chart_categories|safe }}],
@@ -33,7 +39,7 @@
                 tooltip: {
                     headerFormat: '<span style="font-size:10px">{point.key}</span><table>',
                     pointFormat: '<tr><td style="color:{series.color};padding:0">{series.name}: </td>' +
-                        '<td style="padding:0"><b>{point.y:.1f} 円</b></td></tr>',
+                        '<td style="padding:0"><b>{point.y:,.1f} 円</b></td></tr>',
                     footerFormat: '</table>',
                     shared: true,
                     useHTML: true
@@ -79,7 +85,7 @@
     </div>
     <div class="dashboard">
         <div class="dashboard-title">お客様別の売上情報</div>
-        <div id="container" style="min-width: 310px; height: 400px; margin: 0 auto"></div>
+        <div id="container" style="min-width: 310px; height: 600px; margin: 0 auto"></div>
     </div>
     <table class="list" cellpadding="0" cellspacing="0">
         <thead>
@@ -108,7 +114,7 @@
                 {% for client in clients %}
                     <tr class="{% cycle 'row1' 'row2' %}">
                         <td>
-                            <a href="{% url 'client_turnover_details' client.id %}?ym={{ ym }}">{{ client.name }}</a>
+                            <a href="{% url 'client_turnover_details' client.id ym %}">{{ client.name }}</a>
                         </td>
                         <td style="text-align: right">
                             {{ client.cost|intcomma }}

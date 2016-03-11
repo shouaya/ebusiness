@@ -574,7 +574,35 @@ def client_turnover_month(request):
 
 
 @login_required(login_url='/eb/login/')
-def client_turnover_details(request, client_id):
+def client_turnover_details(request, client_id, ym):
+    company = biz.get_company()
+    client = Client.objects.get(pk=client_id)
+    client_turnover = biz.client_turnover_month(ym, client_id)[0]
+    project_turnovers = biz.client_turnover_projects_month(ym, client)
+    summary = {'price': 0, 'cost': 0, 'profit': 0}
+    for turnover in project_turnovers:
+        summary['price'] += turnover['price']
+        summary['cost'] += turnover['cost']
+        summary['profit'] += turnover['profit']
+
+    chart_data = biz.chart_client_turnover_months(client)
+
+    context = RequestContext(request, {
+        'company': company,
+        'title': u'月単位の売上情報',
+        'client': client,
+        'client_turnover': client_turnover,
+        'project_turnovers': project_turnovers,
+        'summary': summary,
+        'ym': ym,
+        'chart_data': chart_data,
+    })
+    template = loader.get_template('client_turnover_projects_month.html')
+    return HttpResponse(template.render(context))
+
+
+@login_required(login_url='/eb/login/')
+def project_turnover_details(request, project_id, ym):
     company = biz.get_company()
     ym = request.GET.get('ym', None)
     if not ym:
@@ -583,9 +611,9 @@ def client_turnover_details(request, client_id):
 
     params = '&ym=' + ym
     first_day = common.get_first_day_from_ym(ym)
-    client = Client.objects.get(pk=client_id)
-    client_turnovers = client.get_turnover_month_detail(first_day)
-    client_turnover = biz.client_turnover_month(ym, client_id)[0]
+    project = Client.objects.get(pk=project_id)
+    client_turnovers = project.get_turnover_month_detail(first_day)
+    # client_turnover = biz.client_turnover_month(ym, client_id)[0]
 
     summary = {'base_price': 0, 'total_price': 0, 'cost': 0, 'profit': 0}
     for turnover in client_turnovers:
@@ -605,11 +633,11 @@ def client_turnover_details(request, client_id):
 
     context = RequestContext(request, {
         'company': company,
-        'client': client,
+        'project': project,
         'title': u'月の売上情報',
         'members': members,
         'summary': summary,
-        'client_turnover': client_turnover,
+        'client_turnover': client_turnovers[0],
         'paginator': paginator,
         'params': params,
     })

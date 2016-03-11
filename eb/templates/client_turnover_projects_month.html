@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+{% load humanize %}
+
+{% block header %}
+    <script type="text/javascript" src="https://code.highcharts.com/highcharts.js"></script>
+    <script type="text/javascript" src="https://code.highcharts.com/modules/exporting.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            Highcharts.setOptions({
+                lang: {
+                    decimalPoint: '.',
+                    thousandsSep: ','
+                }
+            });
+            $('#container').highcharts({
+                chart: {
+                    type: 'column'
+                },
+                title: {
+                    text: '{{ client }}の月単位売上情報'
+                },
+                subtitle: {
+                    text: '売上情報は請求書の金額から集計している、請求書が全部作成していない場合、正しい売上が取得できません。'
+                },
+                xAxis: {
+                    categories: {{ chart_data.categories|safe }},
+                    crosshair: true
+                },
+                yAxis: {
+                    min: 0,
+                    title: {
+                        text: '金額 (円)'
+                    }
+                },
+                tooltip: {
+                    headerFormat: '<span style="font-size:10px">{point.key}</span><table>',
+                    pointFormat: '<tr><td style="color:{series.color};padding:0">{series.name}: </td>' +
+                        '<td style="padding:0"><b>{point.y:,.1f} 円</b></td></tr>',
+                    footerFormat: '</table>',
+                    shared: true,
+                    useHTML: true
+                },
+                plotOptions: {
+                    column: {
+                        pointPadding: 0.2,
+                        borderWidth: 0
+                    }
+                },
+                series: [{
+                    name: 'コスト',
+                    data: {{ chart_data.cost_list }}
+                }, {
+                    name: '売上',
+                    data: {{ chart_data.price_list }}
+                }]
+            });
+        });
+    </script>
+{% endblock %}
+
+{% block content %}
+    <div class="dashboard">
+        <div class="dashboard-title">{{ client }}の売上情報</div>
+        <div id="container" style="min-width: 310px; height: 400px; margin: 0 auto"></div>
+    </div>
+    <table class="list" cellpadding="0" cellspacing="0">
+        <thead>
+            <tr>
+                <th>案件名称</th>
+                <th>コスト</th>
+                <th>売上</th>
+                <th>利益</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% if project_turnovers %}
+                {% for project_turnover in project_turnovers %}
+                    <tr class="{% cycle 'row1' 'row2' %}">
+                        <td>
+                            <a href="{% url 'project_turnover_details' project_turnover.id ym %}">{{ project_turnover.name }}</a>
+                        </td>
+                        <td style="text-align: right">
+                            {{ project_turnover.cost|intcomma }}
+                        </td>
+                        <td style="text-align: right">
+                            {{ project_turnover.price|intcomma }}
+                        </td>
+                        <td style="text-align: right">
+                            {{ project_turnover.profit|intcomma }}
+                        </td>
+                    </tr>
+                {% endfor %}
+            {% else %}
+                <tr class="row1"><td class="center red" colspan="4">売上情報がありません。</td></tr>
+            {% endif %}
+        </tbody>
+        <tfoot>
+            <tr>
+                <td>{{ project_turnovers|length }} 件</td>
+                <td style="text-align: right"> {{ summary.cost|intcomma }}</td>
+                <td style="text-align: right"> {{ summary.price|intcomma }}</td>
+                <td style="text-align: right"> {{ summary.profit|intcomma }}</td>
+            </tr>
+        </tfoot>
+    </table>
+{% endblock %}

@@ -740,6 +740,21 @@ class Client(AbstractCompany):
             members.append(d)
         return members
 
+    def get_turnover_months(self):
+        """集計対象月のリストを返す
+
+        :return:
+        """
+        dict_start_date = self.project_set.public_all().aggregate(Min('start_date'))
+        start_date = dict_start_date.get('start_date__min')
+        if start_date:
+            end_date = self.project_set.public_all().aggregate(Max('end_date')).get('end_date__max')
+            today = datetime.date.today()
+            if end_date > today:
+                end_date = today
+            return common.get_month_list2(start_date, end_date)
+        return []
+
     def delete(self, using=None):
         self.is_deleted = True
         self.deleted_date = datetime.datetime.now()
@@ -1070,6 +1085,30 @@ class Project(models.Model):
             project_request = self.projectrequest_set.filter(year=str_year, month=str_month,
                                                              client_order=client_order)[0]
             return project_request
+
+    def get_turnover_month(self, ym):
+        """案件の売上情報を取得する。
+
+        :param ym: 指定年月
+        :return 取引先の指定年月のコストと売上と利益のDict
+        """
+        first_day = common.get_first_day_from_ym(ym)
+        last_day = common.get_last_day_by_month(first_day)
+        cost = ProjectMember.objects.public_filter(project=self,
+                                                   start_date__lte=last_day,
+                                                   end_date__gte=first_day)\
+            .aggregate(cost=Sum('member__cost'))
+        cost = cost.get('cost', 0) if cost.get('cost', 0) else 0
+
+        # 請求書から売上を取得する
+        amount = ProjectRequest.objects.filter(project=self,
+                                               year=ym[:4],
+                                               month=ym[4:])\
+            .aggregate(amount=Sum('amount'))
+        amount = amount.get('amount', 0) if amount.get('amount', 0) else 0
+
+        profit = amount - cost
+        return {'cost': cost, 'price': amount, 'profit': profit}
 
     def delete(self, using=None):
         self.is_deleted = True
