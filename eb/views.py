@@ -604,25 +604,19 @@ def client_turnover_details(request, client_id, ym):
 @login_required(login_url='/eb/login/')
 def project_turnover_details(request, project_id, ym):
     company = biz.get_company()
-    ym = request.GET.get('ym', None)
-    if not ym:
-        today = datetime.date.today()
-        ym = "%s%02d" % (today.year, today.month)
 
-    params = '&ym=' + ym
-    first_day = common.get_first_day_from_ym(ym)
-    project = Client.objects.get(pk=project_id)
-    client_turnovers = project.get_turnover_month_detail(first_day)
+    project = Project.objects.get(pk=project_id)
+    project_members_turnover = project.get_turnover_members_month(ym)
     # client_turnover = biz.client_turnover_month(ym, client_id)[0]
 
     summary = {'base_price': 0, 'total_price': 0, 'cost': 0, 'profit': 0}
-    for turnover in client_turnovers:
+    for turnover in project_members_turnover:
         summary['base_price'] += turnover['base_price']
         summary['total_price'] += turnover['total_price']
         summary['cost'] += turnover['cost']
         summary['profit'] += turnover['profit']
 
-    paginator = Paginator(client_turnovers, PAGE_SIZE)
+    paginator = Paginator(project_members_turnover, PAGE_SIZE)
     page = request.GET.get('page')
     try:
         members = paginator.page(page)
@@ -637,11 +631,10 @@ def project_turnover_details(request, project_id, ym):
         'title': u'月の売上情報',
         'members': members,
         'summary': summary,
-        'client_turnover': client_turnovers[0],
         'paginator': paginator,
-        'params': params,
+        'ym': ym,
     })
-    template = loader.get_template('client_turnover_details.html')
+    template = loader.get_template('turnover_project_members.html')
     return HttpResponse(template.render(context))
 
 

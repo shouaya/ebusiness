@@ -688,58 +688,6 @@ class Client(AbstractCompany):
         profit = amount - cost
         return {'cost': cost, 'price': amount, 'profit': profit}
 
-    def get_turnover_month_detail(self, date):
-        """要員毎の売上情報を取得する。
-
-        Arguments：
-          date: 指定する月
-
-        Returns：
-          Date
-
-        Raises：
-          なし
-        """
-        first_day = common.get_first_day_by_month(date)
-        last_day = common.get_last_day_by_month(date)
-
-        cursor = connection.cursor()
-        cursor.execute(u"select pm.project_id, p.name as project_name, m.employee_id"
-                       u"     , concat(m.first_name, ' ', m.last_name) as member_name"
-                       u"     , pm.start_date, pm.end_date"
-                       u"     , pm.price as base_price"
-                       u"     , ifnull(m.cost, 0) as cost"
-                       u"     , ifnull(ma.price, 0) as total_price"
-                       u"     , ifnull(ma.price, 0) - ifnull(m.cost, 0) as profit"
-                       u"  from eb_projectmember pm"
-                       u"  join eb_member m on m.id = pm.member_id"
-                       u"  join eb_project p on p.id = pm.project_id"
-                       u"  left join eb_memberattendance ma on ma.project_member_id = pm.id"
-                       u"		 and ma.year = %s and ma.month = %s"
-                       u" where p.client_id = %s"
-                       u"   and pm.start_date <= %s"
-                       u"   and pm.end_date >= %s"
-                       u"   and pm.is_deleted = 0"
-                       u"   and pm.status = 2"
-                       u" order by p.name, concat(m.first_name, ' ', m.last_name) "
-                       , [str(date.year), '%02d' % (date.month,), self.pk, last_day, first_day])
-        members = []
-        for project_id, project_name, employee_id, member_name, start_date, end_date, base_price, cost, total_price, profit \
-                in cursor.fetchall():
-            d = dict()
-            d['project_id'] = project_id
-            d['project_name'] = project_name
-            d['employee_id'] = employee_id
-            d['member_name'] = member_name
-            d['start_date'] = start_date
-            d['end_date'] = end_date
-            d['base_price'] = base_price
-            d['cost'] = cost
-            d['total_price'] = total_price
-            d['profit'] = profit
-            members.append(d)
-        return members
-
     def get_turnover_months(self):
         """集計対象月のリストを返す
 
@@ -1109,6 +1057,49 @@ class Project(models.Model):
 
         profit = amount - cost
         return {'cost': cost, 'price': amount, 'profit': profit}
+
+    def get_turnover_members_month(self, ym):
+        """要員毎の売上情報を取得する
+
+        :param ym: 対象年月
+        :return:
+        """
+        first_day = common.get_first_day_from_ym(ym)
+        last_day = common.get_last_day_by_month(first_day)
+
+        cursor = connection.cursor()
+        cursor.execute(u"select m.employee_id"
+                       u"     , concat(m.first_name, ' ', m.last_name) as member_name"
+                       u"     , pm.start_date, pm.end_date"
+                       u"     , pm.price as base_price"
+                       u"     , ifnull(m.cost, 0) as cost"
+                       u"     , ifnull(ma.price, 0) as total_price"
+                       u"     , ifnull(ma.price, 0) - ifnull(m.cost, 0) as profit"
+                       u"  from eb_projectmember pm"
+                       u"  join eb_member m on m.id = pm.member_id"
+                       u"  join eb_project p on p.id = pm.project_id"
+                       u"  left join eb_memberattendance ma on ma.project_member_id = pm.id"
+                       u"		 and ma.year = %s and ma.month = %s"
+                       u" where p.id = %s"
+                       u"   and pm.start_date <= %s"
+                       u"   and pm.end_date >= %s"
+                       u"   and pm.is_deleted = 0"
+                       u"   and pm.status = 2"
+                       u" order by p.name, concat(m.first_name, ' ', m.last_name) "
+                       , [ym[:4], ym[4:], self.pk, last_day, first_day])
+        members = []
+        for employee_id, member_name, start_date, end_date, base_price, cost, total_price, profit in cursor.fetchall():
+            d = dict()
+            d['employee_id'] = employee_id
+            d['member_name'] = member_name
+            d['start_date'] = start_date
+            d['end_date'] = end_date
+            d['base_price'] = base_price
+            d['cost'] = cost
+            d['total_price'] = total_price
+            d['profit'] = profit
+            members.append(d)
+        return members
 
     def delete(self, using=None):
         self.is_deleted = True

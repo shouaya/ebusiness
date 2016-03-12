@@ -6,25 +6,25 @@
 
 {% block content %}
     <div class="dashboard">
-        <div class="dashboard-title">お客様の売上詳細</div>
+        <div class="dashboard-title">案件のメンバー売上情報</div>
     </div>
     <table class="detail" cellpadding="0" cellspacing="0">
         <tr>
-            <th>お客様名称</th><td colspan="3">{{ client.name }}</td>
+            <th>案件名称</th><td><a href="{% url 'project_detail' project.pk %}">{{ project.name }}</a> </td>
+            <th>関連会社</th>
+            <td><a href="{% url 'client_turnover_details' project.client.pk ym %}">{{ project.client.name }}</a></td>
         </tr>
         <tr>
-            <th>コスト</th><td>{{ client_turnover.cost|intcomma }}</td>
-            <th>代表者名</th><td>{{ client.president }}</td>
+            <th>作業場所</th><td colspan="3">{{ project.address }}</td>
         </tr>
         <tr>
-            <th>売上</th><td>{{ client_turnover.price|intcomma }}</td>
-            <th>利益</th><td>{{ client_turnover.profit|intcomma }}</td>
+            <th>開始日付</th><td>{{ project.start_date|date:"Y-m-d" }}</td>
+            <th>終了日付</th><td>{{ project.end_date|date:"Y-m-d" }}</td>
         </tr>
     </table>
     <table class="list" cellpadding="0" cellspacing="0">
         <thead>
             <tr>
-                <th>案件</th>
                 <th>メンバー</th>
                 <th>開始日</th>
                 <th>終了日</th>
@@ -39,9 +39,6 @@
                 {% for member in members %}
                     <tr class="{% cycle 'row1' 'row2' %}">
                         <td>
-                            <a href="{% url 'project_detail' member.project_id %}">{{ member.project_name }}</a>
-                        </td>
-                        <td>
                             <a href="{% url 'member_detail' member.employee_id %}">{{ member.member_name }}</a>
                         </td>
                         <td>{{ member.start_date|date:"Y-m-d" }}</td>
@@ -53,12 +50,12 @@
                     </tr>
                 {% endfor %}
             {% else %}
-                <tr class="row1"><td class="center red" colspan="8">売上情報がありません。</td></tr>
+                <tr class="row1"><td class="center red" colspan="7">売上情報がありません。</td></tr>
             {% endif %}
         </tbody>
         <tfoot>
             <tr>
-                <td colspan="4">
+                <td colspan="3">
                     <div class="pagination">
                         <span class="step-links">
                             {% if projects.has_previous %}
