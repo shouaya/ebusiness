@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% load humanize %}
+
+{% block header %}
+    <script type="text/javascript" src="https://code.highcharts.com/highcharts.js"></script>
+    <script type="text/javascript" src="https://code.highcharts.com/modules/data.js"></script>
+    <script type="text/javascript" src="https://code.highcharts.com/modules/exporting.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            Highcharts.setOptions({
+                lang: {
+                    thousandsSep: ','
+                }
+            });
+
+            $('#container').highcharts({
+                data: {
+                    table: 'tbl_turnover_monthly'
+                },
+                chart: {
+                    type: 'column'
+                },
+                title: {
+                    text: '会社の月別の売上情報'
+                },
+                yAxis: {
+                    allowDecimals: false,
+                    title: {
+                        text: '金額 (円)'
+                    }
+                },
+                tooltip: {
+                    headerFormat: '<span style="font-size:10px">{point.key}</span><table>',
+                    pointFormat: '<tr><td style="color:{series.color};padding:0">{series.name}: </td>' +
+                        '<td style="padding:0;text-align:right;"><b>{point.y:,.0f} 円</b></td></tr>',
+                    footerFormat: '</table>',
+                    shared: true,
+                    useHTML: true
+                }
+            });
+        });
+    </script>
+{% endblock %}
+
+{% block content %}
+    <div class="dashboard">
+        <div class="dashboard-title">月間売上情報</div>
+        <div id="container" style="min-width: 250px; height: 260px; margin: 0 auto"></div>
+    </div>
+    <table id="tbl_turnover_monthly" class="list" cellpadding="0" cellspacing="0">
+        <thead>
+            <tr>
+                <th></th>
+                <th>コスト</th>
+                <th>売上</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for turnover in company_turnover %}
+            <tr class="{% cycle 'row1' 'row2' %}">
+                <td><a href="{% url 'turnover_clients_month' turnover.ym %}">{{ turnover.year }}年{{ turnover.month }}月</a></td>
+                <td style="text-align: right;">0</td>
+                <td style="text-align: right;">{{ turnover.amount__sum }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}

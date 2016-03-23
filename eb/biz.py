@@ -10,7 +10,7 @@ import datetime
 
 import models
 
-from django.db.models import Q, Max, Min
+from django.db.models import Q, Max, Min, Sum
 from django.contrib.auth.models import User
 from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.humanize.templatetags import humanize
@@ -87,6 +87,7 @@ def get_project_members_month(date):
     last_day = common.get_last_day_by_month(date)
     return models.ProjectMember.objects.public_filter(end_date__gte=first_day,
                                                       end_date__lte=last_day,
+                                                      project__status=4,
                                                       status=2)
 
 
@@ -147,7 +148,7 @@ def get_turnover_months():
 
     案件請求情報の開始年月から、現在までの対象月を取得する。
 
-    :return:
+    :return: (yyyy, mm)のリスト
     """
     dict_min_year = models.ProjectRequest.objects.all().aggregate(Min('year'))
     min_year = dict_min_year.get('year__min')
@@ -272,6 +273,19 @@ def get_cost(code):
             if item['EMPLOYER_NO'] == code:
                 return item['ALLOWANLE_COST'] if item['ALLOWANLE_COST'] != "-" else 0
     return 0
+
+
+def turnover_company_monthly():
+    """月単位の会社の売上情報を取得する。
+
+    :return: QuerySet
+    """
+    turnover_monthly = models.ProjectRequest.objects.values('year', 'month')\
+        .annotate(Sum('amount')).order_by('year', 'month')
+    for d in turnover_monthly:
+        d['ym'] = d['year'] + d['month']
+
+    return turnover_monthly
 
 
 def client_turnover_month(ym, client_id=None):
@@ -460,7 +474,7 @@ def generate_order_data(company, subcontractor, user, ym):
     except ObjectDoesNotExist:
         data['DETAIL']['ORDER_NO'] = get_order_no(user)
         order = models.SubcontractorOrder(subcontractor=subcontractor,
-                                          order_no=data['ORDER_NO'],
+                                          order_no=data['DETAIL']['ORDER_NO'],
                                           year=str(first_day.year),
                                           month="%02d" % (first_day.month,))
         order.created_user = user

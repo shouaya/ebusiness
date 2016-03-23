@@ -90,7 +90,7 @@ def employee_list(request):
 
     if salesperson:
         salesperson_obj = Salesperson.objects.get(employee_id=salesperson)
-        all_members = salesperson_obj.member_set.public_all()
+        all_members = all_members.filter(salesperson=salesperson_obj)
         params += u"&salesperson=%s" % (salesperson,)
     if first_name:
         all_members = all_members.filter(first_name__contains=first_name)
@@ -528,14 +528,21 @@ def project_member_list(request, project_id):
 
 
 @login_required(login_url='/eb/login/')
-def client_turnover_month(request):
+def turnover_company(request):
     company = biz.get_company()
-    ym = request.GET.get('ym', None)
-    first_day = common.get_first_day_current_month()
-    prev_month = first_day + datetime.timedelta(days=-1)
-    if not ym:
-        ym = "%s%02d" % (prev_month.year, prev_month.month)
+    company_turnover = biz.turnover_company_monthly()
+    context = RequestContext(request, {
+        'company': company,
+        'title': u'売上情報',
+        'company_turnover': company_turnover,
+    })
+    template = loader.get_template('turnover_company.html')
+    return HttpResponse(template.render(context))
 
+
+@login_required(login_url='/eb/login/')
+def turnover_clients_month(request, ym):
+    company = biz.get_company()
     client_turnovers = biz.client_turnover_month(ym)
     summary = {'price': 0, 'cost': 0, 'profit': 0}
     for turnover in client_turnovers:
@@ -561,15 +568,12 @@ def client_turnover_month(request):
         'clients': clients,
         'summary': summary,
         'paginator': paginator,
-        'month_list': biz.get_turnover_months(),
         'ym': ym,
-        'current_year': str(prev_month.year),
-        'current_month': str("%02d" % (prev_month.month,)),
         'chart_categories': chart_categories,
         'chart_cost': chart_data['cost_list'],
         'chart_price': chart_data['price_list'],
     })
-    template = loader.get_template('client_turnover_month.html')
+    template = loader.get_template('turnover_clients_month.html')
     return HttpResponse(template.render(context))
 
 

@@ -312,11 +312,15 @@ class MemberAdmin(BaseAdmin):
     def change_view(self, request, object_id, form_url='', extra_context=None):
         member = Member.objects.get(pk=object_id)
         if member.member_type == 4:
+            # 他社技術者
             if self.fieldsets[2][1]['fields'].count('cost') == 0:
                 self.fieldsets[2][1]['fields'].insert(-2, 'cost')
+            if self.fieldsets[2][1]['fields'].count('is_individual_pay') == 0:
+                self.fieldsets[2][1]['fields'].insert(-3, 'is_individual_pay')
         else:
             try:
                 self.fieldsets[2][1]['fields'].remove('cost')
+                self.fieldsets[2][1]['fields'].remove('is_individual_pay')
             except ValueError:
                 pass
         return super(MemberAdmin, self).change_view(request, object_id, form_url, extra_context)
@@ -324,6 +328,8 @@ class MemberAdmin(BaseAdmin):
     def add_view(self, request, form_url='', extra_context=None):
         if self.fieldsets[2][1]['fields'].count('cost') == 0:
             self.fieldsets[2][1]['fields'].insert(-2, 'cost')
+        if self.fieldsets[2][1]['fields'].count('is_individual_pay') == 0:
+            self.fieldsets[2][1]['fields'].insert(-3, 'is_individual_pay')
         return super(MemberAdmin, self).add_view(request, form_url, extra_context)
 
     def delete_objects(self, request, queryset):

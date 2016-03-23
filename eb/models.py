@@ -421,6 +421,7 @@ class Member(AbstractMember):
     user = models.OneToOneField(User, blank=True, null=True)
     member_type = models.IntegerField(default=0, choices=constants.CHOICE_MEMBER_TYPE, verbose_name=u"社員区分")
     salesperson = models.ForeignKey(Salesperson, blank=True, null=True, verbose_name=u"営業員")
+    is_individual_pay = models.BooleanField(default=False, verbose_name=u"個別精算")
     subcontractor = models.ForeignKey(Subcontractor, blank=True, null=True, verbose_name=u"協力会社")
     cost = models.IntegerField(null=False, default=0, verbose_name=u"コスト")
     is_deleted = models.BooleanField(default=False, editable=False, verbose_name=u"削除フラグ")
@@ -461,6 +462,8 @@ class Member(AbstractMember):
 
     def get_project_end_date(self):
         # 稼働状態を取得する（待機・稼働中）
+        if self.pk == 787:
+            pass
         now = datetime.datetime.now()
         projects = self.projectmember_set.public_filter(end_date__gte=now, start_date__lte=now, status=2)
         if projects.count() > 0:
@@ -1115,7 +1118,7 @@ def get_client_order_path(instance, filename):
 
 class ClientOrder(models.Model):
     projects = models.ManyToManyField(Project, verbose_name=u"案件")
-    name = models.CharField(max_length=30, verbose_name=u"注文書名称")
+    name = models.CharField(max_length=50, verbose_name=u"注文書名称")
     start_date = models.DateField(default=common.get_first_day_current_month(), verbose_name=u"開始日")
     end_date = models.DateField(default=common.get_last_day_current_month(), verbose_name=u"終了日")
     order_no = models.CharField(max_length=20, verbose_name=u"注文番号")
