@@ -766,9 +766,9 @@ class ProjectMemberAdmin(BaseAdmin):
     def get_form(self, request, obj=None, **kwargs):
         form = super(ProjectMemberAdmin, self).get_form(request, obj, **kwargs)
         project_id = request.GET.get('project_id', None)
+        form.base_fields['member'].queryset = Member.objects.public_all()
         if project_id:
             project = Project.objects.get(pk=project_id)
-            form.base_fields['member'].queryset = Member.objects.public_all()
             form.base_fields['project'].initial = project
             form.base_fields['start_date'].initial = project.start_date
             form.base_fields['end_date'].initial = project.end_date
