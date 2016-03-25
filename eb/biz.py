@@ -43,20 +43,25 @@ def get_all_members(user=None):
     return models.Member.objects.none()
 
 
-def get_working_members(user=None):
-    now = datetime.date.today()
-    if user:
-        if user.is_superuser:
-            # 管理員の場合全部見られる
-            members = models.Member.objects.public_filter(Q(section__is_on_sales=True) | Q(member_type=4),
-                                                          projectmember__start_date__lte=now,
-                                                          projectmember__end_date__gte=now,
-                                                          projectmember__is_deleted=False,
-                                                          projectmember__status=2).distinct()
-            return members
-        elif common.is_salesperson(user):
-            # 営業員の場合、担当している社員だけ見られる
-            return user.salesperson.get_working_members()
+def get_working_members(user=None, date=None, is_superuser=None, salesperson=None):
+    if not date:
+        first_day = last_day = datetime.date.today()
+    else:
+        first_day = common.get_first_day_by_month(date)
+        last_day = common.get_last_day_by_month(date)
+    if (user and user.is_superuser) or is_superuser:
+        # 管理員の場合全部見られる
+        members = models.Member.objects.public_filter(Q(section__is_on_sales=True) | Q(member_type=4),
+                                                      projectmember__start_date__lte=last_day,
+                                                      projectmember__end_date__gte=first_day,
+                                                      projectmember__is_deleted=False,
+                                                      projectmember__status=2).distinct()
+        return members
+    elif user and common.is_salesperson(user):
+        # 営業員の場合、担当している社員だけ見られる
+        return user.salesperson.get_working_members()
+    elif salesperson:
+        return salesperson.get_working_members()
 
     return models.Member.objects.none()
 
@@ -99,16 +104,18 @@ def get_release_members_by_month(date, salesperson=None, is_superuser=False, use
     :param is_superuser スーパーユーザ
     :param user: ログインしているユーザ
     """
-    if salesperson:
-        return get_project_members_month(date).filter(member__salesperson__in=salesperson.get_under_salesperson())
-    elif is_superuser:
-        return get_project_members_month(date)
-    elif user:
-        if user.is_superuser:
-            return get_release_members_by_month(date, is_superuser=True)
-        elif hasattr(user, 'salesperson'):
-            return get_release_members_by_month(date, salesperson=user.salesperson)
-    return models.ProjectMember.objects.none()
+    working_member_next_date = get_working_members(date=common.add_months(date, 1),
+                                                   is_superuser=is_superuser,
+                                                   salesperson=salesperson,
+                                                   user=user)
+    project_members = get_project_members_month(date).exclude(member__in=working_member_next_date)
+    if is_superuser or (user and user.is_superuser):
+        return project_members
+    elif salesperson or (user and hasattr(user, 'salesperson')):
+        salesperson_list = salesperson.get_under_salesperson()
+        return project_members.filter(projectmember__project__salesperson__in=salesperson_list)
+    else:
+        return models.Member.objects.none()
 
 
 def get_release_current_month(salesperson=None, is_superuser=False, user=None):

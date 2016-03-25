@@ -93,6 +93,10 @@ class ProjectMemberInline(admin.TabularInline):
     form = forms.ProjectMemberForm
     extra = 0
 
+    def get_queryset(self, request):
+        queryset = super(ProjectMemberInline, self).get_queryset(request)
+        return queryset.filter(is_deleted=False)
+
 
 class MemberExpensesInline(admin.TabularInline):
     model = MemberExpenses
@@ -720,10 +724,10 @@ class ProjectMemberAdmin(BaseAdmin):
     form = forms.ProjectMemberForm
     search_fields = ['project__name', 'project__client__name', 'member__first_name', 'member__last_name']
 
-    list_display = ['project', 'display_project_client', 'member', 'start_date', 'end_date', 'status']
+    list_display = ['project', 'display_project_client', 'member', 'start_date', 'end_date', 'status', 'is_deleted']
     filter_horizontal = ['stages']
     list_display_links = ['member']
-    list_filter = ['status']
+    list_filter = ['status', 'is_deleted']
     inlines = (MemberAttendanceInline, MemberExpensesInline)
     actions = ['delete_objects', 'active_objects']
 
@@ -764,6 +768,7 @@ class ProjectMemberAdmin(BaseAdmin):
         project_id = request.GET.get('project_id', None)
         if project_id:
             project = Project.objects.get(pk=project_id)
+            form.base_fields['member'].queryset = Member.objects.public_all()
             form.base_fields['project'].initial = project
             form.base_fields['start_date'].initial = project.start_date
             form.base_fields['end_date'].initial = project.end_date

@@ -659,12 +659,7 @@ def release_list(request):
     dict_order = common.get_ordering_dict(o, ['member__first_name', 'project__name', 'start_date', 'end_date'])
     order_list = common.get_ordering_list(o)
 
-    if request.user.is_superuser:
-        all_project_members = biz.get_project_members_month(start_date)
-    elif hasattr(request.user, 'salesperson'):
-        all_project_members = biz.get_release_members_by_month(start_date, request.user.salesperson)
-    else:
-        all_project_members = biz.get_release_members_by_month(start_date, None)
+    all_project_members = biz.get_release_members_by_month(start_date, user=request.user)
     if order_list:
         all_project_members = all_project_members.order_by(*order_list)
 
