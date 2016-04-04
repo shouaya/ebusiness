@@ -505,7 +505,9 @@ def get_request_members_in_project(project, client_order, ym):
         # １つの案件に複数の注文書ある場合
         project_members = []
         if client_order.member_comma_list:
-            for pm_id in client_order.member_comma_list.split(","):
+            # 重複したメンバーを外す。
+            member_id_list = sorted(set(client_order.member_comma_list.split(",")))
+            for pm_id in member_id_list:
                 try:
                     project_members.append(models.ProjectMember.objects.get(pk=int(pm_id)))
                 except ObjectDoesNotExist:

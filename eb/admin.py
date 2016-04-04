@@ -781,8 +781,8 @@ class ProjectMemberAdmin(BaseAdmin):
 
 
 class ProjectRequestAdmin(BaseAdmin):
-    list_display = ['project', 'year', 'month', 'request_no', 'amount']
-    search_fields = ['project', 'request_no']
+    list_display = ['project', 'year', 'month', 'request_no', 'created_user', 'created_date', 'amount']
+    search_fields = ['project__name', 'request_no']
     list_display_links = ['project', 'request_no']
 
     def has_delete_permission(self, request, obj=None):
@@ -796,6 +796,12 @@ class ProjectRequestAdmin(BaseAdmin):
             return True
         else:
             return False
+
+    def get_actions(self, request):
+        actions = super(ProjectRequestAdmin, self).get_actions(request)
+        if 'delete_selected' in actions:
+            del actions['delete_selected']
+        return actions
 
 
 class ProjectActivityAdmin(BaseAdmin):
@@ -953,6 +959,12 @@ class CustomUserAdmin(UserAdmin):
 
     def has_delete_permission(self, request, obj=None):
         return False
+
+    def get_actions(self, request):
+        actions = super(CustomUserAdmin, self).get_actions(request)
+        if 'delete_selected' in actions:
+            del actions['delete_selected']
+        return actions
 
 
 # Register your models here.
