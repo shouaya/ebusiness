@@ -331,7 +331,6 @@ def project_detail(request, project_id):
         try:
             client_order_id = request.GET.get("client_order_id", None)
             request_name = request.GET.get("request_name", None)
-            order_no = request.GET.get("order_no", None)
             ym = request.GET.get("ym", None)
             bank_id = request.GET.get('bank', None)
             now = datetime.datetime.now()

@@ -64,26 +64,6 @@
 
 {% block content %}
     <div class="dashboard">
-        <div class="dashboard-title">なにをしたいのですか？</div>
-        <form action="" method="get">
-            <label for="ym">対象年月</label>
-            <select name="ym" id="ym">
-                {% for year, month in month_list %}
-                    {% ifequal year current_year %}
-                        {% ifequal month current_month %}
-                            <option selected="selected" value="{{ year }}{{ month }}">{{ year }}年{{ month}}月</option>
-                        {% else %}
-                            <option value="{{ year }}{{ month }}">{{ year }}年{{ month}}月</option>
-                        {% endifequal %}
-                    {% else %}
-                        <option value="{{ year }}{{ month }}">{{ year }}年{{ month}}月</option>
-                    {% endifequal %}
-                {% endfor %}
-            </select>
-            <input type="submit" value="Filter" />
-        </form>
-    </div>
-    <div class="dashboard">
         <div class="dashboard-title">お客様別の売上情報</div>
         <div id="container" style="min-width: 310px; height: 600px; margin: 0 auto"></div>
     </div>

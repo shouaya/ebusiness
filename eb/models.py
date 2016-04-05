@@ -1156,10 +1156,10 @@ class ProjectRequest(models.Model):
     amount = models.IntegerField(default=0, verbose_name=u"請求金額")
     created_user = models.ForeignKey(User, related_name='created_requests', null=True,
                                      editable=False, verbose_name=u"作成者")
-    created_date = models.DateTimeField(null=True, auto_now_add=True, editable=False)
+    created_date = models.DateTimeField(null=True, auto_now_add=True, editable=False, verbose_name=u"作成日時")
     updated_user = models.ForeignKey(User, related_name='updated_requests', null=True,
                                      editable=False, verbose_name=u"更新者")
-    updated_date = models.DateTimeField(null=True, auto_now=True, editable=False)
+    updated_date = models.DateTimeField(null=True, auto_now=True, editable=False, verbose_name=u"更新日時")
 
     class Meta:
         ordering = ['-request_no']

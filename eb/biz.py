@@ -509,7 +509,7 @@ def get_request_members_in_project(project, client_order, ym):
             member_id_list = sorted(set(client_order.member_comma_list.split(",")))
             for pm_id in member_id_list:
                 try:
-                    project_members.append(models.ProjectMember.objects.get(pk=int(pm_id)))
+                    project_members.append(models.ProjectMember.objects.get(pk=int(pm_id), is_deleted=False, status=2))
                 except ObjectDoesNotExist:
                     pass
     else:
