@@ -214,7 +214,7 @@ def project_list(request):
         all_projects = salesperson_obj.project_set.public_all()
         params += "&salesperson=%s" % (salesperson,)
     if status:
-        all_projects = Project.objects.public_filter(status=status)
+        all_projects = all_projects.filter(status=status)
         params += "&status=%s" % (status,)
     if name:
         all_projects = all_projects.filter(name__contains=name)
