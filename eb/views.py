@@ -257,6 +257,23 @@ def project_list(request):
         return HttpResponse(template.render(context))
 
 
+@login_required(login_url='/eb/login/')
+def project_end(request, project_id):
+    params = ""
+    for p, v in dict(request.GET).items():
+        params += "&%s=%s" % (p, v[0])
+    params = params[1:] if params else ""
+
+    try:
+        project = Project.objects.get(pk=project_id)
+        project.status = 5
+        project.save()
+    except ObjectDoesNotExist:
+        pass
+
+    return redirect("/eb/project_list.html?" + params)
+
+
 def project_order_list(request):
     company = biz.get_company()
     name = request.GET.get('name', None)

@@ -57,7 +57,7 @@
                     </div>
                     <div class="clear"></div>
                 </th>
-                <th style="width: 220px;">
+                <th style="width: 190px;">
                     {% if dict_order.client__name.is_in_ordering %}
                         <div class="sortoptions">
                             <a class="sortremove" href="?o={{ dict_order.client__name.url_list_removed }}{{ params }}"></a>
@@ -71,7 +71,7 @@
                     </div>
                     <div class="clear"></div>
                 </th>
-                <th style="width: 90px;">
+                <th style="width: 80px;">
                     {% if dict_order.salesperson__first_name.is_in_ordering %}
                         <div class="sortoptions">
                             <a class="sortremove" href="?o={{ dict_order.salesperson__first_name.url_list_removed }}{{ params }}"></a>
@@ -87,7 +87,7 @@
                 </th>
                 <th style="width: 35px;">人数</th>
                 <th style="width: 70px;">メンバー</th>
-                <th style="width: 50px;">状態</th>
+                <th style="width: 60px;">状態</th>
                 <th>
                     {% if dict_order.update_date.is_in_ordering %}
                         <div class="sortoptions">
@@ -102,7 +102,7 @@
                     </div>
                     <div class="clear"></div>
                 </th>
-                <th style="width: 35px;"></th>
+                <th style="width: 65px;"></th>
             </tr>
         </thead>
         <tbody>
@@ -115,7 +115,7 @@
                             </div>
                         </td>
                         <td>
-                            <div style="width: 220px; overflow: hidden; white-space: nowrap;">
+                            <div style="width: 190px; overflow: hidden; white-space: nowrap;">
                                 <a title="{{ project.client.name }}">{{ project.client.name }}</a>
                             </div>
                         </td>
@@ -132,7 +132,10 @@
                         </td>
                         <td class="center"><a href="?status={{ project.status }}">{{ project.get_status_display }}</a></td>
                         <td>{{ project.update_date|date:'Y/m/d H:i' }}</td>
-                        <td class="center"><a href="{% url 'admin:eb_project_change' project.id %}?from=portal&_popup=1" target="_blank">編集</a></td>
+                        <td class="center">
+                            <a href="{% url 'admin:eb_project_change' project.id %}?from=portal&_popup=1" target="_blank">編集</a>
+                            <a href="{% url 'project_end' project.id %}?{{ params }}" onclick="return confirm('案件「{{ project.name }}」の状態を完了とします、よろしいですか？')">終了</a>
+                        </td>
                     </tr>
                 {% endfor %}
             {% else %}
