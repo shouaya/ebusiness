@@ -43,6 +43,42 @@ def get_all_members(user=None):
     return models.Member.objects.none()
 
 
+def get_subcontractor_all_members():
+    """すべての協力社員を取得する。
+
+    :return:
+    """
+    return models.Member.objects.public_filter(subcontractor__isnull=False)
+
+
+def get_subcontractor_working_members(date=None):
+    """対象月の稼働中の協力社員を取得する。
+
+    :param date: 対象年月
+    :return:
+    """
+    if not date:
+        first_day = last_day = datetime.date.today()
+    else:
+        first_day = common.get_first_day_by_month(date)
+        last_day = common.get_last_day_by_month(date)
+
+    return get_subcontractor_all_members().filter(projectmember__start_date__lte=last_day,
+                                                  projectmember__end_date__gte=first_day,
+                                                  projectmember__is_deleted=False,
+                                                  projectmember__status=2).distinct()
+
+
+def get_subcontractor_waiting_members(date=None):
+    """対象月の待機中の協力社員を取得する
+
+    :param date: 対象年月
+    :return:
+    """
+    working_members = get_subcontractor_working_members(date)
+    return get_subcontractor_all_members().exclude(pk__in=working_members)
+
+
 def get_working_members(user=None, date=None, is_superuser=None, salesperson=None):
     if not date:
         first_day = last_day = datetime.date.today()

@@ -5,6 +5,7 @@ Created on 2015/08/21
 @author: Yang Wanjun
 """
 import os
+import datetime
 
 from django.http import HttpResponse
 from django.contrib import admin
@@ -528,6 +529,17 @@ class ProjectAdmin(BaseAdmin):
             return query_set.filter(salesperson__in=salesperson_list)
         else:
             return query_set.filter(salesperson=request.user.salesperson)
+
+    def save_related(self, request, form, formsets, change):
+        super(ProjectAdmin, self).save_related(request, form, formsets, change)
+        # 保存時、配下のすべてのメンバーの営業員項目を案件の営業員に更新する。
+        project = form.instance
+        today = datetime.date.today()
+        if project.salesperson:
+            for pm in project.projectmember_set.filter(is_deleted=False, start_date__lte=today, end_date__gte=today):
+                member = pm.member
+                member.salesperson = project.salesperson
+                member.save()
 
     def delete_objects(self, request, queryset):
         cnt = 0

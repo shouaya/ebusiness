@@ -18,6 +18,13 @@
         <form action="" method="get">
             <span>姓: </span><input type="text" id="first_name" name="first_name" style="width: 50px;"/>
             <span>名: </span><input type="text" id="last_name" name="last_name" style="width: 50px;"/>
+            <span>部署：</span>
+            <select id="section" name="section">
+                <option value="">すべて</option>
+                {% for section in sections %}
+                    <option value="{{ section.pk }}">{{ section.name }}</option>
+                {% endfor %}
+            </select>
             <span>稼働状態: </span>
             <select id="status" name="status">
                 <option value="">すべて</option>
@@ -34,7 +41,7 @@
             <select id="salesperson" name="salesperson">
                 <option value="">すべて</option>
                 {% for sales in salesperson %}
-                    <option value="{{ sales.employee_id }}">{{ sales }}</option>
+                    <option value="{{ sales.pk }}">{{ sales }}</option>
                 {% endfor %}
             </select>
             <input type="submit" value="Filter" />
@@ -76,7 +83,20 @@
                     </div>
                     <div class="clear"></div>
                 </th>
-                <th>協力会社</th>
+                <th>
+                    {% if dict_order.subcontractor__name.is_in_ordering %}
+                        <div class="sortoptions">
+                            <a class="sortremove" href="?o={{ dict_order.subcontractor__name.url_list_removed }}{{ params }}"></a>
+                            <span class="sortpriority">{{ dict_order.subcontractor__name.priority }}</span>
+                            <a class="{% if dict_order.subcontractor__name.is_asc %}descending{% else %}ascending{% endif %}"
+                               href="?o={{ dict_order.subcontractor__name.url }}{{ params }}"></a>
+                        </div>
+                    {% endif %}
+                    <div class="text">
+                        <a href="?o={{ dict_order.subcontractor__name.url }}{{ params }}">協力会社</a>
+                    </div>
+                    <div class="clear"></div>
+                </th>
                 <th style="width: 50px;">稼働</th>
                 <th style="width: 120px;">リリース予定日</th>
                 <th style="width: 90px;">
@@ -107,13 +127,7 @@
                                 {{ member.first_name }}&nbsp;{{ member.last_name }}
                             </a>
                         </td>
-                        <td>
-                            {% if member.section %}
-                                <a href="{% url 'section' member.section.name %}">
-                                    {{ member.section.name }}
-                                </a>
-                            {% endif %}
-                        </td>
+                        <td>{{ member.section.name }}</td>
                         <td>{{ member.subcontractor|default:"" }}</td>
                         <td class="center">
                             {% if member.get_project_end_date %}
@@ -129,7 +143,7 @@
                         </td>
                         <td>
                             {% if member.salesperson %}
-                                <a href="?salesperson={{ member.salesperson.employee_id }}">{{ member.salesperson }}</a>
+                                <a href="?salesperson={{ member.salesperson.pk }}">{{ member.salesperson }}</a>
                             {% endif %}
                         </td>
                         <td class="center">
