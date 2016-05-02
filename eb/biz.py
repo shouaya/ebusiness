@@ -148,8 +148,9 @@ def get_release_members_by_month(date, salesperson=None, is_superuser=False, use
     if is_superuser or (user and user.is_superuser):
         return project_members
     elif salesperson or (user and hasattr(user, 'salesperson')):
+        salesperson = salesperson if salesperson else user.salesperson
         salesperson_list = salesperson.get_under_salesperson()
-        return project_members.filter(projectmember__project__salesperson__in=salesperson_list)
+        return project_members.filter(project__salesperson__in=salesperson_list)
     else:
         return models.Member.objects.none()
 
