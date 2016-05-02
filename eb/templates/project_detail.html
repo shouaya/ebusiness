@@ -505,7 +505,7 @@
             {% endif %}
         </tbody>
     </table>
-    <div class="dashboard">
+    <div class="dashboard" id="divProjectActivity">
         <div class="dashboard-title">営業活動</div>
         <form action="" method="get">
             <a href="{% url 'admin:eb_projectactivity_add' %}?project_id={{ project.pk }}&from=portal&_popup=1"

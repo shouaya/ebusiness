@@ -833,6 +833,12 @@ class ProjectActivityAdmin(BaseAdmin):
 
     def get_form(self, request, obj=None, **kwargs):
         form = super(ProjectActivityAdmin, self).get_form(request, obj, **kwargs)
+        if obj:
+            # 修正している場合、すべての案件を表示
+            form.base_fields['project'].queryset = Project.objects.public_all()
+        else:
+            # 追加する場合、現在実施中の案件を表示
+            form.base_fields['project'].queryset = Project.objects.public_filter(status=4)
         project_id = request.GET.get('project_id', None)
         if project_id:
             project = Project.objects.get(pk=project_id)

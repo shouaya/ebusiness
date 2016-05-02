@@ -60,6 +60,8 @@ def index(request):
     subcontractor_working_member_count = biz.get_subcontractor_working_members(user=request.user).count()
     subcontractor_waiting_member_count = subcontractor_all_member_count - subcontractor_working_member_count
 
+    activities = biz.get_activities_incoming(user=request.user)
+
     context = RequestContext(request, {
         'company': company,
         'title': 'Home',
@@ -73,6 +75,7 @@ def index(request):
         'subcontractor_all_member_count': subcontractor_all_member_count,
         'subcontractor_working_member_count': subcontractor_working_member_count,
         'subcontractor_waiting_member_count': subcontractor_waiting_member_count,
+        'activities': activities,
     })
     template = loader.get_template('home.html')
     return HttpResponse(template.render(context))

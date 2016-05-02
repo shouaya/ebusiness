@@ -5,6 +5,22 @@ section {
     padding-top: 10px;
 }
 
+section table.nested_list {
+    margin: 0 auto;
+    border: 1px solid #eee;
+}
+
+section table.nested_list th {
+    color: #5b80b2;
+    border-top: 1px dotted #eee;
+    border-bottom: 1px dotted #eee;
+}
+
+section table.nested_list td {
+    padding: 1px 10px;
+    border-bottom: 1px dotted #eee;
+}
+
 section table.list {
     width: 100%;
     color: #5b80b2;

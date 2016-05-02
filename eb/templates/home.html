@@ -79,4 +79,36 @@
             </tr>
         </table>
     </div>
+    <div class="dashboard">
+        <div class="dashboard-title">活動情報</div>
+        <table cellspacing="0" cellpadding="0">
+            <tr class="row1">
+                <td colspan="6" class="subtitle">これから実施する活動：</td>
+            </tr>
+            <tr>
+                <td colspan="6" style="line-height: 0.5;">
+                    {% if activities %}
+                        <table class="nested_list" cellpadding="0" cellspacing="0">
+                            <tr>
+                                <th>案件</th>
+                                <th>活動名称</th>
+                                <th>日時</th>
+                                <th>場所</th>
+                            </tr>
+                            {% for activity in activities %}
+                                <tr>
+                                    <td><a href="{% url 'project_detail' activity.project.pk %}#divProjectActivity">{{ activity.project }}</a></td>
+                                    <td>{{ activity.name }}</td>
+                                    <td>{{ activity.open_date }}</td>
+                                    <td>{{ activity.address }}</td>
+                                </tr>
+                            {% endfor %}
+                        </table>
+                    {% else %}
+                    　　<table style="padding: 0px;"><tr><td class="center red">まだ何の活動情報もありません。</td></tr></table>
+                    {% endif %}
+                </td>
+            </tr>
+        </table>
+    </div>
 {% endblock %}

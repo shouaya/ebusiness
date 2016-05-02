@@ -99,6 +99,30 @@ def get_subcontractor_waiting_members(user=None, salesperson=None, date=None):
     return get_subcontractor_all_members(user=user, salesperson=salesperson).exclude(pk__in=working_members)
 
 
+def get_activities_incoming(user=None, salesperson=None):
+    """これから実施する活動一覧
+
+    :param user: ログインしているユーザ
+    :param salesperson: 営業員
+    :return:
+    """
+    now = datetime.datetime.now()
+    activities = models.ProjectActivity.objects.public_filter(open_date__gte=now).order_by('open_date')
+    if user:
+        # ユーザがログインしている場合。
+        if user.is_superuser:
+            return activities[:5]
+        elif hasattr(user, 'salesperson'):
+            salesperson_list = user.salesperson.get_under_salesperson()
+            return activities.filter(project__salesperson__in=salesperson_list)[:5]
+    elif salesperson:
+        # ログインしてないで、単に営業員の配下の協力社員の稼動状況を取得する。
+        salesperson_list = salesperson.get_under_salesperson()
+        return activities.filter(project__salesperson__in=salesperson_list)[:5]
+
+    return models.ProjectActivity.objects.none()
+
+
 def get_working_members(user=None, date=None, is_superuser=None, salesperson=None):
     if not date:
         first_day = last_day = datetime.date.today()
