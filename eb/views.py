@@ -56,8 +56,8 @@ def index(request):
     next_month = biz.get_release_next_month(user=request.user)
     next_2_month = biz.get_release_next_2_month(user=request.user)
 
-    subcontractor_all_member_count = biz.get_subcontractor_all_members().count()
-    subcontractor_working_member_count = biz.get_subcontractor_working_members().count()
+    subcontractor_all_member_count = biz.get_subcontractor_all_members(user=request.user).count()
+    subcontractor_working_member_count = biz.get_subcontractor_working_members(user=request.user).count()
     subcontractor_waiting_member_count = subcontractor_all_member_count - subcontractor_working_member_count
 
     context = RequestContext(request, {
@@ -169,13 +169,13 @@ def member_subcontractor_list(request):
     order_list = common.get_ordering_list(o)
 
     if status == "working":
-        all_members = biz.get_subcontractor_working_members()
+        all_members = biz.get_subcontractor_working_members(user=request.user)
         params += u"&status=%s" % (status,)
     elif status == "waiting":
-        all_members = biz.get_subcontractor_waiting_members()
+        all_members = biz.get_subcontractor_waiting_members(user=request.user)
         params += u"&status=%s" % (status,)
     else:
-        all_members = biz.get_subcontractor_all_members()
+        all_members = biz.get_subcontractor_all_members(user=request.user)
 
     if salesperson:
         all_members = all_members.filter(salesperson_id=salesperson)

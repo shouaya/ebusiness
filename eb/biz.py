@@ -43,17 +43,34 @@ def get_all_members(user=None):
     return models.Member.objects.none()
 
 
-def get_subcontractor_all_members():
+def get_subcontractor_all_members(user=None, salesperson=None):
     """すべての協力社員を取得する。
 
+    :param user: ログインしているユーザ
+    :param salesperson: 営業員
     :return:
     """
-    return models.Member.objects.public_filter(subcontractor__isnull=False)
+    members = models.Member.objects.public_filter(subcontractor__isnull=False)
+    if user:
+        # ユーザがログインしている場合。
+        if user.is_superuser:
+            return members
+        elif hasattr(user, 'salesperson'):
+            salesperson_list = user.salesperson.get_under_salesperson()
+            return members.filter(salesperson__in=salesperson_list)
+    elif salesperson:
+        # ログインしてないで、単に営業員の配下の協力社員の稼動状況を取得する。
+        salesperson_list = salesperson.get_under_salesperson()
+        return members.filter(salesperson__in=salesperson_list)
+
+    return models.Member.objects.none()
 
 
-def get_subcontractor_working_members(date=None):
+def get_subcontractor_working_members(user=None, salesperson=None, date=None):
     """対象月の稼働中の協力社員を取得する。
 
+    :param user: ログインしているユーザ
+    :param salesperson: 営業員
     :param date: 対象年月
     :return:
     """
@@ -63,20 +80,23 @@ def get_subcontractor_working_members(date=None):
         first_day = common.get_first_day_by_month(date)
         last_day = common.get_last_day_by_month(date)
 
-    return get_subcontractor_all_members().filter(projectmember__start_date__lte=last_day,
-                                                  projectmember__end_date__gte=first_day,
-                                                  projectmember__is_deleted=False,
-                                                  projectmember__status=2).distinct()
+    return get_subcontractor_all_members(user=user, salesperson=salesperson)\
+        .filter(projectmember__start_date__lte=last_day,
+                projectmember__end_date__gte=first_day,
+                projectmember__is_deleted=False,
+                projectmember__status=2).distinct()
 
 
-def get_subcontractor_waiting_members(date=None):
+def get_subcontractor_waiting_members(user=None, salesperson=None, date=None):
     """対象月の待機中の協力社員を取得する
 
+    :param user: ログインしているユーザ
+    :param salesperson: 営業員
     :param date: 対象年月
     :return:
     """
     working_members = get_subcontractor_working_members(date)
-    return get_subcontractor_all_members().exclude(pk__in=working_members)
+    return get_subcontractor_all_members(user=user, salesperson=salesperson).exclude(pk__in=working_members)
 
 
 def get_working_members(user=None, date=None, is_superuser=None, salesperson=None):
