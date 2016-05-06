@@ -12,6 +12,7 @@ from . import views
 member_list_patterns = [
     url(r'^in_coming.html$', views.members_in_coming, name='members_in_coming'),
     url(r'^subcontractor.html$', views.members_subcontractor, name='members_subcontractor'),
+    url(r'^change_list.html$', views.change_list, name='change_list'),
 ]
 
 urlpatterns = [

@@ -188,6 +188,27 @@ def get_project_members_month(date):
                                                       status=2)
 
 
+def get_next_change_list(user):
+    """入退場リスト
+
+    :param user:
+    :return:
+    """
+    first_day = common.get_first_day_current_month()
+    last_day = common.get_last_day_by_month(first_day)
+    next_first_day = common.get_first_day_by_month(common.add_months(first_day, 1))
+    next_last_day = common.get_last_day_by_month(next_first_day)
+    members = models.Member.objects.public_filter(Q(projectmember__end_date__gte=first_day,
+                                                    projectmember__end_date__lte=last_day,
+                                                    projectmember__is_deleted=False,
+                                                    projectmember__status=2) \
+                                                  | Q(projectmember__start_date__gte=next_first_day,
+                                                      projectmember__start_date__lte=next_last_day,
+                                                      projectmember__is_deleted=False,
+                                                      projectmember__status=2)).distinct()
+    return members.filter(section__is_on_sales=True)
+
+
 def get_release_members_by_month(date, salesperson=None, is_superuser=False, user=None):
     """指定営業員配下の案件メンバー取得する。
 

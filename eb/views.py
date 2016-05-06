@@ -293,6 +293,37 @@ def members_subcontractor(request):
 
 
 @login_required(login_url='/eb/login/')
+def change_list(request):
+    company = biz.get_company()
+    o = request.GET.get('o', None)
+    dict_order = common.get_ordering_dict(o, ['first_name', 'section__name', 'salesperson__first_name'])
+    order_list = common.get_ordering_list(o)
+
+    all_members = biz.get_next_change_list(request.user)
+    if order_list:
+        all_members = all_members.order_by(*order_list)
+
+    paginator = Paginator(all_members, PAGE_SIZE)
+    page = request.GET.get('page')
+    try:
+        members = paginator.page(page)
+    except PageNotAnInteger:
+        members = paginator.page(1)
+    except EmptyPage:
+        members = paginator.page(paginator.num_pages)
+
+    context = RequestContext(request, {
+        'company': company,
+        'title': u'リリース状況一覧',
+        'members': members,
+        'paginator': paginator,
+        'dict_order': dict_order,
+    })
+    template = loader.get_template('member_change_list.html')
+    return HttpResponse(template.render(context))
+
+
+@login_required(login_url='/eb/login/')
 def project_list(request):
     company = biz.get_company()
     status = request.GET.get('status', None)

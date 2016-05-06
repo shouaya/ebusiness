@@ -464,6 +464,33 @@ class Member(AbstractMember):
         else:
             return None
 
+    def get_current_end_project_member(self):
+        """今月リリースのアサイン情報を取得する。
+
+        :return:
+        """
+        first_day = common.get_first_day_current_month()
+        last_day = common.get_last_day_by_month(first_day)
+        project_members = self.projectmember_set.public_filter(end_date__gte=first_day,
+                                                               end_date__lte=last_day,
+                                                               status=2,
+                                                               is_deleted=False)
+        return project_members[0] if project_members.count() > 0 else None
+
+    def get_next_start_project_member(self):
+        """来月からのアサイン情報を取得する。
+
+        :return:
+        """
+        next_month = common.add_months(datetime.date.today(), 1)
+        first_day = common.get_first_day_by_month(next_month)
+        last_day = common.get_last_day_by_month(first_day)
+        project_members = self.projectmember_set.public_filter(start_date__gte=first_day,
+                                                               start_date__lte=last_day,
+                                                               status=2,
+                                                               is_deleted=False)
+        return project_members[0] if project_members.count() > 0 else None
+
     def get_project_end_date(self):
         # 稼働状態を取得する（待機・稼働中）
         if self.pk == 787:

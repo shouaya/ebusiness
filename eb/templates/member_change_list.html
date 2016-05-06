@@ -1,0 +1,137 @@
+{% extends "base.html" %}
+
+{% block header %}
+    <script type="text/javascript">
+        window.onload = function() {
+            init_select("status");
+            init_select("first_name");
+            init_select("last_name");
+            init_select("business_status");
+            init_select("salesperson");
+            init_select("section");
+        };
+    </script>
+{% endblock %}
+
+{% block content %}
+    <div class="dashboard">
+        <div class="dashboard-title">なにをしたいのですか？</div>
+    </div>
+    <table class="list" cellpadding="0" cellspacing="0">
+        <thead>
+            <tr>
+                <th>
+                    {% if dict_order.first_name.is_in_ordering %}
+                        <div class="sortoptions">
+                            <a class="sortremove" href="?o={{ dict_order.first_name.url_list_removed }}{{ params }}"></a>
+                            <span class="sortpriority">{{ dict_order.first_name.priority }}</span>
+                            <a class="{% if dict_order.first_name.is_asc %}descending{% else %}ascending{% endif %}"
+                               href="?o={{ dict_order.first_name.url }}{{ params }}"></a>
+                        </div>
+                    {% endif %}
+                    <div class="text">
+                        <a href="?o={{ dict_order.first_name.url }}{{ params }}">名前</a>
+                    </div>
+                    <div class="clear"></div>
+                </th>
+                <th>
+                    {% if dict_order.section__name.is_in_ordering %}
+                        <div class="sortoptions">
+                            <a class="sortremove" href="?o={{ dict_order.section__name.url_list_removed }}{{ params }}"></a>
+                            <span class="sortpriority">{{ dict_order.section__name.priority }}</span>
+                            <a class="{% if dict_order.section__name.is_asc %}descending{% else %}ascending{% endif %}"
+                               href="?o={{ dict_order.section__name.url }}{{ params }}"></a>
+                        </div>
+                    {% endif %}
+                    <div class="text">
+                        <a href="?o={{ dict_order.section__name.url }}{{ params }}">所属</a>
+                    </div>
+                    <div class="clear"></div>
+                </th>
+                <th>今月リリース案件</th>
+                <th>来月アサイン案件</th>
+                <th style="width: 90px;">
+                    {% if dict_order.salesperson__first_name.is_in_ordering %}
+                        <div class="sortoptions">
+                            <a class="sortremove" href="?o={{ dict_order.salesperson__first_name.url_list_removed }}{{ params }}"></a>
+                            <span class="sortpriority">{{ dict_order.salesperson__first_name.priority }}</span>
+                            <a class="{% if dict_order.salesperson__first_name.is_asc %}descending{% else %}ascending{% endif %}"
+                               href="?o={{ dict_order.salesperson__first_name.url }}{{ params }}"></a>
+                        </div>
+                    {% endif %}
+                    <div class="text">
+                        <a href="?o={{ dict_order.salesperson__first_name.url }}{{ params }}">営業員</a>
+                    </div>
+                    <div class="clear"></div>
+                </th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% if members %}
+                {% for member in members %}
+                    <tr class="{% cycle 'row1' 'row2' %}">
+                        <td>
+                            <a href="{% url 'member_detail' member.employee_id %}">
+                                {{ member.first_name }}&nbsp;{{ member.last_name }}
+                            </a>
+                        </td>
+                        <td>{{ member.section.name }}</td>
+                        <td>
+                            {% if member.get_current_end_project_member %}
+                            <a href="{% url 'project_detail' member.get_current_end_project_member.project.pk %}">
+                                {{ member.get_current_end_project_member.project }}
+                            </a>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if member.get_next_start_project_member %}
+                            <a href="{% url 'project_detail' member.get_next_start_project_member.project.pk %}">
+                                {{ member.get_next_start_project_member.project }}
+                            </a>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if member.salesperson %}
+                                <a href="?salesperson={{ member.salesperson.pk }}">{{ member.salesperson }}</a>
+                            {% endif %}
+                        </td>
+                        <td class="center"><a href="{% url 'admin:eb_member_change' member.pk %}?from=portal&_popup=1" target="_blank">編集</a></td>
+                    </tr>
+                {% endfor %}
+            {% else %}
+                <tr class="row2"><td class="center red" colspan="9">該当する要員がいません。</td></tr>
+            {% endif %}
+        </tbody>
+        <tfoot>
+            <tr>
+                <td colspan="9">
+                    <div class="pagination">
+                        <span class="step-links">
+                            {% if members.has_previous %}
+                                <a href="?page={{ members.previous_page_number }}{{ params }}">&lt;</a>
+                            {% endif %}
+
+                            {% if paginator.page_range|length > 1 %}
+                                {% for page in paginator.page_range %}
+                                    {% ifequal page members.number %}
+                                        <span class="current">
+                                            {{ page }}
+                                        </span>
+                                    {% else %}
+                                        <a href="?page={{ page }}{{ params }}">{{ page }}</a>
+                                    {% endifequal %}
+                                {% endfor %}
+                            {% endif %}
+
+                            {% if members.has_next %}
+                                <a href="?page={{ members.next_page_number }}{{ params }}">&gt;</a>
+                            {% endif %}
+                            <span>{{ paginator.count }} 件</span>
+                        </span>
+                    </div>
+                </td>
+            </tr>
+        </tfoot>
+    </table>
+{% endblock %}

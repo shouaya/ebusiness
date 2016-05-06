@@ -17,7 +17,7 @@
                 <td class="num"><a href="{% url 'employee_list' %}?status=working"> {{ working_member_count }}</a></td>
                 <th>待機中人数:</th>
                 <td class="num"><a href="{% url 'employee_list' %}?status=waiting" class="red">{{ waiting_member_count }}</a></td>
-                <th>新規入場:</th>
+                <th>入社予定:</th>
                 <td class="num"><a href="{% url 'members_in_coming' %}">{{ members_in_coming_count }}</a></td>
             </tr>
             <tr class="row1">
