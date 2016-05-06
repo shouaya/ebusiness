@@ -457,7 +457,8 @@ class Member(AbstractMember):
         """現在実施中の案件アサイン情報を取得する
         """
         now = datetime.datetime.now()
-        projects = self.projectmember_set.public_filter(end_date__gte=now, start_date__lte=now, status=2)
+        projects = self.projectmember_set.public_filter(end_date__gte=now, start_date__lte=now,
+                                                        status=2, is_deleted=False)
         if projects.count() > 0:
             return projects[0]
         else:
@@ -468,7 +469,8 @@ class Member(AbstractMember):
         if self.pk == 787:
             pass
         now = datetime.datetime.now()
-        projects = self.projectmember_set.public_filter(end_date__gte=now, start_date__lte=now, status=2)
+        projects = self.projectmember_set.public_filter(end_date__gte=now, start_date__lte=now,
+                                                        status=2, is_deleted=False)
         if projects.count() > 0:
             return projects[0].end_date
         else:
@@ -797,6 +799,8 @@ class Project(models.Model):
     lump_amount = models.BigIntegerField(default=0, blank=True, null=True, verbose_name=u"一括金額")
     lump_comment = models.CharField(blank=True, null=True, max_length=200, verbose_name=u"一括の備考",
                                     help_text=u"该项目会作为请求书中備考栏中的值。")
+    is_hourly_pay = models.BooleanField(default=False, verbose_name=u"時給",
+                                        help_text=u"选中后将会无视人员的单价与增减等信息，计算请求时会将总时间乘以时薪。")
     client = models.ForeignKey(Client, null=True, verbose_name=u"関連会社")
     boss = models.ForeignKey(ClientMember, blank=True, null=True, related_name="boss_set", verbose_name=u"案件責任者")
     middleman = models.ForeignKey(ClientMember, blank=True, null=True,
@@ -872,7 +876,8 @@ class Project(models.Model):
             first_day = datetime.date(date.year, date.month, 1)
         last_day = common.get_last_day_by_month(first_day)
         return self.projectmember_set.public_filter(start_date__lte=last_day,
-                                                    end_date__gte=first_day).exclude(status='1')
+                                                    end_date__gte=first_day,
+                                                    is_deleted=False).exclude(status='1')
 
     def get_first_project_member(self):
         """営業企画書を出すとき、1つ目に表示するメンバー。
@@ -889,11 +894,14 @@ class Project(models.Model):
         now = datetime.date.today()
         first_day = datetime.date(now.year, now.month, 1)
         last_day = common.get_last_day_by_month(now)
-        project_members = self.projectmember_set.public_filter(start_date__lte=last_day, end_date__gte=first_day, role=7)
+        project_members = self.projectmember_set.public_filter(start_date__lte=last_day, end_date__gte=first_day,
+                                                               role=7, is_deleted=False)
         if project_members.count() == 0:
-            project_members = self.projectmember_set.public_filter(start_date__lte=last_day, end_date__gte=first_day, role=6)
+            project_members = self.projectmember_set.public_filter(start_date__lte=last_day, end_date__gte=first_day,
+                                                                   role=6, is_deleted=False)
         if project_members.count() == 0:
-            project_members = self.projectmember_set.public_filter(start_date__lte=last_day, end_date__gte=first_day)
+            project_members = self.projectmember_set.public_filter(start_date__lte=last_day, end_date__gte=first_day,
+                                                                   is_deleted=False)
         if project_members.count() > 0:
             return project_members[0]
         else:
@@ -903,7 +911,8 @@ class Project(models.Model):
         now = datetime.date.today()
         first_day = datetime.date(now.year, now.month, 1)
         last_day = common.get_last_day_by_month(now)
-        return self.projectmember_set.public_filter(start_date__lte=last_day, end_date__gte=first_day)
+        return self.projectmember_set.public_filter(start_date__lte=last_day, end_date__gte=first_day,
+                                                    is_deleted=False)
 
     def get_expenses(self, year, month, project_members):
         """指定年月の清算リストを取得する。
@@ -1249,6 +1258,7 @@ class ProjectMember(models.Model):
     max_hours = models.DecimalField(max_digits=5, decimal_places=2, default=180, verbose_name=u"最大時間")
     plus_per_hour = models.IntegerField(default=0, verbose_name=u"増（円）")
     minus_per_hour = models.IntegerField(default=0, verbose_name=u"減（円）")
+    hourly_pay = models.IntegerField(blank=True, null=True, verbose_name=u"時給")
     status = models.IntegerField(null=False, default=1,
                                  choices=constants.CHOICE_PROJECT_MEMBER_STATUS, verbose_name=u"ステータス")
     role = models.CharField(default="PG", max_length=2, choices=constants.CHOICE_PROJECT_ROLE, verbose_name=u"作業区分")
@@ -1345,39 +1355,54 @@ class ProjectMember(models.Model):
         """
         attendance = self.get_attendance(year, month)
         d = dict()
-        # 基本金額
-        d['ITEM_AMOUNT_BASIC'] = self.price if attendance else u""
         # 勤務時間
         d['ITEM_WORK_HOURS'] = attendance.total_hours if attendance else u""
-        # 残業時間
-        d['ITEM_EXTRA_HOURS'] = attendance.extra_hours if attendance else u""
-        # 率
-        d['ITEM_RATE'] = attendance.rate if attendance and attendance.rate else 1
-        # 減（円）
-        if self.minus_per_hour is None:
-            d['ITEM_MINUS_PER_HOUR'] = (self.price / self.min_hours) if attendance else u""
-        else:
-            d['ITEM_MINUS_PER_HOUR'] = self.minus_per_hour
-        # 増（円）
-        if self.plus_per_hour is None:
-            d['ITEM_PLUS_PER_HOUR'] = (self.price / self.max_hours) if attendance else u""
-        else:
-            d['ITEM_PLUS_PER_HOUR'] = self.plus_per_hour
 
-        if attendance and attendance.extra_hours > 0:
-            d['ITEM_AMOUNT_EXTRA'] = attendance.extra_hours * d['ITEM_PLUS_PER_HOUR']
-            d['ITEM_PLUS_PER_HOUR2'] = d['ITEM_PLUS_PER_HOUR']
-            d['ITEM_MINUS_PER_HOUR2'] = u""
-        elif attendance and attendance.extra_hours < 0:
-            d['ITEM_AMOUNT_EXTRA'] = attendance.extra_hours * d['ITEM_MINUS_PER_HOUR']
-            d['ITEM_PLUS_PER_HOUR2'] = u""
-            d['ITEM_MINUS_PER_HOUR2'] = d['ITEM_MINUS_PER_HOUR']
+        if self.project.is_hourly_pay:
+            # 基本金額
+            d['ITEM_AMOUNT_BASIC'] = 0
+            # 残業時間
+            d['ITEM_EXTRA_HOURS'] = 0
+            # 率
+            d['ITEM_RATE'] = 1
+            # 減（円）
+            d['ITEM_MINUS_PER_HOUR'] = 0
+            # 増（円）
+            d['ITEM_PLUS_PER_HOUR'] = 0
+            # 基本金額＋残業金額
+            d['ITEM_AMOUNT_TOTAL'] = attendance.price if attendance else 0
         else:
-            d['ITEM_AMOUNT_EXTRA'] = 0
-            d['ITEM_PLUS_PER_HOUR2'] = u""
-            d['ITEM_MINUS_PER_HOUR2'] = u""
-        # 基本金額＋残業金額
-        d['ITEM_AMOUNT_TOTAL'] = attendance.price if attendance else self.price
+            # 基本金額
+            d['ITEM_AMOUNT_BASIC'] = self.price if attendance else u""
+            # 残業時間
+            d['ITEM_EXTRA_HOURS'] = attendance.extra_hours if attendance else u""
+            # 率
+            d['ITEM_RATE'] = attendance.rate if attendance and attendance.rate else 1
+            # 減（円）
+            if self.minus_per_hour is None:
+                d['ITEM_MINUS_PER_HOUR'] = (self.price / self.min_hours) if attendance else u""
+            else:
+                d['ITEM_MINUS_PER_HOUR'] = self.minus_per_hour
+            # 増（円）
+            if self.plus_per_hour is None:
+                d['ITEM_PLUS_PER_HOUR'] = (self.price / self.max_hours) if attendance else u""
+            else:
+                d['ITEM_PLUS_PER_HOUR'] = self.plus_per_hour
+
+            if attendance and attendance.extra_hours > 0:
+                d['ITEM_AMOUNT_EXTRA'] = attendance.extra_hours * d['ITEM_PLUS_PER_HOUR']
+                d['ITEM_PLUS_PER_HOUR2'] = d['ITEM_PLUS_PER_HOUR']
+                d['ITEM_MINUS_PER_HOUR2'] = u""
+            elif attendance and attendance.extra_hours < 0:
+                d['ITEM_AMOUNT_EXTRA'] = attendance.extra_hours * d['ITEM_MINUS_PER_HOUR']
+                d['ITEM_PLUS_PER_HOUR2'] = u""
+                d['ITEM_MINUS_PER_HOUR2'] = d['ITEM_MINUS_PER_HOUR']
+            else:
+                d['ITEM_AMOUNT_EXTRA'] = 0
+                d['ITEM_PLUS_PER_HOUR2'] = u""
+                d['ITEM_MINUS_PER_HOUR2'] = u""
+            # 基本金額＋残業金額
+            d['ITEM_AMOUNT_TOTAL'] = attendance.price if attendance else self.price
         # 備考
         d['ITEM_COMMENT'] = attendance.comment if attendance else u""
         d['ITEM_OTHER'] = u""

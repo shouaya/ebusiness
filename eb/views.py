@@ -546,35 +546,63 @@ def project_attendance_list(request, project_id):
                     attendance = project_member.get_attendance(date.year, date.month)
                     if attendance:
                         initial_form_count += 1
-                        d = {'id': attendance.pk,
-                             'pk': attendance.pk,
-                             'project_member': attendance.project_member,
-                             'year': str_year,
-                             'month': str_month,
-                             'basic_price': attendance.project_member.price,
-                             'max_hours': attendance.project_member.max_hours,
-                             'min_hours': attendance.project_member.min_hours,
-                             'rate': attendance.rate,
-                             'total_hours': attendance.total_hours,
-                             'extra_hours': attendance.extra_hours,
-                             'plus_per_hour': project_member.plus_per_hour,
-                             'minus_per_hour': project_member.minus_per_hour,
-                             'price': attendance.price,
-                             'comment': attendance.comment,
-                             }
+                        if project.is_hourly_pay:
+                            d = {'id': attendance.pk,
+                                 'pk': attendance.pk,
+                                 'project_member': attendance.project_member,
+                                 'year': str_year,
+                                 'month': str_month,
+                                 'total_hours': attendance.total_hours,
+                                 'extra_hours': attendance.extra_hours,
+                                 'price': attendance.price,
+                                 'comment': attendance.comment,
+                                 'hourly_pay': project_member.hourly_pay
+                                 }
+                        else:
+                            d = {'id': attendance.pk,
+                                 'pk': attendance.pk,
+                                 'project_member': attendance.project_member,
+                                 'year': str_year,
+                                 'month': str_month,
+                                 'basic_price': attendance.project_member.price,
+                                 'max_hours': attendance.project_member.max_hours,
+                                 'min_hours': attendance.project_member.min_hours,
+                                 'rate': attendance.rate,
+                                 'total_hours': attendance.total_hours,
+                                 'extra_hours': attendance.extra_hours,
+                                 'plus_per_hour': project_member.plus_per_hour,
+                                 'minus_per_hour': project_member.minus_per_hour,
+                                 'price': attendance.price,
+                                 'comment': attendance.comment,
+                                 }
                     else:
-                        d = {'id': u"",
-                             'project_member': project_member,
-                             'year': str_year,
-                             'month': str_month,
-                             'basic_price': project_member.price,
-                             'max_hours': project_member.max_hours,
-                             'min_hours': project_member.min_hours,
-                             'plus_per_hour': project_member.plus_per_hour,
-                             'minus_per_hour': project_member.minus_per_hour,
-                             }
+                        if project.is_hourly_pay:
+                            d = {'id': u"",
+                                 'project_member': project_member,
+                                 'year': str_year,
+                                 'month': str_month,
+                                 'hourly_pay': project_member.hourly_pay
+                                 }
+                        else:
+                            d = {'id': u"",
+                                 'project_member': project_member,
+                                 'year': str_year,
+                                 'month': str_month,
+                                 'basic_price': project_member.price,
+                                 'max_hours': project_member.max_hours,
+                                 'min_hours': project_member.min_hours,
+                                 'plus_per_hour': project_member.plus_per_hour,
+                                 'minus_per_hour': project_member.minus_per_hour,
+                                 }
                     dict_initials.append(d)
-                AttendanceFormSet = modelformset_factory(MemberAttendance, form=forms.MemberAttendanceFormSet, extra=len(project_members))
+                if project.is_hourly_pay:
+                    AttendanceFormSet = modelformset_factory(MemberAttendance,
+                                                             form=forms.MemberAttendanceFormSetHourlyPay,
+                                                             extra=len(project_members))
+                else:
+                    AttendanceFormSet = modelformset_factory(MemberAttendance,
+                                                             form=forms.MemberAttendanceFormSet,
+                                                             extra=len(project_members))
                 dict_initials.sort(key=lambda item: item['id'])
                 formset = AttendanceFormSet(queryset=MemberAttendance.objects.none(), initial=dict_initials)
             except Exception as e:
@@ -585,7 +613,11 @@ def project_attendance_list(request, project_id):
             r = render_to_response('project_attendance_list.html', context)
             return HttpResponse(r)
         else:
-            AttendanceFormSet = modelformset_factory(MemberAttendance, form=forms.MemberAttendanceFormSet, extra=0)
+            if project.is_hourly_pay:
+                AttendanceFormSet = modelformset_factory(MemberAttendance, form=forms.MemberAttendanceFormSetHourlyPay,
+                                                         extra=0)
+            else:
+                AttendanceFormSet = modelformset_factory(MemberAttendance, form=forms.MemberAttendanceFormSet, extra=0)
             formset = AttendanceFormSet(request.POST)
             if formset.is_valid():
                 attendance_list = formset.save(commit=False)

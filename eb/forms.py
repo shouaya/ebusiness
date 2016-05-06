@@ -372,6 +372,41 @@ class MemberAttendanceFormSet(forms.ModelForm):
                                label=u"価格")
 
 
+class MemberAttendanceFormSetHourlyPay(forms.ModelForm):
+    class Meta:
+        model = models.MemberAttendance
+        fields = ['project_member', 'year', 'month', 'total_hours', 'extra_hours', 'price', 'comment']
+
+    total_hours = forms.DecimalField(max_digits=5, decimal_places=2,
+                                     widget=forms.TextInput(
+                                         attrs={'onblur': "calc_hourly_pay(this)",
+                                                'type': 'number',
+                                                'style': 'width: 80px;',
+                                                'step': 0.25}),
+                                     label=u"合計時間",
+                                     required=True)
+    extra_hours = forms.DecimalField(max_digits=5, decimal_places=2, initial=0,
+                                     widget=forms.TextInput(
+                                         attrs={'type': 'number',
+                                                'style': 'width: 50px;border: 0px;background-color: transparent;',
+                                                'readonly': 'readonly',
+                                                'step': 0.25},),
+                                     label=u"残業時間",
+                                     required=True)
+    price = forms.IntegerField(initial=0,
+                               widget=forms.TextInput(attrs={'style': 'width: 70px;',
+                                                             'type': 'number'}),
+                               label=u"価格")
+    hourly_pay = forms.IntegerField(initial=0,
+                                    widget=forms.TextInput(attrs={'readonly': 'readonly',
+                                                                  'style': 'width: 50px;'
+                                                                           'background-color: transparent;'
+                                                                           'border: 0px;',
+                                                                  }),
+                                    label=u"時給",
+                                    required=False)
+
+
 class BpMemberOrderInfoFormSet(forms.ModelForm):
     class Meta:
         model = models.BpMemberOrderInfo

@@ -196,6 +196,17 @@ function calc_price_for_minus(obj) {
     }
 }
 
+function calc_hourly_pay(obj) {
+    row_id = $(obj).parent().parent().attr("id");
+    total_hours = $(obj).val();
+    hourly_pay = $("#" + row_id + "-hourly_pay").val();
+    obj_value = $("#" + row_id + "-price");                     // 価格
+    if (hourly_pay != "" && total_hours != "") {
+        total_price = total_hours * hourly_pay;
+        obj_value.val(Math.round(total_price));
+    }
+}
+
 function calc_extra_hours_portal(obj) {
     row_id = $(obj).parent().parent().attr("id");
     price = $("#" + row_id + "-basic_price").val();

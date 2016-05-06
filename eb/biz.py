@@ -688,10 +688,17 @@ def generate_request_data(company, project, client_order, bank_info, ym, project
             dict_expenses['NO'] = str(i + 1)
             # 項目
             dict_expenses['ITEM_NAME'] = project_member.member.__unicode__()
-            # 単価（円）
-            dict_expenses['ITEM_PRICE'] = project_member.price
-            # Min/Max（H）
-            dict_expenses['ITEM_MIN_MAX'] = "%s/%s" % (int(project_member.min_hours), int(project_member.max_hours))
+            # 時給の場合
+            if project.is_hourly_pay:
+                # 単価（円）
+                dict_expenses['ITEM_PRICE'] = 0
+                # Min/Max（H）
+                dict_expenses['ITEM_MIN_MAX'] = u""
+            else:
+                # 単価（円）
+                dict_expenses['ITEM_PRICE'] = project_member.price
+                # Min/Max（H）
+                dict_expenses['ITEM_MIN_MAX'] = "%s/%s" % (int(project_member.min_hours), int(project_member.max_hours))
             dict_expenses.update(project_member.get_attendance_dict(first_day.year, first_day.month))
             # 金額合計
             members_amount += dict_expenses['ITEM_AMOUNT_TOTAL']
