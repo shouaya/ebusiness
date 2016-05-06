@@ -8,6 +8,7 @@
             init_select("last_name");
             init_select("business_status");
             init_select("salesperson");
+            init_select("section");
         };
     </script>
 {% endblock %}
@@ -45,12 +46,15 @@
                 {% endfor %}
             </select>
             <input type="submit" value="Filter" />
+            <a href="{% url 'employee_list' %}">クリア</a>
         </form>
+        {% if page_type != "members_in_coming" %}
         <div class="dashboard-tail">
             <a href="?download=member_list{{ params }}" target="_blank">要員一覧ダウンロード</a>
             <a href="{% url 'upload_file' %}" target="_blank">履歴書をアップロード</a>
             <a href="{% url 'admin:eb_member_add' %}?from=portal&_popup=1" target="_blank">要員を追加</a>
         </div>
+        {% endif %}
     </div>
     <table class="list" cellpadding="0" cellspacing="0">
         <thead>
@@ -98,7 +102,13 @@
                     <div class="clear"></div>
                 </th>
                 <th style="width: 50px;">稼働</th>
-                <th style="width: 120px;">リリース予定日</th>
+                <th style="width: 120px;">
+                    {% if page_type == "members_in_coming" %}
+                        入社年月日
+                    {% else %}
+                        リリース予定日
+                    {% endif %}
+                </th>
                 <th style="width: 90px;">
                     {% if dict_order.salesperson__first_name.is_in_ordering %}
                         <div class="sortoptions">
@@ -137,9 +147,13 @@
                             {% endif %}
                         </td>
                         <td>
-                            <a href="{% url 'release_list' %}?period={{ member.get_project_end_date|date:'Ym' }}">
-                                {{ member.get_project_end_date|date:"Y-m-d" }}
-                            </a>
+                            {% if page_type == "members_in_coming" %}
+                                {{ member.join_date }}
+                            {% else %}
+                                <a href="{% url 'release_list' %}?period={{ member.get_project_end_date|date:'Ym' }}">
+                                    {{ member.get_project_end_date|date:"Y-m-d" }}
+                                </a>
+                            {% endif %}
                         </td>
                         <td>
                             {% if member.salesperson %}

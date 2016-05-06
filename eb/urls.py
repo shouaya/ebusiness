@@ -5,13 +5,17 @@ Created on 2015/08/20
 @author: Yang Wanjun
 """
 
-from django.conf.urls import url
-from django.contrib.auth import views as auth_views
+from django.conf.urls import url, include
 
 from . import views
 
+member_list_patterns = [
+    url(r'^in_coming.html$', views.members_in_coming, name='members_in_coming')
+]
+
 urlpatterns = [
     url(r'^$', views.index, name='index'),
+    url(r'^member_list/', include(member_list_patterns)),
     url(r'^employee_list.html$', views.employee_list, name='employee_list'),
     url(r'^member_subcontractor_list.html$', views.member_subcontractor_list, name='member_subcontractor_list'),
     url(r'^project_list.html$', views.project_list, name='project_list'),

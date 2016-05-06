@@ -34,9 +34,11 @@ def get_admin_user():
 
 
 def get_all_members(user=None):
+    today = datetime.date.today()
     if user:
         if user.is_superuser:
-            return models.Member.objects.public_filter(Q(section__is_on_sales=True) | Q(member_type=4))
+            return models.Member.objects.public_filter(Q(join_date__isnull=True) | Q(join_date__lte=today),
+                                                       section__is_on_sales=True)
         elif common.is_salesperson(user):
             return user.salesperson.get_all_members()
 
@@ -97,6 +99,16 @@ def get_subcontractor_waiting_members(user=None, salesperson=None, date=None):
     """
     working_members = get_subcontractor_working_members(date)
     return get_subcontractor_all_members(user=user, salesperson=salesperson).exclude(pk__in=working_members)
+
+
+def get_members_in_coming(user=None):
+    """新規入場要員リストを取得する。
+
+    :param user:ログインしているユーザ
+    :return:
+    """
+    today = datetime.date.today()
+    return models.Member.objects.public_filter(join_date__gt=today)
 
 
 def get_activities_incoming(user=None, salesperson=None):

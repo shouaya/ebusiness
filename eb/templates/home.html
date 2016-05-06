@@ -8,7 +8,7 @@
         <div class="dashboard-title">社員状況</div>
         <table cellspacing="0" cellpadding="0">
             <tr class="row1">
-                <td colspan="6" class="subtitle">社員稼働状況（今月）：</td>
+                <td colspan="8" class="subtitle">社員稼働状況（今月）：</td>
             </tr>
             <tr class="row2">
                 <th>社員数:</th>
@@ -17,9 +17,11 @@
                 <td class="num"><a href="{% url 'employee_list' %}?status=working"> {{ working_member_count }}</a></td>
                 <th>待機中人数:</th>
                 <td class="num"><a href="{% url 'employee_list' %}?status=waiting" class="red">{{ waiting_member_count }}</a></td>
+                <th>新規入場:</th>
+                <td class="num"><a href="{% url 'members_in_coming' %}">{{ members_in_coming_count }}</a></td>
             </tr>
             <tr class="row1">
-                <td colspan="6" class="subtitle">社員リリース状況：</td>
+                <td colspan="8" class="subtitle">社員リリース状況：</td>
             </tr>
             <tr class="row2">
                 <th>今月リリース:</th>

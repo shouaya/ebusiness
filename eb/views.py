@@ -51,6 +51,7 @@ def index(request):
     member_count = biz.get_all_members(request.user).count()
     working_members = biz.get_working_members(request.user)
     waiting_members = biz.get_waiting_members(request.user)
+    members_in_coming = biz.get_members_in_coming(request.user)
 
     current_month = biz.get_release_current_month(user=request.user)
     next_month = biz.get_release_next_month(user=request.user)
@@ -69,6 +70,7 @@ def index(request):
         'member_count': member_count,
         'working_member_count': working_members.count(),
         'waiting_member_count': waiting_members.count(),
+        'members_in_coming_count': members_in_coming.count(),
         'current_month_count': current_month.count(),
         'next_month_count': next_month.count(),
         'next_2_month_count': next_2_month.count(),
@@ -156,6 +158,66 @@ def employee_list(request):
 
 
 @login_required(login_url='/eb/login/')
+def members_in_coming(request):
+    company = biz.get_company()
+    status = request.GET.get('status', None)
+    first_name = request.GET.get('first_name', None)
+    last_name = request.GET.get('last_name', None)
+    section = request.GET.get('section', None)
+    business_status = request.GET.get('business_status', None)
+    salesperson = request.GET.get('salesperson', None)
+
+    params = ""
+    o = request.GET.get('o', None)
+    dict_order = common.get_ordering_dict(o, ['first_name', 'section', 'subcontractor__name', 'salesperson__first_name'])
+    order_list = common.get_ordering_list(o)
+
+    all_members = biz.get_members_in_coming(user=request.user)
+    if salesperson:
+        all_members = all_members.filter(salesperson_id=salesperson)
+        params += u"&salesperson=%s" % (salesperson,)
+    if first_name:
+        all_members = all_members.filter(first_name__contains=first_name)
+        params += u"&first_name=%s" % (first_name,)
+    if last_name:
+        all_members = all_members.filter(last_name__contains=last_name)
+        params += u"&last_name=%s" % (last_name,)
+    if section:
+        all_members = all_members.filter(section_id=section)
+        params += u"&section=%s" % (section,)
+
+    if order_list:
+        all_members = all_members.order_by(*order_list)
+
+    if business_status:
+        all_members = [member for member in all_members if member.get_business_status() == business_status]
+        params += u"&business_status=%s" % (business_status,)
+
+    paginator = Paginator(all_members, PAGE_SIZE)
+    page = request.GET.get('page')
+    try:
+        members = paginator.page(page)
+    except PageNotAnInteger:
+        members = paginator.page(1)
+    except EmptyPage:
+        members = paginator.page(paginator.num_pages)
+
+    context = RequestContext(request, {
+        'company': company,
+        'title': u'協力社員一覧',
+        'members': members,
+        'sections': Section.objects.public_filter(is_on_sales=True),
+        'salesperson': Salesperson.objects.public_all(),
+        'paginator': paginator,
+        'params': params,
+        'dict_order': dict_order,
+        'page_type': "members_in_coming",
+    })
+    template = loader.get_template('employee_list.html')
+    return HttpResponse(template.render(context))
+
+
+@login_required(login_url='/eb/login/')
 def member_subcontractor_list(request):
     company = biz.get_company()
     status = request.GET.get('status', None)
@@ -228,7 +290,6 @@ def member_subcontractor_list(request):
         })
         template = loader.get_template('employee_list.html')
         return HttpResponse(template.render(context))
-
 
 
 @login_required(login_url='/eb/login/')

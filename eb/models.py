@@ -360,12 +360,15 @@ class Salesperson(AbstractMember):
         return u"%s %s" % (self.first_name, self.last_name)
 
     def get_all_members(self):
+        today = datetime.date.today()
         if self.member_type == 0 and self.section:
             # 営業部長の場合、部門内すべての社員が見られる
-            return Member.objects.public_filter(salesperson__in=self.get_under_salesperson())
+            return Member.objects.public_filter(Q(join_date__isnull=True) | Q(join_date__lte=today),
+                                                salesperson__in=self.get_under_salesperson())
         else:
             # 営業員の場合、担当している社員だけ見られる
-            return Member.objects.public_filter(salesperson=self)
+            return Member.objects.public_filter(Q(join_date__isnull=True) | Q(join_date__lte=today),
+                                                salesperson=self)
 
     def get_working_members(self):
         now = datetime.date.today()
