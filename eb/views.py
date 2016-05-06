@@ -218,7 +218,7 @@ def members_in_coming(request):
 
 
 @login_required(login_url='/eb/login/')
-def member_subcontractor_list(request):
+def members_subcontractor(request):
     company = biz.get_company()
     status = request.GET.get('status', None)
     first_name = request.GET.get('first_name', None)
@@ -806,7 +806,7 @@ def release_list(request):
         month = datetime.datetime.now().month
     start_date = datetime.datetime(year, month, 1)
     o = request.GET.get('o', None)
-    dict_order = common.get_ordering_dict(o, ['member__first_name', 'project__name', 'start_date', 'end_date'])
+    dict_order = common.get_ordering_dict(o, ['member__first_name', 'member__section__name', 'project__name', 'start_date', 'end_date'])
     order_list = common.get_ordering_list(o)
 
     all_project_members = biz.get_release_members_by_month(start_date, user=request.user)

@@ -52,7 +52,7 @@ def get_subcontractor_all_members(user=None, salesperson=None):
     :param salesperson: 営業員
     :return:
     """
-    members = models.Member.objects.public_filter(subcontractor__isnull=False)
+    members = models.Member.objects.public_filter(subcontractor__isnull=False, section__is_on_sales=True)
     if user:
         # ユーザがログインしている場合。
         if user.is_superuser:
@@ -200,7 +200,8 @@ def get_release_members_by_month(date, salesperson=None, is_superuser=False, use
                                                    is_superuser=is_superuser,
                                                    salesperson=salesperson,
                                                    user=user)
-    project_members = get_project_members_month(date).exclude(member__in=working_member_next_date)
+    project_members = get_project_members_month(date).filter(member__section__is_on_sales=True)\
+        .exclude(member__in=working_member_next_date)
     if is_superuser or (user and user.is_superuser):
         return project_members
     elif salesperson or (user and hasattr(user, 'salesperson')):
@@ -208,7 +209,7 @@ def get_release_members_by_month(date, salesperson=None, is_superuser=False, use
         salesperson_list = salesperson.get_under_salesperson()
         return project_members.filter(project__salesperson__in=salesperson_list)
     else:
-        return models.Member.objects.none()
+        return models.ProjectMember.objects.none()
 
 
 def get_release_current_month(salesperson=None, is_superuser=False, user=None):
@@ -691,7 +692,7 @@ def generate_request_data(company, project, client_order, bank_info, ym, project
             # 時給の場合
             if project.is_hourly_pay:
                 # 単価（円）
-                dict_expenses['ITEM_PRICE'] = 0
+                dict_expenses['ITEM_PRICE'] = project_member.hourly_pay
                 # Min/Max（H）
                 dict_expenses['ITEM_MIN_MAX'] = u""
             else:

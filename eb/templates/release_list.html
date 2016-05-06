@@ -38,6 +38,20 @@
                     <div class="clear"></div>
                 </th>
                 <th>
+                    {% if dict_order.member__section__name.is_in_ordering %}
+                        <div class="sortoptions">
+                            <a class="sortremove" href="?o={{ dict_order.member__section__name.url_list_removed }}{{ params }}"></a>
+                            <span class="sortpriority">{{ dict_order.member__section__name.priority }}</span>
+                            <a class="{% if dict_order.member__section__name.is_asc %}descending{% else %}ascending{% endif %}"
+                               href="?o={{ dict_order.member__section__name.url }}{{ params }}"></a>
+                        </div>
+                    {% endif %}
+                    <div class="text">
+                        <a href="?o={{ dict_order.member__section__name.url }}{{ params }}">部署</a>
+                    </div>
+                    <div class="clear"></div>
+                </th>
+                <th>
                     {% if dict_order.project__name.is_in_ordering %}
                         <div class="sortoptions">
                             <a class="sortremove" href="?o={{ dict_order.project__name.url_list_removed }}{{ params }}"></a>
@@ -88,6 +102,7 @@
                 {% for project_member in project_members %}
                     <tr class="{% cycle 'row1' 'row2' %}">
                         <td>{{ project_member.member }}</td>
+                        <td>{{ project_member.member.section }}</td>
                         <td><a href="{% url 'project_detail' project_member.project.pk %}">
                                 {{ project_member.project.name }}
                             </a>
@@ -103,8 +118,9 @@
                         </td>
                         <td class="center">
                             {% ifequal project_member.member.get_business_status "未提案" %}
-                                <a href="{% url 'recommended_project' project_member.member.employee_id %}">推薦された案件</a>
+                                <a href="{% url 'recommended_project' project_member.member.employee_id %}">推薦された案件</a>&nbsp;|
                             {% endifequal %}
+                            <a href="{% url 'admin:eb_member_change' project_member.member.pk %}?from=portal&_popup=1" target="_blank">編集</a>
                         </td>
                     </tr>
                 {% endfor %}
@@ -114,7 +130,7 @@
         </tbody>
         <tfoot>
             <tr>
-                <td colspan="6">
+                <td colspan="7">
                     <div class="pagination">
                         <span class="step-links">
                             {% if project_members.has_previous %}

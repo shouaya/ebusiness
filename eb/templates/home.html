@@ -47,11 +47,11 @@
             </tr>
             <tr class="row2">
                 <th>総人数:</th>
-                <td class="num"><a href="{% url 'member_subcontractor_list' %}"> {{ subcontractor_all_member_count }}</a></td>
+                <td class="num"><a href="{% url 'members_subcontractor' %}"> {{ subcontractor_all_member_count }}</a></td>
                 <th>稼働中人数:</th>
-                <td class="num"><a href="{% url 'member_subcontractor_list' %}?status=working"> {{ subcontractor_working_member_count }}</a></td>
+                <td class="num"><a href="{% url 'members_subcontractor' %}?status=working"> {{ subcontractor_working_member_count }}</a></td>
                 <th>待機中人数:</th>
-                <td class="num"><a href="{% url 'member_subcontractor_list' %}?status=waiting" class="red">{{ subcontractor_waiting_member_count }}</a></td>
+                <td class="num"><a href="{% url 'members_subcontractor' %}?status=waiting" class="red">{{ subcontractor_waiting_member_count }}</a></td>
             </tr>
     </table>
     </div>

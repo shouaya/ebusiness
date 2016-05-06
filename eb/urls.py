@@ -10,14 +10,14 @@ from django.conf.urls import url, include
 from . import views
 
 member_list_patterns = [
-    url(r'^in_coming.html$', views.members_in_coming, name='members_in_coming')
+    url(r'^in_coming.html$', views.members_in_coming, name='members_in_coming'),
+    url(r'^subcontractor.html$', views.members_subcontractor, name='members_subcontractor'),
 ]
 
 urlpatterns = [
     url(r'^$', views.index, name='index'),
     url(r'^member_list/', include(member_list_patterns)),
     url(r'^employee_list.html$', views.employee_list, name='employee_list'),
-    url(r'^member_subcontractor_list.html$', views.member_subcontractor_list, name='member_subcontractor_list'),
     url(r'^project_list.html$', views.project_list, name='project_list'),
     url(r'^project_order_list.html', views.project_order_list, name='project_order_list'),
     url(r'^project/(?P<project_id>[^,/]+).html$', views.project_detail, name='project_detail'),
