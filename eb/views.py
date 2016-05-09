@@ -496,7 +496,7 @@ def project_detail(request, project_id):
             project_request.created_user = request.user if not project_request.pk else project_request.created_user
             project_request.updated_user = request.user
             project_request.save()
-            filename = "EB請求書_%s_%s_%s.xls" % (str(project_request.request_no), project.client.name.encode('UTF-8'), now.strftime("%Y%m%d%H%M%S"))
+            filename = "EB請求書_%s_%s_%s.xlsx" % (str(project_request.request_no), project.client.name.encode('UTF-8'), now.strftime("%Y%m%d%H%M%S"))
             response = HttpResponse(open(path, 'rb'), content_type="application/excel")
             response['Content-Disposition'] = "filename=" + urllib.quote(filename)
             # 一時ファイルを削除する。

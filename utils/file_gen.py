@@ -539,9 +539,9 @@ def generate_request(company, project, data):
     file_folder = os.path.join(os.path.dirname(request_file.path), "temp")
     if not os.path.exists(file_folder):
         os.mkdir(file_folder)
-    file_name = "tmp_%s_%s.xls" % (constants.DOWNLOAD_REQUEST, datetime.datetime.now().strftime("%Y%m%d_%H%M%S%f"))
+    file_name = "tmp_%s_%s.xlsx" % (constants.DOWNLOAD_REQUEST, datetime.datetime.now().strftime("%Y%m%d_%H%M%S%f"))
     path = os.path.join(file_folder, file_name)
-    book.SaveAs(path, FileFormat=constants.EXCEL_FORMAT_EXCEL2003)
+    book.SaveAs(path)
 
     return path
 

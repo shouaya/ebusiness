@@ -97,7 +97,7 @@ def get_subcontractor_waiting_members(user=None, salesperson=None, date=None):
     :param date: 対象年月
     :return:
     """
-    working_members = get_subcontractor_working_members(date)
+    working_members = get_subcontractor_working_members(user, salesperson, date)
     return get_subcontractor_all_members(user=user, salesperson=salesperson).exclude(pk__in=working_members)
 
 
