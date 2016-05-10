@@ -106,7 +106,7 @@ STATICFILES_DIRS = (
 )
 
 MEDIA_ROOT = os.path.join(BASE_DIR, "media")
-GENERATED_FILES_ROOT = os.path.join(os.path.dirname(BASE_DIR), "eb_sales_files")
+GENERATED_FILES_ROOT = os.path.join(os.path.abspath(os.path.dirname(BASE_DIR)), "eb_sales_files")
 
 TEMPLATES = [
     {

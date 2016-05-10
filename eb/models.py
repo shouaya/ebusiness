@@ -1193,6 +1193,7 @@ class ProjectRequest(models.Model):
     request_no = models.CharField(max_length=7, unique=True, verbose_name=u"請求番号")
     request_name = models.CharField(max_length=50, blank=True, null=True, verbose_name=u"請求名称")
     amount = models.IntegerField(default=0, verbose_name=u"請求金額")
+    filename = models.CharField(max_length=255, blank=True, null=True, verbose_name=u"請求書ファイル名")
     created_user = models.ForeignKey(User, related_name='created_requests', null=True,
                                      editable=False, verbose_name=u"作成者")
     created_date = models.DateTimeField(null=True, auto_now_add=True, editable=False, verbose_name=u"作成日時")

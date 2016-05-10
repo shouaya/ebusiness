@@ -651,6 +651,23 @@ def get_full_postcode(postcode):
         return ""
 
 
+def get_request_file_path(request_no, client_name, ym):
+    """生成された請求書のパスを取得する。
+
+    :param request_no: 請求番号
+    :param client_name: お客様名称
+    :param ym: 対象年月
+    :return:
+    """
+    now = datetime.datetime.now()
+    filename = "EB請求書_%s_%s_%s.xlsx" % (str(request_no), client_name.encode('UTF-8'), now.strftime("%Y%m%d_%H%M%S%f"))
+    from django.conf import settings
+    path = os.path.join(settings.GENERATED_FILES_ROOT, "project_request", str(ym))
+    if not os.path.exists(path):
+        os.mkdir(path)
+    return os.path.join(path, filename).decode('UTF-8')
+
+
 def delete_temp_files(path):
     """一時ファイルを削除する。
 

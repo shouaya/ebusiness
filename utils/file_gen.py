@@ -503,12 +503,14 @@ def generate_quotation(project, user, company):
     return path
 
 
-def generate_request(company, project, data):
+def generate_request(company, project, data, request_no, ym):
     """請求書を生成する。
 
     :param company:
     :param project:
     :param data:
+    :param request_no: 請求番号
+    :param ym:
     :return:
     """
     pythoncom.CoInitializeEx(pythoncom.COINIT_MULTITHREADED)
@@ -536,11 +538,7 @@ def generate_request(company, project, data):
     for i in range(cnt, 0, -1):
         book.Worksheets(i).Delete()
 
-    file_folder = os.path.join(os.path.dirname(request_file.path), "temp")
-    if not os.path.exists(file_folder):
-        os.mkdir(file_folder)
-    file_name = "tmp_%s_%s.xlsx" % (constants.DOWNLOAD_REQUEST, datetime.datetime.now().strftime("%Y%m%d_%H%M%S%f"))
-    path = os.path.join(file_folder, file_name)
+    path = common.get_request_file_path(request_no, project.client.name, ym)
     book.SaveAs(path)
 
     return path
