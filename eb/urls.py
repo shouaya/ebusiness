@@ -15,6 +15,11 @@ member_list_patterns = [
     url(r'^change_list.html$', views.change_list, name='change_list'),
 ]
 
+download_patterns = [
+    url(r'^project_request/(?P<project_id>[0-9]+).html$', views.download_project_request,
+        name='download_project_request'),
+]
+
 urlpatterns = [
     url(r'^$', views.index, name='index'),
     url(r'^member_list/', include(member_list_patterns)),
@@ -53,6 +58,7 @@ urlpatterns = [
         name='subcontractor_members'),
     url(r'^subcontractor_order/(?P<subcontractor_id>[0-9]+).html$', views.download_subcontractor_order,
         name='download_subcontractor_order'),
+    url(r'^download/', include(download_patterns)),
     url(r'^map_position.html$', views.map_position, name='map_position'),
     url(r'^issue.html$', views.issue, name='issue'),
     url(r'^history.html$', views.history, name='history'),

@@ -412,9 +412,13 @@
                                 {{ project_request.request_no }}
                             </td>
                             <td class="center">
-                                <a href="javascript:show_dialog('request_gen_{{ year }}{{ month }}_{{ client_order.pk }}')">請求書生成</a>
-                                <div id="request_gen_{{ year }}{{ month }}_{{ client_order.pk }}" class="dialog">
-                                    <form method="get" action="" target="_blank">
+                                {% if perms.eb.generate_request %}
+                                    <a href="javascript:show_dialog('request_gen_{{ year }}{{ month }}_{{ client_order.pk }}')"
+                                        {% if project_request.filename %}onclick="return confirm('請求書は既に作成済みなので、上書きしますか？')"{% endif %}>
+                                        請求書生成
+                                    </a>
+                                    <div id="request_gen_{{ year }}{{ month }}_{{ client_order.pk }}" class="dialog">
+                                    <form method="get" action="{% url 'download_project_request' project.pk %}" target="_blank">
                                         <input type="hidden" value="{{ year }}{{ month }}" name="ym"/>
                                         <table width="100%" cellpadding="0" cellspacing="0">
                                             <tr>
@@ -446,13 +450,18 @@
                                             </tr>
                                             <tr>
                                                 <td colspan="4" style="text-align: center;">
-                                                    <input type="hidden" name="download" value="request"/>
-                                                    <input type="submit" value="請求書をダウンロード"/>
+                                                    {% if project_request.filename %}
+                                                        <input type="submit" name="overwrite" value="既存の請求書をダウンロード"/>
+                                                        <input type="submit" value="請求書を新規作成"/>
+                                                    {% else %}
+                                                        <input type="submit" value="請求書をダウンロード"/>
+                                                    {% endif %}
                                                 </td>
                                             </tr>
                                         </table>
                                     </form>
                                 </div>
+                                {% endif %}
                             </td>
                         {% else %}
                             <td colspan="3"><img width="12px" src="/static/img/icon-warn.png"/></td>
@@ -497,7 +506,13 @@
                                 <img width="12px" src="/static/img/icon-warn.png"/>
                             {% endif %}
                         </td>
-                        <td><a href="{% url 'project_attendance_list' project.pk %}?ym={{ ym }}">勤怠情報入力</a></td>
+                        <td>
+                            {% if perms.eb.input_attendance %}
+                                <a href="{% url 'project_attendance_list' project.pk %}?ym={{ ym }}">勤怠情報入力</a>
+                            {% else %}
+                                入力する権限がありません。
+                            {% endif %}
+                        </td>
                     </tr>
                 {% endfor %}
             {% else %}

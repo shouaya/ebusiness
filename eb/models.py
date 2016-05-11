@@ -1205,6 +1205,9 @@ class ProjectRequest(models.Model):
         ordering = ['-request_no']
         unique_together = ('project', 'client_order', 'year', 'month')
         verbose_name = verbose_name_plural = u"案件請求情報"
+        permissions = (
+            ('generate_request', u"請求書作成"),
+        )
 
 
 class ProjectActivity(models.Model):
@@ -1511,6 +1514,9 @@ class MemberAttendance(models.Model):
         ordering = ['project_member', 'year', 'month']
         unique_together = ('project_member', 'year', 'month')
         verbose_name = verbose_name_plural = u"勤務時間"
+        permissions = (
+            ('input_attendance', u'勤怠入力'),
+        )
 
     def __unicode__(self):
         return u"%s %s %s" % (self.project_member, self.get_year_display(), self.get_month_display())

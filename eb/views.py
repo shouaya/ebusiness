@@ -17,11 +17,11 @@ from django.contrib import admin
 from django.template import RequestContext, loader
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.contrib.auth import logout, authenticate, login
-from django.shortcuts import redirect, render_to_response
+from django.shortcuts import redirect, render_to_response, get_object_or_404
 from django.views.decorators.csrf import csrf_protect
 from django.template.context_processors import csrf
 from django.core.exceptions import ObjectDoesNotExist
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, permission_required
 from django.conf import settings
 from django.forms.models import modelformset_factory
 from django.db.models import Max
@@ -475,46 +475,18 @@ def project_order_list(request):
 def project_detail(request, project_id):
     company = biz.get_company()
     project = Project.objects.get(pk=project_id)
-    download = request.GET.get("download", None)
 
-    if download == constants.DOWNLOAD_REQUEST:
-        try:
-            client_order_id = request.GET.get("client_order_id", None)
-            request_name = request.GET.get("request_name", None)
-            ym = request.GET.get("ym", None)
-            bank_id = request.GET.get('bank', None)
-            client_order = ClientOrder.objects.get(pk=client_order_id)
-            try:
-                bank = BankInfo.objects.get(pk=bank_id)
-            except ObjectDoesNotExist:
-                bank = None
-            project_request = project.get_project_request(ym[:4], ym[4:], client_order)
-            project_request.request_name = request_name if request_name else project.name
-            data = biz.generate_request_data(company, project, client_order, bank, ym, project_request)
-            path = file_gen.generate_request(company, project, data, project_request.request_no, ym)
-            filename = os.path.basename(path)
-            project_request.filename = filename
-            project_request.created_user = request.user if not project_request.pk else project_request.created_user
-            project_request.updated_user = request.user
-            project_request.save()
-
-            response = HttpResponse(open(path, 'rb'), content_type="application/excel")
-            response['Content-Disposition'] = "filename=" + urllib.quote(filename.encode('UTF-8'))
-            return response
-        except errors.FileNotExistException, ex:
-            return HttpResponse(u"<script>alert('%s');window.close();</script>" % (ex.message,))
-    else:
-        context = RequestContext(request, {
-            'company': company,
-            'title': u'%s - 案件詳細' % (project.name,),
-            'project': project,
-            'banks': BankInfo.objects.public_all(),
-            'order_month_list': project.get_year_month_order_finished(),
-            'attendance_month_list': project.get_year_month_attendance_finished(),
-        })
-        context.update(csrf(request))
-        template = loader.get_template('project_detail.html')
-        return HttpResponse(template.render(context))
+    context = RequestContext(request, {
+        'company': company,
+        'title': u'%s - 案件詳細' % (project.name,),
+        'project': project,
+        'banks': BankInfo.objects.public_all(),
+        'order_month_list': project.get_year_month_order_finished(),
+        'attendance_month_list': project.get_year_month_attendance_finished(),
+    })
+    context.update(csrf(request))
+    template = loader.get_template('project_detail.html')
+    return HttpResponse(template.render(context))
 
 
 @login_required(login_url='/eb/login/')
@@ -550,6 +522,7 @@ def project_members_by_order(request, order_id):
 
 
 @login_required(login_url='/eb/login/')
+@permission_required('eb.input_attendance', raise_exception=True)
 def project_attendance_list(request, project_id):
     company = biz.get_company()
     project = Project.objects.get(pk=project_id)
@@ -1177,6 +1150,43 @@ def download_subcontractor_order(request, subcontractor_id):
         data = biz.generate_order_data(company, subcontractor, request.user, ym)
         path = file_gen.generate_order(company, data)
         filename = biz.get_order_filename(subcontractor, data['DETAIL']['ORDER_NO'])
+        response = HttpResponse(open(path, 'rb'), content_type="application/excel")
+        response['Content-Disposition'] = "filename=" + urllib.quote(filename.encode('UTF-8'))
+        return response
+    except errors.FileNotExistException, ex:
+        return HttpResponse(u"<script>alert('%s');window.close();</script>" % (ex.message,))
+
+
+@login_required(login_url='/eb/login/')
+@permission_required('eb.generate_request', raise_exception=True)
+def download_project_request(request, project_id):
+    company = biz.get_company()
+    project = get_object_or_404(Project, pk=project_id)
+    try:
+        client_order_id = request.GET.get("client_order_id", None)
+        client_order = ClientOrder.objects.get(pk=client_order_id)
+        ym = request.GET.get("ym", None)
+        project_request = project.get_project_request(ym[:4], ym[4:], client_order)
+        overwrite = request.GET.get("overwrite", None)
+        if overwrite:
+            path = os.path.join(settings.GENERATED_FILES_ROOT, "project_request", str(ym), project_request.filename)
+            filename = project_request.filename
+        else:
+            request_name = request.GET.get("request_name", None)
+            bank_id = request.GET.get('bank', None)
+            try:
+                bank = BankInfo.objects.get(pk=bank_id)
+            except ObjectDoesNotExist:
+                bank = None
+            project_request.request_name = request_name if request_name else project.name
+            data = biz.generate_request_data(company, project, client_order, bank, ym, project_request)
+            path = file_gen.generate_request(company, project, data, project_request.request_no, ym)
+            filename = os.path.basename(path)
+            project_request.filename = filename
+            project_request.created_user = request.user if not project_request.pk else project_request.created_user
+            project_request.updated_user = request.user
+            project_request.save()
+
         response = HttpResponse(open(path, 'rb'), content_type="application/excel")
         response['Content-Disposition'] = "filename=" + urllib.quote(filename.encode('UTF-8'))
         return response
