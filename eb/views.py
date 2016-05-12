@@ -51,7 +51,7 @@ def index(request):
     member_count = biz.get_all_members(request.user).count()
     working_members = biz.get_working_members(request.user)
     waiting_members = biz.get_waiting_members(request.user)
-    members_in_coming = biz.get_members_in_coming(request.user)
+    member_in_coming = biz.get_members_in_coming(request.user)
 
     current_month = biz.get_release_current_month(user=request.user)
     next_month = biz.get_release_next_month(user=request.user)
@@ -70,7 +70,7 @@ def index(request):
         'member_count': member_count,
         'working_member_count': working_members.count(),
         'waiting_member_count': waiting_members.count(),
-        'members_in_coming_count': members_in_coming.count(),
+        'members_in_coming_count': member_in_coming.count(),
         'current_month_count': current_month.count(),
         'next_month_count': next_month.count(),
         'next_2_month_count': next_2_month.count(),
@@ -96,7 +96,8 @@ def employee_list(request):
 
     params = ""
     o = request.GET.get('o', None)
-    dict_order = common.get_ordering_dict(o, ['first_name', 'section', 'subcontractor__name', 'salesperson__first_name'])
+    dict_order = common.get_ordering_dict(o, ['first_name', 'section', 'subcontractor__name',
+                                              'salesperson__first_name'])
     order_list = common.get_ordering_list(o)
 
     all_members = biz.get_all_members(request.user)
@@ -160,7 +161,6 @@ def employee_list(request):
 @login_required(login_url='/eb/login/')
 def members_in_coming(request):
     company = biz.get_company()
-    status = request.GET.get('status', None)
     first_name = request.GET.get('first_name', None)
     last_name = request.GET.get('last_name', None)
     section = request.GET.get('section', None)
@@ -169,7 +169,8 @@ def members_in_coming(request):
 
     params = ""
     o = request.GET.get('o', None)
-    dict_order = common.get_ordering_dict(o, ['first_name', 'section', 'subcontractor__name', 'salesperson__first_name'])
+    dict_order = common.get_ordering_dict(o, ['first_name', 'section', 'subcontractor__name',
+                                              'salesperson__first_name'])
     order_list = common.get_ordering_list(o)
 
     all_members = biz.get_members_in_coming(user=request.user)
@@ -230,7 +231,8 @@ def members_subcontractor(request):
 
     params = ""
     o = request.GET.get('o', None)
-    dict_order = common.get_ordering_dict(o, ['first_name', 'section', 'subcontractor__name', 'salesperson__first_name'])
+    dict_order = common.get_ordering_dict(o, ['first_name', 'section', 'subcontractor__name',
+                                              'salesperson__first_name'])
     order_list = common.get_ordering_list(o)
 
     if status == "working":
@@ -809,7 +811,8 @@ def release_list(request):
         month = datetime.datetime.now().month
     start_date = datetime.datetime(year, month, 1)
     o = request.GET.get('o', None)
-    dict_order = common.get_ordering_dict(o, ['member__first_name', 'member__section__name', 'project__name', 'start_date', 'end_date'])
+    dict_order = common.get_ordering_dict(o, ['member__first_name', 'member__section__name',
+                                              'project__name', 'start_date', 'end_date'])
     order_list = common.get_ordering_list(o)
 
     all_project_members = biz.get_release_members_by_month(start_date, user=request.user)
@@ -1166,12 +1169,19 @@ def download_project_request(request, project_id):
         client_order_id = request.GET.get("client_order_id", None)
         client_order = ClientOrder.objects.get(pk=client_order_id)
         ym = request.GET.get("ym", None)
+        first_day = common.get_first_day_from_ym(ym)
         project_request = project.get_project_request(ym[:4], ym[4:], client_order)
         overwrite = request.GET.get("overwrite", None)
         if overwrite:
             path = os.path.join(settings.GENERATED_FILES_ROOT, "project_request", str(ym), project_request.filename)
+            if not os.path.exists(path):
+                # ファイルが存在しない場合、エラーとする。
+                raise errors.FileNotExistException(constants.ERROR_REQUEST_FILE_NOT_EXISTS)
             filename = project_request.filename
         else:
+            if common.add_months(first_day, 1) < common.get_first_day_current_month() and project_request.filename:
+                # ２ヶ月前の請求書は生成できないようにする。
+                raise errors.CustomException(constants.ERROR_CANNOT_GENERATE_2MONTH_BEFORE)
             request_name = request.GET.get("request_name", None)
             bank_id = request.GET.get('bank', None)
             try:
@@ -1190,7 +1200,7 @@ def download_project_request(request, project_id):
         response = HttpResponse(open(path, 'rb'), content_type="application/excel")
         response['Content-Disposition'] = "filename=" + urllib.quote(filename.encode('UTF-8'))
         return response
-    except errors.FileNotExistException, ex:
+    except errors.MyBaseException, ex:
         return HttpResponse(u"<script>alert('%s');window.close();</script>" % (ex.message,))
 
 

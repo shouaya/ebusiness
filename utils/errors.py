@@ -14,3 +14,8 @@ class MyBaseException(Exception):
 class FileNotExistException(MyBaseException):
     def __init__(self, message=""):
         MyBaseException.__init__(self, message)
+
+
+class CustomException(MyBaseException):
+    def __init__(self, message=""):
+        MyBaseException.__init__(self, message)
