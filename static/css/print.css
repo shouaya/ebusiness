@@ -1,0 +1,11 @@
+header, footer {
+    display: none;
+}
+
+section div.dashboard {
+    display: none;
+}
+
+.noprint {
+    display: none;
+}

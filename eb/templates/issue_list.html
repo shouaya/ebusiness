@@ -26,7 +26,7 @@
                 <th style="width: 70px;">ステータス</th>
                 <th style="width: 70px;">対応者</th>
                 <th style="width: 100px;">予定完了日</th>
-                <th style="width: 30px;"></th>
+                <th class="noprint" style="width: 30px;"></th>
             </tr>
         </thead>
         <tbody>
@@ -43,7 +43,7 @@
                     <td>{{ issue.get_status_display }}</td>
                     <td>{{ issue.resolve_user.first_name }}&nbsp;{{ issue.resolve_user.last_name }}</td>
                     <td>{{ issue.end_date }}</td>
-                    <td style="text-align: center;"><a href="{% url 'admin:eb_issue_change' issue.pk %}?from=portal&_popup=1" target="_blank">編集</a></td>
+                    <td class="noprint" style="text-align: center;"><a href="{% url 'admin:eb_issue_change' issue.pk %}?from=portal&_popup=1" target="_blank">編集</a></td>
                 </tr>
             {% endfor %}
         </tbody>
@@ -58,7 +58,7 @@
                 <th>ステータス</th>
                 <th>対応者</th>
                 <th>予定完了日</th>
-                <th></th>
+                <th class="noprint"></th>
             </tr>
         </tfoot>
     </table>
