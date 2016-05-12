@@ -1218,13 +1218,24 @@ def map_position(request):
 
 
 @login_required(login_url='/eb/login/')
-def issue(request):
+def issues(request):
 
-    issues = Issue.objects.all()
+    issue_list = Issue.objects.all()
 
     context = RequestContext(request, {
-        'title': u'課題管理票',
-        'issues': issues,
+        'title': u'課題管理票一覧',
+        'issues': issue_list,
+    })
+    template = loader.get_template('issue_list.html')
+    return HttpResponse(template.render(context))
+
+
+@login_required(login_url='/eb/login/')
+def issue_detail(request, issue_id):
+    issue = get_object_or_404(Issue, pk=issue_id)
+    context = RequestContext(request, {
+        'title': u'課題管理票 - %s' % (issue.title,),
+        'issue': issue,
     })
     template = loader.get_template('issue.html')
     return HttpResponse(template.render(context))

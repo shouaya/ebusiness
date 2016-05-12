@@ -5,46 +5,45 @@
 
 {% block content %}
     <div class="dashboard">
-        <div class="dashboard-title">課題管理票</div>
+        <div class="dashboard-title">課題 - No.{{ issue.pk }}</div>
         <form>
-            <a href="{% url 'admin:eb_issue_add' %}?from=portal&_popup=1" class="button" target="_blank">課題追加</a>
+            <a href="{% url 'admin:eb_issue_change' issue.pk %}?from=portal&_popup=1" class="button" target="_blank">編集</a>
         </form>
     </div>
-    <table cellspacing="0" cellpadding="0" class="list">
-        <thead>
-            <tr>
-                <th style="width: 30px;">番号</th>
-                <th style="width: 150px;">タイトル</th>
-                <th style="width: 125px;">提出日時</th>
-                <th>作成者</th>
-                <th style="width: 70px;">ステータス</th>
-                <th>内容</th>
-                <th style="width: 30px;"></th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for issue in issues %}
-                <tr class="issue_status{{ issue.status }}">
-                    <td>{{ issue.pk }}</td>
-                    <td>{{ issue.title }}</td>
-                    <td>{{ issue.created_date|date:'Y-m-d H:i' }}</td>
-                    <td>{{ issue.user }}</td>
-                    <td>{{ issue.get_status_display }}</td>
-                    <td>{{ issue.content }}</td>
-                    <td style="text-align: center;"><a href="{% url 'admin:eb_issue_change' issue.pk %}?from=portal&_popup=1" target="_blank">編集</a></td>
-                </tr>
-            {% endfor %}
-        </tbody>
-        <tfoot>
-            <tr>
-                <th>番号</th>
-                <th>タイトル</th>
-                <th>提出日時</th>
-                <th>作成者</th>
-                <th>ステータス</th>
-                <th>内容</th>
-                <th></th>
-            </tr>
-        </tfoot>
+    <table class="detail" cellpadding="0" cellspacing="0">
+        <tr>
+            <th>タイトル</th>
+            <td>{{ issue.title }}</td>
+            <th>レベル</th>
+            <td>{{ issue.get_level_display }}</td>
+        </tr>
+        <tr>
+            <th>不具合内容</th>
+            <td colspan="3">
+                <div><pre>{{ issue.content }}</pre></div>
+            </td>
+        </tr>
+        <tr>
+            <th>提出者</th>
+            <td>{{ issue.user.first_name }}&nbsp;{{ issue.user.last_name }}</td>
+            <th>期限日</th>
+            <td>{{ issue.limit_date }}</td>
+        </tr>
+        <tr>
+            <th>ステータス</th>
+            <td>{{ issue.get_status_display }}</td>
+            <th>対応者</th>
+            <td>{{ issue.resolve_user.first_name }}&nbsp;{{ issue.resolve_user.last_name }}</td>
+        </tr>
+        <tr>
+            <th>予定完了日</th>
+            <td colspan="3">{{ issue.end_date }}</td>
+        </tr>
+        <tr>
+            <th>対応方法</th>
+            <td colspan="3">
+                <div><pre>{{ issue.solution }}</pre></div>
+            </td>
+        </tr>
     </table>
 {% endblock %}

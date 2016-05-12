@@ -1698,10 +1698,15 @@ class HistoryProject(models.Model):
 
 class Issue(models.Model):
     title = models.CharField(max_length=30, verbose_name=u"タイトル")
+    level = models.PositiveSmallIntegerField(choices=constants.CHOICE_ISSUE_LEVEL, default=1, verbose_name=u"優先度")
     content = models.TextField(verbose_name=u"内容")
-    user = models.ForeignKey(User, editable=False, verbose_name=u"作成者")
+    user = models.ForeignKey(User, related_name='created_issue_set', editable=False, verbose_name=u"作成者")
     status = models.CharField(max_length=1, default=1, choices=constants.CHOICE_ISSUE_STATUS,
                               verbose_name=u"ステータス")
+    limit_date = models.DateField(blank=True, null=True, verbose_name=u"期限日")
+    resolve_user = models.ForeignKey(User, related_name='resolve_issue_set', blank=True, null=True, verbose_name=u"対応者")
+    end_date = models.DateField(blank=True, null=True, verbose_name=u"予定完了日")
+    solution = models.TextField(blank=True, null=True, verbose_name=u"対応方法")
     created_date = models.DateTimeField(auto_now_add=True, verbose_name=u"作成日時")
     updated_date = models.DateTimeField(auto_now=True, verbose_name=u"更新日時")
     is_deleted = models.BooleanField(default=False, editable=False, verbose_name=u"削除フラグ")
