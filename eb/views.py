@@ -683,7 +683,7 @@ def project_member_list(request, project_id):
 
 
 @login_required(login_url='/eb/login/')
-def turnover_company(request):
+def turnover_company_monthly(request):
     company = biz.get_company()
     company_turnover = biz.turnover_company_monthly()
     context = RequestContext(request, {
@@ -691,12 +691,12 @@ def turnover_company(request):
         'title': u'売上情報',
         'company_turnover': company_turnover,
     })
-    template = loader.get_template('turnover_company.html')
+    template = loader.get_template('turnover_company_monthly.html')
     return HttpResponse(template.render(context))
 
 
 @login_required(login_url='/eb/login/')
-def turnover_clients_month(request, ym):
+def turnover_clients_monthly(request, ym):
     company = biz.get_company()
     client_turnovers = biz.client_turnover_month(ym)
     summary = {'price': 0, 'cost': 0, 'profit': 0}
@@ -728,12 +728,12 @@ def turnover_clients_month(request, ym):
         'chart_cost': chart_data['cost_list'],
         'chart_price': chart_data['price_list'],
     })
-    template = loader.get_template('turnover_clients_month.html')
+    template = loader.get_template('turnover_clients_monthly.html')
     return HttpResponse(template.render(context))
 
 
 @login_required(login_url='/eb/login/')
-def client_turnover_details(request, client_id, ym):
+def turnover_client_monthly(request, client_id, ym):
     company = biz.get_company()
     client = Client.objects.get(pk=client_id)
     client_turnover = biz.client_turnover_month(ym, client_id)[0]
@@ -756,12 +756,12 @@ def client_turnover_details(request, client_id, ym):
         'ym': ym,
         'chart_data': chart_data,
     })
-    template = loader.get_template('client_turnover_projects_month.html')
+    template = loader.get_template('turnover_projects_monthly.html')
     return HttpResponse(template.render(context))
 
 
 @login_required(login_url='/eb/login/')
-def project_turnover_details(request, project_id, ym):
+def turnover_project_monthly(request, project_id, ym):
     company = biz.get_company()
 
     project = Project.objects.get(pk=project_id)
@@ -793,7 +793,7 @@ def project_turnover_details(request, project_id, ym):
         'paginator': paginator,
         'ym': ym,
     })
-    template = loader.get_template('turnover_project_members.html')
+    template = loader.get_template('turnover_project_monthly.html')
     return HttpResponse(template.render(context))
 
 

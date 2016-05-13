@@ -77,7 +77,7 @@
                 {% for project_turnover in project_turnovers %}
                     <tr class="{% cycle 'row1' 'row2' %}">
                         <td>
-                            <a href="{% url 'project_turnover_details' project_turnover.id ym %}">{{ project_turnover.name }}</a>
+                            <a href="{% url 'turnover_project_monthly' project_turnover.id ym %}">{{ project_turnover.name }}</a>
                         </td>
                         <td style="text-align: right">
                             {{ project_turnover.cost|intcomma }}

@@ -94,7 +94,7 @@
                 {% for client in clients %}
                     <tr class="{% cycle 'row1' 'row2' %}">
                         <td>
-                            <a href="{% url 'client_turnover_details' client.id ym %}">{{ client.name }}</a>
+                            <a href="{% url 'turnover_client_monthly' client.id ym %}">{{ client.name }}</a>
                         </td>
                         <td style="text-align: right">
                             {{ client.cost|intcomma }}

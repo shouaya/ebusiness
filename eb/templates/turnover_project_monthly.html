@@ -12,7 +12,7 @@
         <tr>
             <th>案件名称</th><td><a href="{% url 'project_detail' project.pk %}">{{ project.name }}</a> </td>
             <th>関連会社</th>
-            <td><a href="{% url 'client_turnover_details' project.client.pk ym %}">{{ project.client.name }}</a></td>
+            <td><a href="{% url 'turnover_client_monthly' project.client.pk ym %}">{{ project.client.name }}</a></td>
         </tr>
         <tr>
             <th>作業場所</th><td colspan="3">{{ project.address }}</td>

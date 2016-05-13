@@ -18,6 +18,20 @@ member_list_patterns = [
 download_patterns = [
     url(r'^project_request/(?P<project_id>[0-9]+).html$', views.download_project_request,
         name='download_project_request'),
+    url(r'^subcontractor_order/(?P<subcontractor_id>[0-9]+).html$', views.download_subcontractor_order,
+        name='download_subcontractor_order'),
+    url(r'^project_client_order/$', views.download_client_order, name='download_client_order'),
+    url(r'^project_quotation/(?P<project_id>[^,/]+).html$', views.download_project_quotation,
+        name='download_project_quotation'),
+]
+
+turnover_patterns = [
+    url(r'^company_monthly.html$', views.turnover_company_monthly, name="turnover_company_monthly"),
+    url(r'^clients/(?P<ym>[0-9]{6}).html$', views.turnover_clients_monthly, name='turnover_clients_monthly'),
+    url(r'^client/(?P<client_id>[0-9]+)/(?P<ym>[0-9]{6}).html$', views.turnover_client_monthly,
+        name='turnover_client_monthly'),
+    url(r'^project/(?P<project_id>[0-9]+)/(?P<ym>[0-9]{6}).html$', views.turnover_project_monthly,
+        name='turnover_project_monthly'),
 ]
 
 urlpatterns = [
@@ -40,15 +54,6 @@ urlpatterns = [
     url(r'^member_detail/(?P<employee_id>[^,/]+).html$', views.member_detail, name='member_detail'),
     url(r'^project/(?P<project_id>[^,/]+)/recommended_member.html$', views.recommended_member_list,
         name='recommended_member'),
-    url(r'^project/quotation/(?P<project_id>[^,/]+).html$', views.download_project_quotation,
-        name='download_project_quotation'),
-    url(r'^turnover_company.html$', views.turnover_company, name="turnover_company"),
-    url(r'^turnover_clients/(?P<ym>[0-9]{6}).html$', views.turnover_clients_month, name='turnover_clients_month'),
-    url(r'^client_turnover/(?P<client_id>[0-9]+)/(?P<ym>[0-9]{6}).html$', views.client_turnover_details,
-        name='client_turnover_details'),
-    url(r'^project_turnover/(?P<project_id>[0-9]+)/(?P<ym>[0-9]{6}).html$', views.project_turnover_details,
-        name='project_turnover_details'),
-    url(r'^project/client_order/download/$', views.download_client_order, name='download_client_order'),
     url(r'^member/(?P<employee_id>[^,/]+)/recommended_project.html$', views.recommended_project_list,
         name='recommended_project'),
     url(r'^subcontractor_list.html$', views.subcontractor_list, name='subcontractor_list'),
@@ -56,8 +61,7 @@ urlpatterns = [
         name='subcontractor_detail'),
     url(r'^subcontractor_members/(?P<subcontractor_id>[0-9]+).html$', views.subcontractor_members,
         name='subcontractor_members'),
-    url(r'^subcontractor_order/(?P<subcontractor_id>[0-9]+).html$', views.download_subcontractor_order,
-        name='download_subcontractor_order'),
+    url(r'^turnover/', include(turnover_patterns)),
     url(r'^download/', include(download_patterns)),
     url(r'^map_position.html$', views.map_position, name='map_position'),
     url(r'^issues.html$', views.issues, name='issues'),
