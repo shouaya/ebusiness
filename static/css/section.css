@@ -116,6 +116,12 @@ section table.detail {
     border: 1px solid rgb(198, 246, 204);
 }
 
+section table.detail pre {
+    overflow: auto;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
+
 section table.detail th, section table.detail td {
     border: 1px solid rgb(198, 246, 204);
     padding: 2px 4px;

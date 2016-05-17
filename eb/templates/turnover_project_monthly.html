@@ -30,23 +30,25 @@
                 <th>終了日</th>
                 <th>コスト</th>
                 <th>単価</th>
+                <th>精算</th>
                 <th>売上</th>
                 <th>利益</th>
             </tr>
         </thead>
         <tbody>
-            {% if members %}
-                {% for member in members %}
+            {% if members_turnover %}
+                {% for mt in members_turnover %}
                     <tr class="{% cycle 'row1' 'row2' %}">
                         <td>
-                            <a href="{% url 'member_detail' member.employee_id %}">{{ member.member_name }}</a>
+                            <a href="{% url 'member_detail' mt.project_member.member.employee_id %}">{{ mt.project_member.member }}</a>
                         </td>
-                        <td>{{ member.start_date|date:"Y-m-d" }}</td>
-                        <td>{{ member.end_date|date:"Y-m-d" }}</td>
-                        <td style="text-align: right">{{ member.cost|intcomma }}</td>
-                        <td style="text-align: right">{{ member.base_price|intcomma }}</td>
-                        <td style="text-align: right">{{ member.total_price|intcomma }}</td>
-                        <td style="text-align: right">{{ member.profit|intcomma }}</td>
+                        <td>{{ mt.project_member.start_date|date:"Y-m-d" }}</td>
+                        <td>{{ mt.project_member.end_date|date:"Y-m-d" }}</td>
+                        <td style="text-align: right">{{ mt.project_member.member.cost|intcomma }}</td>
+                        <td style="text-align: right">{{ mt.attendance.basic_price|intcomma }}</td>
+                        <td style="text-align: right">{{ mt.expense|intcomma }}</td>
+                        <td style="text-align: right">{{ mt.turnover|intcomma }}</td>
+                        <td style="text-align: right">{{ mt.profit|intcomma }}</td>
                     </tr>
                 {% endfor %}
             {% else %}
@@ -83,6 +85,7 @@
                 </td>
                 <td style="text-align: right"> {{ summary.cost|intcomma }}</td>
                 <td style="text-align: right"> {{ summary.base_price|intcomma }}</td>
+                <td></td>
                 <td style="text-align: right"> {{ summary.total_price|intcomma }}</td>
                 <td style="text-align: right"> {{ summary.profit|intcomma }}</td>
             </tr>

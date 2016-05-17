@@ -1106,41 +1106,18 @@ class Project(models.Model):
         :param ym: 対象年月
         :return:
         """
-        first_day = common.get_first_day_from_ym(ym)
-        last_day = common.get_last_day_by_month(first_day)
-
-        cursor = connection.cursor()
-        cursor.execute(u"select m.employee_id"
-                       u"     , concat(m.first_name, ' ', m.last_name) as member_name"
-                       u"     , pm.start_date, pm.end_date"
-                       u"     , pm.price as base_price"
-                       u"     , ifnull(m.cost, 0) as cost"
-                       u"     , ifnull(ma.price, 0) as total_price"
-                       u"     , ifnull(ma.price, 0) - ifnull(m.cost, 0) as profit"
-                       u"  from eb_projectmember pm"
-                       u"  join eb_member m on m.id = pm.member_id"
-                       u"  join eb_project p on p.id = pm.project_id"
-                       u"  left join eb_memberattendance ma on ma.project_member_id = pm.id"
-                       u"		 and ma.year = %s and ma.month = %s"
-                       u" where p.id = %s"
-                       u"   and pm.start_date <= %s"
-                       u"   and pm.end_date >= %s"
-                       u"   and pm.is_deleted = 0"
-                       u"   and pm.status = 2"
-                       u" order by p.name, concat(m.first_name, ' ', m.last_name) "
-                       , [ym[:4], ym[4:], self.pk, last_day, first_day])
         members = []
-        for employee_id, member_name, start_date, end_date, base_price, cost, total_price, profit in cursor.fetchall():
+        year = int(ym[:4])
+        month = int(ym[4:])
+        for project_member in self.get_project_members_by_month(ym=ym):
             d = dict()
-            d['employee_id'] = employee_id
-            d['member_name'] = member_name
-            d['start_date'] = start_date
-            d['end_date'] = end_date
-            d['base_price'] = base_price
-            d['cost'] = cost
-            d['total_price'] = total_price
-            d['profit'] = profit
+            d['project_member'] = project_member
+            d['attendance'] = project_member.get_attendance(year, month)
+            d['turnover'] = project_member.get_turnover(year, month)
+            d['expense'] = project_member.get_expense(year, month)
+            d['profit'] = d['turnover'] - project_member.member.cost
             members.append(d)
+
         return members
 
     def delete(self, using=None):
@@ -1373,9 +1350,34 @@ class ProjectMember(models.Model):
         :return: MemberAttendanceのインスタンス、または None
         """
         try:
-            return self.memberattendance_set.get(year=str(year), month="%02d" % (month,))
+            return self.memberattendance_set.get(year=str(year), month="%02d" % (month,), is_deleted=False)
         except ObjectDoesNotExist:
             return None
+
+    def get_turnover(self, year, month):
+        """メンバーの売上を取得する。
+
+        :param year: 対象年
+        :param month: 対象月
+        :return:
+        """
+        attendance = self.get_attendance(year, month)
+        if attendance:
+            return attendance.price
+        else:
+            return 0
+
+    def get_expense(self, year, month):
+        """メンバーの清算を取得する。
+
+        :param year:
+        :param month:
+        :return:
+        """
+        expense = self.memberexpenses_set.public_filter(year=year,
+                                                        month=month,
+                                                        is_deleted=False).aggregate(price=Sum('price'))
+        return expense.get('price') if expense.get('price') else 0
 
     def get_attendance_dict(self, year, month):
         """指定された年月の出勤情報を取得する。
@@ -1496,6 +1498,7 @@ class MemberAttendance(models.Model):
                             choices=constants.CHOICE_ATTENDANCE_YEAR, verbose_name=u"対象年")
     month = models.CharField(max_length=2, choices=constants.CHOICE_ATTENDANCE_MONTH, verbose_name=u"対象月")
     rate = models.DecimalField(max_digits=3, decimal_places=2, default=1, verbose_name=u"率")
+    # cost = models.IntegerField(default=0, editable=False, verbose_name=u"コスト")
     basic_price = models.IntegerField(default=0, editable=False, verbose_name=u"単価")
     total_hours = models.DecimalField(max_digits=5, decimal_places=2, verbose_name=u"合計時間")
     extra_hours = models.DecimalField(max_digits=5, decimal_places=2, default=0, verbose_name=u"残業時間")

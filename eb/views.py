@@ -766,29 +766,28 @@ def turnover_project_monthly(request, project_id, ym):
 
     project = Project.objects.get(pk=project_id)
     project_members_turnover = project.get_turnover_members_month(ym)
-    # client_turnover = biz.client_turnover_month(ym, client_id)[0]
 
     summary = {'base_price': 0, 'total_price': 0, 'cost': 0, 'profit': 0}
-    for turnover in project_members_turnover:
-        summary['base_price'] += turnover['base_price']
-        summary['total_price'] += turnover['total_price']
-        summary['cost'] += turnover['cost']
-        summary['profit'] += turnover['profit']
+    for item in project_members_turnover:
+        summary['base_price'] += item['attendance'].basic_price
+        summary['total_price'] += item['attendance'].price
+        summary['cost'] += item['project_member'].member.cost
+        summary['profit'] += item['profit']
 
     paginator = Paginator(project_members_turnover, PAGE_SIZE)
     page = request.GET.get('page')
     try:
-        members = paginator.page(page)
+        members_turnover = paginator.page(page)
     except PageNotAnInteger:
-        members = paginator.page(1)
+        members_turnover = paginator.page(1)
     except EmptyPage:
-        members = paginator.page(paginator.num_pages)
+        members_turnover = paginator.page(paginator.num_pages)
 
     context = RequestContext(request, {
         'company': company,
         'project': project,
         'title': u'月の売上情報',
-        'members': members,
+        'members_turnover': members_turnover,
         'summary': summary,
         'paginator': paginator,
         'ym': ym,
