@@ -664,7 +664,7 @@ def get_request_file_path(request_no, client_name, ym):
     from django.conf import settings
     path = os.path.join(settings.GENERATED_FILES_ROOT, "project_request", str(ym))
     if not os.path.exists(path):
-        os.mkdir(path)
+        os.makedirs(path)
     return os.path.join(path, filename).decode('UTF-8')
 
 

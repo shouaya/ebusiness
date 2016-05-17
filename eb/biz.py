@@ -143,7 +143,9 @@ def get_working_members(user=None, date=None, is_superuser=None, salesperson=Non
         last_day = common.get_last_day_by_month(date)
     if (user and user.is_superuser) or is_superuser:
         # 管理員の場合全部見られる
-        members = models.Member.objects.public_filter(Q(section__is_on_sales=True) | Q(member_type=4),
+        today = datetime.date.today()
+        members = models.Member.objects.public_filter(Q(join_date__isnull=True) | Q(join_date__lte=today),
+                                                      section__is_on_sales=True,
                                                       projectmember__start_date__lte=last_day,
                                                       projectmember__end_date__gte=first_day,
                                                       projectmember__is_deleted=False,

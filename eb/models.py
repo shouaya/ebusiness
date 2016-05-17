@@ -65,7 +65,7 @@ class AbstractMember(models.Model):
     phone = models.CharField(blank=True, null=True, max_length=11, verbose_name=u"電話番号")
     is_married = models.CharField(blank=True, null=True, max_length=1,
                                   choices=constants.CHOICE_MARRIED, verbose_name=u"婚姻状況")
-    section = models.ForeignKey('Section', blank=True, null=True, verbose_name=u"部署")
+    section = models.ForeignKey('Section', blank=False, null=True, verbose_name=u"部署")
     company = models.ForeignKey('Company', blank=True, null=True, verbose_name=u"会社")
     japanese_description = models.TextField(blank=True, null=True, verbose_name=u"日本語能力の説明")
     certificate = models.TextField(blank=True, null=True, verbose_name=u"資格の説明")
