@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+{% load humanize %}
+
+{% block header %}
+    <script type="text/javascript" src="https://code.highcharts.com/highcharts.js"></script>
+    <script type="text/javascript" src="https://code.highcharts.com/modules/data.js"></script>
+    <script type="text/javascript" src="https://code.highcharts.com/modules/exporting.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            Highcharts.setOptions({
+                lang: {
+                    thousandsSep: ','
+                }
+            });
+
+            $('#container').highcharts({
+                chart: {
+                    type: 'column'
+                },
+                title: {
+                    text: '部署別の売上情報'
+                },
+                xAxis: {
+                    categories: [{{ section_name_list|safe }}]
+                },
+                yAxis: {
+                    allowDecimals: false,
+                    title: {
+                        text: '金額 (円)'
+                    },
+                    stackLabels: {
+                        enabled: true,
+                        style: {
+                            fontWeight: 'bold',
+                            color: (Highcharts.theme && Highcharts.theme.textColor) || 'gray'
+                        }
+                    }
+                },
+                tooltip: {
+                    headerFormat: '<span style="font-size:10px">{point.key}</span><table>',
+                    pointFormat: '<tr><td style="color:{series.color};padding:0">{series.name}: </td>' +
+                        '<td style="padding:0;text-align:right;"><b>{point.y:,.0f} 円</b></td></tr>',
+                    footerFormat: '</table>',
+                    shared: true,
+                    useHTML: true
+                },
+                plotOptions: {
+                    column: {
+                        stacking: 'normal',
+                    }
+                },
+                series: [{
+                    name: '精算',
+                    data: {{ expenses_amount_list }}
+                }, {
+                    name: '税金',
+                    data: {{ attendance_tex_list }}
+                }, {
+                    name: '売上（税別）',
+                    data: {{ attendance_amount_list }}
+                }]
+            });
+        });
+    </script>
+{% endblock %}
+
+{% block content %}
+    <div class="dashboard">
+        <div class="dashboard-title">部署別の売上情報</div>
+        <div id="container" style="min-width: 310px; height: 300px; margin: 0 auto"></div>
+    </div>
+    <table id="tbl_sections_monthly" class="list" cellpadding="0" cellspacing="0">
+        <thead>
+            <tr>
+                <th>部署</th>
+                <th>売上（税別）</th>
+                <th>税金</th>
+                <th>精算</th>
+                <th>合計</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% if sections_turnover %}
+                {% for section_turnover in sections_turnover %}
+                    <tr class="{% cycle 'row1' 'row2' %}">
+                        <td>
+                            <a href="">{{ section_turnover.section }}</a>
+                        </td>
+                        <td style="text-align: right">
+                            {{ section_turnover.attendance_amount|intcomma }}
+                        </td>
+                        <td style="text-align: right">
+                            {{ section_turnover.attendance_tex|intcomma }}
+                        </td>
+                        <td style="text-align: right">
+                            {{ section_turnover.expenses_amount|intcomma }}
+                        </td>
+                        <td style="text-align: right">
+                            {{ section_turnover.all_amount|intcomma }}
+                        </td>
+                    </tr>
+                {% endfor %}
+            {% else %}
+                <tr class="row1"><td class="center red" colspan="4">部署の売上情報がありません。</td></tr>
+            {% endif %}
+        </tbody>
+        <tfoot>
+            <tr>
+                <td></td>
+                <td style="text-align: right"> {{ summary.attendance_amount|intcomma }}</td>
+                <td style="text-align: right"> {{ summary.attendance_tex|intcomma }}</td>
+                <td style="text-align: right"> {{ summary.expenses_amount|intcomma }}</td>
+                <td style="text-align: right"> {{ summary.all_amount|intcomma }}</td>
+            </tr>
+        </tfoot>
+    </table>
+{% endblock %}

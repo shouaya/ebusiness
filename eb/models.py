@@ -337,6 +337,23 @@ class Section(models.Model):
     def __unicode__(self):
         return self.name
 
+    def get_attendance_amount(self, ym):
+        """対象年月の出勤売上を取得する。
+
+        :param ym: 対象年月
+        :return:
+        """
+        amount = MemberAttendance.objects.public_filter(year=ym[:4], month=ym[4:],
+                                                        project_member__member__section=self)\
+            .aggregate(amount=Sum('price'))
+        return amount.get('amount', 0) if amount.get('amount', 0) else 0
+
+    def get_expenses_amount(self, ym):
+        amount = MemberExpenses.objects.public_filter(year=ym[:4], month=ym[4:],
+                                                      project_member__member__section=self)\
+            .aggregate(amount=Sum('price'))
+        return amount.get('amount', 0) if amount.get('amount', 0) else 0
+
     def delete(self, using=None):
         self.is_deleted = True
         self.deleted_date = datetime.datetime.now()

@@ -449,6 +449,25 @@ def client_turnover_projects_month(ym, client):
     return project_turnovers
 
 
+def sections_turnover_monthly(ym):
+    """部署別の売上を取得する。
+
+    :param ym: 対象年月
+    :return:
+    """
+    sections = models.Section.objects.public_filter(is_on_sales=True)
+    sections_turnover = []
+    for section in sections:
+        d = dict()
+        d['section'] = section
+        d['attendance_amount'] = section.get_attendance_amount(ym)
+        d['attendance_tex'] = int(d['attendance_amount'] * 0.08)
+        d['expenses_amount'] = section.get_expenses_amount(ym)
+        d['all_amount'] = d['attendance_amount'] + d['attendance_tex'] + d['expenses_amount']
+        sections_turnover.append(d)
+    return sections_turnover
+
+
 def get_salesperson_director():
     """営業の管理者を取得する。
     """

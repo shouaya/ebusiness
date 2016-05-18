@@ -683,13 +683,14 @@ def project_member_list(request, project_id):
 
 
 @login_required(login_url='/eb/login/')
-def turnover_company_monthly(request):
+def turnover_company_monthly(request, page_type):
     company = biz.get_company()
     company_turnover = biz.turnover_company_monthly()
     context = RequestContext(request, {
         'company': company,
         'title': u'売上情報',
         'company_turnover': company_turnover,
+        'page_type': page_type,
     })
     template = loader.get_template('turnover_company_monthly.html')
     return HttpResponse(template.render(context))
@@ -793,6 +794,36 @@ def turnover_project_monthly(request, project_id, ym):
         'ym': ym,
     })
     template = loader.get_template('turnover_project_monthly.html')
+    return HttpResponse(template.render(context))
+
+
+@login_required(login_url='/eb/login/')
+def turnover_sections_monthly(request, ym):
+    company = biz.get_company()
+    sections_turnover = biz.sections_turnover_monthly(ym)
+    summary = {'attendance_amount': 0, 'expenses_amount': 0, 'attendance_tex': 0, 'all_amount': 0}
+    for item in sections_turnover:
+        summary['attendance_amount'] += item['attendance_amount']
+        summary['attendance_tex'] += item['attendance_tex']
+        summary['expenses_amount'] += item['expenses_amount']
+        summary['all_amount'] += item['all_amount']
+    attendance_amount_list = [item['attendance_amount'] for item in sections_turnover]
+    attendance_tex_list = [item['attendance_tex'] for item in sections_turnover]
+    expenses_amount_list = [item['expenses_amount'] for item in sections_turnover]
+    section_name_list = ["'" + item['section'].name + "'" for item in sections_turnover]
+
+    context = RequestContext(request, {
+        'company': company,
+        'title': u'部署別の売上情報 - %s' % (ym,),
+        'sections_turnover': sections_turnover,
+        'section_name_list': ",".join(section_name_list),
+        'attendance_amount_list': attendance_amount_list,
+        'attendance_tex_list': attendance_tex_list,
+        'expenses_amount_list': expenses_amount_list,
+        'summary': summary,
+        'ym': ym,
+    })
+    template = loader.get_template('turnover_sections_monthly.html')
     return HttpResponse(template.render(context))
 
 
