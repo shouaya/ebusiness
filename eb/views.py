@@ -828,6 +828,30 @@ def turnover_sections_monthly(request, ym):
 
 
 @login_required(login_url='/eb/login/')
+def turnover_section_monthly(request, section_id, ym):
+    company = biz.get_company()
+    section = get_object_or_404(Section, pk=section_id)
+    members_turnover = biz.section_turnover_monthly(section, ym)
+    summary = {'attendance_amount': 0, 'expenses_amount': 0, 'attendance_tex': 0, 'all_amount': 0}
+    for item in members_turnover:
+        summary['attendance_amount'] += item['attendance_amount']
+        summary['attendance_tex'] += item['attendance_tex']
+        summary['expenses_amount'] += item['expenses_amount']
+        summary['all_amount'] += item['all_amount']
+
+    context = RequestContext(request, {
+        'company': company,
+        'title': u'%sの売上情報 - %s' % (section.name, ym),
+        'section': section,
+        'members_turnover': members_turnover,
+        'summary': summary,
+        'ym': ym,
+    })
+    template = loader.get_template('turnover_section_monthly.html')
+    return HttpResponse(template.render(context))
+
+
+@login_required(login_url='/eb/login/')
 def release_list(request):
     company = biz.get_company()
     period = request.GET.get('period', None)

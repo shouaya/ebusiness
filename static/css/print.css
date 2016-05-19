@@ -9,3 +9,7 @@ section div.dashboard {
 .noprint {
     display: none;
 }
+
+.print {
+    display: block;
+}

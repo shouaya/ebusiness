@@ -65,7 +65,7 @@
 {% endblock %}
 
 {% block content %}
-    <div class="dashboard">
+    <div class="dashboard print">
         <div class="dashboard-title">部署別の売上情報</div>
         <div id="container" style="min-width: 310px; height: 300px; margin: 0 auto"></div>
     </div>
@@ -84,7 +84,7 @@
                 {% for section_turnover in sections_turnover %}
                     <tr class="{% cycle 'row1' 'row2' %}">
                         <td>
-                            <a href="">{{ section_turnover.section }}</a>
+                            <a href="{% url 'turnover_section_monthly' section_turnover.section.pk ym %}">{{ section_turnover.section }}</a>
                         </td>
                         <td style="text-align: right">
                             {{ section_turnover.attendance_amount|intcomma }}

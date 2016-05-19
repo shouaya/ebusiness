@@ -36,8 +36,8 @@ turnover_patterns = [
     url(r'^company_monthly_for_sections.html$', views.turnover_company_monthly, {'page_type': 'for_section'},
         name="turnover_company_monthly_for_sections"),
     url(r'^sections/(?P<ym>[0-9]{6}).html$', views.turnover_sections_monthly, name='turnover_sections_monthly'),
-    # url(r'^section/(?P<section_id>[0-9]+)/(?P<ym>[0-9]{6}).html$', views.turnover_section_monthly,
-    #     name='turnover_section_monthly'),
+    url(r'^section/(?P<section_id>[0-9]+)/(?P<ym>[0-9]{6}).html$', views.turnover_section_monthly,
+        name='turnover_section_monthly'),
 ]
 
 urlpatterns = [

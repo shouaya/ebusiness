@@ -1130,8 +1130,8 @@ class Project(models.Model):
             d = dict()
             d['project_member'] = project_member
             d['attendance'] = project_member.get_attendance(year, month)
-            d['turnover'] = project_member.get_turnover(year, month)
-            d['expense'] = project_member.get_expense(year, month)
+            d['turnover'] = project_member.get_attendance_amount(year, month)
+            d['expense'] = project_member.get_expenses_amount(year, month)
             d['profit'] = d['turnover'] - project_member.member.cost
             members.append(d)
 
@@ -1371,7 +1371,7 @@ class ProjectMember(models.Model):
         except ObjectDoesNotExist:
             return None
 
-    def get_turnover(self, year, month):
+    def get_attendance_amount(self, year, month):
         """メンバーの売上を取得する。
 
         :param year: 対象年
@@ -1384,15 +1384,15 @@ class ProjectMember(models.Model):
         else:
             return 0
 
-    def get_expense(self, year, month):
+    def get_expenses_amount(self, year, month):
         """メンバーの清算を取得する。
 
         :param year:
         :param month:
         :return:
         """
-        expense = self.memberexpenses_set.public_filter(year=year,
-                                                        month=month,
+        expense = self.memberexpenses_set.public_filter(year=str(year),
+                                                        month="%02d" % (month,),
                                                         is_deleted=False).aggregate(price=Sum('price'))
         return expense.get('price') if expense.get('price') else 0
 

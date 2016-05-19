@@ -468,6 +468,27 @@ def sections_turnover_monthly(ym):
     return sections_turnover
 
 
+def section_turnover_monthly(section, ym):
+    members_turnover = []
+    first_day = common.get_first_day_from_ym(ym)
+    last_day = common.get_last_day_by_month(first_day)
+    project_members = models.ProjectMember.objects.public_filter(member__section=section,
+                                                                 start_date__lte=last_day,
+                                                                 end_date__gte=first_day,
+                                                                 status=2)
+    for project_member in project_members:
+        if project_member.pk == 443:
+            pass
+        d = dict()
+        d['project_member'] = project_member
+        d['attendance_amount'] = project_member.get_attendance_amount(first_day.year, first_day.month)
+        d['attendance_tex'] = int(d['attendance_amount'] * 0.08)
+        d['expenses_amount'] = project_member.get_expenses_amount(first_day.year, first_day.month)
+        d['all_amount'] = d['attendance_amount'] + d['attendance_tex'] + d['expenses_amount']
+        members_turnover.append(d)
+    return members_turnover
+
+
 def get_salesperson_director():
     """営業の管理者を取得する。
     """
