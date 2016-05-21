@@ -477,8 +477,6 @@ def section_turnover_monthly(section, ym):
                                                                  end_date__gte=first_day,
                                                                  status=2)
     for project_member in project_members:
-        if project_member.pk == 443:
-            pass
         d = dict()
         d['project_member'] = project_member
         d['attendance_amount'] = project_member.get_attendance_amount(first_day.year, first_day.month)

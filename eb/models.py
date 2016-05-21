@@ -456,6 +456,18 @@ class Member(AbstractMember):
     def __unicode__(self):
         return u"%s %s" % (self.first_name, self.last_name)
 
+    def get_resume_name(self):
+        """履歴書の氏名を取得する。
+
+        :return: 名(ローマ字)が定義すれば、その頭文字を取得し、姓と一緒に返す。
+        """
+        if self.last_name_en:
+            lst = re.findall(r"[A-Z]", str(self.last_name_en))
+            last_name = "".join(lst)
+        else:
+            last_name = self.last_name
+        return u"%s %s" % (self.first_name, last_name)
+
     def get_age(self):
         birthday = self.birthday
         if birthday:

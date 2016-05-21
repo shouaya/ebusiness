@@ -901,28 +901,19 @@ def release_list(request):
 def member_detail(request, employee_id):
     company = biz.get_company()
     member = Member.objects.get(employee_id=employee_id)
-    download = request.GET.get('download', None)
     member.set_coordinate()
 
-    if download == constants.DOWNLOAD_RESUME:
-        date = datetime.date.today().strftime("%Y%m")
-        filename = constants.NAME_RESUME % (member.first_name + member.last_name, date)
-        output = file_gen.generate_resume(member)
-        response = HttpResponse(output.read(), content_type="application/ms-excel")
-        response['Content-Disposition'] = "filename=" + urllib.quote(filename.encode('utf-8')) + ".xlsx"
-        return response
-    else:
-        project_count = member.projectmember_set.public_all().count()
-        context = RequestContext(request, {
-            'company': company,
-            'member': member,
-            'title': u'%s の履歴' % (member,),
-            'project_count': project_count,
-            'all_project_count': project_count + member.historyproject_set.public_all().count(),
-            'default_project_count': range(1, 14),
-        })
-        template = loader.get_template('member_detail.html')
-        return HttpResponse(template.render(context))
+    project_count = member.projectmember_set.public_all().count()
+    context = RequestContext(request, {
+        'company': company,
+        'member': member,
+        'title': u'%s の履歴' % (member,),
+        'project_count': project_count,
+        'all_project_count': project_count + member.historyproject_set.public_all().count(),
+        'default_project_count': range(1, 14),
+    })
+    template = loader.get_template('member_detail.html')
+    return HttpResponse(template.render(context))
 
 
 @login_required(login_url='/eb/login/')
@@ -1186,6 +1177,7 @@ def download_project_quotation(request, project_id):
         return HttpResponse(u"<script>alert('%s');window.close();</script>" % (ex.message,))
 
 
+@login_required(login_url='/eb/login/')
 def download_client_order(request):
     p = request.GET.get('path', None)
     if p:
@@ -1256,6 +1248,17 @@ def download_project_request(request, project_id):
         return response
     except errors.MyBaseException, ex:
         return HttpResponse(u"<script>alert('%s');window.close();</script>" % (ex.message,))
+
+
+@login_required(login_url='/eb/login/')
+def download_resume(request, member_id):
+    member = get_object_or_404(Member, pk=member_id)
+    date = datetime.date.today().strftime("%Y%m")
+    filename = constants.NAME_RESUME % (member.first_name + member.last_name, date)
+    output = file_gen.generate_resume(member)
+    response = HttpResponse(output.read(), content_type="application/ms-excel")
+    response['Content-Disposition'] = "filename=" + urllib.quote(filename.encode('utf-8')) + ".xlsx"
+    return response
 
 
 @login_required(login_url='/eb/login/')

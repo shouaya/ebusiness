@@ -113,8 +113,7 @@ def generate_resume(member):
 
     sheet.merge_range('D5:L5', member.first_name_ja + " " + member.last_name_ja if member.last_name_ja else "",
                       content_format_top)
-    sheet.merge_range('D6:L7', member.first_name + " " + member.last_name if member.last_name else "",
-                      content_format_inner3)
+    sheet.merge_range('D6:L7', member.get_resume_name(), content_format_inner3)
     sheet.merge_range('D8:L9', member.address1, content_format_inner)
     sheet.merge_range('D10:L10', member.nearest_station, content_format_inner)
     sheet.merge_range('D11:L12', u"%s 年" % (member.years_in_japan,) if member.years_in_japan else "",
@@ -127,7 +126,8 @@ def generate_resume(member):
 
     sheet.merge_range('P5:X6', member.get_sex_display(), content_format_top)
     sheet.merge_range('P7:X8', member.country, content_format_inner)
-    sheet.merge_range('P9:T10', u"%d年%2d月%2d日" % (member.birthday.year, member.birthday.month, member.birthday.day),
+    date_format = u'%Y年%m月%d日'.encode('utf-8')
+    sheet.merge_range('P9:T10', member.birthday.strftime(date_format).decode('utf-8') if member.birthday else "",
                       content_format_inner2)
     sheet.merge_range('U9:X10', str(member.get_age()), content_format_inner_center)
     sheet.merge_range('P11:X12', member.get_is_married_display(), content_format_bottom)

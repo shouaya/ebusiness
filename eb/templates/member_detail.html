@@ -7,7 +7,7 @@
     <div class="dashboard">
         <div class="dashboard-title">{{ member }} の履歴</div>
         <form action="" method="get">
-            <a href="?download=resume" target="_blank" class="button">ダウンロード</a>
+            <a href="{% url 'download_resume' member.pk %}" target="_blank" class="button">ダウンロード</a>
         </form>
         <table class="resume" cellpadding="0" cellspacing="0" style="width: 948px;">
             <tr>
@@ -19,7 +19,7 @@
                         </tr>
                         <tr>
                             <th class="td-inner" style="height: 35px;">氏&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;名</th>
-                            <td class="td-inner">{{ member }}</td>
+                            <td class="td-inner">{{ member.get_resume_name }}</td>
                         </tr>
                         <tr>
                             <th class="td-inner" style="height: 35px;">現&nbsp;住&nbsp;所</th>
@@ -144,7 +144,7 @@
                             {% for projectmember in member.projectmember_set.all %}
                                 <tr class="project-detail">
                                     <td style="text-align: center;">{{ forloop.counter }}</td>
-                                    <td>{{ projectmember.project.start_date|date:"Y年M" }}～<br/>{{ projectmember.project.end_date|date:"Y年M" }}</td>
+                                    <td>{{ projectmember.start_date|date:"Y年M" }}～<br/>{{ projectmember.end_date|date:"Y年M" }}</td>
                                     <td style="vertical-align: top; padding: 0px;">
                                         <table style="width: 270px; table-layout: fixed;" cellpadding="0" cellspacing="0">
                                             <tr>

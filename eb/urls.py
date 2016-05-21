@@ -21,8 +21,9 @@ download_patterns = [
     url(r'^subcontractor_order/(?P<subcontractor_id>[0-9]+).html$', views.download_subcontractor_order,
         name='download_subcontractor_order'),
     url(r'^project_client_order/$', views.download_client_order, name='download_client_order'),
-    url(r'^project_quotation/(?P<project_id>[^,/]+).html$', views.download_project_quotation,
+    url(r'^project_quotation/(?P<project_id>[0-9]+).html$', views.download_project_quotation,
         name='download_project_quotation'),
+    url(r'^resume/(?P<member_id>[0-9]+).html$', views.download_resume, name='download_resume'),
 ]
 
 turnover_patterns = [
