@@ -34,6 +34,28 @@ function init_select(name)
     }
 }
 
+function init_select_name(select_id, name)
+{
+    params = GetQueryString();
+    value = params[name];
+    if (value != null && value != undefined)
+    {
+        $("#" + select_id + " option").filter(function() {
+            return $(this).text() == value;
+        }).prop('selected', true);
+    }
+}
+
+function init_select_text(select_id, text)
+{
+    if (text != null && text != undefined)
+    {
+        $("#" + select_id + " option").filter(function() {
+            return $(this).text() == text;
+        }).prop('selected', true);
+    }
+}
+
 function show_mask() {
     mask = $('#mask')
     mask.css('display', 'block');

@@ -354,6 +354,9 @@ class Section(models.Model):
             .aggregate(amount=Sum('price'))
         return amount.get('amount', 0) if amount.get('amount', 0) else 0
 
+    def get_cost_amount(self, ym):
+        pass
+
     def delete(self, using=None):
         self.is_deleted = True
         self.deleted_date = datetime.datetime.now()
@@ -430,6 +433,23 @@ class Salesperson(AbstractMember):
                 return [self.email, self.private_email]
 
         return []
+
+    def get_attendance_amount(self, ym):
+        """対象年月の出勤売上を取得する。
+
+        :param ym: 対象年月
+        :return:
+        """
+        amount = MemberAttendance.objects.public_filter(year=ym[:4], month=ym[4:],
+                                                        project_member__member__salesperson=self)\
+            .aggregate(amount=Sum('price'))
+        return amount.get('amount', 0) if amount.get('amount', 0) else 0
+
+    def get_expenses_amount(self, ym):
+        amount = MemberExpenses.objects.public_filter(year=ym[:4], month=ym[4:],
+                                                      project_member__member__salesperson=self)\
+            .aggregate(amount=Sum('price'))
+        return amount.get('amount', 0) if amount.get('amount', 0) else 0
 
     def delete(self, using=None):
         self.is_deleted = True
@@ -725,47 +745,22 @@ class Client(AbstractCompany):
                 return last_day
             return datetime.date(pay_month.year, pay_month.month, pay_day)
 
-    def get_turnover_month(self, date):
-        """お客様の売上情報を取得する。
+    def get_attendance_amount(self, ym):
+        """対象年月の出勤売上を取得する。
 
-        :param date: 指定年月
-        :return 取引先の指定年月のコストと売上と利益のDict
-        """
-        if not date:
-            date = datetime.date.today()
-
-        first_day = common.get_first_day_by_month(date)
-        last_day = common.get_last_day_by_month(date)
-        cost = ProjectMember.objects.public_filter(project__client=self,
-                                                   start_date__lte=last_day,
-                                                   end_date__gte=first_day)\
-            .aggregate(cost=Sum('member__cost'))
-        cost = cost.get('cost', 0) if cost.get('cost', 0) else 0
-
-        # 請求書から売上を取得する
-        amount = ProjectRequest.objects.filter(project__client=self,
-                                               year='%04d' % (date.year,),
-                                               month='%02d' % (date.month,))\
-            .aggregate(amount=Sum('amount'))
-        amount = amount.get('amount', 0) if amount.get('amount', 0) else 0
-
-        profit = amount - cost
-        return {'cost': cost, 'price': amount, 'profit': profit}
-
-    def get_turnover_months(self):
-        """集計対象月のリストを返す
-
+        :param ym: 対象年月
         :return:
         """
-        dict_start_date = self.project_set.public_all().aggregate(Min('start_date'))
-        start_date = dict_start_date.get('start_date__min')
-        if start_date:
-            end_date = self.project_set.public_all().aggregate(Max('end_date')).get('end_date__max')
-            today = datetime.date.today()
-            if end_date > today:
-                end_date = today
-            return common.get_month_list2(start_date, end_date)
-        return []
+        amount = MemberAttendance.objects.public_filter(year=ym[:4], month=ym[4:],
+                                                        project_member__project__client=self)\
+            .aggregate(amount=Sum('price'))
+        return amount.get('amount', 0) if amount.get('amount', 0) else 0
+
+    def get_expenses_amount(self, ym):
+        amount = MemberExpenses.objects.public_filter(year=ym[:4], month=ym[4:],
+                                                      project_member__project__client=self)\
+            .aggregate(amount=Sum('price'))
+        return amount.get('amount', 0) if amount.get('amount', 0) else 0
 
     def delete(self, using=None):
         self.is_deleted = True
@@ -1105,50 +1100,6 @@ class Project(models.Model):
                                                              client_order=client_order)[0]
             return project_request
 
-    def get_turnover_month(self, ym):
-        """案件の売上情報を取得する。
-
-        :param ym: 指定年月
-        :return 取引先の指定年月のコストと売上と利益のDict
-        """
-        first_day = common.get_first_day_from_ym(ym)
-        last_day = common.get_last_day_by_month(first_day)
-        cost = ProjectMember.objects.public_filter(project=self,
-                                                   start_date__lte=last_day,
-                                                   end_date__gte=first_day)\
-            .aggregate(cost=Sum('member__cost'))
-        cost = cost.get('cost', 0) if cost.get('cost', 0) else 0
-
-        # 請求書から売上を取得する
-        amount = ProjectRequest.objects.filter(project=self,
-                                               year=ym[:4],
-                                               month=ym[4:])\
-            .aggregate(amount=Sum('amount'))
-        amount = amount.get('amount', 0) if amount.get('amount', 0) else 0
-
-        profit = amount - cost
-        return {'cost': cost, 'price': amount, 'profit': profit}
-
-    def get_turnover_members_month(self, ym):
-        """要員毎の売上情報を取得する
-
-        :param ym: 対象年月
-        :return:
-        """
-        members = []
-        year = int(ym[:4])
-        month = int(ym[4:])
-        for project_member in self.get_project_members_by_month(ym=ym):
-            d = dict()
-            d['project_member'] = project_member
-            d['attendance'] = project_member.get_attendance(year, month)
-            d['turnover'] = project_member.get_attendance_amount(year, month)
-            d['expense'] = project_member.get_expenses_amount(year, month)
-            d['profit'] = d['turnover'] - project_member.member.cost
-            members.append(d)
-
-        return members
-
     def delete(self, using=None):
         self.is_deleted = True
         self.deleted_date = datetime.datetime.now()
@@ -1407,6 +1358,14 @@ class ProjectMember(models.Model):
                                                         month="%02d" % (month,),
                                                         is_deleted=False).aggregate(price=Sum('price'))
         return expense.get('price') if expense.get('price') else 0
+
+    def get_cost_amount(self, year, month):
+        cost = self.member.cost
+        attendance = self.get_attendance(year, month)
+        if attendance:
+            return cost + int(attendance.extra_hours * 2000)
+        else:
+            return cost
 
     def get_attendance_dict(self, year, month):
         """指定された年月の出勤情報を取得する。

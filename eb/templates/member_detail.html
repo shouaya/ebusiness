@@ -7,6 +7,7 @@
     <div class="dashboard">
         <div class="dashboard-title">{{ member }} の履歴</div>
         <form action="" method="get">
+            <a href="{% url 'admin:eb_member_change' member.pk %}?from=portal&_popup=1" target="_blank" class="button">編集</a>
             <a href="{% url 'download_resume' member.pk %}" target="_blank" class="button">ダウンロード</a>
         </form>
         <table class="resume" cellpadding="0" cellspacing="0" style="width: 948px;">

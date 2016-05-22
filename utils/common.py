@@ -83,6 +83,22 @@ def get_month_list2(start_date, end_date):
     return month_list
 
 
+def get_request_params(params):
+    """Requestから並び替え以外おパラメーターを取得する。
+
+    :param params:
+    :return:
+    """
+    if params:
+        d = dict()
+        for key, value in dict(params).items():
+            if key in ("o", "page") or not value:
+                continue
+            if isinstance(value, list) and value[0]:
+                d[str(key)] = "".join(value)
+        return d
+    return None
+
 def get_ordering_dict(data, fields):
     """ＵＲＬからの引数を解析し、並び順を取得する。
 

@@ -27,18 +27,9 @@ download_patterns = [
 ]
 
 turnover_patterns = [
-    url(r'^company_monthly.html$', views.turnover_company_monthly, {'page_type': 'for_clients'},
-        name="turnover_company_monthly"),
-    url(r'^clients/(?P<ym>[0-9]{6}).html$', views.turnover_clients_monthly, name='turnover_clients_monthly'),
-    url(r'^client/(?P<client_id>[0-9]+)/(?P<ym>[0-9]{6}).html$', views.turnover_client_monthly,
-        name='turnover_client_monthly'),
-    url(r'^project/(?P<project_id>[0-9]+)/(?P<ym>[0-9]{6}).html$', views.turnover_project_monthly,
-        name='turnover_project_monthly'),
-    url(r'^company_monthly_for_sections.html$', views.turnover_company_monthly, {'page_type': 'for_section'},
-        name="turnover_company_monthly_for_sections"),
-    url(r'^sections/(?P<ym>[0-9]{6}).html$', views.turnover_sections_monthly, name='turnover_sections_monthly'),
-    url(r'^section/(?P<section_id>[0-9]+)/(?P<ym>[0-9]{6}).html$', views.turnover_section_monthly,
-        name='turnover_section_monthly'),
+    url(r'^company_monthly.html$', views.turnover_company_monthly, name="turnover_company_monthly"),
+    url(r'^charts/(?P<ym>[0-9]{6}).html$', views.turnover_charts_monthly, name='turnover_charts_monthly'),
+    url(r'^members/(?P<ym>[0-9]{6}).html$', views.turnover_members_monthly, name='turnover_members_monthly'),
 ]
 
 urlpatterns = [

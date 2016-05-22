@@ -1,0 +1,191 @@
+{% extends "base.html" %}
+{% load humanize %}
+
+{% block header %}
+    <script type="text/javascript">
+        window.onload = function() {
+            init_select("member__first_name__contains");
+            init_select("member__last_name__contains");
+            init_select("member__section__pk");
+            init_select_name("member__section__pk", "member__section__name");
+            init_select("project__name__contains");
+            init_select("project__client__name__contains");
+            init_select("member__salesperson__pk");
+            init_select_name("member__section__pk", "member__section__name");
+
+            params = GetQueryString();
+            first_name = params["member__salesperson__first_name"];
+            last_name = params["member__salesperson__last_name"];
+            init_select_text("member__salesperson__pk", first_name + " " + last_name);
+        };
+    </script>
+{% endblock %}
+
+{% block content %}
+    <div class="dashboard print">
+        <div class="dashboard-title">{{ ym }} の売上情報</div>
+        <form action="{% url 'turnover_members_monthly' ym %}" method="get">
+            <span>姓: </span><input type="text" id="member__first_name__contains" name="member__first_name__contains" style="width: 50px;"/>
+            <span>名: </span><input type="text" id="member__last_name__contains" name="member__last_name__contains" style="width: 50px;"/>
+            <span>部署：</span>
+            <select id="member__section__pk" name="member__section__pk">
+                <option value="">すべて</option>
+                {% for section in sections %}
+                    <option value="{{ section.pk }}">{{ section.name }}</option>
+                {% endfor %}
+            </select>
+            <span>案件: </span><input type="text" id="project__name__contains" name="project__name__contains" style="width: 150px;"/>
+            <span>関連会社: </span><input type="text" id="project__client__name__contains" name="project__client__name__contains" style="width: 150px;"/>
+            <span>営業：</span>
+            <select id="member__salesperson__pk" name="member__salesperson__pk">
+                <option value="">すべて</option>
+                {% for member in salesperson %}
+                    <option value="{{ member.pk }}">{{ member }}</option>
+                {% endfor %}
+            </select>
+            <input type="submit" value="Filter" />
+            <a href="{% url 'turnover_members_monthly' ym %}">クリア</a>
+        </form>
+    </div>
+    <table id="tbl_sections_monthly" class="list" cellpadding="0" cellspacing="0">
+        <thead>
+            <tr>
+                <th style="width: 75px;">
+                    {% if dict_order.member__first_name.is_in_ordering %}
+                        <div class="sortoptions">
+                            <a class="sortremove" href="?o={{ dict_order.member__first_name.url_list_removed }}{{ params }}"></a>
+                            <span class="sortpriority">{{ dict_order.member__first_name.priority }}</span>
+                            <a class="{% if dict_order.member__first_name.is_asc %}descending{% else %}ascending{% endif %}"
+                               href="?o={{ dict_order.member__first_name.url }}{{ params }}"></a>
+                        </div>
+                    {% endif %}
+                    <div class="text">
+                        <a href="?o={{ dict_order.member__first_name.url }}{{ params }}">名前</a>
+                    </div>
+                    <div class="clear"></div>
+                </th>
+                <th>
+                    {% if dict_order.member__section__name.is_in_ordering %}
+                        <div class="sortoptions">
+                            <a class="sortremove" href="?o={{ dict_order.member__section__name.url_list_removed }}{{ params }}"></a>
+                            <span class="sortpriority">{{ dict_order.member__section__name.priority }}</span>
+                            <a class="{% if dict_order.member__section__name.is_asc %}descending{% else %}ascending{% endif %}"
+                               href="?o={{ dict_order.member__section__name.url }}{{ params }}"></a>
+                        </div>
+                    {% endif %}
+                    <div class="text">
+                        <a href="?o={{ dict_order.member__section__name.url }}{{ params }}">部署</a>
+                    </div>
+                    <div class="clear"></div>
+                </th>
+                <th style="width: 220px;">
+                    {% if dict_order.project__name.is_in_ordering %}
+                        <div class="sortoptions">
+                            <a class="sortremove" href="?o={{ dict_order.project__name.url_list_removed }}{{ params }}"></a>
+                            <span class="sortpriority">{{ dict_order.project__name.priority }}</span>
+                            <a class="{% if dict_order.project__name.is_asc %}descending{% else %}ascending{% endif %}"
+                               href="?o={{ dict_order.project__name.url }}{{ params }}"></a>
+                        </div>
+                    {% endif %}
+                    <div class="text">
+                        <a href="?o={{ dict_order.project__name.url }}{{ params }}">案件名称</a>
+                    </div>
+                    <div class="clear"></div>
+                </th>
+                <th style="width: 160px;">
+                    {% if dict_order.project__client__name.is_in_ordering %}
+                        <div class="sortoptions">
+                            <a class="sortremove" href="?o={{ dict_order.project__client__name.url_list_removed }}{{ params }}"></a>
+                            <span class="sortpriority">{{ dict_order.project__client__name.priority }}</span>
+                            <a class="{% if dict_order.project__client__name.is_asc %}descending{% else %}ascending{% endif %}"
+                               href="?o={{ dict_order.project__client__name.url }}{{ params }}"></a>
+                        </div>
+                    {% endif %}
+                    <div class="text">
+                        <a href="?o={{ dict_order.project__client__name.url }}{{ params }}">関連会社</a>
+                    </div>
+                    <div class="clear"></div>
+                </th>
+                <th>営業</th>
+                <th>コスト</th>
+                <th>売上（税別）</th>
+                <th>税金</th>
+                <th>精算</th>
+                <th>合計</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% if members_turnover %}
+                {% for member_turnover in members_turnover %}
+                    <tr class="{% cycle 'row1' 'row2' %}">
+                        <td>
+                            <a href="{% url 'member_detail' member_turnover.project_member.member.employee_id %}">{{ member_turnover.project_member.member }}</a>
+                        </td>
+                        <td>{{ member_turnover.project_member.member.section }}</td>
+                        <td>
+                            <div style="width: 220px; overflow: hidden; white-space: nowrap;">
+                            <a href="{% url 'project_detail' member_turnover.project_member.project.pk %}" title="{{ member_turnover.project_member.project }}">
+                            {{ member_turnover.project_member.project }}
+                            </a>
+                            </div>
+                        </td>
+                        <td>
+                            <div style="width: 160px; overflow: hidden; white-space: nowrap;" title="{{ member_turnover.project_member.project.client }}">
+                                {{ member_turnover.project_member.project.client }}
+                            </div>
+                        </td>
+                        <td>{{ member_turnover.project_member.member.salesperson }}</td>
+                        <td style="text-align: right">{{ member_turnover.cost_amount|intcomma }}</td>
+                        <td style="text-align: right">{{ member_turnover.attendance_amount|intcomma }}</td>
+                        <td style="text-align: right">
+                            {{ member_turnover.attendance_tex|intcomma }}
+                        </td>
+                        <td style="text-align: right">
+                            {{ member_turnover.expenses_amount|intcomma }}
+                        </td>
+                        <td style="text-align: right">
+                            {{ member_turnover.all_amount|intcomma }}
+                        </td>
+                    </tr>
+                {% endfor %}
+            {% else %}
+                <tr class="row1"><td class="center red" colspan="10">メンバーがいません。</td></tr>
+            {% endif %}
+        </tbody>
+        <tfoot>
+            <tr>
+                <td colspan="5">
+                    <div class="pagination">
+                        <span class="step-links">
+                            {% if members_turnover.has_previous %}
+                                <a href="?page={{ members_turnover.previous_page_number }}{{ orders }}{{ params }}">&lt;</a>
+                            {% endif %}
+
+                            {% if paginator.page_range|length > 1 %}
+                                {% for page in paginator.page_range %}
+                                    {% ifequal page members_turnover.number %}
+                                        <span class="current">
+                                            {{ page }}
+                                        </span>
+                                    {% else %}
+                                        <a href="?page={{ page }}{{ orders }}{{ params }}">{{ page }}</a>
+                                    {% endifequal %}
+                                {% endfor %}
+                            {% endif %}
+
+                            {% if members_turnover.has_next %}
+                                <a href="?page={{ members_turnover.next_page_number }}{{ orders }}{{ params }}">&gt;</a>
+                            {% endif %}
+                            <span>{{ paginator.count }} 件</span>
+                        </span>
+                    </div>
+                </td>
+                <td style="text-align: right">{{ summary.cost_amount|intcomma }}</td>
+                <td style="text-align: right"> {{ summary.attendance_amount|intcomma }}</td>
+                <td style="text-align: right"> {{ summary.attendance_tex|intcomma }}</td>
+                <td style="text-align: right"> {{ summary.expenses_amount|intcomma }}</td>
+                <td style="text-align: right"> {{ summary.all_amount|intcomma }}</td>
+            </tr>
+        </tfoot>
+    </table>
+{% endblock %}

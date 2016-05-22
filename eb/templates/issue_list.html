@@ -39,10 +39,10 @@
                     <td>{{ issue.get_level_display }}</td>
                     <td>{{ issue.user.first_name }}&nbsp;{{ issue.user.last_name }}</td>
                     <td>{{ issue.created_date|date:'Y-m-d H:i' }}</td>
-                    <td>{{ issue.limit_date }}</td>
+                    <td>{{ issue.limit_date|date:'Y-m-d' }}</td>
                     <td>{{ issue.get_status_display }}</td>
                     <td>{{ issue.resolve_user.first_name }}&nbsp;{{ issue.resolve_user.last_name }}</td>
-                    <td>{{ issue.end_date }}</td>
+                    <td>{{ issue.end_date|date:'Y-m-d' }}</td>
                     <td class="noprint" style="text-align: center;"><a href="{% url 'admin:eb_issue_change' issue.pk %}?from=portal&_popup=1" target="_blank">編集</a></td>
                 </tr>
             {% endfor %}

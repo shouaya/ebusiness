@@ -34,7 +34,7 @@ section table.list th, section table.list tfoot td {
 }
 
 section table.list tr:hover {
-    background-color: yellow;
+    background-color: LightGreen;
 }
 
 section table.list th {
@@ -148,15 +148,16 @@ section .issue_status1 {
 }
 
 section .issue_status2 {
-    background: lightblue; /* 対応中 */
+    background: yellow; /* 対応中 */
 }
 
 section .issue_status3 {
-    background: blue; /* 対応完了 */
+    background: lightblue; /* 対応完了 */
 }
 
 section .issue_status4 {
-    background: lightgray; /* クローズ */
+    background: gray; /* クローズ */
+    color: black;
 }
 
 section div.dashboard {

@@ -683,99 +683,90 @@ def project_member_list(request, project_id):
 
 
 @login_required(login_url='/eb/login/')
-def turnover_company_monthly(request, page_type):
+def turnover_company_monthly(request):
     company = biz.get_company()
     company_turnover = biz.turnover_company_monthly()
+    month_list = [str(item['ym']) for item in company_turnover]
+    amount_list = [item['amount__sum'] for item in company_turnover]
     context = RequestContext(request, {
         'company': company,
         'title': u'売上情報',
         'company_turnover': company_turnover,
-        'page_type': page_type,
+        'month_list': month_list,
+        'amount_list': amount_list,
     })
     template = loader.get_template('turnover_company_monthly.html')
     return HttpResponse(template.render(context))
 
 
 @login_required(login_url='/eb/login/')
-def turnover_clients_monthly(request, ym):
+def turnover_charts_monthly(request, ym):
     company = biz.get_company()
-    client_turnovers = biz.client_turnover_month(ym)
-    summary = {'price': 0, 'cost': 0, 'profit': 0}
-    for turnover in client_turnovers:
-        summary['price'] += turnover['price']
-        summary['cost'] += turnover['cost']
-        summary['profit'] += turnover['profit']
+    sections_turnover = biz.sections_turnover_monthly(ym)
+    section_attendance_amount_list = [item['attendance_amount'] for item in sections_turnover]
+    section_attendance_tex_list = [item['attendance_tex'] for item in sections_turnover]
+    section_expenses_amount_list = [item['expenses_amount'] for item in sections_turnover]
+    section_name_list = ["'" + item['section'].name + "'" for item in sections_turnover]
 
-    chart_data = biz.chart_clients_turnover_month(client_turnovers)
-    chart_categories = ",".join(chart_data['categories'])
+    salesperson_turnover = biz.salesperson_turnover_monthly(ym)
+    salesperson_attendance_amount_list = [item['attendance_amount'] for item in salesperson_turnover]
+    salesperson_attendance_tex_list = [item['attendance_tex'] for item in salesperson_turnover]
+    salesperson_expenses_amount_list = [item['expenses_amount'] for item in salesperson_turnover]
+    salesperson_name_list = ["'" + item['salesperson'].__unicode__() + "'" for item in salesperson_turnover]
 
-    paginator = Paginator(client_turnovers, PAGE_SIZE)
-    page = request.GET.get('page')
-    try:
-        clients = paginator.page(page)
-    except PageNotAnInteger:
-        clients = paginator.page(1)
-    except EmptyPage:
-        clients = paginator.page(paginator.num_pages)
+    clients_turnover = biz.clients_turnover_monthly(ym)
+    clients_attendance_amount_list = [item['attendance_amount'] for item in clients_turnover]
+    clients_attendance_tex_list = [item['attendance_tex'] for item in clients_turnover]
+    clients_expenses_amount_list = [item['expenses_amount'] for item in clients_turnover]
+    clients_name_list = ["'" + item['client'].name + "'" for item in clients_turnover]
 
     context = RequestContext(request, {
         'company': company,
-        'title': u'月の売上情報',
-        'clients': clients,
-        'summary': summary,
-        'paginator': paginator,
+        'title': u'%s - 売上情報' % (ym,),
+        'sections_turnover': sections_turnover,
+        'section_name_list': ",".join(section_name_list),
+        'section_attendance_amount_list': section_attendance_amount_list,
+        'section_attendance_tex_list': section_attendance_tex_list,
+        'section_expenses_amount_list': section_expenses_amount_list,
+        'salesperson_turnover': salesperson_turnover,
+        'salesperson_name_list': ",".join(salesperson_name_list),
+        'salesperson_attendance_amount_list': salesperson_attendance_amount_list,
+        'salesperson_attendance_tex_list': salesperson_attendance_tex_list,
+        'salesperson_expenses_amount_list': salesperson_expenses_amount_list,
+        'clients_turnover': clients_turnover,
+        'clients_name_list': ",".join(clients_name_list),
+        'clients_attendance_amount_list': clients_attendance_amount_list,
+        'clients_attendance_tex_list': clients_attendance_tex_list,
+        'clients_expenses_amount_list': clients_expenses_amount_list,
         'ym': ym,
-        'chart_categories': chart_categories,
-        'chart_cost': chart_data['cost_list'],
-        'chart_price': chart_data['price_list'],
     })
-    template = loader.get_template('turnover_clients_monthly.html')
+    template = loader.get_template('turnover_charts_monthly.html')
     return HttpResponse(template.render(context))
 
 
 @login_required(login_url='/eb/login/')
-def turnover_client_monthly(request, client_id, ym):
-    company = biz.get_company()
-    client = Client.objects.get(pk=client_id)
-    client_turnover = biz.client_turnover_month(ym, client_id)[0]
-    project_turnovers = biz.client_turnover_projects_month(ym, client)
-    summary = {'price': 0, 'cost': 0, 'profit': 0}
-    for turnover in project_turnovers:
-        summary['price'] += turnover['price']
-        summary['cost'] += turnover['cost']
-        summary['profit'] += turnover['profit']
-
-    chart_data = biz.chart_client_turnover_months(client)
-
-    context = RequestContext(request, {
-        'company': company,
-        'title': u'月単位の売上情報',
-        'client': client,
-        'client_turnover': client_turnover,
-        'project_turnovers': project_turnovers,
-        'summary': summary,
-        'ym': ym,
-        'chart_data': chart_data,
-    })
-    template = loader.get_template('turnover_projects_monthly.html')
-    return HttpResponse(template.render(context))
-
-
-@login_required(login_url='/eb/login/')
-def turnover_project_monthly(request, project_id, ym):
+def turnover_members_monthly(request, ym):
     company = biz.get_company()
 
-    project = Project.objects.get(pk=project_id)
-    project_members_turnover = project.get_turnover_members_month(ym)
+    param_list = common.get_request_params(request.GET)
+    o = request.GET.get('o', None)
+    dict_order = common.get_ordering_dict(o, ['member__first_name', 'member__section__name',
+                                              'project__name', 'project__client__name',])
+    order_list = common.get_ordering_list(o)
+    params = "&".join(["%s=%s" % (key, value) for key, value in param_list.items()]) if param_list else ""
 
-    summary = {'base_price': 0, 'total_price': 0, 'cost': 0, 'profit': 0}
-    for item in project_members_turnover:
-        summary['base_price'] += item['attendance'].basic_price
-        summary['total_price'] += item['attendance'].price
-        summary['cost'] += item['project_member'].member.cost
-        summary['profit'] += item['profit']
-
-    paginator = Paginator(project_members_turnover, PAGE_SIZE)
+    sections = biz.get_turnover_sections(ym)
+    all_members_turnover = biz.members_turnover_monthly(ym, param_list, order_list)
+    summary = {'attendance_amount': 0, 'expenses_amount': 0,
+               'attendance_tex': 0, 'all_amount': 0,
+               'cost_amount': 0}
+    for item in all_members_turnover:
+        summary['attendance_amount'] += item['attendance_amount']
+        summary['attendance_tex'] += item['attendance_tex']
+        summary['expenses_amount'] += item['expenses_amount']
+        summary['all_amount'] += item['all_amount']
+        summary['cost_amount'] += item['cost_amount']
+    paginator = Paginator(all_members_turnover, PAGE_SIZE)
     page = request.GET.get('page')
     try:
         members_turnover = paginator.page(page)
@@ -786,68 +777,18 @@ def turnover_project_monthly(request, project_id, ym):
 
     context = RequestContext(request, {
         'company': company,
-        'project': project,
-        'title': u'月の売上情報',
+        'title': u'%s年%s月の売上詳細情報' % (ym[:4], ym[4:]),
+        'sections': sections,
+        'salesperson': Salesperson.objects.public_all(),
         'members_turnover': members_turnover,
         'summary': summary,
         'paginator': paginator,
+        'dict_order': dict_order,
+        'orders': "&o=%s" % (o,) if o else "",
+        'params': "&" + params if params else "",
         'ym': ym,
     })
-    template = loader.get_template('turnover_project_monthly.html')
-    return HttpResponse(template.render(context))
-
-
-@login_required(login_url='/eb/login/')
-def turnover_sections_monthly(request, ym):
-    company = biz.get_company()
-    sections_turnover = biz.sections_turnover_monthly(ym)
-    summary = {'attendance_amount': 0, 'expenses_amount': 0, 'attendance_tex': 0, 'all_amount': 0}
-    for item in sections_turnover:
-        summary['attendance_amount'] += item['attendance_amount']
-        summary['attendance_tex'] += item['attendance_tex']
-        summary['expenses_amount'] += item['expenses_amount']
-        summary['all_amount'] += item['all_amount']
-    attendance_amount_list = [item['attendance_amount'] for item in sections_turnover]
-    attendance_tex_list = [item['attendance_tex'] for item in sections_turnover]
-    expenses_amount_list = [item['expenses_amount'] for item in sections_turnover]
-    section_name_list = ["'" + item['section'].name + "'" for item in sections_turnover]
-
-    context = RequestContext(request, {
-        'company': company,
-        'title': u'部署別の売上情報 - %s' % (ym,),
-        'sections_turnover': sections_turnover,
-        'section_name_list': ",".join(section_name_list),
-        'attendance_amount_list': attendance_amount_list,
-        'attendance_tex_list': attendance_tex_list,
-        'expenses_amount_list': expenses_amount_list,
-        'summary': summary,
-        'ym': ym,
-    })
-    template = loader.get_template('turnover_sections_monthly.html')
-    return HttpResponse(template.render(context))
-
-
-@login_required(login_url='/eb/login/')
-def turnover_section_monthly(request, section_id, ym):
-    company = biz.get_company()
-    section = get_object_or_404(Section, pk=section_id)
-    members_turnover = biz.section_turnover_monthly(section, ym)
-    summary = {'attendance_amount': 0, 'expenses_amount': 0, 'attendance_tex': 0, 'all_amount': 0}
-    for item in members_turnover:
-        summary['attendance_amount'] += item['attendance_amount']
-        summary['attendance_tex'] += item['attendance_tex']
-        summary['expenses_amount'] += item['expenses_amount']
-        summary['all_amount'] += item['all_amount']
-
-    context = RequestContext(request, {
-        'company': company,
-        'title': u'%sの売上情報 - %s' % (section.name, ym),
-        'section': section,
-        'members_turnover': members_turnover,
-        'summary': summary,
-        'ym': ym,
-    })
-    template = loader.get_template('turnover_section_monthly.html')
+    template = loader.get_template('turnover_members_monthly.html')
     return HttpResponse(template.render(context))
 
 

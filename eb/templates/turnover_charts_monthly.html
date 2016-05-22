@@ -1,0 +1,253 @@
+{% extends "base.html" %}
+{% load humanize %}
+
+{% block header %}
+    <script type="text/javascript" src="https://code.highcharts.com/highcharts.js"></script>
+    <script type="text/javascript" src="https://code.highcharts.com/modules/data.js"></script>
+    <script type="text/javascript" src="https://code.highcharts.com/modules/exporting.js"></script>
+    <script type="text/javascript">
+        var chart_sections, chart_salesperson, chart_clients;
+        $(function () {
+            Highcharts.setOptions({
+                lang: {
+                    thousandsSep: ','
+                }
+            });
+
+            chart_sections = new Highcharts.Chart({
+                chart: {
+                    type: 'column',
+                    renderTo: 'sections_container'
+                },
+                credits: {
+                    enabled: false
+                },
+                title: {
+                    text: '部署別の売上情報'
+                },
+                xAxis: {
+                    categories: [{{ section_name_list|safe }}],
+                    labels: {
+                        formatter: function () {
+                            return '<a href="{% url 'turnover_members_monthly' ym %}?member__section__name=' + this.value + '">' + this.value + '</a>'
+                        },
+                        useHTML: true
+                    }
+                },
+                yAxis: {
+                    allowDecimals: false,
+                    title: {
+                        text: '金額 (円)'
+                    },
+                    stackLabels: {
+                        enabled: true,
+                        style: {
+                            fontWeight: 'bold',
+                            color: (Highcharts.theme && Highcharts.theme.textColor) || 'gray'
+                        }
+                    }
+                },
+                tooltip: {
+                    headerFormat: '<span style="font-size:10px">{point.key}</span><table>',
+                    pointFormat: '<tr><td style="color:{series.color};padding:0">{series.name}: </td>' +
+                        '<td style="padding:0;text-align:right;"><b>{point.y:,.0f} 円</b></td></tr>',
+                    footerFormat: '</table>',
+                    shared: true,
+                    useHTML: true
+                },
+                plotOptions: {
+                    column: {
+                        stacking: 'normal',
+                    },
+                },
+                series: [{
+                    name: '精算',
+                    data: {{ section_expenses_amount_list }}
+                }, {
+                    name: '税金',
+                    data: {{ section_attendance_tex_list }}
+                }, {
+                    name: '売上（税別）',
+                    data: {{ section_attendance_amount_list }}
+                }]
+            });
+
+            chart_salesperson = new Highcharts.Chart({
+                chart: {
+                    type: 'column',
+                    renderTo: 'salesperson_container'
+                },
+                credits: {
+                    enabled: false
+                },
+                title: {
+                    text: '営業員別の売上情報'
+                },
+                xAxis: {
+                    categories: [{{ salesperson_name_list|safe }}],
+                    labels: {
+                        formatter: function () {
+                            first_name = this.value.split(" ")[0];
+                            last_name = this.value.split(" ")[1];
+                            return '<a href="{% url 'turnover_members_monthly' ym %}?member__salesperson__first_name=' + first_name
+                                + '&member__salesperson__last_name=' + last_name + '">' + this.value + '</a>'
+                        },
+                        useHTML: true
+                    }
+                },
+                yAxis: {
+                    allowDecimals: false,
+                    title: {
+                        text: '金額 (円)'
+                    },
+                    stackLabels: {
+                        enabled: true,
+                        style: {
+                            fontWeight: 'bold',
+                            color: (Highcharts.theme && Highcharts.theme.textColor) || 'gray'
+                        }
+                    }
+                },
+                tooltip: {
+                    headerFormat: '<span style="font-size:10px">{point.key}</span><table>',
+                    pointFormat: '<tr><td style="color:{series.color};padding:0">{series.name}: </td>' +
+                        '<td style="padding:0;text-align:right;"><b>{point.y:,.0f} 円</b></td></tr>',
+                    footerFormat: '</table>',
+                    shared: true,
+                    useHTML: true
+                },
+                plotOptions: {
+                    column: {
+                        stacking: 'normal',
+                    },
+                },
+                series: [{
+                    name: '精算',
+                    data: {{ salesperson_expenses_amount_list }}
+                }, {
+                    name: '税金',
+                    data: {{ salesperson_attendance_tex_list }}
+                }, {
+                    name: '売上（税別）',
+                    data: {{ salesperson_attendance_amount_list }}
+                }]
+            });
+
+            chart_clients = new Highcharts.Chart({
+                chart: {
+                    type: 'column',
+                    renderTo: 'clients_container'
+                },
+                credits: {
+                    enabled: false
+                },
+                title: {
+                    text: 'お客様別の売上情報'
+                },
+                xAxis: {
+                    categories: [{{ clients_name_list|safe }}],
+                    labels: {
+                        formatter: function () {
+                            return '<a href="{% url 'turnover_members_monthly' ym %}?project__client__name__contains=' + this.value + '">' + this.value + '</a>'
+                        },
+                        useHTML: true
+                    }
+                },
+                yAxis: {
+                    allowDecimals: false,
+                    title: {
+                        text: '金額 (円)'
+                    },
+                },
+                tooltip: {
+                    headerFormat: '<span style="font-size:10px">{point.key}</span><table>',
+                    pointFormat: '<tr><td style="color:{series.color};padding:0">{series.name}: </td>' +
+                        '<td style="padding:0;text-align:right;"><b>{point.y:,.0f} 円</b></td></tr>',
+                    footerFormat: '</table>',
+                    shared: true,
+                    useHTML: true
+                },
+                plotOptions: {
+                    column: {
+                        stacking: 'normal',
+                    },
+                },
+                series: [{
+                    name: '精算',
+                    data: {{ clients_expenses_amount_list }}
+                }, {
+                    name: '税金',
+                    data: {{ clients_attendance_tex_list }}
+                }, {
+                    name: '売上（税別）',
+                    data: {{ clients_attendance_amount_list }}
+                }]
+            });
+        });
+
+        function print_all() {
+            printCharts([chart_sections, chart_salesperson, chart_clients]);
+        }
+
+        function printCharts(charts) {
+
+            var origDisplay = [],
+                origParent = [],
+                body = document.body,
+                childNodes = body.childNodes;
+
+            // hide all body content
+            Highcharts.each(childNodes, function (node, i) {
+                if (node.nodeType === 1) {
+                    origDisplay[i] = node.style.display;
+                    node.style.display = "none";
+                }
+            });
+
+            // put the charts back in
+            $.each(charts, function (i, chart) {
+                origParent[i] = chart.container.parentNode;
+                body.appendChild(chart.container);
+            });
+
+            // print
+            window.print();
+
+            // allow the browser to prepare before reverting
+            setTimeout(function () {
+                // put the chart back in
+                $.each(charts, function (i, chart) {
+                    origParent[i].appendChild(chart.container);
+                });
+
+                // restore all body content
+                Highcharts.each(childNodes, function (node, i) {
+                    if (node.nodeType === 1) {
+                        node.style.display = origDisplay[i];
+                    }
+                });
+            }, 500);
+        }
+    </script>
+{% endblock %}
+
+{% block content %}
+    <div class="dashboard print">
+        <div class="dashboard-title">何をしたいのですか？</div>
+        <form>
+            <input type="button" onclick="print_all()" value="Print All" />
+        </form>
+    </div>
+    <div class="dashboard print">
+        <div class="dashboard-title">部署別の売上情報</div>
+        <div id="sections_container" style="min-width: 310px; height: 300px; margin: 0 auto"></div>
+    </div>
+    <div class="dashboard print">
+        <div class="dashboard-title">営業員別の売上情報</div>
+        <div id="salesperson_container" style="min-width: 310px; height: 300px; margin: 0 auto"></div>
+    </div>
+    <div class="dashboard">
+        <div class="dashboard-title">お客様別の売上情報</div>
+        <div id="clients_container" style="min-width: 310px; height: 600px; margin: 0 auto"></div>
+    </div>
+{% endblock %}

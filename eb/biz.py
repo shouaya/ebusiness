@@ -412,50 +412,14 @@ def turnover_company_monthly():
     return turnover_monthly
 
 
-def client_turnover_month(ym, client_id=None):
-    first_day = common.get_first_day_from_ym(ym)
-    last_day = common.get_last_day_by_month(first_day)
-
-    client_turnovers = []
-
-    if client_id:
-        clients = models.Client.objects.public_filter(pk=client_id)
-    else:
-        clients = models.Client.objects.public_filter(project__start_date__lte=last_day,
-                                                      project__end_date__gte=first_day).distinct()
-
-    for client in clients:
-        d = dict()
-        d['id'] = client.pk
-        d['name'] = client.name
-        d.update(client.get_turnover_month(first_day))
-        client_turnovers.append(d)
-
-    return client_turnovers
-
-
-def client_turnover_projects_month(ym, client):
-    first_day = common.get_first_day_from_ym(ym)
-    last_day = common.get_last_day_by_month(first_day)
-    projects = client.project_set.public_filter(start_date__lte=last_day,
-                                                end_date__gte=first_day)
-    project_turnovers = []
-    for project in projects:
-        d = dict()
-        d['id'] = project.pk
-        d['name'] = project.name
-        d.update(project.get_turnover_month(ym))
-        project_turnovers.append(d)
-    return project_turnovers
-
-
 def sections_turnover_monthly(ym):
     """部署別の売上を取得する。
 
     :param ym: 対象年月
     :return:
     """
-    sections = models.Section.objects.public_filter(is_on_sales=True)
+    sections = models.Section.objects.public_filter(member__projectmember__memberattendance__year=ym[:4],
+                                                    member__projectmember__memberattendance__month=ym[4:]).distinct()
     sections_turnover = []
     for section in sections:
         d = dict()
@@ -468,6 +432,49 @@ def sections_turnover_monthly(ym):
     return sections_turnover
 
 
+def salesperson_turnover_monthly(ym):
+    """営業員別の売上を取得する。
+
+    :param ym: 対象年月
+    :return:
+    """
+    salesperson_list = models.Salesperson.objects.public_filter(member__projectmember__memberattendance__year=ym[:4],
+                                                                member__projectmember__memberattendance__month=ym[4:])\
+        .distinct()
+    salesperson_turnover = []
+    for salesperson in salesperson_list:
+        d = dict()
+        d['salesperson'] = salesperson
+        d['attendance_amount'] = salesperson.get_attendance_amount(ym)
+        d['attendance_tex'] = int(d['attendance_amount'] * 0.08)
+        d['expenses_amount'] = salesperson.get_expenses_amount(ym)
+        d['all_amount'] = d['attendance_amount'] + d['attendance_tex'] + d['expenses_amount']
+        salesperson_turnover.append(d)
+    return salesperson_turnover
+
+
+def clients_turnover_monthly(ym):
+    """営業員別の売上を取得する。
+
+    :param ym: 対象年月
+    :return:
+    """
+    first_day = common.get_first_day_from_ym(ym)
+    last_day = common.get_last_day_by_month(first_day)
+    clients = models.Client.objects.public_filter(project__start_date__lte=last_day,
+                                                  project__end_date__gte=first_day).distinct()
+    clients_turnover = []
+    for client in clients:
+        d = dict()
+        d['client'] = client
+        d['attendance_amount'] = client.get_attendance_amount(ym)
+        d['attendance_tex'] = int(d['attendance_amount'] * 0.08)
+        d['expenses_amount'] = client.get_expenses_amount(ym)
+        d['all_amount'] = d['attendance_amount'] + d['attendance_tex'] + d['expenses_amount']
+        clients_turnover.append(d)
+    return clients_turnover
+
+
 def section_turnover_monthly(section, ym):
     members_turnover = []
     first_day = common.get_first_day_from_ym(ym)
@@ -475,13 +482,48 @@ def section_turnover_monthly(section, ym):
     project_members = models.ProjectMember.objects.public_filter(member__section=section,
                                                                  start_date__lte=last_day,
                                                                  end_date__gte=first_day,
-                                                                 status=2)
+                                                                 status=2).order_by('project__name')
     for project_member in project_members:
         d = dict()
         d['project_member'] = project_member
         d['attendance_amount'] = project_member.get_attendance_amount(first_day.year, first_day.month)
+        if d['attendance_amount'] == 0:
+            continue
         d['attendance_tex'] = int(d['attendance_amount'] * 0.08)
         d['expenses_amount'] = project_member.get_expenses_amount(first_day.year, first_day.month)
+        d['cost_amount'] = project_member.get_cost_amount(first_day.year, first_day.month)
+        d['all_amount'] = d['attendance_amount'] + d['attendance_tex'] + d['expenses_amount']
+        members_turnover.append(d)
+    return members_turnover
+
+
+def get_turnover_sections(ym):
+    sections = models.Section.objects.public_filter(member__projectmember__memberattendance__year=ym[:4],
+                                                    member__projectmember__memberattendance__month=ym[4:]).distinct()
+    return sections
+
+
+def members_turnover_monthly(ym, p=None, o=None):
+    members_turnover = []
+    first_day = common.get_first_day_from_ym(ym)
+    last_day = common.get_last_day_by_month(first_day)
+    project_members = models.ProjectMember.objects.public_filter(start_date__lte=last_day,
+                                                                 end_date__gte=first_day,
+                                                                 status=2)
+    if p:
+        project_members = project_members.filter(**p)
+    if o:
+        project_members = project_members.order_by(*o)
+
+    for project_member in project_members:
+        d = dict()
+        d['project_member'] = project_member
+        d['attendance_amount'] = project_member.get_attendance_amount(first_day.year, first_day.month)
+        if d['attendance_amount'] == 0:
+            continue
+        d['attendance_tex'] = int(d['attendance_amount'] * 0.08)
+        d['expenses_amount'] = project_member.get_expenses_amount(first_day.year, first_day.month)
+        d['cost_amount'] = project_member.get_cost_amount(first_day.year, first_day.month)
         d['all_amount'] = d['attendance_amount'] + d['attendance_tex'] + d['expenses_amount']
         members_turnover.append(d)
     return members_turnover

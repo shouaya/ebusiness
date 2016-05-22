@@ -14,6 +14,7 @@
                 <th>部署</th>
                 <th>案件名称</th>
                 <th>営業担当</th>
+                <th>コスト</th>
                 <th>売上（税別）</th>
                 <th>税金</th>
                 <th>精算</th>
@@ -25,7 +26,7 @@
                 {% for member_turnover in members_turnover %}
                     <tr class="{% cycle 'row1' 'row2' %}">
                         <td>
-                            <a href="{% url 'member_detail' member_turnover.project_member.member.pk %}">{{ member_turnover.project_member.member }}</a>
+                            <a href="{% url 'member_detail' member_turnover.project_member.member.employee_id %}">{{ member_turnover.project_member.member }}</a>
                         </td>
                         <td>
                             <a href="{% url 'project_detail' member_turnover.project_member.project.pk %}">
@@ -33,6 +34,7 @@
                             </a>
                         </td>
                         <td>{{ member_turnover.project_member.member.salesperson }}</td>
+                        <td style="text-align: right">{{ member_turnover.cost_amount|intcomma }}</td>
                         <td style="text-align: right">
                             {{ member_turnover.attendance_amount|intcomma }}
                         </td>
@@ -54,6 +56,7 @@
         <tfoot>
             <tr>
                 <td colspan="3"></td>
+                <td style="text-align: right">{{ summary.cost_amount|intcomma }}</td>
                 <td style="text-align: right"> {{ summary.attendance_amount|intcomma }}</td>
                 <td style="text-align: right"> {{ summary.attendance_tex|intcomma }}</td>
                 <td style="text-align: right"> {{ summary.expenses_amount|intcomma }}</td>
