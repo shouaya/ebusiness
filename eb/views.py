@@ -1182,7 +1182,8 @@ def download_project_request(request, project_id):
             project_request.filename = filename
             project_request.created_user = request.user if not project_request.pk else project_request.created_user
             project_request.updated_user = request.user
-            project_request.save()
+            # 請求履歴を保存する。
+            project_request.save(data=data)
 
         response = HttpResponse(open(path, 'rb'), content_type="application/excel")
         response['Content-Disposition'] = "filename=" + urllib.quote(filename.encode('UTF-8'))

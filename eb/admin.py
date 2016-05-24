@@ -18,7 +18,8 @@ import forms
 from .models import Company, Section, Member, Salesperson, Project, Client, ClientMember, \
     ProjectMember, Skill, ProjectSkill, ProjectActivity, Subcontractor, PositionShip,\
     ProjectStage, OS, HistoryProject, MemberAttendance, Degree, ClientOrder, \
-    create_group_salesperson, MemberExpenses, ExpensesCategory, BankInfo, History, ProjectRequest, Issue
+    create_group_salesperson, MemberExpenses, ExpensesCategory, BankInfo, History, ProjectRequest, Issue, \
+    ProjectRequestHeading, ProjectRequestDetail
 from utils import common
 
 
@@ -816,6 +817,72 @@ class ProjectRequestAdmin(BaseAdmin):
         return actions
 
 
+class ProjectRequestHeadingAdmin(BaseAdmin):
+    list_display = ['get_request_no', 'get_project_name']
+    search_fields = ['project_request__request_no', 'project_request__project__name']
+
+    def get_request_no(self, obj):
+        return obj.project_request.request_no
+    get_request_no.short_description = u"請求番号"
+    get_request_no.admin_order_field = 'project_request__request_no'
+
+    def get_project_name(self, obj):
+        return obj.project_request.project.name
+    get_project_name.short_description = u"案件名称"
+    get_project_name.admin_order_field = 'project_request__project__name'
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        if request.user.username == u"admin":
+            return True
+        else:
+            return False
+
+    def get_actions(self, request):
+        actions = super(ProjectRequestHeadingAdmin, self).get_actions(request)
+        if 'delete_selected' in actions:
+            del actions['delete_selected']
+        return actions
+
+
+class ProjectRequestDetailAdmin(BaseAdmin):
+    list_display = ['get_request_no', 'get_project_name', 'no', 'project_member', 'total_price', 'expenses_price']
+    search_fields = ['project_request__request_no', 'project_request__project__name']
+
+    def get_request_no(self, obj):
+        return obj.project_request.request_no
+    get_request_no.short_description = u"請求番号"
+    get_request_no.admin_order_field = 'project_request__request_no'
+
+    def get_project_name(self, obj):
+        return obj.project_request.project.name
+    get_project_name.short_description = u"案件名称"
+    get_project_name.admin_order_field = 'project_request__project__name'
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        if request.user.username == u"admin":
+            return True
+        else:
+            return False
+
+    def get_actions(self, request):
+        actions = super(ProjectRequestDetailAdmin, self).get_actions(request)
+        if 'delete_selected' in actions:
+            del actions['delete_selected']
+        return actions
+
+
 class ProjectActivityAdmin(BaseAdmin):
 
     list_display = ['project', 'name', 'open_date', 'address', 'get_client_members', 'get_salesperson', 'is_deleted']
@@ -999,7 +1066,9 @@ admin.site.register(ClientOrder, ClientOrderAdmin)
 admin.site.register(ClientMember, ClientMemberAdmin)
 admin.site.register(ProjectMember, ProjectMemberAdmin)
 admin.site.register(ProjectRequest, ProjectRequestAdmin)
-# admin.site.register(MemberAttendance, MemberAttendanceAdmin)
+admin.site.register(ProjectRequestHeading, ProjectRequestHeadingAdmin)
+admin.site.register(ProjectRequestDetail, ProjectRequestDetailAdmin)
+admin.site.register(MemberAttendance)
 admin.site.register(ProjectActivity, ProjectActivityAdmin)
 admin.site.register(Subcontractor, SubcontractorAdmin)
 admin.site.register(PositionShip, PositionShipAdmin)

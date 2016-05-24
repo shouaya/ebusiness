@@ -1149,7 +1149,10 @@ class ProjectRequest(models.Model):
     month = models.CharField(max_length=2, choices=constants.CHOICE_ATTENDANCE_MONTH, verbose_name=u"対象月")
     request_no = models.CharField(max_length=7, unique=True, verbose_name=u"請求番号")
     request_name = models.CharField(max_length=50, blank=True, null=True, verbose_name=u"請求名称")
-    amount = models.IntegerField(default=0, verbose_name=u"請求金額")
+    amount = models.IntegerField(default=0, verbose_name=u"請求金額（税込）")
+    turnover_amount = models.IntegerField(default=0, verbose_name=u"売上金額（基本単価＋残業料）（税抜き）")
+    tax_amount = models.IntegerField(default=0, verbose_name=u"税金")
+    expenses_amount = models.IntegerField(default=0, verbose_name=u"精算金額")
     filename = models.CharField(max_length=255, blank=True, null=True, verbose_name=u"請求書ファイル名")
     created_user = models.ForeignKey(User, related_name='created_requests', null=True,
                                      editable=False, verbose_name=u"作成者")
@@ -1165,6 +1168,131 @@ class ProjectRequest(models.Model):
         permissions = (
             ('generate_request', u"請求書作成"),
         )
+
+    def save(self, force_insert=False, force_update=False, using=None,
+             update_fields=None, data=None):
+        super(ProjectRequest, self).save(force_insert, force_update, using, update_fields)
+        # 請求書作成時、請求に関する全ての情報を履歴として保存する。
+        if data:
+            # 既存のデータを全部消す。
+            if hasattr(self, "projectrequestheading"):
+                self.projectrequestheading.delete()
+            self.projectrequestdetail_set.all().delete()
+            heading = ProjectRequestHeading(project_request=self,
+                                            is_lump=self.project.is_lump,
+                                            lump_amount=self.project.lump_amount,
+                                            lump_comment=self.project.lump_comment,
+                                            is_hourly_pay=self.project.is_hourly_pay,
+                                            client=self.project.client,
+                                            client_post_code=data['DETAIL']['CLIENT_POST_CODE'],
+                                            client_address=data['DETAIL']['CLIENT_ADDRESS'],
+                                            client_tel=data['DETAIL']['CLIENT_TEL'],
+                                            client_name=data['DETAIL']['CLIENT_COMPANY_NAME'],
+                                            tax_rate=self.project.client.tax_rate,
+                                            decimal_type=self.project.client.decimal_type,
+                                            work_period_start=data['EXTRA']['WORK_PERIOD_START'],
+                                            work_period_end=data['EXTRA']['WORK_PERIOD_END'],
+                                            remit_date=data['EXTRA']['REMIT_DATE'],
+                                            publish_date=data['EXTRA']['PUBLISH_DATE'],
+                                            company_post_code=data['DETAIL']['POST_CODE'],
+                                            company_address=data['DETAIL']['ADDRESS'],
+                                            company_name=data['DETAIL']['COMPANY_NAME'],
+                                            company_tel=data['DETAIL']['TEL'],
+                                            company_master=data['DETAIL']['MASTER'],
+                                            bank=data['EXTRA']['BANK'],
+                                            bank_name=data['DETAIL']['BANK_NAME'],
+                                            branch_no=data['DETAIL']['BRANCH_NO'],
+                                            branch_name=data['DETAIL']['BRANCH_NAME'],
+                                            account_type=data['DETAIL']['ACCOUNT_TYPE'],
+                                            account_number=data['DETAIL']['ACCOUNT_NUMBER'],
+                                            account_holder=data['DETAIL']['BANK_ACCOUNT_HOLDER'])
+            heading.save()
+            for i, item in enumerate(data['MEMBERS']):
+                project_member = item["EXTRA_PROJECT_MEMBER"]
+                ym = data['EXTRA']['YM']
+                detail = ProjectRequestDetail(project_request=self,
+                                              project_member=project_member,
+                                              member_section=project_member.member.section,
+                                              member_type=project_member.member.member_type,
+                                              salesperson=project_member.member.salesperson,
+                                              subcontractor=project_member.member.subcontractor,
+                                              cost=project_member.member.cost,
+                                              no=str(i + 1),
+                                              hourly_pay=project_member.hourly_pay if project_member.hourly_pay else 0,
+                                              basic_price=project_member.price,
+                                              min_hours=project_member.min_hours,
+                                              max_hours=project_member.max_hours,
+                                              total_hours=item['ITEM_WORK_HOURS'] if item['ITEM_WORK_HOURS'] else 0,
+                                              extra_hours=item['ITEM_EXTRA_HOURS']if item['ITEM_EXTRA_HOURS'] else 0,
+                                              rate=item['ITEM_RATE'],
+                                              plus_per_hour=project_member.plus_per_hour,
+                                              minus_per_hour=project_member.minus_per_hour,
+                                              total_price=item['ITEM_AMOUNT_TOTAL'],
+                                              expenses_price=project_member.get_expenses_amount(ym[:4], int(ym[4:])),
+                                              comment=item['ITEM_COMMENT'])
+                detail.save()
+
+
+class ProjectRequestHeading(models.Model):
+    project_request = models.OneToOneField(ProjectRequest, verbose_name=u"請求書")
+    is_lump = models.BooleanField(default=False, verbose_name=u"一括フラグ")
+    lump_amount = models.BigIntegerField(default=0, blank=True, null=True, verbose_name=u"一括金額")
+    lump_comment = models.CharField(blank=True, null=True, max_length=200, verbose_name=u"一括の備考")
+    is_hourly_pay = models.BooleanField(default=False, verbose_name=u"時給")
+    client = models.ForeignKey(Client, null=True, verbose_name=u"関連会社")
+    client_post_code = models.CharField(blank=True, null=True, max_length=7, verbose_name=u"お客様郵便番号")
+    client_address = models.CharField(blank=True, null=True, max_length=200, verbose_name=u"お客様住所１")
+    client_tel = models.CharField(blank=True, null=True, max_length=15, verbose_name=u"お客様電話番号")
+    client_name = models.CharField(blank=True, null=True, unique=True, max_length=30, verbose_name=u"お客様会社名")
+    tax_rate = models.DecimalField(blank=True, null=True, max_digits=3, decimal_places=2, verbose_name=u"税率")
+    decimal_type = models.CharField(blank=True, null=True, max_length=1, verbose_name=u"小数の処理区分")
+    work_period_start = models.DateField(blank=True, null=True, verbose_name=u"作業期間＿開始")
+    work_period_end = models.DateField(blank=True, null=True, verbose_name=u"作業期間＿終了")
+    remit_date = models.DateField(blank=True, null=True, verbose_name=u"お支払い期限")
+    publish_date = models.DateField(blank=True, null=True, verbose_name=u"発行日")
+    company_post_code = models.CharField(blank=True, null=True, max_length=7, verbose_name=u"本社郵便番号")
+    company_address = models.CharField(blank=True, null=True, max_length=200, verbose_name=u"本社住所")
+    company_name = models.CharField(blank=True, null=True, unique=True, max_length=30, verbose_name=u"会社名")
+    company_tel = models.CharField(blank=True, null=True, max_length=15, verbose_name=u"お客様電話番号")
+    company_master = models.CharField(blank=True, null=True, max_length=30, verbose_name=u"代表取締役")
+    bank = models.ForeignKey(BankInfo, blank=True, null=True, verbose_name=u"口座")
+    bank_name = models.CharField(blank=True, null=True, max_length=20, verbose_name=u"銀行名称")
+    branch_no = models.CharField(blank=True, null=True, max_length=3, verbose_name=u"支店番号")
+    branch_name = models.CharField(blank=True, null=True, max_length=20, verbose_name=u"支店名称")
+    account_type = models.CharField(blank=True, null=True, max_length=1, verbose_name=u"預金種類")
+    account_number = models.CharField(blank=True, null=True, max_length=7, verbose_name=u"口座番号")
+    account_holder = models.CharField(blank=True, null=True, max_length=20, verbose_name=u"口座名義")
+
+    class Meta:
+        verbose_name = verbose_name_plural = u"案件請求見出し"
+
+
+class ProjectRequestDetail(models.Model):
+    project_request = models.ForeignKey(ProjectRequest, verbose_name=u"請求書")
+    project_member = models.ForeignKey('ProjectMember', verbose_name=u"メンバー")
+    member_section = models.ForeignKey(Section, verbose_name=u"部署")
+    member_type = models.IntegerField(default=0, choices=constants.CHOICE_MEMBER_TYPE, verbose_name=u"社員区分")
+    salesperson = models.ForeignKey(Salesperson, blank=True, null=True, verbose_name=u"営業員")
+    subcontractor = models.ForeignKey(Subcontractor, blank=True, null=True, verbose_name=u"協力会社")
+    cost = models.IntegerField(default=0, verbose_name=u"コスト")
+    no = models.IntegerField(verbose_name=u"番号")
+    hourly_pay = models.IntegerField(default=0, verbose_name=u"時給")
+    basic_price = models.IntegerField(default=0, verbose_name=u"単価")
+    min_hours = models.DecimalField(max_digits=5, decimal_places=2, default=0, verbose_name=u"基準時間")
+    max_hours = models.DecimalField(max_digits=5, decimal_places=2, default=0, verbose_name=u"最大時間")
+    total_hours = models.DecimalField(max_digits=5, decimal_places=2, default=0, verbose_name=u"合計時間")
+    extra_hours = models.DecimalField(max_digits=5, decimal_places=2, default=0, verbose_name=u"残業時間")
+    rate = models.DecimalField(max_digits=3, decimal_places=2, default=1, verbose_name=u"率")
+    plus_per_hour = models.IntegerField(default=0, editable=False, verbose_name=u"増（円）")
+    minus_per_hour = models.IntegerField(default=0, editable=False, verbose_name=u"減（円）")
+    total_price = models.IntegerField(default=0, verbose_name=u"売上（基本単価＋残業料）（税抜き）")
+    expenses_price = models.IntegerField(default=0, verbose_name=u"精算金額")
+    comment = models.CharField(blank=True, null=True, max_length=50, verbose_name=u"備考")
+
+    class Meta:
+        ordering = ['-project_request__request_no', 'no']
+        unique_together = ('project_request', 'no')
+        verbose_name = verbose_name_plural = u"案件請求明細"
 
 
 class ProjectActivity(models.Model):

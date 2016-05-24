@@ -717,7 +717,8 @@ def get_request_members_in_project(project, client_order, ym):
 def generate_request_data(company, project, client_order, bank_info, ym, project_request):
     first_day = common.get_first_day_from_ym(ym)
     last_day = common.get_last_day_by_month(first_day)
-    data = {'DETAIL': {}}
+    data = {'DETAIL': {}, 'EXTRA': {}}
+    data['EXTRA']['YM'] = ym
     # お客様郵便番号
     data['DETAIL']['CLIENT_POST_CODE'] = common.get_full_postcode(project.client.post_code)
     # お客様住所
@@ -728,6 +729,8 @@ def generate_request_data(company, project, client_order, bank_info, ym, project
     data['DETAIL']['CLIENT_COMPANY_NAME'] = project.client.name
     # 作業期間
     data['DETAIL']['WORK_PERIOD'] = first_day.strftime(u'%Y年%m月%d日'.encode('utf-8')).decode('utf-8') + u" ～ " + last_day.strftime(u'%Y年%m月%d日'.encode('utf-8')).decode('utf-8')
+    data['EXTRA']['WORK_PERIOD_START'] = first_day
+    data['EXTRA']['WORK_PERIOD_END'] = last_day
     # 注文番号
     data['DETAIL']['ORDER_NO'] = client_order.order_no if client_order.order_no else u""
     # 注文日
@@ -736,10 +739,12 @@ def generate_request_data(company, project, client_order, bank_info, ym, project
     data['DETAIL']['CONTRACT_NAME'] = project_request.request_name
     # お支払い期限
     data['DETAIL']['REMIT_DATE'] = project.client.get_pay_date(date=first_day).strftime('%Y/%m/%d')
+    data['EXTRA']['REMIT_DATE'] = project.client.get_pay_date(date=first_day)
     # 請求番号
     data['DETAIL']['REQUEST_NO'] = project_request.request_no
     # 発行日（対象月の最終日）
     data['DETAIL']['PUBLISH_DATE'] = last_day.strftime(u"%Y年%m月%d日".encode('utf-8')).decode('utf-8')
+    data['EXTRA']['PUBLISH_DATE'] = last_day
     # 本社郵便番号
     data['DETAIL']['POST_CODE'] = common.get_full_postcode(company.post_code)
     # 本社住所
@@ -752,6 +757,7 @@ def generate_request_data(company, project, client_order, bank_info, ym, project
     # 本社電話番号
     data['DETAIL']['TEL'] = company.tel
     # 振込先銀行名称
+    data['EXTRA']['BANK'] = bank_info
     data['DETAIL']['BANK_NAME'] = bank_info.bank_name if bank_info else u""
     # 支店番号
     data['DETAIL']['BRANCH_NO'] = bank_info.branch_no if bank_info else u""
@@ -788,6 +794,8 @@ def generate_request_data(company, project, client_order, bank_info, ym, project
     else:
         for i, project_member in enumerate(project_members):
             dict_expenses = dict()
+            # この項目は請求書の出力ではなく、履歴データをProjectRequestDetailに保存するために使う。
+            dict_expenses["EXTRA_PROJECT_MEMBER"] = project_member
             # 番号
             dict_expenses['NO'] = str(i + 1)
             # 項目
@@ -845,6 +853,9 @@ def generate_request_data(company, project, client_order, bank_info, ym, project
     data['DETAIL']['ITEM_AMOUNT_ALL_COMMA'] = humanize.intcomma(data['DETAIL']['ITEM_AMOUNT_ALL'])
 
     project_request.amount = data['DETAIL']['ITEM_AMOUNT_ALL']
+    project_request.turnover_amount = members_amount
+    project_request.tax_amount = data['DETAIL']['ITEM_AMOUNT_ATTENDANCE_TAX']
+    project_request.expenses_amount = expenses_amount
 
     return data
 
