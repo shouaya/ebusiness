@@ -1178,6 +1178,7 @@ class ProjectRequest(models.Model):
             if hasattr(self, "projectrequestheading"):
                 self.projectrequestheading.delete()
             self.projectrequestdetail_set.all().delete()
+            bank = data['EXTRA']['BANK']
             heading = ProjectRequestHeading(project_request=self,
                                             is_lump=self.project.is_lump,
                                             lump_amount=self.project.lump_amount,
@@ -1200,12 +1201,12 @@ class ProjectRequest(models.Model):
                                             company_tel=data['DETAIL']['TEL'],
                                             company_master=data['DETAIL']['MASTER'],
                                             bank=data['EXTRA']['BANK'],
-                                            bank_name=data['DETAIL']['BANK_NAME'],
-                                            branch_no=data['DETAIL']['BRANCH_NO'],
-                                            branch_name=data['DETAIL']['BRANCH_NAME'],
-                                            account_type=data['DETAIL']['ACCOUNT_TYPE'],
-                                            account_number=data['DETAIL']['ACCOUNT_NUMBER'],
-                                            account_holder=data['DETAIL']['BANK_ACCOUNT_HOLDER'])
+                                            bank_name=bank.bank_name,
+                                            branch_no=bank.branch_no,
+                                            branch_name=bank.branch_name,
+                                            account_type=bank.account_type,
+                                            account_number=bank.account_number,
+                                            account_holder=bank.account_holder)
             heading.save()
             for i, item in enumerate(data['MEMBERS']):
                 project_member = item["EXTRA_PROJECT_MEMBER"]
@@ -1240,7 +1241,7 @@ class ProjectRequestHeading(models.Model):
     lump_comment = models.CharField(blank=True, null=True, max_length=200, verbose_name=u"一括の備考")
     is_hourly_pay = models.BooleanField(default=False, verbose_name=u"時給")
     client = models.ForeignKey(Client, null=True, verbose_name=u"関連会社")
-    client_post_code = models.CharField(blank=True, null=True, max_length=7, verbose_name=u"お客様郵便番号")
+    client_post_code = models.CharField(blank=True, null=True, max_length=8, verbose_name=u"お客様郵便番号")
     client_address = models.CharField(blank=True, null=True, max_length=200, verbose_name=u"お客様住所１")
     client_tel = models.CharField(blank=True, null=True, max_length=15, verbose_name=u"お客様電話番号")
     client_name = models.CharField(blank=True, null=True, max_length=30, verbose_name=u"お客様会社名")
@@ -1250,7 +1251,7 @@ class ProjectRequestHeading(models.Model):
     work_period_end = models.DateField(blank=True, null=True, verbose_name=u"作業期間＿終了")
     remit_date = models.DateField(blank=True, null=True, verbose_name=u"お支払い期限")
     publish_date = models.DateField(blank=True, null=True, verbose_name=u"発行日")
-    company_post_code = models.CharField(blank=True, null=True, max_length=7, verbose_name=u"本社郵便番号")
+    company_post_code = models.CharField(blank=True, null=True, max_length=8, verbose_name=u"本社郵便番号")
     company_address = models.CharField(blank=True, null=True, max_length=200, verbose_name=u"本社住所")
     company_name = models.CharField(blank=True, null=True, max_length=30, verbose_name=u"会社名")
     company_tel = models.CharField(blank=True, null=True, max_length=15, verbose_name=u"お客様電話番号")
@@ -1259,7 +1260,8 @@ class ProjectRequestHeading(models.Model):
     bank_name = models.CharField(blank=True, null=True, max_length=20, verbose_name=u"銀行名称")
     branch_no = models.CharField(blank=True, null=True, max_length=3, verbose_name=u"支店番号")
     branch_name = models.CharField(blank=True, null=True, max_length=20, verbose_name=u"支店名称")
-    account_type = models.CharField(blank=True, null=True, max_length=1, verbose_name=u"預金種類")
+    account_type = models.CharField(blank=True, null=True, max_length=1, choices=constants.CHOICE_ACCOUNT_TYPE,
+                                    verbose_name=u"預金種類")
     account_number = models.CharField(blank=True, null=True, max_length=7, verbose_name=u"口座番号")
     account_holder = models.CharField(blank=True, null=True, max_length=20, verbose_name=u"口座名義")
 

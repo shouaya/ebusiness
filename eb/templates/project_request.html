@@ -48,12 +48,12 @@
             <tr></tr>
             <tr>
                 <td></td>
-                <td colspan="15">{{ request_heading.client_tel }}</td>
+                <td colspan="15">Tel: {{ request_heading.client_tel }}</td>
             </tr>
             <tr></tr>
             <tr>
                 <td></td>
-                <td colspan="15" class="title2">{{ request_heading.client_name }}</td>
+                <td colspan="15" class="title2">{{ request_heading.client_name }}御中</td>
             </tr>
             <tr></tr>
             <tr>
@@ -73,7 +73,7 @@
             </tr>
             <tr>
                 <td colspan="12"></td>
-                <td colspan="4">代表取締役　　{{ request_heading.company_master }}</td>
+                <td colspan="4">代表取締役　　花　   東  江</td>
             </tr>
             <tr>
                 <td></td>
@@ -85,25 +85,25 @@
             <tr>
                 <td></td>
                 <td colspan="3">注文番号</td>
-                <td colspan="4">{{ project_request.client_order.order_no }}</td>
+                <td colspan="12">{{ project_request.client_order.order_no }}</td>
             </tr>
             <tr></tr>
             <tr>
                 <td></td>
                 <td colspan="3">注文日</td>
-                <td colspan="4">{{ project_request.client_order.order_date|date:'Y/m/d' }}</td>
+                <td colspan="12">{{ project_request.client_order.order_date|date:'Y/m/d' }}</td>
             </tr>
             <tr></tr>
             <tr>
                 <td></td>
                 <td colspan="3">契約件名</td>
-                <td colspan="4">{{ project_request.client_order.name }}</td>
+                <td colspan="12" style="white-space: nowrap;">{{ project_request.client_order.name }}</td>
             </tr>
             <tr></tr>
             <tr>
                 <td></td>
                 <td colspan="3">支払期限日</td>
-                <td colspan="4">{{ request_heading.remit_date|date:'Y/m/d' }}</td>
+                <td colspan="12">{{ request_heading.remit_date|date:'Y/m/d' }}</td>
             </tr>
             <tr></tr>
             <tr>
@@ -302,7 +302,7 @@
             <tr>
                 <td></td>
                 <td class="left"></td>
-                <td class="border_right" colspan="14">{{ request_heading.account_type }}　{{ request_heading.account_number }}</td>
+                <td class="border_right" colspan="14">{{ request_heading.get_account_type_display }}　{{ request_heading.account_number }}</td>
             </tr>
             <tr>
                 <td class=""></td>

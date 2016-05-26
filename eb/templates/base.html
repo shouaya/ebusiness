@@ -74,7 +74,9 @@
     </section>
 	<footer>
         <div class="container">
+            {% ifequal request.user.username 'admin' %}
             <a href="{% url 'history' %}">Click here to see history</a>
+            {% endifequal %}
             <a href="{% url 'issues' %}">課題管理票</a>
         </div>
     </footer>
