@@ -409,7 +409,9 @@
                                 <a href="{% url 'admin:eb_clientorder_change' client_order.pk %}?from=portal&_popup=1" target="_blank">編集</a>
                             </td>
                             <td>
-                                {{ project_request.request_no }}
+                                {% if project_request %}
+                                <a href="{% url 'view_project_request' project_request.pk %}">{{ project_request.request_no }}</a>
+                                {% endif %}
                             </td>
                             <td class="center">
                                 {% if perms.eb.generate_request %}
