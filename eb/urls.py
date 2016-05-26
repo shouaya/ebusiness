@@ -9,9 +9,13 @@ from django.conf.urls import url, include
 
 from . import views
 
-member_list_patterns = [
-    url(r'^in_coming.html$', views.members_in_coming, name='members_in_coming'),
-    url(r'^subcontractor.html$', views.members_subcontractor, name='members_subcontractor'),
+member_patterns = [
+    url(r'^list.html$', views.employee_list, name='employee_list'),
+    url(r'^detail/(?P<employee_id>[^,/]+).html$', views.member_detail, name='member_detail'),
+    url(r'^(?P<employee_id>[^,/]+)/recommended_project.html$', views.recommended_project_list,
+        name='recommended_project'),
+    url(r'^list/in_coming.html$', views.members_in_coming, name='members_in_coming'),
+    url(r'^list/subcontractor.html$', views.members_subcontractor, name='members_subcontractor'),
     url(r'^change_list.html$', views.change_list, name='change_list'),
 ]
 
@@ -32,10 +36,22 @@ turnover_patterns = [
     url(r'^members/(?P<ym>[0-9]{6}).html$', views.turnover_members_monthly, name='turnover_members_monthly'),
 ]
 
+subcontractor_patterns = [
+    url(r'^list.html$', views.subcontractor_list, name='subcontractor_list'),
+    url(r'^detail/(?P<subcontractor_id>[0-9]+).html$', views.subcontractor_detail,
+        name='subcontractor_detail'),
+    url(r'^members/(?P<subcontractor_id>[0-9]+).html$', views.subcontractor_members,
+        name='subcontractor_members'),
+]
+
+project_patterns = [
+    url(r'^request_view/(?P<request_id>[0-9]+).html$', views.view_project_request, name='view_project_request'),
+]
+
 urlpatterns = [
     url(r'^$', views.index, name='index'),
-    url(r'^member_list/', include(member_list_patterns)),
-    url(r'^employee_list.html$', views.employee_list, name='employee_list'),
+    url(r'^member/', include(member_patterns)),
+    url(r'^project/', include(project_patterns)),
     url(r'^project_list.html$', views.project_list, name='project_list'),
     url(r'^project_order_list.html', views.project_order_list, name='project_order_list'),
     url(r'^project/(?P<project_id>[^,/]+).html$', views.project_detail, name='project_detail'),
@@ -49,16 +65,9 @@ urlpatterns = [
         name='project_members_by_order'),
     url(r'^release_list.html$', views.release_list, name='release_list'),
     url(r'^member_project_list/(?P<employee_id>[^,/]+).html$', views.member_project_list, name='member_project_list'),
-    url(r'^member_detail/(?P<employee_id>[^,/]+).html$', views.member_detail, name='member_detail'),
     url(r'^project/(?P<project_id>[^,/]+)/recommended_member.html$', views.recommended_member_list,
         name='recommended_member'),
-    url(r'^member/(?P<employee_id>[^,/]+)/recommended_project.html$', views.recommended_project_list,
-        name='recommended_project'),
-    url(r'^subcontractor_list.html$', views.subcontractor_list, name='subcontractor_list'),
-    url(r'^subcontractor_detail/(?P<subcontractor_id>[0-9]+).html$', views.subcontractor_detail,
-        name='subcontractor_detail'),
-    url(r'^subcontractor_members/(?P<subcontractor_id>[0-9]+).html$', views.subcontractor_members,
-        name='subcontractor_members'),
+    url(r'^subcontractor/', include(subcontractor_patterns)),
     url(r'^turnover/', include(turnover_patterns)),
     url(r'^download/', include(download_patterns)),
     url(r'^map_position.html$', views.map_position, name='map_position'),

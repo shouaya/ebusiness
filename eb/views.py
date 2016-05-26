@@ -28,7 +28,8 @@ from django.db.models import Max
 
 from utils import constants, common, errors, loader as file_loader, file_gen
 from .models import Member, Section, Project, ProjectMember, Salesperson, \
-    MemberAttendance, Subcontractor, BankInfo, ClientOrder, History, Client, BpMemberOrderInfo, Issue
+    MemberAttendance, Subcontractor, BankInfo, ClientOrder, History, BpMemberOrderInfo, Issue, \
+    ProjectRequest
 from . import forms
 
 
@@ -681,6 +682,34 @@ def project_member_list(request, project_id):
     template = loader.get_template('project_members.html')
     return HttpResponse(template.render(context))
 
+
+@login_required(login_url='/eb/login/')
+def view_project_request(request, request_id):
+    company = biz.get_company()
+    project_request = get_object_or_404(ProjectRequest, pk=request_id)
+    if hasattr(project_request, 'projectrequestheading'):
+        request_heading = project_request.projectrequestheading
+    else:
+        request_heading = None
+    request_details = list(project_request.projectrequestdetail_set.all())
+    project_members = [detail.project_member for detail in request_details]
+    detail_expenses, expenses_amount = biz.get_request_expenses_list(project_request.project,
+                                                                     project_request.year,
+                                                                     project_request.month,
+                                                                     project_members)
+    if len(request_details) < 20:
+        request_details.extend([None] * (20 - len(request_details)))
+
+    context = RequestContext(request, {
+        'company': company,
+        'title': u'請求書 | %s | %s年%s月' % (project_request.project.name, project_request.year, project_request.month),
+        'project_request': project_request,
+        'request_heading': request_heading,
+        'request_details': request_details,
+        'detail_expenses': detail_expenses,
+    })
+    template = loader.get_template('project_request.html')
+    return HttpResponse(template.render(context))
 
 @login_required(login_url='/eb/login/')
 def turnover_company_monthly(request):

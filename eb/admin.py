@@ -831,8 +831,8 @@ class ProjectRequestHeadingAdmin(BaseAdmin):
     get_project_name.short_description = u"案件名称"
     get_project_name.admin_order_field = 'project_request__project__name'
 
-    def has_delete_permission(self, request, obj=None):
-        return False
+    # def has_delete_permission(self, request, obj=None):
+    #     return False
 
     def has_add_permission(self, request):
         return False
@@ -843,11 +843,11 @@ class ProjectRequestHeadingAdmin(BaseAdmin):
         else:
             return False
 
-    def get_actions(self, request):
-        actions = super(ProjectRequestHeadingAdmin, self).get_actions(request)
-        if 'delete_selected' in actions:
-            del actions['delete_selected']
-        return actions
+    # def get_actions(self, request):
+    #     actions = super(ProjectRequestHeadingAdmin, self).get_actions(request)
+    #     if 'delete_selected' in actions:
+    #         del actions['delete_selected']
+    #     return actions
 
 
 class ProjectRequestDetailAdmin(BaseAdmin):
@@ -864,8 +864,8 @@ class ProjectRequestDetailAdmin(BaseAdmin):
     get_project_name.short_description = u"案件名称"
     get_project_name.admin_order_field = 'project_request__project__name'
 
-    def has_delete_permission(self, request, obj=None):
-        return False
+    # def has_delete_permission(self, request, obj=None):
+    #     return False
 
     def has_add_permission(self, request):
         return False
@@ -876,11 +876,11 @@ class ProjectRequestDetailAdmin(BaseAdmin):
         else:
             return False
 
-    def get_actions(self, request):
-        actions = super(ProjectRequestDetailAdmin, self).get_actions(request)
-        if 'delete_selected' in actions:
-            del actions['delete_selected']
-        return actions
+    # def get_actions(self, request):
+    #     actions = super(ProjectRequestDetailAdmin, self).get_actions(request)
+    #     if 'delete_selected' in actions:
+    #         del actions['delete_selected']
+    #     return actions
 
 
 class ProjectActivityAdmin(BaseAdmin):

@@ -816,28 +816,10 @@ def generate_request_data(company, project, client_order, bank_info, ym, project
             members_amount += dict_expenses['ITEM_AMOUNT_TOTAL']
             detail_members.append(dict_expenses)
 
-    # 清算リスト
-    dict_expenses = {}
-    for expenses in project.get_expenses(first_day.year, '%02d' % (first_day.month,), project_members):
-        if expenses.category.name not in dict_expenses:
-            dict_expenses[expenses.category.name] = [expenses]
-        else:
-            dict_expenses[expenses.category.name].append(expenses)
-    detail_expenses = []
-    expenses_amount = 0
-    for key, value in dict_expenses.iteritems():
-        d = dict()
-        member_list = []
-        amount = 0
-        for expenses in value:
-            member_list.append(expenses.project_member.member.first_name +
-                               expenses.project_member.member.last_name +
-                               u"￥%s" % (expenses.price,))
-            amount += expenses.price
-            expenses_amount += expenses.price
-        d['ITEM_EXPENSES_CATEGORY_SUMMARY'] = u"%s(%s)" % (key, u"、".join(member_list))
-        d['ITEM_EXPENSES_CATEGORY_AMOUNT'] = amount
-        detail_expenses.append(d)
+    detail_expenses, expenses_amount = get_request_expenses_list(project,
+                                                                 first_day.year,
+                                                                 '%02d' % (first_day.month,),
+                                                                 project_members)
 
     data['detail_all'] = detail_all
     data['MEMBERS'] = detail_members
@@ -860,31 +842,27 @@ def generate_request_data(company, project, client_order, bank_info, ym, project
     return data
 
 
-def chart_clients_turnover_month(client_turnovers):
-    categories = []
-    cost_list = []
-    price_list = []
-    for turnover in client_turnovers:
-        categories.append(u'"%s"' % (turnover['name'],))
-        cost_list.append(turnover['cost'])
-        price_list.append(turnover['price'])
-    return {'categories': categories, 'cost_list': cost_list, 'price_list': price_list}
-
-
-def chart_client_turnover_months(client):
-    """お客様の取引開始日から今までの月単位の売上リストを取得する。
-
-    :param client: 対象お客様の売上
-    :return:
-    """
-    month_list = client.get_turnover_months()
-    categories = []
-    cost_list = []
-    price_list = []
-    for year, month in month_list:
-        ym = year + month
-        client_turnover = client_turnover_month(ym, client.pk)[0]
-        categories.append(ym)
-        cost_list.append(client_turnover['cost'])
-        price_list.append(client_turnover['price'])
-    return {'categories': categories, 'cost_list': cost_list, 'price_list': price_list}
+def get_request_expenses_list(project, year, month, project_members):
+    # 清算リスト
+    dict_expenses = {}
+    for expenses in project.get_expenses(year, month, project_members):
+        if expenses.category.name not in dict_expenses:
+            dict_expenses[expenses.category.name] = [expenses]
+        else:
+            dict_expenses[expenses.category.name].append(expenses)
+    detail_expenses = []
+    expenses_amount = 0
+    for key, value in dict_expenses.iteritems():
+        d = dict()
+        member_list = []
+        amount = 0
+        for expenses in value:
+            member_list.append(expenses.project_member.member.first_name +
+                               expenses.project_member.member.last_name +
+                               u"￥%s" % (expenses.price,))
+            amount += expenses.price
+            expenses_amount += expenses.price
+        d['ITEM_EXPENSES_CATEGORY_SUMMARY'] = u"%s(%s)" % (key, u"、".join(member_list))
+        d['ITEM_EXPENSES_CATEGORY_AMOUNT'] = amount
+        detail_expenses.append(d)
+    return detail_expenses, expenses_amount
