@@ -1611,7 +1611,7 @@ class MemberExpenses(models.Model):
 
 
 class MemberAttendance(models.Model):
-    project_member = models.ForeignKey(ProjectMember, verbose_name=u"要員")
+    project_member = models.ForeignKey(ProjectMember, verbose_name=u"メンバー")
     year = models.CharField(max_length=4, default=str(datetime.date.today().year),
                             choices=constants.CHOICE_ATTENDANCE_YEAR, verbose_name=u"対象年")
     month = models.CharField(max_length=2, choices=constants.CHOICE_ATTENDANCE_MONTH, verbose_name=u"対象月")

@@ -322,6 +322,13 @@ class MemberAttendanceFormSet(forms.ModelForm):
         model = models.MemberAttendance
         fields = '__all__'
 
+    def __init__(self, *args, **kwargs):
+        forms.ModelForm.__init__(self, *args, **kwargs)
+        data = kwargs.get('initial', None)
+        if data and isinstance(data, dict):
+            pm = data.get('project_member', None)
+            self.fields['project_member'].queryset = models.ProjectMember.objects.filter(pk=pm.pk)
+
     basic_price = forms.CharField(widget=forms.TextInput(attrs={'style': 'width: 45px; border: 0px;'
                                                                          'background-color: transparent;',
                                                                 'readonly': 'readonly'}),

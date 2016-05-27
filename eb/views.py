@@ -530,13 +530,12 @@ def project_attendance_list(request, project_id):
     company = biz.get_company()
     project = Project.objects.get(pk=project_id)
     ym = request.GET.get('ym', None)
-    formset = None
 
-    context = {
+    context = RequestContext(request, {
         'company': company,
         'title': u'%s - 勤怠入力' % (project.name,),
         'project': project,
-    }
+    })
     context.update(csrf(request))
 
     if ym:
@@ -610,11 +609,12 @@ def project_attendance_list(request, project_id):
                                                              form=forms.MemberAttendanceFormSet,
                                                              extra=len(project_members))
                 dict_initials.sort(key=lambda item: item['id'])
-                formset = AttendanceFormSet(queryset=MemberAttendance.objects.none(), initial=dict_initials)
+                context['formset'] = AttendanceFormSet(queryset=MemberAttendance.objects.none(), initial=dict_initials)
             except Exception as e:
+                context['formset'] = None
                 print e.message
 
-            context.update({'formset': formset, 'initial_form_count': initial_form_count})
+            context['initial_form_count'] = initial_form_count
 
             r = render_to_response('project_attendance_list.html', context)
             return HttpResponse(r)
