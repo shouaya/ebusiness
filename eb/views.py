@@ -42,12 +42,9 @@ def index(request):
     now = datetime.date.today()
     next_month = common.add_months(now, 1)
     next_2_months = common.add_months(now, 2)
-    filter_list = {'now_year': now.year,
-                   'now_month': now.month,
-                   'next_month_year': next_month.year,
-                   'next_month_month': next_month.month,
-                   'next_2_months_year': next_2_months.year,
-                   'next_2_months_month': next_2_months.month}
+    filter_list = {'current_ym': now.strftime('%Y%m'),
+                   'next_ym': next_month.strftime('%Y%m'),
+                   'next_2_ym': next_2_months.strftime('%Y%m')}
 
     member_count = biz.get_all_members(request.user).count()
     working_members = biz.get_working_members(request.user)
@@ -61,6 +58,10 @@ def index(request):
     subcontractor_all_member_count = biz.get_subcontractor_all_members(user=request.user).count()
     subcontractor_working_member_count = biz.get_subcontractor_working_members(user=request.user).count()
     subcontractor_waiting_member_count = subcontractor_all_member_count - subcontractor_working_member_count
+
+    subcontractor_release_current_month = biz.get_subcontractor_release_current_month(user=request.user).count()
+    subcontractor_release_next_month = biz.get_subcontractor_release_next_month(user=request.user).count()
+    subcontractor_release_next_2_month = biz.get_subcontractor_release_next_2_month(user=request.user).count()
 
     activities = biz.get_activities_incoming(user=request.user)
 
@@ -78,6 +79,9 @@ def index(request):
         'subcontractor_all_member_count': subcontractor_all_member_count,
         'subcontractor_working_member_count': subcontractor_working_member_count,
         'subcontractor_waiting_member_count': subcontractor_waiting_member_count,
+        'subcontractor_release_current_month': subcontractor_release_current_month,
+        'subcontractor_release_next_month': subcontractor_release_next_month,
+        'subcontractor_release_next_2_month': subcontractor_release_next_2_month,
         'activities': activities,
     })
     template = loader.get_template('home.html')
@@ -410,6 +414,7 @@ def project_end(request, project_id):
     return redirect("/eb/project_list.html?" + params)
 
 
+@login_required(login_url='/eb/login/')
 def project_order_list(request):
     company = biz.get_company()
     name = request.GET.get('name', None)
@@ -711,6 +716,7 @@ def view_project_request(request, request_id):
     template = loader.get_template('project_request.html')
     return HttpResponse(template.render(context))
 
+
 @login_required(login_url='/eb/login/')
 def turnover_company_monthly(request):
     company = biz.get_company()
@@ -822,29 +828,31 @@ def turnover_members_monthly(request, ym):
 
 
 @login_required(login_url='/eb/login/')
-def release_list(request):
+def release_list_current(request):
+    now = datetime.date.today()
+    return release_list(request, now.strftime('%Y%m'))
+
+
+@login_required(login_url='/eb/login/')
+def release_list(request, ym):
     company = biz.get_company()
-    period = request.GET.get('period', None)
-    params = ""
-    if period and re.match(r'[12][0-9]{5}', period):
-        year = int(period[0:4])
-        month = int(period[-2:])
-        params = u"&period=%s" % (period,)
-    else:
-        year = datetime.datetime.now().year
-        month = datetime.datetime.now().month
+    param_list = common.get_request_params(request.GET)
+    year = int(ym[0:4])
+    month = int(ym[-2:])
     start_date = datetime.datetime(year, month, 1)
     o = request.GET.get('o', None)
-    dict_order = common.get_ordering_dict(o, ['member__first_name', 'member__section__name',
-                                              'project__name', 'start_date', 'end_date'])
+    dict_order = common.get_ordering_dict(o, ['member__first_name', 'member__subcontractor__name', 'member__section__name',
+                                              'project__name', 'start_date', 'member__salesperson'])
     order_list = common.get_ordering_list(o)
 
-    all_project_members = biz.get_release_members_by_month(start_date, user=request.user)
+    all_project_members = biz.get_release_members_by_month(start_date, param_list, user=request.user)
     if order_list:
         all_project_members = all_project_members.order_by(*order_list)
 
-    filter_list = common.get_month_list()
+    sections = Section.objects.public_filter(is_on_sales=True)
+    salesperson = Salesperson.objects.public_all()
 
+    params = "&".join(["%s=%s" % (key, value) for key, value in param_list.items()]) if param_list else ""
     paginator = Paginator(all_project_members, PAGE_SIZE)
     page = request.GET.get('page')
     try:
@@ -861,7 +869,9 @@ def release_list(request):
         'paginator': paginator,
         'params': params,
         'dict_order': dict_order,
-        'filter_list': filter_list,
+        'ym': ym,
+        'sections': sections,
+        'salesperson': salesperson,
     })
     template = loader.get_template('release_list.html')
     return HttpResponse(template.render(context))
@@ -1131,6 +1141,7 @@ def upload_resume(request):
     return HttpResponse(r)
 
 
+@login_required(login_url='/eb/login/')
 def download_project_quotation(request, project_id):
     company = biz.get_company()
     project = Project.objects.get(pk=project_id)

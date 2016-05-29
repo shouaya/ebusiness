@@ -95,7 +95,12 @@ def get_request_params(params):
             if key in ("o", "page") or not value:
                 continue
             if isinstance(value, list) and value[0]:
-                d[str(key)] = "".join(value)
+                val = value[0]
+                if val == 'True':
+                    val = True
+                elif val == 'False':
+                    val = False
+                d[str(key)] = val
         return d
     return None
 

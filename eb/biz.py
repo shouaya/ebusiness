@@ -190,6 +190,23 @@ def get_project_members_month(date):
                                                       status=2)
 
 
+def get_subcontractor_project_members_month(date):
+    """指定月の案件メンバー全部取得する。
+
+    :param date 指定月
+    """
+    first_day = common.get_first_day_by_month(date)
+    today = datetime.date.today()
+    if date.year == today.year and date.month == today.month:
+        first_day = today
+    last_day = common.get_last_day_by_month(date)
+    return models.ProjectMember.objects.public_filter(end_date__gte=first_day,
+                                                      end_date__lte=last_day,
+                                                      project__status=4,
+                                                      member__member_type=4,
+                                                      status=2)
+
+
 def get_next_change_list(user):
     """入退場リスト
 
@@ -211,10 +228,11 @@ def get_next_change_list(user):
     return members.filter(section__is_on_sales=True)
 
 
-def get_release_members_by_month(date, salesperson=None, is_superuser=False, user=None):
+def get_release_members_by_month(date, p=None, salesperson=None, is_superuser=False, user=None):
     """指定営業員配下の案件メンバー取得する。
 
     :param date 指定月
+    :param p: パラメーター
     :param salesperson 指定営業員配下の案件メンバー
     :param is_superuser スーパーユーザ
     :param user: ログインしているユーザ
@@ -225,6 +243,8 @@ def get_release_members_by_month(date, salesperson=None, is_superuser=False, use
                                                    user=user)
     project_members = get_project_members_month(date).filter(member__section__is_on_sales=True)\
         .exclude(member__in=working_member_next_date)
+    if p:
+        project_members = project_members.filter(**p)
     if is_superuser or (user and user.is_superuser):
         return project_members
     elif salesperson or (user and hasattr(user, 'salesperson')):
@@ -233,6 +253,43 @@ def get_release_members_by_month(date, salesperson=None, is_superuser=False, use
         return project_members.filter(project__salesperson__in=salesperson_list)
     else:
         return models.ProjectMember.objects.none()
+
+
+def get_subcontractor_release_members_by_month(date, salesperson=None, is_superuser=False, user=None):
+    """指定営業員配下の案件メンバー取得する。
+
+    :param date 指定月
+    :param salesperson 指定営業員配下の案件メンバー
+    :param is_superuser スーパーユーザ
+    :param user: ログインしているユーザ
+    """
+    working_member_next_date = get_subcontractor_working_members(date=common.add_months(date, 1),
+                                                                 salesperson=salesperson,
+                                                                 user=user)
+    project_members = get_subcontractor_project_members_month(date).filter(member__section__is_on_sales=True)\
+        .exclude(member__in=working_member_next_date)
+    if is_superuser or (user and user.is_superuser):
+        return project_members
+    elif salesperson or (user and hasattr(user, 'salesperson')):
+        salesperson = salesperson if salesperson else user.salesperson
+        salesperson_list = salesperson.get_under_salesperson()
+        return project_members.filter(project__salesperson__in=salesperson_list)
+    else:
+        return models.ProjectMember.objects.none()
+
+
+def get_subcontractor_release_current_month(salesperson=None, is_superuser=False, user=None):
+    return get_subcontractor_release_members_by_month(datetime.date.today(), salesperson, is_superuser, user)
+
+
+def get_subcontractor_release_next_month(salesperson=None, is_superuser=False, user=None):
+    next_month = common.add_months(datetime.date.today(), 1)
+    return get_subcontractor_release_members_by_month(next_month, salesperson, is_superuser, user)
+
+
+def get_subcontractor_release_next_2_month(salesperson=None, is_superuser=False, user=None):
+    next_month = common.add_months(datetime.date.today(), 2)
+    return get_subcontractor_release_members_by_month(next_month, salesperson, is_superuser, user)
 
 
 def get_release_current_month(salesperson=None, is_superuser=False, user=None):

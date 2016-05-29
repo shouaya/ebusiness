@@ -150,9 +150,7 @@
                             {% if page_type == "members_in_coming" %}
                                 {{ member.join_date }}
                             {% else %}
-                                <a href="{% url 'release_list' %}?period={{ member.get_project_end_date|date:'Ym' }}">
-                                    {{ member.get_project_end_date|date:"Y-m-d" }}
-                                </a>
+                                {{ member.get_project_end_date|date:"Y-m-d" }}
                             {% endif %}
                         </td>
                         <td>
