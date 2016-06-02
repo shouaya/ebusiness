@@ -5,12 +5,12 @@ Created on 2015/08/21
 @author: Yang Wanjun
 """
 import datetime
-import re
 import urllib
 import json
 import os
 
 import biz
+import biz_turnover
 
 from django.http import HttpResponse
 from django.contrib import admin
@@ -21,6 +21,7 @@ from django.shortcuts import redirect, render_to_response, get_object_or_404
 from django.views.decorators.csrf import csrf_protect
 from django.template.context_processors import csrf
 from django.core.exceptions import ObjectDoesNotExist
+from django.core.urlresolvers import reverse
 from django.contrib.auth.decorators import login_required, permission_required
 from django.conf import settings
 from django.forms.models import modelformset_factory
@@ -46,24 +47,24 @@ def index(request):
                    'next_ym': next_month.strftime('%Y%m'),
                    'next_2_ym': next_2_months.strftime('%Y%m')}
 
-    member_count = biz.get_all_members(request.user).count()
-    working_members = biz.get_working_members(request.user)
-    waiting_members = biz.get_waiting_members(request.user)
-    member_in_coming = biz.get_members_in_coming(request.user)
+    member_count = biz.get_all_members().count()
+    working_members = biz.get_working_members()
+    waiting_members = biz.get_waiting_members()
+    member_in_coming = biz.get_members_in_coming()
 
-    current_month = biz.get_release_current_month(user=request.user)
-    next_month = biz.get_release_next_month(user=request.user)
-    next_2_month = biz.get_release_next_2_month(user=request.user)
+    current_month = biz.get_release_current_month()
+    next_month = biz.get_release_next_month()
+    next_2_month = biz.get_release_next_2_month()
 
-    subcontractor_all_member_count = biz.get_subcontractor_all_members(user=request.user).count()
-    subcontractor_working_member_count = biz.get_subcontractor_working_members(user=request.user).count()
+    subcontractor_all_member_count = biz.get_subcontractor_all_members().count()
+    subcontractor_working_member_count = biz.get_subcontractor_working_members().count()
     subcontractor_waiting_member_count = subcontractor_all_member_count - subcontractor_working_member_count
 
-    subcontractor_release_current_month = biz.get_subcontractor_release_current_month(user=request.user).count()
-    subcontractor_release_next_month = biz.get_subcontractor_release_next_month(user=request.user).count()
-    subcontractor_release_next_2_month = biz.get_subcontractor_release_next_2_month(user=request.user).count()
+    subcontractor_release_current_month = biz.get_subcontractor_release_current_month().count()
+    subcontractor_release_next_month = biz.get_subcontractor_release_next_month().count()
+    subcontractor_release_next_2_month = biz.get_subcontractor_release_next_2_month().count()
 
-    activities = biz.get_activities_incoming(user=request.user)
+    activities = biz.get_activities_incoming()
 
     context = RequestContext(request, {
         'company': company,
@@ -105,7 +106,7 @@ def employee_list(request):
                                               'salesperson__first_name'])
     order_list = common.get_ordering_list(o)
 
-    all_members = biz.get_all_members(request.user)
+    all_members = biz.get_all_members()
 
     if salesperson:
         all_members = all_members.filter(salesperson_id=salesperson)
@@ -178,7 +179,7 @@ def members_in_coming(request):
                                               'salesperson__first_name'])
     order_list = common.get_ordering_list(o)
 
-    all_members = biz.get_members_in_coming(user=request.user)
+    all_members = biz.get_members_in_coming()
     if salesperson:
         all_members = all_members.filter(salesperson_id=salesperson)
         params += u"&salesperson=%s" % (salesperson,)
@@ -241,13 +242,13 @@ def members_subcontractor(request):
     order_list = common.get_ordering_list(o)
 
     if status == "working":
-        all_members = biz.get_subcontractor_working_members(user=request.user)
+        all_members = biz.get_subcontractor_working_members()
         params += u"&status=%s" % (status,)
     elif status == "waiting":
-        all_members = biz.get_subcontractor_waiting_members(user=request.user)
+        all_members = biz.get_subcontractor_waiting_members()
         params += u"&status=%s" % (status,)
     else:
-        all_members = biz.get_subcontractor_all_members(user=request.user)
+        all_members = biz.get_subcontractor_all_members()
 
     if salesperson:
         all_members = all_members.filter(salesperson_id=salesperson)
@@ -306,7 +307,7 @@ def change_list(request):
     dict_order = common.get_ordering_dict(o, ['first_name', 'section__name', 'salesperson__first_name'])
     order_list = common.get_ordering_list(o)
 
-    all_members = biz.get_next_change_list(request.user)
+    all_members = biz.get_next_change_list()
     if order_list:
         all_members = all_members.order_by(*order_list)
 
@@ -411,7 +412,7 @@ def project_end(request, project_id):
     except ObjectDoesNotExist:
         pass
 
-    return redirect("/eb/project_list.html?" + params)
+    return redirect(reverse(project_list) + "?" + params)
 
 
 @login_required(login_url='/eb/login/')
@@ -637,7 +638,7 @@ def project_attendance_list(request, project_id):
                         attendance_id = request.POST.get("form-%s-id" % (i,), None)
                         attendance.pk = int(attendance_id) if attendance_id else None
                     attendance.save()
-                return redirect("/eb/project/%s.html#tbl_attendance" % (project.pk,))
+                return redirect(reverse("project_detail", args=(project.pk,)))
             else:
                 context.update({'formset': formset})
                 r = render_to_response('project_attendance_list.html', context)
@@ -720,15 +721,15 @@ def view_project_request(request, request_id):
 @login_required(login_url='/eb/login/')
 def turnover_company_monthly(request):
     company = biz.get_company()
-    company_turnover = biz.turnover_company_monthly()
+    company_turnover = biz_turnover.turnover_company_monthly()
     month_list = [str(item['ym']) for item in company_turnover]
-    amount_list = [item['amount__sum'] for item in company_turnover]
+    turnover_amount_list = [item['turnover_amount'] for item in company_turnover]
     context = RequestContext(request, {
         'company': company,
         'title': u'売上情報',
         'company_turnover': company_turnover,
         'month_list': month_list,
-        'amount_list': amount_list,
+        'turnover_amount_list': turnover_amount_list,
     })
     template = loader.get_template('turnover_company_monthly.html')
     return HttpResponse(template.render(context))
@@ -737,19 +738,19 @@ def turnover_company_monthly(request):
 @login_required(login_url='/eb/login/')
 def turnover_charts_monthly(request, ym):
     company = biz.get_company()
-    sections_turnover = biz.sections_turnover_monthly(ym)
+    sections_turnover = biz_turnover.sections_turnover_monthly(ym)
     section_attendance_amount_list = [item['attendance_amount'] for item in sections_turnover]
     section_attendance_tex_list = [item['attendance_tex'] for item in sections_turnover]
     section_expenses_amount_list = [item['expenses_amount'] for item in sections_turnover]
     section_name_list = ["'" + item['section'].name + "'" for item in sections_turnover]
 
-    salesperson_turnover = biz.salesperson_turnover_monthly(ym)
+    salesperson_turnover = biz_turnover.salesperson_turnover_monthly(ym)
     salesperson_attendance_amount_list = [item['attendance_amount'] for item in salesperson_turnover]
     salesperson_attendance_tex_list = [item['attendance_tex'] for item in salesperson_turnover]
     salesperson_expenses_amount_list = [item['expenses_amount'] for item in salesperson_turnover]
     salesperson_name_list = ["'" + item['salesperson'].__unicode__() + "'" for item in salesperson_turnover]
 
-    clients_turnover = biz.clients_turnover_monthly(ym)
+    clients_turnover = biz_turnover.clients_turnover_monthly(ym)
     clients_attendance_amount_list = [item['attendance_amount'] for item in clients_turnover]
     clients_attendance_tex_list = [item['attendance_tex'] for item in clients_turnover]
     clients_expenses_amount_list = [item['expenses_amount'] for item in clients_turnover]
@@ -785,37 +786,39 @@ def turnover_members_monthly(request, ym):
 
     param_list = common.get_request_params(request.GET)
     o = request.GET.get('o', None)
-    dict_order = common.get_ordering_dict(o, ['member__first_name', 'member__section__name',
-                                              'project__name', 'project__client__name',])
+    dict_order = common.get_ordering_dict(o, ['project_member__member__first_name',
+                                              'project_member__member__section__name',
+                                              'project_request__project__name',
+                                              'project_request__projectrequestheading__client__name'])
     order_list = common.get_ordering_list(o)
     params = "&".join(["%s=%s" % (key, value) for key, value in param_list.items()]) if param_list else ""
 
-    sections = biz.get_turnover_sections(ym)
-    all_members_turnover = biz.members_turnover_monthly(ym, param_list, order_list)
+    sections = biz_turnover.get_turnover_sections(ym)
+    all_turnover_details = biz_turnover.members_turnover_monthly(ym, param_list, order_list)
     summary = {'attendance_amount': 0, 'expenses_amount': 0,
                'attendance_tex': 0, 'all_amount': 0,
                'cost_amount': 0}
-    for item in all_members_turnover:
-        summary['attendance_amount'] += item['attendance_amount']
-        summary['attendance_tex'] += item['attendance_tex']
-        summary['expenses_amount'] += item['expenses_amount']
-        summary['all_amount'] += item['all_amount']
-        summary['cost_amount'] += item['cost_amount']
-    paginator = Paginator(all_members_turnover, PAGE_SIZE)
+    for item in all_turnover_details:
+        summary['attendance_amount'] += item.total_price
+        summary['attendance_tex'] += item.get_tax_price()
+        summary['expenses_amount'] += item.expenses_price
+        summary['all_amount'] += item.total_price + item.get_tax_price() + item.expenses_price
+        summary['cost_amount'] += item.cost
+    paginator = Paginator(all_turnover_details, PAGE_SIZE)
     page = request.GET.get('page')
     try:
-        members_turnover = paginator.page(page)
+        turnover_details = paginator.page(page)
     except PageNotAnInteger:
-        members_turnover = paginator.page(1)
+        turnover_details = paginator.page(1)
     except EmptyPage:
-        members_turnover = paginator.page(paginator.num_pages)
+        turnover_details = paginator.page(paginator.num_pages)
 
     context = RequestContext(request, {
         'company': company,
         'title': u'%s年%s月の売上詳細情報' % (ym[:4], ym[4:]),
         'sections': sections,
         'salesperson': Salesperson.objects.public_all(),
-        'members_turnover': members_turnover,
+        'turnover_details': turnover_details,
         'summary': summary,
         'paginator': paginator,
         'dict_order': dict_order,
@@ -845,7 +848,7 @@ def release_list(request, ym):
                                               'project__name', 'start_date', 'member__salesperson'])
     order_list = common.get_ordering_list(o)
 
-    all_project_members = biz.get_release_members_by_month(start_date, param_list, user=request.user)
+    all_project_members = biz.get_release_members_by_month(start_date, param_list)
     if order_list:
         all_project_members = all_project_members.order_by(*order_list)
 

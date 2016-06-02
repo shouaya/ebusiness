@@ -10,7 +10,7 @@ import datetime
 
 import models
 
-from django.db.models import Q, Max, Min, Sum
+from django.db.models import Q, Max
 from django.contrib.auth.models import User
 from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.humanize.templatetags import humanize
@@ -33,151 +33,93 @@ def get_admin_user():
         return None
 
 
-def get_all_members(user=None):
+def get_all_members():
+    """営業対象部署のすべてのメンバー、且つ入社済みのメンバーを取得する。
+
+    :return:
+    """
     today = datetime.date.today()
-    if user:
-        if user.is_superuser:
-            return models.Member.objects.public_filter(Q(join_date__isnull=True) | Q(join_date__lte=today),
-                                                       section__is_on_sales=True)
-        elif common.is_salesperson(user):
-            return user.salesperson.get_all_members()
-
-    return models.Member.objects.none()
+    return models.Member.objects.public_filter(Q(join_date__isnull=True) | Q(join_date__lte=today),
+                                               section__is_on_sales=True)
 
 
-def get_subcontractor_all_members(user=None, salesperson=None):
-    """すべての協力社員を取得する。
-
-    :param user: ログインしているユーザ
-    :param salesperson: 営業員
-    :return:
-    """
-    members = models.Member.objects.public_filter(subcontractor__isnull=False, section__is_on_sales=True)
-    if user:
-        # ユーザがログインしている場合。
-        if user.is_superuser:
-            return members
-        elif hasattr(user, 'salesperson'):
-            salesperson_list = user.salesperson.get_under_salesperson()
-            return members.filter(salesperson__in=salesperson_list)
-    elif salesperson:
-        # ログインしてないで、単に営業員の配下の協力社員の稼動状況を取得する。
-        salesperson_list = salesperson.get_under_salesperson()
-        return members.filter(salesperson__in=salesperson_list)
-
-    return models.Member.objects.none()
-
-
-def get_subcontractor_working_members(user=None, salesperson=None, date=None):
-    """対象月の稼働中の協力社員を取得する。
-
-    :param user: ログインしているユーザ
-    :param salesperson: 営業員
-    :param date: 対象年月
-    :return:
-    """
-    if not date:
-        first_day = last_day = datetime.date.today()
-    else:
-        first_day = common.get_first_day_by_month(date)
-        last_day = common.get_last_day_by_month(date)
-
-    return get_subcontractor_all_members(user=user, salesperson=salesperson)\
-        .filter(projectmember__start_date__lte=last_day,
-                projectmember__end_date__gte=first_day,
-                projectmember__is_deleted=False,
-                projectmember__status=2).distinct()
-
-
-def get_subcontractor_waiting_members(user=None, salesperson=None, date=None):
-    """対象月の待機中の協力社員を取得する
-
-    :param user: ログインしているユーザ
-    :param salesperson: 営業員
-    :param date: 対象年月
-    :return:
-    """
-    working_members = get_subcontractor_working_members(user, salesperson, date)
-    return get_subcontractor_all_members(user=user, salesperson=salesperson).exclude(pk__in=working_members)
-
-
-def get_members_in_coming(user=None):
+def get_members_in_coming():
     """新規入場要員リストを取得する。
 
-    :param user:ログインしているユーザ
     :return:
     """
     today = datetime.date.today()
     return models.Member.objects.public_filter(join_date__gt=today)
 
 
-def get_activities_incoming(user=None, salesperson=None):
-    """これから実施する活動一覧
+def get_working_members(date=None):
+    """稼働中のメンバー
 
-    :param user: ログインしているユーザ
-    :param salesperson: 営業員
+    :param date: 対象年月
     :return:
     """
-    now = datetime.datetime.now()
-    activities = models.ProjectActivity.objects.public_filter(open_date__gte=now).order_by('open_date')
-    if user:
-        # ユーザがログインしている場合。
-        if user.is_superuser:
-            return activities[:5]
-        elif hasattr(user, 'salesperson'):
-            salesperson_list = user.salesperson.get_under_salesperson()
-            return activities.filter(project__salesperson__in=salesperson_list)[:5]
-    elif salesperson:
-        # ログインしてないで、単に営業員の配下の協力社員の稼動状況を取得する。
-        salesperson_list = salesperson.get_under_salesperson()
-        return activities.filter(project__salesperson__in=salesperson_list)[:5]
-
-    return models.ProjectActivity.objects.none()
-
-
-def get_working_members(user=None, date=None, is_superuser=None, salesperson=None):
     if not date:
         first_day = last_day = datetime.date.today()
     else:
         first_day = common.get_first_day_by_month(date)
         last_day = common.get_last_day_by_month(date)
-    if (user and user.is_superuser) or is_superuser:
-        # 管理員の場合全部見られる
-        today = datetime.date.today()
-        members = models.Member.objects.public_filter(Q(join_date__isnull=True) | Q(join_date__lte=today),
-                                                      section__is_on_sales=True,
-                                                      projectmember__start_date__lte=last_day,
-                                                      projectmember__end_date__gte=first_day,
-                                                      projectmember__is_deleted=False,
-                                                      projectmember__status=2).distinct()
-        return members
-    elif user and common.is_salesperson(user):
-        # 営業員の場合、担当している社員だけ見られる
-        return user.salesperson.get_working_members()
-    elif salesperson:
-        return salesperson.get_working_members()
-
-    return models.Member.objects.none()
+    members = get_all_members().filter(projectmember__start_date__lte=last_day,
+                                       projectmember__end_date__gte=first_day,
+                                       projectmember__is_deleted=False,
+                                       projectmember__status=2).distinct()
+    return members
 
 
-def get_waiting_members(user=None):
-    if user:
-        if user.is_superuser:
-            # 管理員の場合全部見られる
-            working_members = get_working_members(user)
-            members = get_all_members(user).exclude(pk__in=working_members)
-            return members
-        elif common.is_salesperson(user):
-            # 営業員の場合、担当している社員だけ見られる
-            return user.salesperson.get_waiting_members()
+def get_waiting_members():
+    """待機中のメンバー
 
-    return models.Member.objects.none()
+    :return:
+    """
+    working_members = get_working_members()
+    return get_all_members().exclude(pk__in=working_members)
+
+
+def get_subcontractor_all_members():
+    """すべての協力社員を取得する。
+
+    :return:
+    """
+    return get_all_members().filter(subcontractor__isnull=False)
+
+
+def get_subcontractor_working_members(date=None):
+    """対象月の稼働中の協力社員を取得する。
+
+    :param date: 対象年月
+    :return:
+    """
+    if not date:
+        first_day = last_day = datetime.date.today()
+    else:
+        first_day = common.get_first_day_by_month(date)
+        last_day = common.get_last_day_by_month(date)
+
+    return get_subcontractor_all_members().filter(projectmember__start_date__lte=last_day,
+                                                  projectmember__end_date__gte=first_day,
+                                                  projectmember__is_deleted=False,
+                                                  projectmember__status=2).distinct()
+
+
+def get_subcontractor_waiting_members(date=None):
+    """対象月の待機中の協力社員を取得する
+
+    :param date: 対象年月
+    :return:
+    """
+    working_members = get_subcontractor_working_members(date)
+    return get_subcontractor_all_members().exclude(pk__in=working_members)
 
 
 def get_project_members_month(date):
     """指定月の案件メンバー全部取得する。
 
     :param date 指定月
+    :return
     """
     first_day = common.get_first_day_by_month(date)
     today = datetime.date.today()
@@ -194,23 +136,14 @@ def get_subcontractor_project_members_month(date):
     """指定月の案件メンバー全部取得する。
 
     :param date 指定月
+    :return
     """
-    first_day = common.get_first_day_by_month(date)
-    today = datetime.date.today()
-    if date.year == today.year and date.month == today.month:
-        first_day = today
-    last_day = common.get_last_day_by_month(date)
-    return models.ProjectMember.objects.public_filter(end_date__gte=first_day,
-                                                      end_date__lte=last_day,
-                                                      project__status=4,
-                                                      member__member_type=4,
-                                                      status=2)
+    return get_project_members_month(date).filter(member__member_type=4)
 
 
-def get_next_change_list(user):
+def get_next_change_list():
     """入退場リスト
 
-    :param user:
     :return:
     """
     first_day = common.get_first_day_current_month()
@@ -228,362 +161,82 @@ def get_next_change_list(user):
     return members.filter(section__is_on_sales=True)
 
 
-def get_release_members_by_month(date, p=None, salesperson=None, is_superuser=False, user=None):
-    """指定営業員配下の案件メンバー取得する。
+def get_release_members_by_month(date, p=None):
+    """指定年月にリリースするメンバーを取得する。
 
     :param date 指定月
-    :param p: パラメーター
-    :param salesperson 指定営業員配下の案件メンバー
-    :param is_superuser スーパーユーザ
-    :param user: ログインしているユーザ
+    :param p: 画面からの絞り込み条件
     """
-    working_member_next_date = get_working_members(date=common.add_months(date, 1),
-                                                   is_superuser=is_superuser,
-                                                   salesperson=salesperson,
-                                                   user=user)
+    working_member_next_date = get_working_members(date=common.add_months(date, 1))
     project_members = get_project_members_month(date).filter(member__section__is_on_sales=True)\
         .exclude(member__in=working_member_next_date)
     if p:
         project_members = project_members.filter(**p)
-    if is_superuser or (user and user.is_superuser):
-        return project_members
-    elif salesperson or (user and hasattr(user, 'salesperson')):
-        salesperson = salesperson if salesperson else user.salesperson
-        salesperson_list = salesperson.get_under_salesperson()
-        return project_members.filter(project__salesperson__in=salesperson_list)
-    else:
-        return models.ProjectMember.objects.none()
+    return project_members
 
 
-def get_subcontractor_release_members_by_month(date, salesperson=None, is_superuser=False, user=None):
-    """指定営業員配下の案件メンバー取得する。
+def get_release_current_month():
+    """今月にリリースするメンバーを取得する。
 
-    :param date 指定月
-    :param salesperson 指定営業員配下の案件メンバー
-    :param is_superuser スーパーユーザ
-    :param user: ログインしているユーザ
     """
-    working_member_next_date = get_subcontractor_working_members(date=common.add_months(date, 1),
-                                                                 salesperson=salesperson,
-                                                                 user=user)
-    project_members = get_subcontractor_project_members_month(date).filter(member__section__is_on_sales=True)\
-        .exclude(member__in=working_member_next_date)
-    if is_superuser or (user and user.is_superuser):
-        return project_members
-    elif salesperson or (user and hasattr(user, 'salesperson')):
-        salesperson = salesperson if salesperson else user.salesperson
-        salesperson_list = salesperson.get_under_salesperson()
-        return project_members.filter(project__salesperson__in=salesperson_list)
-    else:
-        return models.ProjectMember.objects.none()
+    return get_release_members_by_month(datetime.date.today())
 
 
-def get_subcontractor_release_current_month(salesperson=None, is_superuser=False, user=None):
-    return get_subcontractor_release_members_by_month(datetime.date.today(), salesperson, is_superuser, user)
+def get_release_next_month():
+    """来月にリリースするメンバーを取得する。
 
-
-def get_subcontractor_release_next_month(salesperson=None, is_superuser=False, user=None):
-    next_month = common.add_months(datetime.date.today(), 1)
-    return get_subcontractor_release_members_by_month(next_month, salesperson, is_superuser, user)
-
-
-def get_subcontractor_release_next_2_month(salesperson=None, is_superuser=False, user=None):
-    next_month = common.add_months(datetime.date.today(), 2)
-    return get_subcontractor_release_members_by_month(next_month, salesperson, is_superuser, user)
-
-
-def get_release_current_month(salesperson=None, is_superuser=False, user=None):
-    """指定営業員配下の当月の案件メンバー取得する。
-
-    :param salesperson 指定営業員配下の案件メンバー
-    :param is_superuser スーパーユーザ
-    :param user: ログインしているユーザ
-    """
-    return get_release_members_by_month(datetime.date.today(), salesperson, is_superuser, user)
-
-
-def get_release_next_month(salesperson=None, is_superuser=False, user=None):
-    """指定営業員配下の来月の案件メンバー取得する。
-
-    :param salesperson 指定営業員配下の案件メンバー
-    :param is_superuser スーパーユーザ
-    :param user: ログインしているユーザ
     """
     next_month = common.add_months(datetime.date.today(), 1)
-    return get_release_members_by_month(next_month, salesperson, is_superuser, user)
+    return get_release_members_by_month(next_month)
 
 
-def get_release_next_2_month(salesperson=None, is_superuser=False, user=None):
-    """指定営業員配下の再来月の案件メンバー取得する。
+def get_release_next_2_month():
+    """再来月にリリースするメンバーを取得する。
 
-    :param salesperson 指定営業員配下の案件メンバー
-    :param is_superuser スーパーユーザ
-    :param user: ログインしているユーザ
     """
     next_2_month = common.add_months(datetime.date.today(), 2)
-    return get_release_members_by_month(next_2_month, salesperson, is_superuser, user)
+    return get_release_members_by_month(next_2_month)
 
 
-def get_turnover_months():
-    """売り上げ集計対象月のリストを返す
+def get_subcontractor_release_members_by_month(date):
+    """指定年月にリリースする協力社員を取得する。
 
-    案件請求情報の開始年月から、現在までの対象月を取得する。
-
-    :return: (yyyy, mm)のリスト
+    :param date 指定月
     """
-    dict_min_year = models.ProjectRequest.objects.all().aggregate(Min('year'))
-    min_year = dict_min_year.get('year__min')
-    if min_year:
-        min_month = models.ProjectRequest.objects.filter(year=min_year).aggregate(Min('month')).get('month__min')
-        return common.get_month_list(start_ym=(str(min_year) + str(min_month)))
-    return []
+    return get_release_members_by_month(date).filter(member__member_type=4)
 
 
-def sync_members():
-    company = get_company()
-    response = urllib2.urlopen(constants.URL_SYNC_MEMBERS)
-    html = response.read()
-    dict_data = json.loads(html.replace("\r", "").replace("\n", ""))
-    message_list = []
-    if 'employeeList' in dict_data:
-        for data in dict_data.get("employeeList"):
-            employee_code = data.get("id", None)
-            name = data.get("name", None)
-            birthday = data.get("birthDate", None)
-            address = data.get("address", None)
-            department_name = data.get("department", None)
-            eb_mail = data.get("ebMailAddress", None)
-            introduction = data.get("introduction", None)
-            join_date = data.get("joinDate", None)
-            name_jp = data.get("kana", None)
-            private_mail = data.get("mailAddress", None)
-            phone = data.get("phone", None)
-            postcode = data.get("postcode", None)
-            sex = data.get("sex", None)
-            station = data.get("station", None)
-            if employee_code:
-                if department_name == u"営業部" or employee_code in ('0123', '0126', '0198', '0150', '0249', '0335'):
-                    # 0123 馬婷婷
-                    # 0150 孫雲釵
-                    # 0198 劉 暢
-                    # 0126 丁 玲
-                    # 0249 齋藤 善次
-                    # 0335 蒋杰
-                    if models.Salesperson.objects.filter(employee_id=employee_code).count() == 0:
-                        member = models.Salesperson(employee_id=employee_code)
-                    else:
-                        # message_list.append(("WARN", name, birthday, address, u"既に存在しているレコードです。"))
-                        continue
-                else:
-                    if models.Member.objects.filter(employee_id=employee_code).count() == 0:
-                        member = models.Member(employee_id=employee_code)
-                    else:
-                        # message_list.append(("WARN", name, birthday, address, u"既に存在しているレコードです。"))
-                        continue
+def get_subcontractor_release_current_month():
+    """今月にリリースする協力社員を取得する
 
-                try:
-                    # コストを取得する。
-                    member.first_name = common.get_first_last_name(name)[0]
-                    member.last_name = common.get_first_last_name(name)[1]
-                    if name_jp:
-                        lst = common.get_first_last_ja_name(name_jp)
-                        if len(lst) == 2 and lst[0]:
-                            member.first_name_ja = common.get_first_last_ja_name(name_jp)[0]
-                            member.last_name_ja = common.get_first_last_ja_name(name_jp)[1]
-                        elif len(lst) == 1:
-                            member.first_name_ja = common.get_first_last_ja_name(name_jp)[0]
-                    if birthday:
-                        try:
-                            member.birthday = common.parse_date_from_string(birthday)
-                        except Exception as ex:
-                            print ex.message
-                            message_list.append(("WARN", name, birthday, address, u"生年月日が存在しません。"))
-                            member.birthday = None
-                    else:
-                        member.birthday = datetime.date.today()
-                    member.address1 = address if address else station
-                    if department_name:
-                        try:
-                            section = models.Section.objects.get(name=department_name)
-                        except ObjectDoesNotExist:
-                            section = models.Section(name=department_name)
-                            section.company = company
-                            section.save()
-                        member.section = section
-                    member.email = eb_mail
-                    member.private_email = private_mail
-                    member.comment = introduction
-                    if join_date:
-                        member.join_date = common.parse_date_from_string(join_date)
-                    if phone:
-                        member.phone = phone.replace("-", "")
-                    if postcode:
-                        member.post_code = postcode.strip().replace("/", "").replace("-", "").strip()
-                        if len(member.post_code.strip()) == 8:
-                            member.post_code = member.post_code[3:] + member.post_code[4:]
-                        if len(member.post_code) != 7:
-                            member.post_code = None
-                    member.nearest_station = station if station and len(station) <= 15 else None
-                    member.sex = "2" if sex == "0" else "1"
-                    member.cost = get_cost(employee_code)
-                    member.company = company
-                    member.save()
-                    message_list.append(("INFO", name, birthday, address, u"完了"))
-                except Exception as e:
-                    message_list.append(("ERROR", name, birthday, address, u"エラー：" + str(e)))
-    return message_list
-
-
-def get_cost(code):
-    if code:
-        url = constants.URL_CONTRACT % (code,)
-        response = urllib2.urlopen(url)
-        html = response.read()
-        data = json.loads(html.replace("\r", "").replace("\n", ""))
-        period_list = []
-        for item in data['contractList']:
-            period_list.append(item['EMPLOYMENT_PERIOD_END'])
-        latest_period = None
-        if period_list:
-            latest_period = max(period_list)
-        for item in data['contractList']:
-            if latest_period and item['EMPLOYER_NO'] == code and item['EMPLOYMENT_PERIOD_END'] == latest_period:
-                if item['ALLOWANLE_COST'] != "-":
-                    return item['ALLOWANLE_COST']
-        for item in data['contractList']:
-            if item['EMPLOYER_NO'] == code:
-                return item['ALLOWANLE_COST'] if item['ALLOWANLE_COST'] != "-" else 0
-    return 0
-
-
-def turnover_company_monthly():
-    """月単位の会社の売上情報を取得する。
-
-    :return: QuerySet
     """
-    turnover_monthly = models.ProjectRequest.objects.values('year', 'month')\
-        .annotate(Sum('amount')).order_by('year', 'month')
-    for d in turnover_monthly:
-        d['ym'] = d['year'] + d['month']
-
-    return turnover_monthly
+    return get_subcontractor_release_members_by_month(datetime.date.today())
 
 
-def sections_turnover_monthly(ym):
-    """部署別の売上を取得する。
+def get_subcontractor_release_next_month():
+    """来月にリリースする協力社員を取得する
 
-    :param ym: 対象年月
+    """
+    next_month = common.add_months(datetime.date.today(), 1)
+    return get_subcontractor_release_members_by_month(next_month)
+
+
+def get_subcontractor_release_next_2_month():
+    """再来月にリリースする協力社員を取得する
+
+    """
+    next_month = common.add_months(datetime.date.today(), 2)
+    return get_subcontractor_release_members_by_month(next_month)
+
+
+def get_activities_incoming():
+    """これから実施する活動一覧
+
     :return:
     """
-    sections = models.Section.objects.public_filter(member__projectmember__memberattendance__year=ym[:4],
-                                                    member__projectmember__memberattendance__month=ym[4:]).distinct()
-    sections_turnover = []
-    for section in sections:
-        d = dict()
-        d['section'] = section
-        d['attendance_amount'] = section.get_attendance_amount(ym)
-        d['attendance_tex'] = int(d['attendance_amount'] * 0.08)
-        d['expenses_amount'] = section.get_expenses_amount(ym)
-        d['all_amount'] = d['attendance_amount'] + d['attendance_tex'] + d['expenses_amount']
-        sections_turnover.append(d)
-    return sections_turnover
-
-
-def salesperson_turnover_monthly(ym):
-    """営業員別の売上を取得する。
-
-    :param ym: 対象年月
-    :return:
-    """
-    salesperson_list = models.Salesperson.objects.public_filter(member__projectmember__memberattendance__year=ym[:4],
-                                                                member__projectmember__memberattendance__month=ym[4:])\
-        .distinct()
-    salesperson_turnover = []
-    for salesperson in salesperson_list:
-        d = dict()
-        d['salesperson'] = salesperson
-        d['attendance_amount'] = salesperson.get_attendance_amount(ym)
-        d['attendance_tex'] = int(d['attendance_amount'] * 0.08)
-        d['expenses_amount'] = salesperson.get_expenses_amount(ym)
-        d['all_amount'] = d['attendance_amount'] + d['attendance_tex'] + d['expenses_amount']
-        salesperson_turnover.append(d)
-    return salesperson_turnover
-
-
-def clients_turnover_monthly(ym):
-    """営業員別の売上を取得する。
-
-    :param ym: 対象年月
-    :return:
-    """
-    first_day = common.get_first_day_from_ym(ym)
-    last_day = common.get_last_day_by_month(first_day)
-    clients = models.Client.objects.public_filter(project__start_date__lte=last_day,
-                                                  project__end_date__gte=first_day).distinct()
-    clients_turnover = []
-    for client in clients:
-        d = dict()
-        d['client'] = client
-        d['attendance_amount'] = client.get_attendance_amount(ym)
-        d['attendance_tex'] = int(d['attendance_amount'] * 0.08)
-        d['expenses_amount'] = client.get_expenses_amount(ym)
-        d['all_amount'] = d['attendance_amount'] + d['attendance_tex'] + d['expenses_amount']
-        clients_turnover.append(d)
-    return clients_turnover
-
-
-def section_turnover_monthly(section, ym):
-    members_turnover = []
-    first_day = common.get_first_day_from_ym(ym)
-    last_day = common.get_last_day_by_month(first_day)
-    project_members = models.ProjectMember.objects.public_filter(member__section=section,
-                                                                 start_date__lte=last_day,
-                                                                 end_date__gte=first_day,
-                                                                 status=2).order_by('project__name')
-    for project_member in project_members:
-        d = dict()
-        d['project_member'] = project_member
-        d['attendance_amount'] = project_member.get_attendance_amount(first_day.year, first_day.month)
-        if d['attendance_amount'] == 0:
-            continue
-        d['attendance_tex'] = int(d['attendance_amount'] * 0.08)
-        d['expenses_amount'] = project_member.get_expenses_amount(first_day.year, first_day.month)
-        d['cost_amount'] = project_member.get_cost_amount(first_day.year, first_day.month)
-        d['all_amount'] = d['attendance_amount'] + d['attendance_tex'] + d['expenses_amount']
-        members_turnover.append(d)
-    return members_turnover
-
-
-def get_turnover_sections(ym):
-    sections = models.Section.objects.public_filter(member__projectmember__memberattendance__year=ym[:4],
-                                                    member__projectmember__memberattendance__month=ym[4:]).distinct()
-    return sections
-
-
-def members_turnover_monthly(ym, p=None, o=None):
-    members_turnover = []
-    first_day = common.get_first_day_from_ym(ym)
-    last_day = common.get_last_day_by_month(first_day)
-    project_members = models.ProjectMember.objects.public_filter(start_date__lte=last_day,
-                                                                 end_date__gte=first_day,
-                                                                 status=2)
-    if p:
-        project_members = project_members.filter(**p)
-    if o:
-        project_members = project_members.order_by(*o)
-
-    for project_member in project_members:
-        d = dict()
-        d['project_member'] = project_member
-        d['attendance_amount'] = project_member.get_attendance_amount(first_day.year, first_day.month)
-        if d['attendance_amount'] == 0:
-            continue
-        d['attendance_tex'] = int(d['attendance_amount'] * 0.08)
-        d['expenses_amount'] = project_member.get_expenses_amount(first_day.year, first_day.month)
-        d['cost_amount'] = project_member.get_cost_amount(first_day.year, first_day.month)
-        d['all_amount'] = d['attendance_amount'] + d['attendance_tex'] + d['expenses_amount']
-        members_turnover.append(d)
-    return members_turnover
+    now = datetime.datetime.now()
+    activities = models.ProjectActivity.objects.public_filter(open_date__gte=now).order_by('open_date')
+    return activities[:5]
 
 
 def get_salesperson_director():
@@ -613,9 +266,9 @@ def get_members_information():
         d['all_member_count'] = salesperson.get_all_members().count()
         d['working_member_count'] = salesperson.get_working_members().count()
         d['waiting_member_count'] = salesperson.get_waiting_members().count()
-        d['current_month_count'] = get_release_current_month(salesperson).count()
-        d['next_month_count'] = get_release_next_month(salesperson).count()
-        d['next_2_month_count'] = get_release_next_2_month(salesperson).count()
+        d['current_month_count'] = get_release_current_month().count()
+        d['next_month_count'] = get_release_next_month().count()
+        d['next_2_month_count'] = get_release_next_2_month().count()
         status_list.append(d)
 
         summary['all_member_count'] += d['all_member_count']
@@ -923,3 +576,120 @@ def get_request_expenses_list(project, year, month, project_members):
         d['ITEM_EXPENSES_CATEGORY_AMOUNT'] = amount
         detail_expenses.append(d)
     return detail_expenses, expenses_amount
+
+
+def sync_members():
+    company = get_company()
+    response = urllib2.urlopen(constants.URL_SYNC_MEMBERS)
+    html = response.read()
+    dict_data = json.loads(html.replace("\r", "").replace("\n", ""))
+    message_list = []
+    if 'employeeList' in dict_data:
+        for data in dict_data.get("employeeList"):
+            employee_code = data.get("id", None)
+            name = data.get("name", None)
+            birthday = data.get("birthDate", None)
+            address = data.get("address", None)
+            department_name = data.get("department", None)
+            eb_mail = data.get("ebMailAddress", None)
+            introduction = data.get("introduction", None)
+            join_date = data.get("joinDate", None)
+            name_jp = data.get("kana", None)
+            private_mail = data.get("mailAddress", None)
+            phone = data.get("phone", None)
+            postcode = data.get("postcode", None)
+            sex = data.get("sex", None)
+            station = data.get("station", None)
+            if employee_code:
+                if department_name == u"営業部" or employee_code in ('0123', '0126', '0198', '0150', '0249', '0335'):
+                    # 0123 馬婷婷
+                    # 0150 孫雲釵
+                    # 0198 劉 暢
+                    # 0126 丁 玲
+                    # 0249 齋藤 善次
+                    # 0335 蒋杰
+                    if models.Salesperson.objects.filter(employee_id=employee_code).count() == 0:
+                        member = models.Salesperson(employee_id=employee_code)
+                    else:
+                        # message_list.append(("WARN", name, birthday, address, u"既に存在しているレコードです。"))
+                        continue
+                else:
+                    if models.Member.objects.filter(employee_id=employee_code).count() == 0:
+                        member = models.Member(employee_id=employee_code)
+                    else:
+                        # message_list.append(("WARN", name, birthday, address, u"既に存在しているレコードです。"))
+                        continue
+
+                try:
+                    # コストを取得する。
+                    member.first_name = common.get_first_last_name(name)[0]
+                    member.last_name = common.get_first_last_name(name)[1]
+                    if name_jp:
+                        lst = common.get_first_last_ja_name(name_jp)
+                        if len(lst) == 2 and lst[0]:
+                            member.first_name_ja = common.get_first_last_ja_name(name_jp)[0]
+                            member.last_name_ja = common.get_first_last_ja_name(name_jp)[1]
+                        elif len(lst) == 1:
+                            member.first_name_ja = common.get_first_last_ja_name(name_jp)[0]
+                    if birthday:
+                        try:
+                            member.birthday = common.parse_date_from_string(birthday)
+                        except Exception as ex:
+                            print ex.message
+                            message_list.append(("WARN", name, birthday, address, u"生年月日が存在しません。"))
+                            member.birthday = None
+                    else:
+                        member.birthday = datetime.date.today()
+                    member.address1 = address if address else station
+                    if department_name:
+                        try:
+                            section = models.Section.objects.get(name=department_name)
+                        except ObjectDoesNotExist:
+                            section = models.Section(name=department_name)
+                            section.company = company
+                            section.save()
+                        member.section = section
+                    member.email = eb_mail
+                    member.private_email = private_mail
+                    member.comment = introduction
+                    if join_date:
+                        member.join_date = common.parse_date_from_string(join_date)
+                    if phone:
+                        member.phone = phone.replace("-", "")
+                    if postcode:
+                        member.post_code = postcode.strip().replace("/", "").replace("-", "").strip()
+                        if len(member.post_code.strip()) == 8:
+                            member.post_code = member.post_code[3:] + member.post_code[4:]
+                        if len(member.post_code) != 7:
+                            member.post_code = None
+                    member.nearest_station = station if station and len(station) <= 15 else None
+                    member.sex = "2" if sex == "0" else "1"
+                    member.cost = get_cost(employee_code)
+                    member.company = company
+                    member.save()
+                    message_list.append(("INFO", name, birthday, address, u"完了"))
+                except Exception as e:
+                    message_list.append(("ERROR", name, birthday, address, u"エラー：" + str(e)))
+    return message_list
+
+
+def get_cost(code):
+    if code:
+        url = constants.URL_CONTRACT % (code,)
+        response = urllib2.urlopen(url)
+        html = response.read()
+        data = json.loads(html.replace("\r", "").replace("\n", ""))
+        period_list = []
+        for item in data['contractList']:
+            period_list.append(item['EMPLOYMENT_PERIOD_END'])
+        latest_period = None
+        if period_list:
+            latest_period = max(period_list)
+        for item in data['contractList']:
+            if latest_period and item['EMPLOYER_NO'] == code and item['EMPLOYMENT_PERIOD_END'] == latest_period:
+                if item['ALLOWANLE_COST'] != "-":
+                    return item['ALLOWANLE_COST']
+        for item in data['contractList']:
+            if item['EMPLOYER_NO'] == code:
+                return item['ALLOWANLE_COST'] if item['ALLOWANLE_COST'] != "-" else 0
+    return 0

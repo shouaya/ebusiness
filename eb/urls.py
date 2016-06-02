@@ -17,6 +17,7 @@ member_patterns = [
     url(r'^list/in_coming.html$', views.members_in_coming, name='members_in_coming'),
     url(r'^list/subcontractor.html$', views.members_subcontractor, name='members_subcontractor'),
     url(r'^change_list.html$', views.change_list, name='change_list'),
+    url(r'^project_list/(?P<employee_id>[^,/]+).html$', views.member_project_list, name='member_project_list'),
 ]
 
 download_patterns = [
@@ -45,29 +46,28 @@ subcontractor_patterns = [
 ]
 
 project_patterns = [
+    url(r'^list.html$', views.project_list, name='project_list'),
+    url(r'^order_list.html', views.project_order_list, name='project_order_list'),
+    url(r'^(?P<project_id>[0-9]+).html$', views.project_detail, name='project_detail'),
+    url(r'^members/(?P<project_id>[0-9]+).html$', views.project_member_list, name='project_members'),
+    url(r'^end/(?P<project_id>[0-9]+).html$', views.project_end, name='project_end'),
+    url(r'^attendance/(?P<project_id>[0-9]+).html$', views.project_attendance_list,
+        name='project_attendance_list'),
     url(r'^request_view/(?P<request_id>[0-9]+).html$', views.view_project_request, name='view_project_request'),
+    url(r'^(?P<project_id>[0-9]+)/recommended_member.html$', views.recommended_member_list,
+        name='recommended_member'),
+    url(r'^order_member_assign/(?P<project_id>[0-9]+).html$', views.project_order_member_assign,
+        name='project_order_member_assign'),
+    url(r'^members_by_order/(?P<order_id>[0-9]+).html$', views.project_members_by_order,
+        name='project_members_by_order'),
 ]
 
 urlpatterns = [
     url(r'^$', views.index, name='index'),
     url(r'^member/', include(member_patterns)),
     url(r'^project/', include(project_patterns)),
-    url(r'^project_list.html$', views.project_list, name='project_list'),
-    url(r'^project_order_list.html', views.project_order_list, name='project_order_list'),
-    url(r'^project/(?P<project_id>[^,/]+).html$', views.project_detail, name='project_detail'),
-    url(r'^project/end/(?P<project_id>[^,/]+).html$', views.project_end, name='project_end'),
-    url(r'^project/attendance/(?P<project_id>[^,/]+).html$', views.project_attendance_list,
-        name='project_attendance_list'),
-    url(r'^project_members/(?P<project_id>[^,/]+).html$', views.project_member_list, name='project_members'),
-    url(r'^project_order_member_assign/(?P<project_id>[^,/]+).html$', views.project_order_member_assign,
-        name='project_order_member_assign'),
-    url(r'^project_members_by_order/(?P<order_id>[^,/]+).html$', views.project_members_by_order,
-        name='project_members_by_order'),
     url(r'^release_list.html$', views.release_list_current, name='release_list_current'),
     url(r'^release_list/(?P<ym>[0-9]{6}).html$', views.release_list, name='release_list'),
-    url(r'^member_project_list/(?P<employee_id>[^,/]+).html$', views.member_project_list, name='member_project_list'),
-    url(r'^project/(?P<project_id>[^,/]+)/recommended_member.html$', views.recommended_member_list,
-        name='recommended_member'),
     url(r'^subcontractor/', include(subcontractor_patterns)),
     url(r'^turnover/', include(turnover_patterns)),
     url(r'^download/', include(download_patterns)),

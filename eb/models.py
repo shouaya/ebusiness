@@ -1296,6 +1296,20 @@ class ProjectRequestDetail(models.Model):
         unique_together = ('project_request', 'no')
         verbose_name = verbose_name_plural = u"案件請求明細"
 
+    def get_tax_price(self):
+        """税金を計算する。
+        """
+        if not hasattr(self.project_request, 'projectrequestheading'):
+            return 0
+        else:
+            tax_rate = self.project_request.projectrequestheading.tax_rate
+            return int(self.total_price * tax_rate)
+
+    def get_all_price(self):
+        """合計を計算する（税込、精算含む）
+        """
+        return int(self.total_price) + self.get_tax_price() + int(self.expenses_price)
+
 
 class ProjectActivity(models.Model):
     project = models.ForeignKey(Project, verbose_name=u"案件")
