@@ -4,19 +4,18 @@
 {% block header %}
     <script type="text/javascript">
         window.onload = function() {
-            init_select("member__first_name__contains");
-            init_select("member__last_name__contains");
-            init_select("member__section__pk");
-            init_select_name("member__section__pk", "member__section__name");
-            init_select("project__name__contains");
-            init_select("project__client__name__contains");
-            init_select("member__salesperson__pk");
-            init_select_name("member__section__pk", "member__section__name");
+            init_select("project_member__member__first_name");
+            init_select("project_member__member__last_name__contains");
+            init_select("member_section__pk");
+            init_select_name("member_section__pk", "member_section__name");
+            init_select("project_request__project__name__contains");
+            init_select("project_request__projectrequestheading__client__name__contains");
+            init_select("project_member__member__salesperson__pk");
 
             params = GetQueryString();
-            first_name = params["member__salesperson__first_name"];
-            last_name = params["member__salesperson__last_name"];
-            init_select_text("member__salesperson__pk", first_name + " " + last_name);
+            first_name = params["project_member__member__salesperson__first_name"];
+            last_name = params["project_member__member__salesperson__last_name"];
+            init_select_text("project_member__member__salesperson__pk", first_name + " " + last_name);
         };
     </script>
 {% endblock %}
@@ -25,19 +24,19 @@
     <div class="dashboard print">
         <div class="dashboard-title">{{ ym }} の売上情報</div>
         <form action="{% url 'turnover_members_monthly' ym %}" method="get">
-            <span>姓: </span><input type="text" id="member__first_name__contains" name="member__first_name__contains" style="width: 50px;"/>
-            <span>名: </span><input type="text" id="member__last_name__contains" name="member__last_name__contains" style="width: 50px;"/>
+            <span>姓: </span><input type="text" id="project_member__member__first_name__contains" name="project_member__member__first_name__contains" style="width: 50px;"/>
+            <span>名: </span><input type="text" id="project_member__member__last_name__contains" name="project_member__member__last_name__contains" style="width: 50px;"/>
             <span>部署：</span>
-            <select id="member__section__pk" name="member__section__pk">
+            <select id="member_section__pk" name="member_section__pk">
                 <option value="">すべて</option>
                 {% for section in sections %}
                     <option value="{{ section.pk }}">{{ section.name }}</option>
                 {% endfor %}
             </select>
-            <span>案件: </span><input type="text" id="project__name__contains" name="project__name__contains" style="width: 150px;"/>
-            <span>関連会社: </span><input type="text" id="project__client__name__contains" name="project__client__name__contains" style="width: 150px;"/>
+            <span>案件: </span><input type="text" id="project_request__project__name__contains" name="project_request__project__name__contains" style="width: 150px;"/>
+            <span>関連会社: </span><input type="text" id="project_request__projectrequestheading__client__name__contains" name="project_request__projectrequestheading__client__name__contains" style="width: 150px;"/>
             <span>営業：</span>
-            <select id="member__salesperson__pk" name="member__salesperson__pk">
+            <select id="project_member__member__salesperson__pk" name="project_member__member__salesperson__pk">
                 <option value="">すべて</option>
                 {% for member in salesperson %}
                     <option value="{{ member.pk }}">{{ member }}</option>
@@ -51,58 +50,58 @@
         <thead>
             <tr>
                 <th style="width: 75px;">
-                    {% if dict_order.member__first_name.is_in_ordering %}
+                    {% if dict_order.project_member__member__first_name.is_in_ordering %}
                         <div class="sortoptions">
-                            <a class="sortremove" href="?o={{ dict_order.member__first_name.url_list_removed }}{{ params }}"></a>
-                            <span class="sortpriority">{{ dict_order.member__first_name.priority }}</span>
-                            <a class="{% if dict_order.member__first_name.is_asc %}descending{% else %}ascending{% endif %}"
-                               href="?o={{ dict_order.member__first_name.url }}{{ params }}"></a>
+                            <a class="sortremove" href="?o={{ dict_order.project_member__member__first_name.url_list_removed }}{{ params }}"></a>
+                            <span class="sortpriority">{{ dict_order.project_member__member__first_name.priority }}</span>
+                            <a class="{% if dict_order.project_member__member__first_name.is_asc %}descending{% else %}ascending{% endif %}"
+                               href="?o={{ dict_order.project_member__member__first_name.url }}{{ params }}"></a>
                         </div>
                     {% endif %}
                     <div class="text">
-                        <a href="?o={{ dict_order.member__first_name.url }}{{ params }}">名前</a>
+                        <a href="?o={{ dict_order.project_member__member__first_name.url }}{{ params }}">名前</a>
                     </div>
                     <div class="clear"></div>
                 </th>
                 <th>
-                    {% if dict_order.member__section__name.is_in_ordering %}
+                    {% if dict_order.project_member__member__section__name.is_in_ordering %}
                         <div class="sortoptions">
-                            <a class="sortremove" href="?o={{ dict_order.member__section__name.url_list_removed }}{{ params }}"></a>
-                            <span class="sortpriority">{{ dict_order.member__section__name.priority }}</span>
-                            <a class="{% if dict_order.member__section__name.is_asc %}descending{% else %}ascending{% endif %}"
-                               href="?o={{ dict_order.member__section__name.url }}{{ params }}"></a>
+                            <a class="sortremove" href="?o={{ dict_order.project_member__member__section__name.url_list_removed }}{{ params }}"></a>
+                            <span class="sortpriority">{{ dict_order.project_member__member__section__name.priority }}</span>
+                            <a class="{% if dict_order.project_member__member__section__name.is_asc %}descending{% else %}ascending{% endif %}"
+                               href="?o={{ dict_order.project_member__member__section__name.url }}{{ params }}"></a>
                         </div>
                     {% endif %}
                     <div class="text">
-                        <a href="?o={{ dict_order.member__section__name.url }}{{ params }}">部署</a>
+                        <a href="?o={{ dict_order.project_member__member__section__name.url }}{{ params }}">部署</a>
                     </div>
                     <div class="clear"></div>
                 </th>
                 <th style="width: 220px;">
-                    {% if dict_order.project__name.is_in_ordering %}
+                    {% if dict_order.project_request__project__name.is_in_ordering %}
                         <div class="sortoptions">
-                            <a class="sortremove" href="?o={{ dict_order.project__name.url_list_removed }}{{ params }}"></a>
-                            <span class="sortpriority">{{ dict_order.project__name.priority }}</span>
-                            <a class="{% if dict_order.project__name.is_asc %}descending{% else %}ascending{% endif %}"
-                               href="?o={{ dict_order.project__name.url }}{{ params }}"></a>
+                            <a class="sortremove" href="?o={{ dict_order.project_request__project__name.url_list_removed }}{{ params }}"></a>
+                            <span class="sortpriority">{{ dict_order.project_request__project__name.priority }}</span>
+                            <a class="{% if dict_order.project_request__project__name.is_asc %}descending{% else %}ascending{% endif %}"
+                               href="?o={{ dict_order.project_request__project__name.url }}{{ params }}"></a>
                         </div>
                     {% endif %}
                     <div class="text">
-                        <a href="?o={{ dict_order.project__name.url }}{{ params }}">案件名称</a>
+                        <a href="?o={{ dict_order.project_request__project__name.url }}{{ params }}">案件名称</a>
                     </div>
                     <div class="clear"></div>
                 </th>
                 <th style="width: 160px;">
-                    {% if dict_order.project__client__name.is_in_ordering %}
+                    {% if dict_order.project_request__projectrequestheading__client__name.is_in_ordering %}
                         <div class="sortoptions">
-                            <a class="sortremove" href="?o={{ dict_order.project__client__name.url_list_removed }}{{ params }}"></a>
-                            <span class="sortpriority">{{ dict_order.project__client__name.priority }}</span>
-                            <a class="{% if dict_order.project__client__name.is_asc %}descending{% else %}ascending{% endif %}"
-                               href="?o={{ dict_order.project__client__name.url }}{{ params }}"></a>
+                            <a class="sortremove" href="?o={{ dict_order.project_request__projectrequestheading__client__name.url_list_removed }}{{ params }}"></a>
+                            <span class="sortpriority">{{ dict_order.project_request__projectrequestheading__client__name.priority }}</span>
+                            <a class="{% if dict_order.project_request__projectrequestheading__client__name.is_asc %}descending{% else %}ascending{% endif %}"
+                               href="?o={{ dict_order.project_request__projectrequestheading__client__name.url }}{{ params }}"></a>
                         </div>
                     {% endif %}
                     <div class="text">
-                        <a href="?o={{ dict_order.project__client__name.url }}{{ params }}">関連会社</a>
+                        <a href="?o={{ dict_order.project_request__projectrequestheading__client__name.url }}{{ params }}">関連会社</a>
                     </div>
                     <div class="clear"></div>
                 </th>
@@ -115,36 +114,36 @@
             </tr>
         </thead>
         <tbody>
-            {% if members_turnover %}
-                {% for member_turnover in members_turnover %}
+            {% if turnover_details %}
+                {% for turnover_detail in turnover_details %}
                     <tr class="{% cycle 'row1' 'row2' %}">
                         <td>
-                            <a href="{% url 'member_detail' member_turnover.project_member.member.employee_id %}">{{ member_turnover.project_member.member }}</a>
+                            <a href="{% url 'member_detail' turnover_detail.project_member.member.employee_id %}">{{ turnover_detail.project_member.member }}</a>
                         </td>
-                        <td>{{ member_turnover.project_member.member.section }}</td>
+                        <td>{{ turnover_detail.project_member.member.section }}</td>
                         <td>
                             <div style="width: 220px; overflow: hidden; white-space: nowrap;">
-                            <a href="{% url 'project_detail' member_turnover.project_member.project.pk %}" title="{{ member_turnover.project_member.project }}">
-                            {{ member_turnover.project_member.project }}
+                            <a href="{% url 'project_detail' turnover_detail.project_member.project.pk %}" title="{{ turnover_detail.project_member.project }}">
+                            {{ turnover_detail.project_member.project }}
                             </a>
                             </div>
                         </td>
                         <td>
-                            <div style="width: 160px; overflow: hidden; white-space: nowrap;" title="{{ member_turnover.project_member.project.client }}">
-                                {{ member_turnover.project_member.project.client }}
+                            <div style="width: 160px; overflow: hidden; white-space: nowrap;" title="{{ turnover_detail.project_member.project.client }}">
+                                {{ turnover_detail.project_member.project.client }}
                             </div>
                         </td>
-                        <td>{{ member_turnover.project_member.member.salesperson }}</td>
-                        <td style="text-align: right">{{ member_turnover.cost_amount|intcomma }}</td>
-                        <td style="text-align: right">{{ member_turnover.attendance_amount|intcomma }}</td>
+                        <td>{{ turnover_detail.project_member.member.salesperson }}</td>
+                        <td style="text-align: right">{{ turnover_detail.cost|intcomma }}</td>
+                        <td style="text-align: right">{{ turnover_detail.total_price|intcomma }}</td>
                         <td style="text-align: right">
-                            {{ member_turnover.attendance_tex|intcomma }}
+                            {{ turnover_detail.get_tax_price|intcomma }}
                         </td>
                         <td style="text-align: right">
-                            {{ member_turnover.expenses_amount|intcomma }}
+                            {{ turnover_detail.expenses_price|intcomma }}
                         </td>
                         <td style="text-align: right">
-                            {{ member_turnover.all_amount|intcomma }}
+                            {{ turnover_detail.get_all_price|intcomma }}
                         </td>
                     </tr>
                 {% endfor %}

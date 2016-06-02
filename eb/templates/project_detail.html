@@ -9,7 +9,7 @@
         table_id = $("#" + id_dialog + " table.list")[0].id;
         $.ajax({
             type: 'get',
-            url: '/eb/project_members_by_order/' + order_id + '.html',
+            url: '/eb/project/members_by_order/' + order_id + '.html',
             cache: false,
             async : false, // 默认为true 异步
             dataType: 'json',

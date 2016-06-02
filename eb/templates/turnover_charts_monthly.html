@@ -29,7 +29,7 @@
                     categories: [{{ section_name_list|safe }}],
                     labels: {
                         formatter: function () {
-                            return '<a href="{% url 'turnover_members_monthly' ym %}?member__section__name=' + this.value + '">' + this.value + '</a>'
+                            return '<a href="{% url 'turnover_members_monthly' ym %}?member_section__name=' + this.value + '">' + this.value + '</a>'
                         },
                         useHTML: true
                     }
@@ -89,8 +89,8 @@
                         formatter: function () {
                             first_name = this.value.split(" ")[0];
                             last_name = this.value.split(" ")[1];
-                            return '<a href="{% url 'turnover_members_monthly' ym %}?member__salesperson__first_name=' + first_name
-                                + '&member__salesperson__last_name=' + last_name + '">' + this.value + '</a>'
+                            return '<a href="{% url 'turnover_members_monthly' ym %}?project_member__member__salesperson__first_name=' + first_name
+                                + '&project_member__member__salesperson__last_name=' + last_name + '">' + this.value + '</a>'
                         },
                         useHTML: true
                     }
@@ -148,7 +148,7 @@
                     categories: [{{ clients_name_list|safe }}],
                     labels: {
                         formatter: function () {
-                            return '<a href="{% url 'turnover_members_monthly' ym %}?project__client__name__contains=' + this.value + '">' + this.value + '</a>'
+                            return '<a href="{% url 'turnover_members_monthly' ym %}?project_request__projectrequestheading__client__name__contains=' + this.value + '">' + this.value + '</a>'
                         },
                         useHTML: true
                     }
