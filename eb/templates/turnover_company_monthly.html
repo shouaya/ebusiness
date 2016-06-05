@@ -80,9 +80,9 @@
             {% for turnover in company_turnover %}
             <tr class="{% cycle 'row1' 'row2' %}">
                 <td>
-                    <a href="{% url 'turnover_members_monthly' turnover.ym %}">{{ turnover.project_request__year }}年{{ turnover.project_request__month }}月</a>
+                    <a href="{% url 'turnover_members_monthly' turnover.ym %}">{{ turnover.year }}年{{ turnover.month }}月</a>
                 </td>
-                <td style="text-align: right;"></td>
+                <td style="text-align: right;">{{ turnover.cost_amount|intcomma }}</td>
                 <td style="text-align: right;">{{ turnover.turnover_amount|intcomma }}</td>
                 <td style="text-align: right;">{{ turnover.tax_amount|intcomma }}</td>
                 <td style="text-align: right;">{{ turnover.expenses_amount|intcomma }}</td>

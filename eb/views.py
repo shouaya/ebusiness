@@ -5,34 +5,31 @@ Created on 2015/08/21
 @author: Yang Wanjun
 """
 import datetime
-import urllib
 import json
 import os
+import urllib
 
-import biz
-import biz_turnover
-
-from django.http import HttpResponse
-from django.contrib import admin
-from django.template import RequestContext, loader
-from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
-from django.contrib.auth import logout, authenticate, login
-from django.shortcuts import redirect, render_to_response, get_object_or_404
-from django.views.decorators.csrf import csrf_protect
-from django.template.context_processors import csrf
-from django.core.exceptions import ObjectDoesNotExist
-from django.core.urlresolvers import reverse
-from django.contrib.auth.decorators import login_required, permission_required
 from django.conf import settings
-from django.forms.models import modelformset_factory
+from django.contrib import admin
+from django.contrib.auth import logout, authenticate, login
+from django.contrib.auth.decorators import login_required, permission_required
+from django.core.exceptions import ObjectDoesNotExist
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from django.core.urlresolvers import reverse
 from django.db.models import Max
+from django.forms.models import modelformset_factory
+from django.http import HttpResponse
+from django.shortcuts import redirect, render_to_response, get_object_or_404
+from django.template import RequestContext, loader
+from django.template.context_processors import csrf
+from django.views.decorators.csrf import csrf_protect
 
+from eb.biz_logic import biz_turnover, biz
 from utils import constants, common, errors, loader as file_loader, file_gen
+from . import forms
 from .models import Member, Section, Project, ProjectMember, Salesperson, \
     MemberAttendance, Subcontractor, BankInfo, ClientOrder, History, BpMemberOrderInfo, Issue, \
     ProjectRequest
-from . import forms
-
 
 PAGE_SIZE = 50
 
@@ -334,68 +331,36 @@ def change_list(request):
 @login_required(login_url='/eb/login/')
 def project_list(request):
     company = biz.get_company()
-    status = request.GET.get('status', None)
-    name = request.GET.get('name', None)
-    client = request.GET.get('client', None)
-    salesperson = request.GET.get('salesperson', None)
-    download = request.GET.get('download', None)
-    params = ""
+    param_list = common.get_request_params(request.GET)
     o = request.GET.get('o', None)
     dict_order = common.get_ordering_dict(o, ['name', 'client__name', 'salesperson__first_name', 'boss__name',
                                               'middleman__name', 'update_date'])
     order_list = common.get_ordering_list(o)
+    all_projects = biz.get_projects(q=param_list, o=order_list)
 
-    if download == constants.DOWNLOAD_BUSINESS_PLAN:
-        all_projects = Project.objects.public_filter(status=4)
-    else:
-        all_projects = Project.objects.public_all()
+    params = "&".join(["%s=%s" % (key, value) for key, value in param_list.items()]) if param_list else ""
 
-    if salesperson:
-        salesperson_obj = Salesperson.objects.get(employee_id=salesperson)
-        all_projects = salesperson_obj.project_set.public_all()
-        params += "&salesperson=%s" % (salesperson,)
-    if status:
-        all_projects = all_projects.filter(status=status)
-        params += "&status=%s" % (status,)
-    if name:
-        all_projects = all_projects.filter(name__contains=name)
-        params += "&name=%s" % (name,)
+    paginator = Paginator(all_projects, PAGE_SIZE)
+    page = request.GET.get('page')
+    try:
+        projects = paginator.page(page)
+    except PageNotAnInteger:
+        projects = paginator.page(1)
+    except EmptyPage:
+        projects = paginator.page(paginator.num_pages)
 
-    if order_list:
-        all_projects = all_projects.order_by(*order_list)
-
-    if client:
-        all_projects = all_projects.filter(client__name__contains=client)
-        params += "&client=%s" % (client,)
-
-    if download == constants.DOWNLOAD_BUSINESS_PLAN:
-        filename = constants.NAME_BUSINESS_PLAN % (datetime.date.today().month,)
-        output = common.generate_business_plan(all_projects, filename)
-        response = HttpResponse(output.read(), content_type="application/ms-excel")
-        response['Content-Disposition'] = "filename=" + urllib.quote(filename.encode('utf-8')) + ".xlsx"
-        return response
-    else:
-        paginator = Paginator(all_projects, PAGE_SIZE)
-        page = request.GET.get('page')
-        try:
-            projects = paginator.page(page)
-        except PageNotAnInteger:
-            projects = paginator.page(1)
-        except EmptyPage:
-            projects = paginator.page(paginator.num_pages)
-
-        context = RequestContext(request, {
-            'company': company,
-            'title': u'案件一覧',
-            'projects': projects,
-            'paginator': paginator,
-            'salesperson': Salesperson.objects.public_all(),
-            'params': params,
-            'orders': "&o=%s" % (o,) if o else "",
-            'dict_order': dict_order,
-        })
-        template = loader.get_template('project_list.html')
-        return HttpResponse(template.render(context))
+    context = RequestContext(request, {
+        'company': company,
+        'title': u'案件一覧',
+        'projects': projects,
+        'paginator': paginator,
+        'salesperson': Salesperson.objects.public_all(),
+        'params': params,
+        'orders': "&o=%s" % (o,) if o else "",
+        'dict_order': dict_order,
+    })
+    template = loader.get_template('project_list.html')
+    return HttpResponse(template.render(context))
 
 
 @login_required(login_url='/eb/login/')
