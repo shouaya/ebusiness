@@ -3,9 +3,9 @@
 {% block header %}
     <script type="text/javascript">
         window.onload = function() {
-            init_select("name");
-            init_select("client");
-            init_select("salesperson");
+            init_select("name__contains");
+            init_select("client__name__contains");
+            init_select("salesperson__pk");
             init_select("status");
         };
     </script>
@@ -15,13 +15,13 @@
     <div class="dashboard">
         <div class="dashboard-title">なにをしたいのですか？</div>
         <form action="{% url 'project_list' %}" method="get">
-            <span>名称: </span><input type="text" id="name" name="name" style="width: 100px;"/>
-            <span>関連会社: </span><input type="text" id="client" name="client" style="width: 100px;"/>
+            <span>名称: </span><input type="text" id="name__contains" name="name__contains" style="width: 100px;"/>
+            <span>関連会社: </span><input type="text" id="client__name__contains" name="client__name__contains" style="width: 100px;"/>
             <span>営業員:</span>
-            <select id="salesperson" name="salesperson">
+            <select id="salesperson__pk" name="salesperson__pk">
                 <option value="">すべて</option>
                 {% for sales in salesperson %}
-                    <option value="{{ sales.employee_id }}">{{ sales }}</option>
+                    <option value="{{ sales.pk }}">{{ sales }}</option>
                 {% endfor %}
             </select>
             <span>ステータス: </span>
@@ -34,6 +34,7 @@
                 <option value="5">完了</option>
             </select>
             <input type="submit" value="Filter" />
+            <a href="{% url 'project_list' %}">クリア</a>
         </form>
         <div class="dashboard-tail">
             <a href="?download=business_plan{{ params }}" target="_blank">営業企画書ダウンロード</a>
@@ -121,7 +122,7 @@
                         </td>
                         <td>
                             {% if project.salesperson %}
-                                <a href="?salesperson={{ project.salesperson.employee_id }}">{{ project.salesperson }}</a>
+                                <a href="?salesperson__pk={{ project.salesperson.pk }}">{{ project.salesperson }}</a>
                             {% endif %}
                         </td>
                         <td class="center"><a href="{% url 'project_members' project.pk %}">{{ project.get_project_members.count }}</a></td>
