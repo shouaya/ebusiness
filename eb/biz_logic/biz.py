@@ -241,6 +241,50 @@ def get_projects(q=None, o=None):
     return projects
 
 
+def get_projects_orders(ym, q=None, o=None):
+    """案件の注文情報を取得する。
+
+    :param ym:対象年月
+    :param q:絞り込み条件
+    :param o:並び順
+    :return:
+    """
+    first_day = common.get_first_day_from_ym(ym)
+    last_day = common.get_last_day_by_month(first_day)
+
+    project_orders = models.ClientOrder.projects.through.objects\
+        .filter(Q(clientorder__isnull=True) | Q(clientorder__start_date__lte=last_day,
+                                                clientorder__end_date__gte=first_day),
+                project__start_date__lte=last_day,
+                project__end_date__gte=first_day).distinct()
+
+    if q:
+        if 'project__projectrequest__request_no__contains' in q:
+            q.update({'project__projectrequest__year': ym[:4],
+                      'project__projectrequest__month': ym[4:]})
+        project_orders = project_orders.filter(**q)
+
+    order_by_request_no = None
+    if o:
+        if 'project__projectrequest__request_no' in o:
+            order_by_request_no = 'ASC'
+            o.remove('project__projectrequest__request_no')
+        elif '-project__projectrequest__request_no' in o:
+            order_by_request_no = 'DESC'
+            o.remove('-project__projectrequest__request_no')
+        project_orders = project_orders.order_by(*o)
+
+    all_project_orders = []
+    for project_order in project_orders:
+        project_request = project_order.project.get_project_request(ym[:4], ym[4:], project_order.clientorder)
+        all_project_orders.append((project_order.project, project_request, project_order.clientorder))
+    if order_by_request_no == 'ASC':
+        all_project_orders.sort(key=lambda d: d[1].request_no)
+    elif order_by_request_no == 'DESC':
+        all_project_orders.sort(key=lambda d: d[1].request_no, reverse=True)
+    return all_project_orders
+
+
 def get_activities_incoming():
     """これから実施する活動一覧
 
