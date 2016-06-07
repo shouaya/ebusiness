@@ -383,63 +383,42 @@ def project_end(request, project_id):
 @login_required(login_url='/eb/login/')
 def project_order_list(request):
     company = biz.get_company()
-    name = request.GET.get('name', None)
-    client = request.GET.get('client', None)
+    param_list = common.get_request_params(request.GET)
     ym = request.GET.get('ym', None)
     if not ym:
-        today = datetime.date.today()
+        today = common.add_months(datetime.date.today(), -1)
         ym = "%s%02d" % (today.year, today.month)
     o = request.GET.get('o', None)
-    params = ""
-    dict_order = common.get_ordering_dict(o, ['name', 'client__name'])
+    dict_order = common.get_ordering_dict(o, ['project__name', 'project__client__name',
+                                              'clientorder__order_no', 'project__projectrequest__request_no'])
     order_list = common.get_ordering_list(o)
 
-    all_projects = Project.objects.public_all()
+    all_project_orders = biz.get_projects_orders(ym, q=param_list, o=order_list)
 
-    if name:
-        all_projects = all_projects.filter(name__contains=name)
-        params += "&name=%s" % (name,)
-    if client:
-        all_projects = all_projects.filter(client__name__contains=client)
-        params += "&client=%s" % (client,)
-
-    all_project_orders = []
-    first_day = common.get_first_day_from_ym(ym)
-    last_day = common.get_last_day_by_month(first_day)
-    all_projects = all_projects.filter(start_date__lte=last_day, end_date__gte=first_day)
-    if order_list:
-        all_projects = all_projects.order_by(*order_list)
-    for project in all_projects:
-        client_orders = project.get_order_by_month(ym[:4], ym[4:])
-        if client_orders.count() == 0:
-            all_project_orders.append((project, None, None))
-        else:
-            for client_order in client_orders:
-                all_project_orders.append((project,
-                                           project.get_project_request(ym[:4], ym[4:], client_order),
-                                           client_order))
-    params += "&ym=%s" % (ym,)
+    params = "&".join(["%s=%s" % (key, value) for key, value in param_list.items()]) if param_list else ""
+    params = "%s&ym=%s" % ("&" + params if params else "", ym,)
 
     paginator = Paginator(all_project_orders, PAGE_SIZE)
     page = request.GET.get('page')
     try:
-        projects = paginator.page(page)
+        project_orders = paginator.page(page)
     except PageNotAnInteger:
-        projects = paginator.page(1)
+        project_orders = paginator.page(1)
     except EmptyPage:
-        projects = paginator.page(paginator.num_pages)
+        project_orders = paginator.page(paginator.num_pages)
 
     context = RequestContext(request, {
         'company': company,
-        'title': u'現在実施中案件一覧',
-        'projects': projects,
+        'title': u'%s年%s月の注文情報一覧' % (ym[:4], ym[4:]),
+        'project_orders': project_orders,
         'paginator': paginator,
         'dict_order': dict_order,
         'params': params,
         'orders': "&o=%s" % (o,) if o else "",
         'month_list': common.get_month_list(-1, 1),
-        'current_year': str(datetime.date.today().year),
-        'current_month': str("%02d" % (datetime.date.today().month,)),
+        'current_year': ym[:4],
+        'current_month': ym[4:],
+        'ym': ym,
     })
     template = loader.get_template('project_order_list.html')
     return HttpResponse(template.render(context))
