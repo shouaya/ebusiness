@@ -92,7 +92,7 @@ def get_request_params(params):
     if params:
         d = dict()
         for key, value in dict(params).items():
-            if key in ("o", "page") or not value:
+            if key in ("o", "page", "ym") or not value:
                 continue
             if isinstance(value, list) and value[0]:
                 val = value[0]
@@ -102,7 +102,8 @@ def get_request_params(params):
                     val = False
                 d[str(key)] = val
         return d
-    return None
+    return dict()
+
 
 def get_ordering_dict(data, fields):
     """ＵＲＬからの引数を解析し、並び順を取得する。
