@@ -19,7 +19,7 @@ from .models import Company, Section, Member, Salesperson, Project, Client, Clie
     ProjectMember, Skill, ProjectSkill, ProjectActivity, Subcontractor, PositionShip,\
     ProjectStage, OS, HistoryProject, MemberAttendance, Degree, ClientOrder, \
     create_group_salesperson, MemberExpenses, ExpensesCategory, BankInfo, History, ProjectRequest, Issue, \
-    ProjectRequestHeading, ProjectRequestDetail
+    ProjectRequestHeading, ProjectRequestDetail, SalesOffReason
 from utils import common
 
 
@@ -104,11 +104,19 @@ class MemberExpensesInline(admin.TabularInline):
     model = MemberExpenses
     extra = 0
 
+    def get_queryset(self, request):
+        queryset = super(MemberExpensesInline, self).get_queryset(request)
+        return queryset.filter(is_deleted=False)
+
 
 class MemberAttendanceInline(admin.TabularInline):
     form = forms.MemberAttendanceForm
     model = MemberAttendance
     extra = 0
+
+    def get_queryset(self, request):
+        queryset = super(MemberAttendanceInline, self).get_queryset(request)
+        return queryset.filter(is_deleted=False)
 
 
 class DegreeInline(admin.TabularInline):
@@ -263,6 +271,10 @@ class SectionAdmin(BaseAdmin):
     active_objects.short_description = u"選択されたレコードを復活する。"
 
 
+class SalesOffReasonAdmin(BaseAdmin):
+    list_display = ['name', 'is_deleted']
+
+
 class MemberAdmin(BaseAdmin):
 
     form = forms.MemberForm
@@ -288,7 +300,8 @@ class MemberAdmin(BaseAdmin):
                      ('address1', 'address2'), 'nearest_station',
                      'country', 'graduate_date', 'phone', 'japanese_description',
                      'certificate', 'skill_description', 'comment')}),
-        (u"勤務情報", {'fields': ['member_type', 'join_date', 'email', 'is_notify', 'notify_type', 'section', 'company', 'subcontractor', 'salesperson', 'is_retired']})
+        (u"勤務情報", {'fields': ['member_type', 'join_date', 'email', 'is_notify', 'notify_type', 'section', 'company',
+                              'subcontractor', 'is_on_sales', 'sales_off_reason', 'salesperson', 'is_retired']})
     )
 
     def get_actions(self, request):
@@ -302,18 +315,6 @@ class MemberAdmin(BaseAdmin):
     is_user_created.short_description = u"ユーザ作成"
     is_user_created.admin_order_field = "user"
     is_user_created.boolean = True
-
-    def get_queryset(self, request):
-        query_set = admin.ModelAdmin.get_queryset(self, request)
-        if request.user.is_superuser:
-            return query_set
-        elif request.user.salesperson.member_type == 0 and request.user.salesperson.section:
-            # 営業部長の場合
-            section = request.user.salesperson.section
-            salesperson_list = section.salesperson_set.all()
-            return query_set.filter(salesperson__in=salesperson_list)
-        else:
-            return query_set.filter(salesperson=request.user.salesperson)
 
     def change_view(self, request, object_id, form_url='', extra_context=None):
         member = Member.objects.get(pk=object_id)
@@ -429,16 +430,6 @@ class SalespersonAdmin(BaseAdmin):
     def is_user_created(self, obj):
         return obj.user is not None
 
-    def get_queryset(self, request):
-        query_set = admin.ModelAdmin.get_queryset(self, request)
-        if request.user.is_superuser:
-            return query_set
-        elif request.user.salesperson.member_type == 0 and request.user.salesperson.section:
-            # 営業部長の場合は該当部署のすべての営業員が変更できる。
-            return query_set.filter(section=request.user.salesperson.section)
-        else:
-            return query_set.filter(pk=request.user.salesperson.pk)
-
     def create_users(self, request, queryset):
         if request.user.is_superuser:
             cnt = 0
@@ -518,18 +509,6 @@ class ProjectAdmin(BaseAdmin):
             form.base_fields['boss'].queryset = ClientMember.objects.filter(client=obj.client)
             form.base_fields['middleman'].queryset = ClientMember.objects.filter(client=obj.client)
         return form
-
-    def get_queryset(self, request):
-        query_set = admin.ModelAdmin.get_queryset(self, request)
-        if request.user.is_superuser:
-            return query_set
-        elif request.user.salesperson.member_type == 0 and request.user.salesperson.section:
-            # 営業部長の場合
-            section = request.user.salesperson.section
-            salesperson_list = section.salesperson_set.all()
-            return query_set.filter(salesperson__in=salesperson_list)
-        else:
-            return query_set.filter(salesperson=request.user.salesperson)
 
     def save_related(self, request, form, formsets, change):
         super(ProjectAdmin, self).save_related(request, form, formsets, change)
@@ -852,7 +831,8 @@ class ProjectRequestHeadingAdmin(BaseAdmin):
 
 class ProjectRequestDetailAdmin(BaseAdmin):
     list_display = ['get_request_no', 'get_project_name', 'no', 'project_member', 'total_price', 'expenses_price']
-    search_fields = ['project_request__request_no', 'project_request__project__name']
+    search_fields = ['project_request__request_no', 'project_request__project__name',
+                     'project_member__member__first_name', 'project_member__member__last_name']
 
     def get_request_no(self, obj):
         return obj.project_request.request_no
@@ -1057,6 +1037,7 @@ admin.site.register(Company, CompanyAdmin)
 admin.site.register(BankInfo, BankInfoAdmin)
 admin.site.register(Section, SectionAdmin)
 admin.site.register(Member, MemberAdmin)
+admin.site.register(SalesOffReason, SalesOffReasonAdmin)
 admin.site.register(Salesperson, SalespersonAdmin)
 admin.site.register(Skill)
 # admin.site.register(ProjectSkill)

@@ -40,13 +40,12 @@ def get_all_members():
                                                section__is_on_sales=True)
 
 
-def get_members_in_coming():
-    """新規入場要員リストを取得する。
+def get_sales_members():
+    """営業対象メンバーを取得する。
 
     :return:
     """
-    today = datetime.date.today()
-    return models.Member.objects.public_filter(join_date__gt=today)
+    return get_all_members().filter(is_on_sales=True)
 
 
 def get_working_members(date=None):
@@ -60,10 +59,10 @@ def get_working_members(date=None):
     else:
         first_day = common.get_first_day_by_month(date)
         last_day = common.get_last_day_by_month(date)
-    members = get_all_members().filter(projectmember__start_date__lte=last_day,
-                                       projectmember__end_date__gte=first_day,
-                                       projectmember__is_deleted=False,
-                                       projectmember__status=2).distinct()
+    members = get_sales_members().filter(projectmember__start_date__lte=last_day,
+                                         projectmember__end_date__gte=first_day,
+                                         projectmember__is_deleted=False,
+                                         projectmember__status=2).distinct()
     return members
 
 
@@ -73,7 +72,24 @@ def get_waiting_members():
     :return:
     """
     working_members = get_working_members()
-    return get_all_members().exclude(pk__in=working_members)
+    return get_sales_members().filter(is_on_sales=True).exclude(pk__in=working_members)
+
+
+def get_off_sales_members():
+    """営業対象外のメンバーを取得する。
+
+    :return:
+    """
+    return get_all_members().filter(is_on_sales=False)
+
+
+def get_members_in_coming():
+    """新規入場要員リストを取得する。
+
+    :return:
+    """
+    today = datetime.date.today()
+    return models.Member.objects.public_filter(join_date__gt=today)
 
 
 def get_subcontractor_all_members():
@@ -82,6 +98,14 @@ def get_subcontractor_all_members():
     :return:
     """
     return get_all_members().filter(subcontractor__isnull=False)
+
+
+def get_subcontractor_sales_members():
+    """すべての協力社員を取得する。
+
+    :return:
+    """
+    return get_subcontractor_all_members().filter(is_on_sales=True)
 
 
 def get_subcontractor_working_members(date=None):
@@ -96,10 +120,10 @@ def get_subcontractor_working_members(date=None):
         first_day = common.get_first_day_by_month(date)
         last_day = common.get_last_day_by_month(date)
 
-    return get_subcontractor_all_members().filter(projectmember__start_date__lte=last_day,
-                                                  projectmember__end_date__gte=first_day,
-                                                  projectmember__is_deleted=False,
-                                                  projectmember__status=2).distinct()
+    return get_subcontractor_sales_members().filter(projectmember__start_date__lte=last_day,
+                                                    projectmember__end_date__gte=first_day,
+                                                    projectmember__is_deleted=False,
+                                                    projectmember__status=2).distinct()
 
 
 def get_subcontractor_waiting_members(date=None):
@@ -109,7 +133,15 @@ def get_subcontractor_waiting_members(date=None):
     :return:
     """
     working_members = get_subcontractor_working_members(date)
-    return get_subcontractor_all_members().exclude(pk__in=working_members)
+    return get_subcontractor_sales_members().exclude(pk__in=working_members)
+
+
+def get_subcontractor_off_sales_members():
+    """営業対象外の協力社員を取得する。
+
+    :return:
+    """
+    return get_subcontractor_all_members().filter(is_on_sales=False)
 
 
 def get_project_members_month(date):
@@ -165,7 +197,8 @@ def get_release_members_by_month(date, p=None):
     :param p: 画面からの絞り込み条件
     """
     working_member_next_date = get_working_members(date=common.add_months(date, 1))
-    project_members = get_project_members_month(date).filter(member__section__is_on_sales=True)\
+    project_members = get_project_members_month(date).filter(member__section__is_on_sales=True,
+                                                             member__is_on_sales=True)\
         .exclude(member__in=working_member_next_date)
     if p:
         project_members = project_members.filter(**p)

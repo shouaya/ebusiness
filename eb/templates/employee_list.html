@@ -4,8 +4,8 @@
     <script type="text/javascript">
         window.onload = function() {
             init_select("status");
-            init_select("first_name");
-            init_select("last_name");
+            init_select("first_name__contains");
+            init_select("last_name__contains");
             init_select("business_status");
             init_select("salesperson");
             init_select("section");
@@ -17,8 +17,8 @@
     <div class="dashboard">
         <div class="dashboard-title">なにをしたいのですか？</div>
         <form action="" method="get">
-            <span>姓: </span><input type="text" id="first_name" name="first_name" style="width: 50px;"/>
-            <span>名: </span><input type="text" id="last_name" name="last_name" style="width: 50px;"/>
+            <span>姓: </span><input type="text" id="first_name__contains" name="first_name__contains" style="width: 50px;"/>
+            <span>名: </span><input type="text" id="last_name__contains" name="last_name__contains" style="width: 50px;"/>
             <span>部署：</span>
             <select id="section" name="section">
                 <option value="">すべて</option>
@@ -31,13 +31,14 @@
                 <option value="">すべて</option>
                 <option value="working">稼働中</option>
                 <option value="waiting">待機</option>
+                <option value="off_sales">営業対象外</option>
             </select>
-            <span>営業状態:</span>
-            <select id="business_status" name="business_status">
-                <option value="">すべて</option>
-                <option value="未提案">未提案</option>
-                <option value="営業中">営業中</option>
-            </select>
+            <!--<span>営業状態:</span>-->
+            <!--<select id="business_status" name="business_status">-->
+                <!--<option value="">すべて</option>-->
+                <!--<option value="未提案">未提案</option>-->
+                <!--<option value="営業中">営業中</option>-->
+            <!--</select>-->
             <span>営業員:</span>
             <select id="salesperson" name="salesperson">
                 <option value="">すべて</option>
@@ -46,12 +47,12 @@
                 {% endfor %}
             </select>
             <input type="submit" value="Filter" />
-            <a href="{% url 'employee_list' %}">クリア</a>
+            <a href="{{ request.path }}">クリア</a>
         </form>
         {% if page_type != "members_in_coming" %}
         <div class="dashboard-tail">
-            <a href="?download=member_list{{ params }}" target="_blank">要員一覧ダウンロード</a>
-            <a href="{% url 'upload_file' %}" target="_blank">履歴書をアップロード</a>
+            <!--<a href="?download=member_list{{ params }}" target="_blank">要員一覧ダウンロード</a>-->
+            <!--<a href="{% url 'upload_file' %}" target="_blank">履歴書をアップロード</a>-->
             <a href="{% url 'admin:eb_member_add' %}?from=portal&_popup=1" target="_blank">要員を追加</a>
         </div>
         {% endif %}
@@ -123,7 +124,7 @@
                     </div>
                     <div class="clear"></div>
                 </th>
-                <th>営業状態</th>
+                <!--<th>営業状態</th>-->
                 <th style="width: 99px;"></th>
                 <th></th>
             </tr>
@@ -158,13 +159,13 @@
                                 <a href="?salesperson={{ member.salesperson.pk }}">{{ member.salesperson }}</a>
                             {% endif %}
                         </td>
-                        <td class="center">
-                            {% ifequal member.get_business_status "営業中" %}
-                                <a href="{% url 'member_project_list' member.employee_id %}?status=1">営業中</a>
-                            {% else %}
-                                {{ member.get_business_status }}
-                            {% endifequal %}
-                        </td>
+                        <!--<td class="center">-->
+                            <!--{% ifequal member.get_business_status "営業中" %}-->
+                                <!--<a href="{% url 'member_project_list' member.employee_id %}?status=1">営業中</a>-->
+                            <!--{% else %}-->
+                                <!--{{ member.get_business_status }}-->
+                            <!--{% endifequal %}-->
+                        <!--</td>-->
                         <td class="center">
                             {% ifequal member.get_business_status "未提案" %}
                                 <a href="{% url 'recommended_project' member.employee_id %}">推薦された案件</a>
@@ -174,12 +175,12 @@
                     </tr>
                 {% endfor %}
             {% else %}
-                <tr class="row2"><td class="center red" colspan="9">該当する要員がいません。</td></tr>
+                <tr class="row2"><td class="center red" colspan="8">該当する要員がいません。</td></tr>
             {% endif %}
         </tbody>
         <tfoot>
             <tr>
-                <td colspan="9">
+                <td colspan="8">
                     <div class="pagination">
                         <span class="step-links">
                             {% if members.has_previous %}

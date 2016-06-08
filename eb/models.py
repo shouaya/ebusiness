@@ -363,6 +363,25 @@ class Section(models.Model):
         self.save()
 
 
+class SalesOffReason(models.Model):
+    name = models.CharField(blank=False, null=False, max_length=50, verbose_name=u"理由")
+    is_deleted = models.BooleanField(default=False, editable=False, verbose_name=u"削除フラグ")
+    deleted_date = models.DateTimeField(blank=True, null=True, editable=False, verbose_name=u"削除年月日")
+
+    objects = PublicManager(is_deleted=False)
+
+    class Meta:
+        verbose_name = verbose_name_plural = u"営業対象外理由"
+
+    def __unicode__(self):
+        return self.name
+
+    def delete(self, using=None):
+        self.is_deleted = True
+        self.deleted_date = datetime.datetime.now()
+        self.save()
+
+
 class Salesperson(AbstractMember):
 
     user = models.OneToOneField(User, blank=True, null=True)
@@ -463,6 +482,8 @@ class Member(AbstractMember):
     salesperson = models.ForeignKey(Salesperson, blank=True, null=True, verbose_name=u"営業員")
     is_individual_pay = models.BooleanField(default=False, verbose_name=u"個別精算")
     subcontractor = models.ForeignKey(Subcontractor, blank=True, null=True, verbose_name=u"協力会社")
+    is_on_sales = models.BooleanField(blank=False, null=False, default=True, verbose_name=u"営業対象")
+    sales_off_reason = models.ForeignKey(SalesOffReason, blank=True, null=True, verbose_name=u"営業対象外理由")
     cost = models.IntegerField(null=False, default=0, verbose_name=u"コスト")
     is_deleted = models.BooleanField(default=False, editable=False, verbose_name=u"削除フラグ")
     deleted_date = models.DateTimeField(blank=True, null=True, editable=False, verbose_name=u"削除年月日")
@@ -978,10 +999,10 @@ class Project(models.Model):
         Raises：
           なし
         """
-        return MemberExpenses.objects.filter(project_member__project=self,
-                                             year=str(year),
-                                             month=str(month),
-                                             project_member__in=project_members).order_by('category__name')
+        return MemberExpenses.objects.public_filter(project_member__project=self,
+                                                    year=str(year),
+                                                    month=str(month),
+                                                    project_member__in=project_members).order_by('category__name')
 
     def get_order_by_month(self, year, month):
         """指定年月の注文履歴を取得する。
@@ -1246,7 +1267,8 @@ class ProjectRequestHeading(models.Model):
     client_tel = models.CharField(blank=True, null=True, max_length=15, verbose_name=u"お客様電話番号")
     client_name = models.CharField(blank=True, null=True, max_length=30, verbose_name=u"お客様会社名")
     tax_rate = models.DecimalField(blank=True, null=True, max_digits=3, decimal_places=2, verbose_name=u"税率")
-    decimal_type = models.CharField(blank=True, null=True, max_length=1, verbose_name=u"小数の処理区分")
+    decimal_type = models.CharField(blank=True, null=True, max_length=1, choices=constants.CHOICE_DECIMAL_TYPE,
+                                    verbose_name=u"小数の処理区分")
     work_period_start = models.DateField(blank=True, null=True, verbose_name=u"作業期間＿開始")
     work_period_end = models.DateField(blank=True, null=True, verbose_name=u"作業期間＿終了")
     remit_date = models.DateField(blank=True, null=True, verbose_name=u"お支払い期限")
@@ -1266,6 +1288,7 @@ class ProjectRequestHeading(models.Model):
     account_holder = models.CharField(blank=True, null=True, max_length=20, verbose_name=u"口座名義")
 
     class Meta:
+        ordering = ['-project_request__request_no']
         verbose_name = verbose_name_plural = u"案件請求見出し"
 
 
@@ -1301,8 +1324,16 @@ class ProjectRequestDetail(models.Model):
         """
         if not hasattr(self.project_request, 'projectrequestheading'):
             return 0
+
+        tax_rate = self.project_request.projectrequestheading.tax_rate
+        decimal_type = self.project_request.projectrequestheading.decimal_type
+        if tax_rate is None:
+            return 0
+        if decimal_type == '0':
+            # 四捨五入
+            return int(round(self.total_price * tax_rate))
         else:
-            tax_rate = self.project_request.projectrequestheading.tax_rate
+            # 切り捨て
             return int(self.total_price * tax_rate)
 
     def get_all_price(self):
@@ -1314,7 +1345,7 @@ class ProjectRequestDetail(models.Model):
 class ProjectActivity(models.Model):
     project = models.ForeignKey(Project, verbose_name=u"案件")
     name = models.CharField(max_length=30, verbose_name=u"活動名称")
-    open_date = models.DateTimeField(default=datetime.datetime.now(), verbose_name=u"開催日時")
+    open_date = models.DateTimeField(default=timezone.now, verbose_name=u"開催日時")
     address = models.CharField(max_length=255, verbose_name=u"活動場所")
     content = models.TextField(verbose_name=u"活動内容")
     client_members = models.ManyToManyField(ClientMember, blank=True, verbose_name=u"参加しているお客様")

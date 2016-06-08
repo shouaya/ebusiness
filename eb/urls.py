@@ -35,6 +35,9 @@ turnover_patterns = [
     url(r'^company_monthly.html$', views.turnover_company_monthly, name="turnover_company_monthly"),
     url(r'^charts/(?P<ym>[0-9]{6}).html$', views.turnover_charts_monthly, name='turnover_charts_monthly'),
     url(r'^members/(?P<ym>[0-9]{6}).html$', views.turnover_members_monthly, name='turnover_members_monthly'),
+    url(r'^clients/(?P<ym>[0-9]{6}).html$', views.turnover_clients_monthly, name='turnover_clients_monthly'),
+    url(r'^client/(?P<client_id>[0-9]+)/(?P<ym>[0-9]{6}).html$', views.turnover_client_monthly,
+        name='turnover_client_monthly'),
 ]
 
 subcontractor_patterns = [

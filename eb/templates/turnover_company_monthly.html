@@ -74,6 +74,7 @@
                 <th>税金</th>
                 <th>精算</th>
                 <th>合計</th>
+                <th></th>
             </tr>
         </thead>
         <tbody>
@@ -87,6 +88,7 @@
                 <td style="text-align: right;">{{ turnover.tax_amount|intcomma }}</td>
                 <td style="text-align: right;">{{ turnover.expenses_amount|intcomma }}</td>
                 <td style="text-align: right;">{{ turnover.amount__sum|intcomma }}</td>
+                <td class="center"><a href="{% url 'turnover_clients_monthly' turnover.ym %}">お客様別詳細</a></td>
             </tr>
             {% endfor %}
         </tbody>
@@ -98,6 +100,7 @@
                 <th>税金</th>
                 <th>精算</th>
                 <th>合計</th>
+                <th></th>
             </tr>
         </tfoot>
     </table>

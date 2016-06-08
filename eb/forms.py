@@ -150,6 +150,8 @@ class MemberForm(forms.ModelForm):
         private_email = cleaned_data.get("private_email")
         is_notify = cleaned_data.get("is_notify")
         notify_type = cleaned_data.get("notify_type")
+        is_on_sales = cleaned_data.get("is_on_sales")
+        sales_off_reason = cleaned_data.get("sales_off_reason")
 
         if post_code and not re.match(REG_POST_CODE, post_code):
             self.add_error('post_code', u"正しい郵便番号を入力してください。")
@@ -183,6 +185,13 @@ class MemberForm(forms.ModelForm):
         else:
             if notify_type:
                 self.add_error('notify_type', u"メール通知を選択してない場合、通知種類を選択しないようにしてください。")
+
+        if is_on_sales:
+            if sales_off_reason:
+                self.add_error('sales_off_reason', u"営業対象の場合、理由は選択しないでください！")
+        else:
+            if sales_off_reason is None:
+                self.add_error('sales_off_reason', u"営業対象外の場合、営業対象外理由は選択してください！")
 
 
 class SalespersonForm(forms.ModelForm):

@@ -2,146 +2,46 @@
 {% load humanize %}
 
 {% block header %}
-    <script type="text/javascript" src="https://code.highcharts.com/highcharts.js"></script>
-    <script type="text/javascript" src="https://code.highcharts.com/modules/exporting.js"></script>
-    <script type="text/javascript">
-        window.onload = function() {
-            init_select("name");
-            init_select("ym");
-        };
-        $(function () {
-            Highcharts.setOptions({
-                lang: {
-                    decimalPoint: '.',
-                    thousandsSep: ','
-                }
-            });
-            $('#container').highcharts({
-                chart: {
-                    type: 'column'
-                },
-                title: {
-                    text: '{{ ym|slice:":4" }}年{{ ym|slice:"4:" }}月のお客様別売上情報'
-                },
-                subtitle: {
-                    text: '売上情報は請求書の金額から集計している、請求書が全部作成していない場合、正しい売上が取得できません。'
-                },
-                xAxis: {
-                    categories: [{{ chart_categories|safe }}],
-                    crosshair: true
-                },
-                yAxis: {
-                    min: 0,
-                    title: {
-                        text: '金額 (円)'
-                    }
-                },
-                tooltip: {
-                    headerFormat: '<span style="font-size:10px">{point.key}</span><table>',
-                    pointFormat: '<tr><td style="color:{series.color};padding:0">{series.name}: </td>' +
-                        '<td style="padding:0"><b>{point.y:,.0f} 円</b></td></tr>',
-                    footerFormat: '</table>',
-                    shared: true,
-                    useHTML: true
-                },
-                plotOptions: {
-                    column: {
-                        pointPadding: 0.2,
-                        borderWidth: 0
-                    }
-                },
-                series: [{
-                    name: 'コスト',
-                    data: {{ chart_cost }}
-                }, {
-                    name: '売上',
-                    data: {{ chart_price }}
-                }]
-            });
-        });
-    </script>
 {% endblock %}
 
 {% block content %}
     <div class="dashboard">
-        <div class="dashboard-title">お客様別の売上情報</div>
-        <div id="container" style="min-width: 310px; height: 600px; margin: 0 auto"></div>
+        <div class="dashboard-title">{{ ym }} のお客様別の売上情報</div>
     </div>
     <table class="list" cellpadding="0" cellspacing="0">
         <thead>
             <tr>
-                <th>
-                    {% if dict_order.name.is_in_ordering %}
-                        <div class="sortoptions">
-                            <a class="sortremove" href="?o={{ dict_order.name.url_list_removed }}{{ params }}"></a>
-                            <span class="sortpriority">{{ dict_order.name.priority }}</span>
-                            <a class="{% if dict_order.name.is_asc %}descending{% else %}ascending{% endif %}"
-                               href="?o={{ dict_order.name.url }}{{ params }}"></a>
-                        </div>
-                    {% endif %}
-                    <div class="text">
-                        <a href="?o={{ dict_order.name.url }}{{ params }}">お客様名称</a>
-                    </div>
-                    <div class="clear"></div>
-                </th>
-                <th>コスト</th>
-                <th>売上</th>
-                <th>利益</th>
+                <th>お客様名称</th>
+                <th>売上（税別）</th>
+                <th>税金</th>
+                <th>精算</th>
+                <th>合計</th>
             </tr>
         </thead>
         <tbody>
-            {% if clients %}
-                {% for client in clients %}
+            {% if clients_turnover %}
+                {% for client_turnover in clients_turnover %}
                     <tr class="{% cycle 'row1' 'row2' %}">
                         <td>
-                            <a href="{% url 'turnover_client_monthly' client.id ym %}">{{ client.name }}</a>
+                            <a href="{% url 'turnover_client_monthly' client_turnover.client.pk ym %}">{{ client_turnover.client.name }}</a>
                         </td>
-                        <td style="text-align: right">
-                            {{ client.cost|intcomma }}
-                        </td>
-                        <td style="text-align: right">
-                            {{ client.price|intcomma }}
-                        </td>
-                        <td style="text-align: right">
-                            {{ client.profit|intcomma }}
-                        </td>
+                        <td style="text-align: right">{{ client_turnover.attendance_amount|intcomma }}</td>
+                        <td style="text-align: right">{{ client_turnover.attendance_tex|intcomma }}</td>
+                        <td style="text-align: right">{{ client_turnover.expenses_amount|intcomma }}</td>
+                        <td style="text-align: right">{{ client_turnover.all_amount|intcomma }}</td>
                     </tr>
                 {% endfor %}
             {% else %}
-                <tr class="row1"><td class="center red" colspan="4">売上情報がありません。</td></tr>
+                <tr class="row1"><td class="center red" colspan="5">売上情報がありません。</td></tr>
             {% endif %}
         </tbody>
         <tfoot>
             <tr>
-                <td>
-                    <div class="pagination">
-                        <span class="step-links">
-                            {% if projects.has_previous %}
-                                <a href="?page={{ projects.previous_page_number }}{{ params }}">&lt;</a>
-                            {% endif %}
-
-                            {% if paginator.page_range|length > 1 %}
-                                {% for page in paginator.page_range %}
-                                    {% ifequal page projects.number %}
-                                        <span class="current">
-                                            {{ page }}
-                                        </span>
-                                    {% else %}
-                                        <a href="?page={{ page }}{{ params }}{{ orders }}">{{ page }}</a>
-                                    {% endifequal %}
-                                {% endfor %}
-                            {% endif %}
-
-                            {% if projects.has_next %}
-                                <a href="?page={{ projects.next_page_number }}{{ params }}">&gt;</a>
-                            {% endif %}
-                            <span>{{ paginator.count }} 件</span>
-                        </span>
-                    </div>
-                </td>
-                <td style="text-align: right"> {{ summary.cost|intcomma }}</td>
-                <td style="text-align: right"> {{ summary.price|intcomma }}</td>
-                <td style="text-align: right"> {{ summary.profit|intcomma }}</td>
+                <td>{{ clients_turnover|length }} 件</td>
+                <td style="text-align: right"> {{ summary.attendance_amount|intcomma }}</td>
+                <td style="text-align: right"> {{ summary.attendance_tex|intcomma }}</td>
+                <td style="text-align: right"> {{ summary.expenses_amount|intcomma }}</td>
+                <td style="text-align: right"> {{ summary.all_amount|intcomma }}</td>
             </tr>
         </tfoot>
     </table>

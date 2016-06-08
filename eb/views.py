@@ -29,7 +29,7 @@ from utils import constants, common, errors, loader as file_loader, file_gen
 from . import forms
 from .models import Member, Section, Project, ProjectMember, Salesperson, \
     MemberAttendance, Subcontractor, BankInfo, ClientOrder, History, BpMemberOrderInfo, Issue, \
-    ProjectRequest
+    ProjectRequest, Client
 
 PAGE_SIZE = 50
 
@@ -44,18 +44,20 @@ def index(request):
                    'next_ym': next_month.strftime('%Y%m'),
                    'next_2_ym': next_2_months.strftime('%Y%m')}
 
-    member_count = biz.get_all_members().count()
+    member_count = biz.get_sales_members().count()
     working_members = biz.get_working_members()
     waiting_members = biz.get_waiting_members()
     member_in_coming = biz.get_members_in_coming()
+    off_sales_members_count = biz.get_off_sales_members().count()
 
     current_month = biz.get_release_current_month()
     next_month = biz.get_release_next_month()
     next_2_month = biz.get_release_next_2_month()
 
-    subcontractor_all_member_count = biz.get_subcontractor_all_members().count()
+    subcontractor_sales_member_count = biz.get_subcontractor_sales_members().count()
     subcontractor_working_member_count = biz.get_subcontractor_working_members().count()
-    subcontractor_waiting_member_count = subcontractor_all_member_count - subcontractor_working_member_count
+    subcontractor_waiting_member_count = subcontractor_sales_member_count - subcontractor_working_member_count
+    subcontractor_off_sales_member_count = biz.get_subcontractor_off_sales_members().count()
 
     subcontractor_release_current_month = biz.get_subcontractor_release_current_month().count()
     subcontractor_release_next_month = biz.get_subcontractor_release_next_month().count()
@@ -71,12 +73,14 @@ def index(request):
         'working_member_count': working_members.count(),
         'waiting_member_count': waiting_members.count(),
         'members_in_coming_count': member_in_coming.count(),
+        'off_sales_members_count': off_sales_members_count,
         'current_month_count': current_month.count(),
         'next_month_count': next_month.count(),
         'next_2_month_count': next_2_month.count(),
-        'subcontractor_all_member_count': subcontractor_all_member_count,
+        'subcontractor_sales_member_count': subcontractor_sales_member_count,
         'subcontractor_working_member_count': subcontractor_working_member_count,
         'subcontractor_waiting_member_count': subcontractor_waiting_member_count,
+        'subcontractor_off_sales_member_count': subcontractor_off_sales_member_count,
         'subcontractor_release_current_month': subcontractor_release_current_month,
         'subcontractor_release_next_month': subcontractor_release_next_month,
         'subcontractor_release_next_2_month': subcontractor_release_next_2_month,
@@ -90,112 +94,82 @@ def index(request):
 def employee_list(request):
     company = biz.get_company()
     status = request.GET.get('status', None)
-    first_name = request.GET.get('first_name', None)
-    last_name = request.GET.get('last_name', None)
-    section = request.GET.get('section', None)
-    business_status = request.GET.get('business_status', None)
-    salesperson = request.GET.get('salesperson', None)
-    download = request.GET.get('download', None)
+    if status == "sales":
+        all_members = biz.get_sales_members()
+    elif status == "working":
+        all_members = biz.get_working_members()
+    elif status == "waiting":
+        all_members = biz.get_waiting_members()
+    elif status == "off_sales":
+        all_members = biz.get_off_sales_members()
+    else:
+        all_members = biz.get_all_members()
 
-    params = ""
+    param_list = common.get_request_params(request.GET)
+    params = "&".join(["%s=%s" % (key, value) for key, value in param_list.items()]) if param_list else ""
+    if 'status' in param_list:
+        del param_list['status']
+    if param_list:
+        all_members = all_members.filter(**param_list)
+
     o = request.GET.get('o', None)
     dict_order = common.get_ordering_dict(o, ['first_name', 'section', 'subcontractor__name',
                                               'salesperson__first_name'])
     order_list = common.get_ordering_list(o)
 
-    all_members = biz.get_all_members()
-
-    if salesperson:
-        all_members = all_members.filter(salesperson_id=salesperson)
-        params += u"&salesperson=%s" % (salesperson,)
-    if first_name:
-        all_members = all_members.filter(first_name__contains=first_name)
-        params += u"&first_name=%s" % (first_name,)
-    if last_name:
-        all_members = all_members.filter(last_name__contains=last_name)
-        params += u"&last_name=%s" % (last_name,)
-    if section:
-        all_members = all_members.filter(section_id=section)
-        params += u"&section=%s" % (section,)
-
     if order_list:
         all_members = all_members.order_by(*order_list)
 
-    if status == "working":
-        all_members = [member for member in all_members if member.get_project_end_date()]
-        params += u"&status=%s" % (status,)
-    elif status == "waiting":
-        all_members = [member for member in all_members if not member.get_project_end_date()]
-        params += u"&status=%s" % (status,)
-    if business_status:
-        all_members = [member for member in all_members if member.get_business_status() == business_status]
-        params += u"&business_status=%s" % (business_status,)
+    # if business_status:
+    #     all_members = [member for member in all_members if member.get_business_status() == business_status]
+    #     params += u"&business_status=%s" % (business_status,)
+    #
+    # if download == constants.DOWNLOAD_MEMBER_LIST:
+    #     filename = constants.NAME_MEMBER_LIST
+    #     output = common.generate_member_list(all_members, filename)
+    #     response = HttpResponse(output.read(), content_type="application/ms-excel")
+    #     response['Content-Disposition'] = "filename=" + urllib.quote(filename.encode('utf-8')) + ".xlsx"
+    #     return response
+    # else:
+    paginator = Paginator(all_members, PAGE_SIZE)
+    page = request.GET.get('page')
+    try:
+        members = paginator.page(page)
+    except PageNotAnInteger:
+        members = paginator.page(1)
+    except EmptyPage:
+        members = paginator.page(paginator.num_pages)
 
-    if download == constants.DOWNLOAD_MEMBER_LIST:
-        filename = constants.NAME_MEMBER_LIST
-        output = common.generate_member_list(all_members, filename)
-        response = HttpResponse(output.read(), content_type="application/ms-excel")
-        response['Content-Disposition'] = "filename=" + urllib.quote(filename.encode('utf-8')) + ".xlsx"
-        return response
-    else:
-        paginator = Paginator(all_members, PAGE_SIZE)
-        page = request.GET.get('page')
-        try:
-            members = paginator.page(page)
-        except PageNotAnInteger:
-            members = paginator.page(1)
-        except EmptyPage:
-            members = paginator.page(paginator.num_pages)
-
-        context = RequestContext(request, {
-            'company': company,
-            'title': u'要員一覧',
-            'members': members,
-            'sections': Section.objects.public_filter(is_on_sales=True),
-            'salesperson': Salesperson.objects.public_all(),
-            'paginator': paginator,
-            'params': params,
-            'dict_order': dict_order,
-        })
-        template = loader.get_template('employee_list.html')
-        return HttpResponse(template.render(context))
+    context = RequestContext(request, {
+        'company': company,
+        'title': u'要員一覧',
+        'members': members,
+        'sections': Section.objects.public_filter(is_on_sales=True),
+        'salesperson': Salesperson.objects.public_all(),
+        'paginator': paginator,
+        'params': "&" + params if params else "",
+        'dict_order': dict_order,
+    })
+    template = loader.get_template('employee_list.html')
+    return HttpResponse(template.render(context))
 
 
 @login_required(login_url='/eb/login/')
 def members_in_coming(request):
     company = biz.get_company()
-    first_name = request.GET.get('first_name', None)
-    last_name = request.GET.get('last_name', None)
-    section = request.GET.get('section', None)
-    business_status = request.GET.get('business_status', None)
-    salesperson = request.GET.get('salesperson', None)
+    param_list = common.get_request_params(request.GET)
+    params = "&".join(["%s=%s" % (key, value) for key, value in param_list.items()]) if param_list else ""
 
-    params = ""
     o = request.GET.get('o', None)
     dict_order = common.get_ordering_dict(o, ['first_name', 'section', 'subcontractor__name',
                                               'salesperson__first_name'])
     order_list = common.get_ordering_list(o)
 
     all_members = biz.get_members_in_coming()
-    if salesperson:
-        all_members = all_members.filter(salesperson_id=salesperson)
-        params += u"&salesperson=%s" % (salesperson,)
-    if first_name:
-        all_members = all_members.filter(first_name__contains=first_name)
-        params += u"&first_name=%s" % (first_name,)
-    if last_name:
-        all_members = all_members.filter(last_name__contains=last_name)
-        params += u"&last_name=%s" % (last_name,)
-    if section:
-        all_members = all_members.filter(section_id=section)
-        params += u"&section=%s" % (section,)
-
+    if param_list:
+        all_members = all_members.filter(**param_list)
     if order_list:
         all_members = all_members.order_by(*order_list)
-
-    if business_status:
-        all_members = [member for member in all_members if member.get_business_status() == business_status]
-        params += u"&business_status=%s" % (business_status,)
 
     paginator = Paginator(all_members, PAGE_SIZE)
     page = request.GET.get('page')
@@ -213,7 +187,7 @@ def members_in_coming(request):
         'sections': Section.objects.public_filter(is_on_sales=True),
         'salesperson': Salesperson.objects.public_all(),
         'paginator': paginator,
-        'params': params,
+        'params': "&" + params if params else "",
         'dict_order': dict_order,
         'page_type': "members_in_coming",
     })
@@ -225,76 +199,64 @@ def members_in_coming(request):
 def members_subcontractor(request):
     company = biz.get_company()
     status = request.GET.get('status', None)
-    first_name = request.GET.get('first_name', None)
-    last_name = request.GET.get('last_name', None)
-    section = request.GET.get('section', None)
-    business_status = request.GET.get('business_status', None)
-    salesperson = request.GET.get('salesperson', None)
-    download = request.GET.get('download', None)
+    if status == "sales":
+        all_members = biz.get_subcontractor_sales_members()
+    elif status == "working":
+        all_members = biz.get_subcontractor_working_members()
+    elif status == "waiting":
+        all_members = biz.get_subcontractor_waiting_members()
+    elif status == "off_sales":
+        all_members = biz.get_subcontractor_off_sales_members()
+    else:
+        all_members = biz.get_subcontractor_all_members()
 
-    params = ""
+    param_list = common.get_request_params(request.GET)
+    params = "&".join(["%s=%s" % (key, value) for key, value in param_list.items()]) if param_list else ""
+    if 'status' in param_list:
+        del param_list['status']
+    if param_list:
+        all_members = all_members.filter(**param_list)
+
     o = request.GET.get('o', None)
     dict_order = common.get_ordering_dict(o, ['first_name', 'section', 'subcontractor__name',
                                               'salesperson__first_name'])
     order_list = common.get_ordering_list(o)
 
-    if status == "working":
-        all_members = biz.get_subcontractor_working_members()
-        params += u"&status=%s" % (status,)
-    elif status == "waiting":
-        all_members = biz.get_subcontractor_waiting_members()
-        params += u"&status=%s" % (status,)
-    else:
-        all_members = biz.get_subcontractor_all_members()
-
-    if salesperson:
-        all_members = all_members.filter(salesperson_id=salesperson)
-        params += u"&salesperson=%s" % (salesperson,)
-    if first_name:
-        all_members = all_members.filter(first_name__contains=first_name)
-        params += u"&first_name=%s" % (first_name,)
-    if last_name:
-        all_members = all_members.filter(last_name__contains=last_name)
-        params += u"&last_name=%s" % (last_name,)
-    if section:
-        all_members = all_members.filter(section_id=section)
-        params += u"&section=%s" % (section,)
-
     if order_list:
         all_members = all_members.order_by(*order_list)
 
-    if business_status:
-        all_members = [member for member in all_members if member.get_business_status() == business_status]
-        params += u"&business_status=%s" % (business_status,)
+    # if business_status:
+    #     all_members = [member for member in all_members if member.get_business_status() == business_status]
+    #     params += u"&business_status=%s" % (business_status,)
+    #
+    # if download == constants.DOWNLOAD_MEMBER_LIST:
+    #     filename = constants.NAME_MEMBER_LIST
+    #     output = common.generate_member_list(all_members, filename)
+    #     response = HttpResponse(output.read(), content_type="application/ms-excel")
+    #     response['Content-Disposition'] = "filename=" + urllib.quote(filename.encode('utf-8')) + ".xlsx"
+    #     return response
+    # else:
+    paginator = Paginator(all_members, PAGE_SIZE)
+    page = request.GET.get('page')
+    try:
+        members = paginator.page(page)
+    except PageNotAnInteger:
+        members = paginator.page(1)
+    except EmptyPage:
+        members = paginator.page(paginator.num_pages)
 
-    if download == constants.DOWNLOAD_MEMBER_LIST:
-        filename = constants.NAME_MEMBER_LIST
-        output = common.generate_member_list(all_members, filename)
-        response = HttpResponse(output.read(), content_type="application/ms-excel")
-        response['Content-Disposition'] = "filename=" + urllib.quote(filename.encode('utf-8')) + ".xlsx"
-        return response
-    else:
-        paginator = Paginator(all_members, PAGE_SIZE)
-        page = request.GET.get('page')
-        try:
-            members = paginator.page(page)
-        except PageNotAnInteger:
-            members = paginator.page(1)
-        except EmptyPage:
-            members = paginator.page(paginator.num_pages)
-
-        context = RequestContext(request, {
-            'company': company,
-            'title': u'協力社員一覧',
-            'members': members,
-            'sections': Section.objects.public_filter(is_on_sales=True),
-            'salesperson': Salesperson.objects.public_all(),
-            'paginator': paginator,
-            'params': params,
-            'dict_order': dict_order,
-        })
-        template = loader.get_template('employee_list.html')
-        return HttpResponse(template.render(context))
+    context = RequestContext(request, {
+        'company': company,
+        'title': u'協力社員一覧',
+        'members': members,
+        'sections': Section.objects.public_filter(is_on_sales=True),
+        'salesperson': Salesperson.objects.public_all(),
+        'paginator': paginator,
+        'params': "&" + params if params else "",
+        'dict_order': dict_order,
+    })
+    template = loader.get_template('employee_list.html')
+    return HttpResponse(template.render(context))
 
 
 @login_required(login_url='/eb/login/')
@@ -727,7 +689,6 @@ def turnover_charts_monthly(request, ym):
 @login_required(login_url='/eb/login/')
 def turnover_members_monthly(request, ym):
     company = biz.get_company()
-
     param_list = common.get_request_params(request.GET)
     o = request.GET.get('o', None)
     dict_order = common.get_ordering_dict(o, ['project_member__member__first_name',
@@ -775,6 +736,56 @@ def turnover_members_monthly(request, ym):
 
 
 @login_required(login_url='/eb/login/')
+def turnover_clients_monthly(request, ym):
+    company = biz.get_company()
+    clients_turnover = biz_turnover.clients_turnover_monthly(ym)
+
+    summary = {'attendance_amount': 0, 'expenses_amount': 0,
+               'attendance_tex': 0, 'all_amount': 0}
+    for item in clients_turnover:
+        summary['attendance_amount'] += item['attendance_amount']
+        summary['attendance_tex'] += item['attendance_tex']
+        summary['expenses_amount'] += item['expenses_amount']
+        summary['all_amount'] += item['attendance_amount'] + item['attendance_tex'] + item['expenses_amount']
+
+    context = RequestContext(request, {
+        'company': company,
+        'title': u'%s年%s月のお客様別売上情報' % (ym[:4], ym[4:]),
+        'clients_turnover': clients_turnover,
+        'ym': ym,
+        'summary': summary,
+    })
+    template = loader.get_template('turnover_clients_monthly.html')
+    return HttpResponse(template.render(context))
+
+
+@login_required(login_url='/eb/login/')
+def turnover_client_monthly(request, client_id, ym):
+    company = biz.get_company()
+    client = get_object_or_404(Client, pk=client_id)
+    turnover_details = biz_turnover.turnover_client_monthly(client_id, ym)
+
+    summary = {'attendance_amount': 0, 'expenses_amount': 0,
+               'tax_amount': 0, 'all_amount': 0}
+    for item in turnover_details:
+        summary['attendance_amount'] += item['attendance_amount']
+        summary['tax_amount'] += item['tax_amount']
+        summary['expenses_amount'] += item['expenses_amount']
+        summary['all_amount'] += item['all_amount']
+
+    context = RequestContext(request, {
+        'company': company,
+        'title': u'%s年%s月　%sの案件別売上情報' % (ym[:4], ym[4:], client.__unicode__()),
+        'client': client,
+        'turnover_details': turnover_details,
+        'ym': ym,
+        'summary': summary,
+    })
+    template = loader.get_template('turnover_projects_monthly.html')
+    return HttpResponse(template.render(context))
+
+
+@login_required(login_url='/eb/login/')
 def release_list_current(request):
     now = datetime.date.today()
     return release_list(request, now.strftime('%Y%m'))
@@ -814,7 +825,7 @@ def release_list(request, ym):
         'title': u'リリース状況一覧',
         'project_members': project_members,
         'paginator': paginator,
-        'params': params,
+        'params': "&" + params if params else "",
         'dict_order': dict_order,
         'ym': ym,
         'sections': sections,
