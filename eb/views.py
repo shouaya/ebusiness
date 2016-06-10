@@ -709,6 +709,8 @@ def turnover_members_monthly(request, ym):
         summary['expenses_amount'] += item.expenses_price
         summary['all_amount'] += item.total_price + item.get_tax_price() + item.expenses_price
         summary['cost_amount'] += item.cost
+    summary['attendance_tex'] = int(round(summary['attendance_tex']))
+    summary['all_amount'] = int(round(summary['all_amount']))
     paginator = Paginator(all_turnover_details, PAGE_SIZE)
     page = request.GET.get('page')
     try:

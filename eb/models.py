@@ -1326,15 +1326,16 @@ class ProjectRequestDetail(models.Model):
             return 0
 
         tax_rate = self.project_request.projectrequestheading.tax_rate
-        decimal_type = self.project_request.projectrequestheading.decimal_type
+        # decimal_type = self.project_request.projectrequestheading.decimal_type
         if tax_rate is None:
             return 0
-        if decimal_type == '0':
-            # 四捨五入
-            return int(round(self.total_price * tax_rate))
-        else:
-            # 切り捨て
-            return int(self.total_price * tax_rate)
+        # if decimal_type == '0':
+        #     # 四捨五入
+        #     return int(round(self.total_price * tax_rate))
+        # else:
+        #     # 切り捨て
+        #     return int(self.total_price * tax_rate)
+        return round(self.total_price * tax_rate, 1)
 
     def get_all_price(self):
         """合計を計算する（税込、精算含む）

@@ -45,6 +45,7 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
     'django.contrib.humanize',
     'eb',
+    'eboa',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -69,7 +70,7 @@ DATABASES = {
     # 'default': {
     #     'ENGINE': 'django.db.backends.sqlite3',
     #     'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
-    # }
+    # },
 
     'default': {
         'ENGINE': 'django.db.backends.mysql',
@@ -78,7 +79,16 @@ DATABASES = {
         'PASSWORD': 'eb2016',
         'HOST': '54.65.139.168',
         'PORT': '3306',
-    }
+    },
+
+    'bpm_eboa': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'bpm_eboa',
+        'USER': 'root',
+        'PASSWORD': 'eb2016',
+        'HOST': '54.65.139.168',
+        'PORT': '3306',
+    },
 }
 
 # Internationalization
