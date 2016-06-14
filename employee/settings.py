@@ -46,6 +46,7 @@ INSTALLED_APPS = (
     'django.contrib.humanize',
     'eb',
     'eboa',
+    'del_data',
 )
 
 MIDDLEWARE_CLASSES = (

@@ -89,7 +89,7 @@ class PublicManager(models.Manager):
         self.kwargs = kwargs
 
     def get_queryset(self):
-        return super(PublicManager, self).get_queryset()
+        return super(PublicManager, self).get_queryset().filter(*self.args, **self.kwargs)
 
     def public_all(self):
         return self.get_queryset().filter(*self.args, **self.kwargs)
@@ -1147,7 +1147,7 @@ class ClientOrder(models.Model):
     is_deleted = models.BooleanField(default=False, editable=False, verbose_name=u"削除フラグ")
     deleted_date = models.DateTimeField(blank=True, null=True, editable=False, verbose_name=u"削除年月日")
 
-    objects = PublicManager(is_deleted=False, project__is_deleted=False)
+    objects = PublicManager(is_deleted=False)
 
     class Meta:
         ordering = ['name', 'start_date', 'end_date']
@@ -1879,7 +1879,7 @@ class Issue(models.Model):
     is_deleted = models.BooleanField(default=False, editable=False, verbose_name=u"削除フラグ")
     deleted_date = models.DateTimeField(blank=True, null=True, editable=False, verbose_name=u"削除年月日")
 
-    objects = PublicManager(is_deleted=False, member__is_deleted=False)
+    objects = PublicManager(is_deleted=False)
 
     class Meta:
         ordering = ['-created_date']
@@ -1902,7 +1902,7 @@ class History(models.Model):
     is_deleted = models.BooleanField(default=False, editable=False, verbose_name=u"削除フラグ")
     deleted_date = models.DateTimeField(blank=True, null=True, editable=False, verbose_name=u"削除年月日")
 
-    objects = PublicManager(is_deleted=False, member__is_deleted=False)
+    objects = PublicManager(is_deleted=False)
 
     class Meta:
         ordering = ['-start_datetime']
