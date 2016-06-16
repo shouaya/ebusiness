@@ -13,7 +13,7 @@ from django.core.mail import send_mail
 from django.core.management.base import BaseCommand
 from django.template import Context, Template
 
-from eb.biz_logic.biz import get_members_information, get_admin_user, get_salesperson_director, get_salesperson_members
+from eb.biz import get_members_information, get_admin_user, get_salesperson_director, get_salesperson_members
 
 logger = logging.getLogger(__name__)
 

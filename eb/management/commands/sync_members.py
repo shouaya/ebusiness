@@ -9,7 +9,7 @@ import traceback
 
 from django.core.management.base import BaseCommand
 
-from eb.biz_logic.biz import sync_members
+from eb.biz_batch import sync_members
 
 logger = logging.getLogger(__name__)
 

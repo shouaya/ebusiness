@@ -28,6 +28,14 @@ def sync_members():
             birthday = data.get("birthDate", None)
             address = data.get("address", None)
             department_name = data.get("department", None)
+            if department_name == u"SS　1部":
+                department_name = u"開発部　1部"
+            elif department_name == u"SS　2部":
+                department_name = u"開発部　2部"
+            elif department_name == u"SS　4部":
+                department_name = u"開発部　4部"
+            elif department_name == u"SS　5部":
+                department_name = u"開発部　5部"
             eb_mail = data.get("ebMailAddress", None)
             introduction = data.get("introduction", None)
             join_date = data.get("joinDate", None)
@@ -38,6 +46,8 @@ def sync_members():
             sex = data.get("sex", None)
             station = data.get("station", None)
             if employee_code:
+                if employee_code < '0402':
+                    continue
                 if department_name == u"営業部" or employee_code in ('0123', '0126', '0198', '0150', '0249', '0335'):
                     # 0123 馬婷婷
                     # 0150 孫雲釵
@@ -45,14 +55,14 @@ def sync_members():
                     # 0126 丁 玲
                     # 0249 齋藤 善次
                     # 0335 蒋杰
-                    if models.Salesperson.objects.filter(employee_id=employee_code).count() == 0:
-                        member = models.Salesperson(employee_id=employee_code)
+                    if models.Salesperson.objects.filter(id_from_api=employee_code).count() == 0:
+                        member = models.Salesperson(employee_id=employee_code, id_from_api=employee_code)
                     else:
                         # message_list.append(("WARN", name, birthday, address, u"既に存在しているレコードです。"))
                         continue
                 else:
-                    if models.Member.objects.filter(employee_id=employee_code).count() == 0:
-                        member = models.Member(employee_id=employee_code)
+                    if models.Member.objects.filter(id_from_api=employee_code).count() == 0:
+                        member = models.Member(employee_id=employee_code, id_from_api=employee_code)
                     else:
                         # message_list.append(("WARN", name, birthday, address, u"既に存在しているレコードです。"))
                         continue

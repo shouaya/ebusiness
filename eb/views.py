@@ -24,7 +24,7 @@ from django.template import RequestContext, loader
 from django.template.context_processors import csrf
 from django.views.decorators.csrf import csrf_protect
 
-from eb.biz_logic import biz_turnover, biz
+from eb import biz, biz_batch, biz_turnover
 from utils import constants, common, errors, loader as file_loader, file_gen
 from . import forms
 from .models import Member, Section, Project, ProjectMember, Salesperson, \
@@ -1307,7 +1307,7 @@ def sync_members(request):
     if request.method == 'GET':
         pass
     else:
-        message_list = biz.sync_members()
+        message_list = biz_batch.sync_members()
         context.update({
             'messages': [u"完了しました。"],
             'message_list': message_list,
