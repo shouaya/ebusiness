@@ -74,6 +74,8 @@ class AbstractMember(models.Model):
     is_notify = models.BooleanField(default=False, verbose_name=u"メール通知")
     notify_type = models.IntegerField(blank=True, null=True, choices=constants.CHOICE_NOTIFY_TYPE, verbose_name=u"通知種類")
     is_retired = models.BooleanField(blank=False, null=False, default=False, verbose_name=u"退職")
+    id_from_api = models.CharField(blank=True, null=True, unique=True, max_length=30, editable=False,
+                                   verbose_name=u"社員ID", help_text=u"データを導入するために、API側のID")
 
     class Meta:
         abstract = True
@@ -89,7 +91,7 @@ class PublicManager(models.Manager):
         self.kwargs = kwargs
 
     def get_queryset(self):
-        return super(PublicManager, self).get_queryset().filter(*self.args, **self.kwargs)
+        return super(PublicManager, self).get_queryset()#.filter(*self.args, **self.kwargs)
 
     def public_all(self):
         return self.get_queryset().filter(*self.args, **self.kwargs)
