@@ -8,6 +8,7 @@ Created on 2015/08/20
 from django.conf.urls import url, include
 
 from . import views
+from eboa import views as eboa_views
 
 member_patterns = [
     url(r'^list.html$', views.employee_list, name='employee_list'),
@@ -18,6 +19,7 @@ member_patterns = [
     url(r'^list/subcontractor.html$', views.members_subcontractor, name='members_subcontractor'),
     url(r'^change_list.html$', views.change_list, name='change_list'),
     url(r'^project_list/(?P<employee_id>[^,/]+).html$', views.member_project_list, name='member_project_list'),
+    url(r'^attendance_list.html$', eboa_views.attendance_list_monthly, name='attendance_list_monthly'),
 ]
 
 download_patterns = [
@@ -29,6 +31,8 @@ download_patterns = [
     url(r'^project_quotation/(?P<project_id>[0-9]+).html$', views.download_project_quotation,
         name='download_project_quotation'),
     url(r'^resume/(?P<member_id>[0-9]+).html$', views.download_resume, name='download_resume'),
+    url(r'^attendance_list/(?P<year>[0-9]{4})/(?P<month>[0-9]{2}).html$', eboa_views.download_attendance_list,
+        name='download_attendance_list'),
 ]
 
 turnover_patterns = [

@@ -1,38 +1,19 @@
 # coding: UTF-8
-from django.contrib import admin, messages
+from django.contrib import admin
 
 # Register your models here.
 from . import models, forms
 
 
-class EboaAdmin(admin.ModelAdmin):
-    using = 'bpm_eboa'
+class BaseEboaAdmin(admin.ModelAdmin):
 
     def save_model(self, request, obj, form, change):
         # Tell Django to save objects to the 'other' database.
         # obj.save(using=self.using)
         pass
 
-    def delete_model(self, request, obj):
-        # Tell Django to delete objects from the 'other' database
-        obj.delete(using=self.using)
-
-    def get_queryset(self, request):
-        # Tell Django to look for objects on the 'other' database.
-        return super(EboaAdmin, self).get_queryset(request).using(self.using)
-
-    def formfield_for_foreignkey(self, db_field, request=None, **kwargs):
-        # Tell Django to populate ForeignKey widgets using a query
-        # on the 'other' database.
-        return super(EboaAdmin, self).formfield_for_foreignkey(db_field, request=request, using=self.using, **kwargs)
-
-    def formfield_for_manytomany(self, db_field, request=None, **kwargs):
-        # Tell Django to populate ManyToMany widgets using a query
-        # on the 'other' database.
-        return super(EboaAdmin, self).formfield_for_manytomany(db_field, request=request, using=self.using, **kwargs)
-
     def get_actions(self, request):
-        actions = super(EboaAdmin, self).get_actions(request)
+        actions = super(BaseEboaAdmin, self).get_actions(request)
         if 'delete_selected' in actions:
             del actions['delete_selected']
         return actions
@@ -44,10 +25,51 @@ class EboaAdmin(admin.ModelAdmin):
         return False
 
 
-class SysUserAdmin(EboaAdmin):
-    form = forms.MemberForm
-    list_display = ['fullname', 'email']
-    search_fields = ['fullname']
+class EbAttendanceAdmin(BaseEboaAdmin):
+    form = forms.EbAttendanceForm
+    list_display = ['id', 'applicant', 'period', 'totalday', 'nightcount', 'transit', 'transit_interval']
 
 
-admin.site.register(models.SysUser, SysUserAdmin)
+class EbEmployeeAdmin(BaseEboaAdmin):
+    form = forms.EbEmployeeForm
+    list_display = ['id', 'code', 'name', 'address', 'get_sections_name']
+    list_display_links = ['name']
+    search_fields = ['id', 'code', 'name']
+
+    def get_sections_name(self, obj):
+        """所属を結合して表示する。
+
+        :param obj:
+        :return:
+        """
+        sys_user = obj.user
+        if sys_user:
+            orgs = [o.orgname for o in sys_user.sysorg_set.all()]
+            return ",".join(orgs)
+        else:
+            return ""
+    get_sections_name.short_description = u"所属"
+
+
+class SysOrgAdmin(BaseEboaAdmin):
+    form = forms.SysOrgForm
+    list_display = ['orgid', 'orgname', 'get_parent_org', 'isdelete']
+    list_display_links = ['orgname']
+
+    def get_parent_org(self, obj):
+        if obj.orgsupid:
+            super_org = models.SysOrg.objects.get(pk=obj.orgsupid)
+            return super_org
+        else:
+            return None
+
+
+class EboaAdminSite(admin.AdminSite):
+    site_header = "EBOAデータ参照（データは変更できません）"
+    site_title = "管理サイト"
+
+
+eboa_admin_site = EboaAdminSite(name='eboa_admin')
+eboa_admin_site.register(models.EbAttendance, EbAttendanceAdmin)
+eboa_admin_site.register(models.EbEmployee, EbEmployeeAdmin)
+eboa_admin_site.register(models.SysOrg, SysOrgAdmin)

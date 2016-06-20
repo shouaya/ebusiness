@@ -9,7 +9,7 @@ import re
 import urllib2
 import xml.etree.ElementTree as ET
 
-from django.db import models, connection
+from django.db import models
 from django.contrib.auth.models import User, Group, Permission
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Max, Min, Q, Sum

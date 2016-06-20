@@ -13,6 +13,11 @@ from __future__ import unicode_literals
 from django.db import models
 
 
+class EboaManager(models.Manager):
+    def get_queryset(self):
+        return super(EboaManager, self).get_queryset().using("bpm_eboa")
+
+
 class ActEvtLog(models.Model):
     log_nr_field = models.BigIntegerField(db_column='LOG_NR_', primary_key=True)  
     type_field = models.CharField(db_column='TYPE_', max_length=64, blank=True, null=True)  
@@ -2417,12 +2422,19 @@ class SysOrg(models.Model):
     sn = models.BigIntegerField(db_column='SN', blank=True, null=True)  
     fromtype = models.SmallIntegerField(db_column='FROMTYPE', blank=True, null=True)  
     orgpathname = models.CharField(db_column='ORGPATHNAME', max_length=2000, blank=True, null=True)  
-    isdelete = models.IntegerField(db_column='ISDELETE', blank=True, null=True)  
-    code = models.CharField(db_column='CODE', max_length=128, blank=True, null=True)  
+    isdelete = models.NullBooleanField(db_column='ISDELETE', blank=True, null=True)
+    code = models.CharField(db_column='CODE', max_length=128, blank=True, null=True)
+    members = models.ManyToManyField('SysUser', through='SysUserOrg', through_fields=('orgid', 'userid'))
+
+    objects = EboaManager()
 
     class Meta:
         managed = False
         db_table = 'SYS_ORG'
+        verbose_name = verbose_name_plural = u"組織"
+
+    def __unicode__(self):
+        return self.orgname
 
 
 class SysOrgAuth(models.Model):
@@ -2869,26 +2881,31 @@ class SysUser(models.Model):
     phone = models.CharField(db_column='PHONE', max_length=32, blank=True, null=True)  
     sex = models.CharField(db_column='SEX', max_length=2, blank=True, null=True)  
     picture = models.CharField(db_column='PICTURE', max_length=300, blank=True, null=True)  
-    fromtype = models.SmallIntegerField(db_column='FROMTYPE', blank=True, null=True)  
+    fromtype = models.SmallIntegerField(db_column='FROMTYPE', blank=True, null=True)
 
     class Meta:
         managed = False
-        ordering = ['fullname']
         db_table = 'SYS_USER'
-        verbose_name = verbose_name_plural = u"社員"
 
     def __unicode__(self):
         return self.fullname
 
+    def get_section(self):
+        orgs = self.sysorg_set.all()
+        if orgs.count() > 0:
+            return orgs[0]
+
+        return None
+
 
 class SysUserOrg(models.Model):
-    userorgid = models.BigIntegerField(db_column='USERORGID', primary_key=True)  
-    orgid = models.BigIntegerField(db_column='ORGID', blank=True, null=True)  
-    userid = models.BigIntegerField(db_column='USERID', blank=True, null=True)  
+    userorgid = models.BigIntegerField(db_column='USERORGID', primary_key=True)
+    orgid = models.ForeignKey(SysOrg, db_column='ORGID', blank=True, null=True)
+    userid = models.ForeignKey(SysUser, db_column='USERID', blank=True, null=True)
     isprimary = models.SmallIntegerField(db_column='ISPRIMARY')  
     ischarge = models.BigIntegerField(db_column='ISCHARGE', blank=True, null=True)  
     isgrademanage = models.SmallIntegerField(db_column='ISGRADEMANAGE', blank=True, null=True)  
-    isdelete = models.SmallIntegerField(db_column='ISDELETE', blank=True, null=True)  
+    isdelete = models.NullBooleanField(db_column='ISDELETE', blank=True, null=True)
 
     class Meta:
         managed = False
@@ -3136,8 +3153,9 @@ class EbApplications(models.Model):
 
 class EbAttendance(models.Model):
     id = models.BigIntegerField(db_column='ID', primary_key=True)  
-    applicant = models.CharField(max_length=100, blank=True, null=True)
-    applicantid = models.CharField(db_column='applicantID', max_length=100, blank=True, null=True)  
+    applicant_name = models.CharField(max_length=100, db_column='applicant', blank=True, null=True)
+    applicant = models.ForeignKey(SysUser, to_field='userid', db_column='applicantID', max_length=100,
+                                  blank=True, null=True)
     period = models.CharField(max_length=10, blank=True, null=True)
     approver = models.CharField(max_length=100, blank=True, null=True)
     approverid = models.CharField(db_column='approverID', max_length=100, blank=True, null=True)  
@@ -3148,9 +3166,29 @@ class EbAttendance(models.Model):
     transit = models.DecimalField(max_digits=13, decimal_places=0)
     transit_interval = models.CharField(max_length=2000)
 
+    objects = EboaManager()
+
     class Meta:
         managed = False
         db_table = 'eb_attendance'
+        verbose_name = verbose_name_plural = u"出勤"
+
+    def __unicode__(self):
+        if self.applicant:
+            return self.applicant.fullname
+        else:
+            return self.applicant_name
+
+    def get_cost_payment(self):
+        """精算金額を取得する。
+
+        :return:
+        """
+        cost_list = EbCostPayment.objects.filter(applicant=self.applicant, period=self.period)
+        if cost_list.count() > 0:
+            cost = cost_list[0]
+            return cost.totalamountinside
+        return 0
 
 
 class EbBankinfoUpdate(models.Model):
@@ -3171,14 +3209,16 @@ class EbBankinfoUpdate(models.Model):
 
 class EbCostPayment(models.Model):
     id = models.BigIntegerField(db_column='ID', primary_key=True)  
-    applicant = models.CharField(max_length=100, blank=True, null=True)
-    applicantid = models.CharField(db_column='applicantID', max_length=100, blank=True, null=True)  
+    applicant_name = models.CharField(db_column='applicant', max_length=100, blank=True, null=True)
+    applicant = models.ForeignKey(SysUser, db_column='applicantID', max_length=100, blank=True, null=True)
     period = models.CharField(max_length=10, blank=True, null=True)
     approver = models.CharField(max_length=100, blank=True, null=True)
     approverid = models.CharField(db_column='approverID', max_length=100, blank=True, null=True)  
     totalamount = models.DecimalField(db_column='totalAmount', max_digits=13, decimal_places=0, blank=True, null=True)  
     totalamountinside = models.DecimalField(db_column='totalAmountInside', max_digits=13, decimal_places=0)  
     totalamountoutside = models.DecimalField(db_column='totalAmountOutside', max_digits=13, decimal_places=0)  
+
+    objects = EboaManager()
 
     class Meta:
         managed = False
@@ -3475,7 +3515,7 @@ class EbEmployee(models.Model):
     contract_file = models.CharField(max_length=2000, blank=True, null=True)
     security_file = models.CharField(max_length=2000, blank=True, null=True)
     personal_info_file = models.CharField(max_length=2000, blank=True, null=True)
-    user_id = models.CharField(max_length=50, blank=True, null=True)
+    user = models.OneToOneField(SysUser, to_field='userid', editable=False, blank=True, null=True)
     title = models.CharField(max_length=50, blank=True, null=True)
     titleid = models.CharField(max_length=50, blank=True, null=True)
     employee_agreement = models.CharField(max_length=2000, blank=True, null=True)
@@ -3498,9 +3538,15 @@ class EbEmployee(models.Model):
     eb_motherland_ctct = models.CharField(max_length=20, blank=True, null=True)
     contractid = models.CharField(db_column='contractID', max_length=50, blank=True, null=True)  
 
+    objects = EboaManager()
+
     class Meta:
         managed = False
         db_table = 'eb_employee'
+        verbose_name = verbose_name_plural = u"社員"
+
+    def __unicode__(self):
+        return self.name
 
 
 class EbInsureLossCert(models.Model):

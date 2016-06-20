@@ -10,6 +10,7 @@ from django.db.models import Q, Max
 from django.contrib.auth.models import User
 from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.humanize.templatetags import humanize
+from django.utils import timezone
 
 from utils import common
 from eb import models
@@ -323,7 +324,7 @@ def get_activities_incoming():
 
     :return:
     """
-    now = datetime.datetime.now()
+    now = timezone.now()
     activities = models.ProjectActivity.objects.public_filter(open_date__gte=now).order_by('open_date')
     return activities[:5]
 

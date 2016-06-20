@@ -1,0 +1,163 @@
+{% extends "base.html" %}
+{% load humanize %}
+
+{% block header %}
+    <script type="text/javascript">
+        window.onload = function() {
+            init_select("year");
+            init_select("month");
+
+            $("#year").val("{{ year }}");
+            $("#month").val("{{ month }}");
+        };
+    </script>
+{% endblock %}
+
+{% block content %}
+    <div class="dashboard">
+        <div class="dashboard-title">なにをしたいのですか？</div>
+        <form action="" method="get">
+            <span>年：</span>
+            <select id="year" name="year">
+                <option value="2015">2015</option>
+                <option value="2016">2016</option>
+                <option value="2017">2017</option>
+                <option value="2018">2018</option>
+                <option value="2019">2019</option>
+            </select>
+            <span>月：</span>
+            <select id="month" name="month">
+                <option value="01">01</option>
+                <option value="02">02</option>
+                <option value="03">03</option>
+                <option value="04">04</option>
+                <option value="05">05</option>
+                <option value="06">06</option>
+                <option value="07">07</option>
+                <option value="08">08</option>
+                <option value="09">09</option>
+                <option value="10">10</option>
+                <option value="11">11</option>
+                <option value="12">12</option>
+            </select>
+            <input type="submit" value="Filter" />
+            <a href="{{ request.path }}">クリア</a>
+            <a href="{% url 'download_attendance_list' year month %}" class="button" target="_blank">ダウンロード</a>
+        </form>
+    </div>
+    <table class="list" cellpadding="0" cellspacing="0">
+        <thead>
+            <tr>
+                <th>
+                    {% if dict_order.first_name.is_in_ordering %}
+                        <div class="sortoptions">
+                            <a class="sortremove" href="?o={{ dict_order.first_name.url_list_removed }}{{ params }}"></a>
+                            <span class="sortpriority">{{ dict_order.first_name.priority }}</span>
+                            <a class="{% if dict_order.first_name.is_asc %}descending{% else %}ascending{% endif %}"
+                               href="?o={{ dict_order.first_name.url }}{{ params }}"></a>
+                        </div>
+                    {% endif %}
+                    <div class="text">
+                        <a href="?o={{ dict_order.first_name.url }}{{ params }}">社員コード</a>
+                    </div>
+                    <div class="clear"></div>
+                </th>
+                <th>
+                    {% if dict_order.section.is_in_ordering %}
+                        <div class="sortoptions">
+                            <a class="sortremove" href="?o={{ dict_order.section.url_list_removed }}{{ params }}"></a>
+                            <span class="sortpriority">{{ dict_order.section.priority }}</span>
+                            <a class="{% if dict_order.section.is_asc %}descending{% else %}ascending{% endif %}"
+                               href="?o={{ dict_order.section.url }}{{ params }}"></a>
+                        </div>
+                    {% endif %}
+                    <div class="text">
+                        <a href="?o={{ dict_order.section.url }}{{ params }}">姓名</a>
+                    </div>
+                    <div class="clear"></div>
+                </th>
+                <th>
+                    {% if dict_order.subcontractor__name.is_in_ordering %}
+                        <div class="sortoptions">
+                            <a class="sortremove" href="?o={{ dict_order.subcontractor__name.url_list_removed }}{{ params }}"></a>
+                            <span class="sortpriority">{{ dict_order.subcontractor__name.priority }}</span>
+                            <a class="{% if dict_order.subcontractor__name.is_asc %}descending{% else %}ascending{% endif %}"
+                               href="?o={{ dict_order.subcontractor__name.url }}{{ params }}"></a>
+                        </div>
+                    {% endif %}
+                    <div class="text">
+                        <a href="?o={{ dict_order.subcontractor__name.url }}{{ params }}">部署</a>
+                    </div>
+                    <div class="clear"></div>
+                </th>
+                <th>出勤日数</th>
+                <th>出勤時間</th>
+                <th>立替金額</th>
+                <th>管理職立替金額</th>
+                <th>総立替金額</th>
+                <th>夜残業回数</th>
+                <th>定期券</th>
+                <th style="width: 120px;">定期券区間</th>
+                <th>天引</th>
+                <th>現場</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% if attendance_list %}
+                {% for attendance in attendance_list %}
+                    <tr class="{% cycle 'row1' 'row2' %}">
+                        <td>{{ attendance.applicant.ebemployee.code }}</td>
+                        <td>{{ attendance.applicant }}</td>
+                        <td>{{ attendance.applicant.get_section }}</td>
+                        <td>{{ attendance.totalday }}</td>
+                        <td>{{ attendance.totaltime }}</td>
+                        <td>{{ attendance.get_cost_payment|intcomma }}</td>
+                        <td></td>
+                        <td></td>
+                        <td>{{ attendance.nightcount|default:'0' }}</td>
+                        <td>{{ attendance.transit|intcomma }}</td>
+                        <td title="{{ attendance.transit_interval }}">
+                            <div style="width: 120px; white-space: nowrap; overflow: hidden;">
+                                {{ attendance.transit_interval }}
+                            </div>
+                        </td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                {% endfor %}
+            {% else %}
+                <tr class="row1"><td class="center red" colspan="13">該当する要員がいません。</td></tr>
+            {% endif %}
+        </tbody>
+        <tfoot>
+            <tr>
+                <td colspan="13">
+                    <div class="pagination">
+                        <span class="step-links">
+                            {% if members.has_previous %}
+                                <a href="?page={{ members.previous_page_number }}{{ params }}">&lt;</a>
+                            {% endif %}
+
+                            {% if paginator.page_range|length > 1 %}
+                                {% for page in paginator.page_range %}
+                                    {% ifequal page members.number %}
+                                        <span class="current">
+                                            {{ page }}
+                                        </span>
+                                    {% else %}
+                                        <a href="?page={{ page }}{{ params }}">{{ page }}</a>
+                                    {% endifequal %}
+                                {% endfor %}
+                            {% endif %}
+
+                            {% if members.has_next %}
+                                <a href="?page={{ members.next_page_number }}{{ params }}">&gt;</a>
+                            {% endif %}
+                            <span>{{ paginator.count }} 件</span>
+                        </span>
+                    </div>
+                </td>
+            </tr>
+        </tfoot>
+    </table>
+{% endblock %}

@@ -4,9 +4,27 @@ from . import models
 from django import forms
 
 
-class MemberForm(forms.ModelForm):
+class EbAttendanceForm(forms.ModelForm):
     class Meta:
-        model = models.SysUser
+        model = models.EbAttendance
+        fields = '__all__'
+
+    def clean(self):
+        self.add_error('', u"データ変更禁止！")
+
+
+class EbEmployeeForm(forms.ModelForm):
+    class Meta:
+        model = models.EbEmployee
+        fields = '__all__'
+
+    def clean(self):
+        self.add_error('', u"データ変更禁止！")
+
+
+class SysOrgForm(forms.ModelForm):
+    class Meta:
+        model = models.SysOrg
         fields = '__all__'
 
     def clean(self):

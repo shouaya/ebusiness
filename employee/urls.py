@@ -1,6 +1,7 @@
 from django.conf.urls import patterns, include, url
 from django.contrib import admin
 from django.contrib.auth import views as auth_views
+from eboa.admin import eboa_admin_site
 
 urlpatterns = patterns(
     '',
@@ -14,4 +15,6 @@ urlpatterns = patterns(
         name='password_reset_confirm'),
     url(r'^reset/done/$', auth_views.password_reset_complete, name='password_reset_complete'),
     url(r'^accounts/login/$', auth_views.login),
+
+    url(r'^eboa-admin/', include(eboa_admin_site.urls)),
 )
