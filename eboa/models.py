@@ -1,14 +1,4 @@
 # coding: UTF-8
-# This is an auto-generated Django model module.
-# You'll have to do the following manually to clean this up:
-#   * Rearrange models' order
-#   * Make sure each model has one field with primary_key=True
-#   * Remove `managed = False` lines if you wish to allow Django to create, modify, and delete the table
-# Feel free to rename the models, but don't rename db_table values or field names.
-#
-# Also note: You'll have to insert the output of 'django-admin sqlcustom [app_label]'
-# into your database.
-from __future__ import unicode_literals
 
 from django.db import models
 from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
@@ -2889,6 +2879,7 @@ class SysUser(models.Model):
     objects = EboaManager()
 
     class Meta:
+        managed = False
         db_table = 'SYS_USER'
 
     def __unicode__(self):
@@ -2912,6 +2903,7 @@ class SysUserOrg(models.Model):
     isdelete = models.NullBooleanField(db_column='ISDELETE', blank=True, null=True)
 
     class Meta:
+        managed = False
         db_table = 'SYS_USER_ORG'
 
 
@@ -2924,6 +2916,7 @@ class SysUserParam(models.Model):
     paramintvalue = models.BigIntegerField(db_column='PARAMINTVALUE', blank=True, null=True)  
 
     class Meta:
+        managed = False
         db_table = 'SYS_USER_PARAM'
 
 
@@ -2938,6 +2931,7 @@ class SysUserPos(models.Model):
     isdelete = models.SmallIntegerField(db_column='ISDELETE', blank=True, null=True)  
 
     class Meta:
+        managed = False
         db_table = 'SYS_USER_POS'
 
 
@@ -2947,6 +2941,7 @@ class SysUserRole(models.Model):
     userid = models.BigIntegerField(db_column='USERID', blank=True, null=True)  
 
     class Meta:
+        managed = False
         db_table = 'SYS_USER_ROLE'
 
 
@@ -2957,6 +2952,7 @@ class SysUserUnder(models.Model):
     underusername = models.CharField(db_column='UNDERUSERNAME', max_length=50, blank=True, null=True)  
 
     class Meta:
+        managed = False
         db_table = 'SYS_USER_UNDER'
 
 
@@ -2968,6 +2964,7 @@ class SysVacation(models.Model):
     endtime = models.DateTimeField(db_column='ENDTIME', blank=True, null=True)  
 
     class Meta:
+        managed = False
         db_table = 'SYS_VACATION'
 
 
@@ -2979,6 +2976,7 @@ class SysWorktime(models.Model):
     memo = models.CharField(db_column='MEMO', max_length=200, blank=True, null=True)  
 
     class Meta:
+        managed = False
         db_table = 'SYS_WORKTIME'
 
 
@@ -2988,6 +2986,7 @@ class SysWorktimeSetting(models.Model):
     memo = models.CharField(db_column='MEMO', max_length=200, blank=True, null=True)  
 
     class Meta:
+        managed = False
         db_table = 'SYS_WORKTIME_SETTING'
 
 
@@ -2999,6 +2998,7 @@ class SysWsDataTemplate(models.Model):
     script = models.TextField(db_column='SCRIPT', blank=True, null=True)  
 
     class Meta:
+        managed = False
         db_table = 'SYS_WS_DATA_TEMPLATE'
 
 
@@ -3023,6 +3023,7 @@ class ApplyCompaign(models.Model):
     hdnr = models.CharField(max_length=2000, blank=True, null=True)
 
     class Meta:
+        managed = False
         db_table = 'apply_compaign'
 
 
@@ -3044,6 +3045,7 @@ class ApplyForm(models.Model):
     zdssexcel = models.CharField(db_column='zdssExcel', max_length=200, blank=True, null=True)  
 
     class Meta:
+        managed = False
         db_table = 'apply_form'
 
 
@@ -3055,6 +3057,7 @@ class CompaignDepts(models.Model):
     refid = models.ForeignKey(ApplyCompaign, db_column='REFID', blank=True, null=True)  
 
     class Meta:
+        managed = False
         db_table = 'compaign_depts'
 
 
@@ -3068,6 +3071,7 @@ class CompaignDetail(models.Model):
     refid = models.ForeignKey(ApplyCompaign, db_column='REFID', blank=True, null=True)  
 
     class Meta:
+        managed = False
         db_table = 'compaign_detail'
 
 
@@ -3084,6 +3088,7 @@ class CompanyInfo(models.Model):
     staff_count = models.CharField(max_length=100, blank=True, null=True)
 
     class Meta:
+        managed = False
         db_table = 'company_info'
 
 
@@ -3098,6 +3103,7 @@ class ContractNotify(models.Model):
     changed_flag = models.CharField(max_length=2000, blank=True, null=True)
 
     class Meta:
+        managed = False
         db_table = 'contract_notify'
 
 
@@ -3118,6 +3124,7 @@ class DeviceLendNotify(models.Model):
     content = models.CharField(max_length=2000, blank=True, null=True)
 
     class Meta:
+        managed = False
         db_table = 'device_lend_notify'
 
 
@@ -3135,6 +3142,7 @@ class EbApplications(models.Model):
     doc_number = models.CharField(max_length=50, blank=True, null=True)
 
     class Meta:
+        managed = False
         db_table = 'eb_applications'
 
 
@@ -3156,6 +3164,7 @@ class EbAttendance(models.Model):
     objects = EboaManager()
 
     class Meta:
+        managed = False
         db_table = 'eb_attendance'
         verbose_name = verbose_name_plural = u"出勤"
 
@@ -3214,6 +3223,7 @@ class EbBankinfoUpdate(models.Model):
     owner_name_kana = models.CharField(max_length=50, blank=True, null=True)
 
     class Meta:
+        managed = False
         db_table = 'eb_bankinfo_update'
 
 
@@ -3231,6 +3241,7 @@ class EbCostPayment(models.Model):
     objects = EboaManager()
 
     class Meta:
+        managed = False
         db_table = 'eb_cost_payment'
 
 
@@ -3246,6 +3257,7 @@ class EbCostPaymentList(models.Model):
     type = models.CharField(max_length=1000)
 
     class Meta:
+        managed = False
         db_table = 'eb_cost_payment_list'
 
 
@@ -3275,6 +3287,7 @@ class EbDependment(models.Model):
     employment_insurance = models.CharField(max_length=1, blank=True, null=True)
 
     class Meta:
+        managed = False
         db_table = 'eb_dependment'
 
 
@@ -3290,6 +3303,7 @@ class EbDevice(models.Model):
     status = models.CharField(max_length=2000, blank=True, null=True)
 
     class Meta:
+        managed = False
         db_table = 'eb_device'
 
 
@@ -3308,6 +3322,7 @@ class EbDeviceLend(models.Model):
     content = models.CharField(max_length=2000, blank=True, null=True)
 
     class Meta:
+        managed = False
         db_table = 'eb_device_lend'
 
 
@@ -3318,6 +3333,7 @@ class EbDeviceSpecs(models.Model):
     refid = models.ForeignKey(EbDevice, db_column='REFID', blank=True, null=True)  
 
     class Meta:
+        managed = False
         db_table = 'eb_device_specs'
 
 
@@ -3334,6 +3350,7 @@ class EbDuringMbCert(models.Model):
     doc_number = models.CharField(max_length=50, blank=True, null=True)
 
     class Meta:
+        managed = False
         db_table = 'eb_during_mb_cert'
 
 
@@ -3356,6 +3373,7 @@ class EbEmpAddrUpdate(models.Model):
     nearby_station = models.CharField(max_length=50, blank=True, null=True)
 
     class Meta:
+        managed = False
         db_table = 'eb_emp_addr_update'
 
 
@@ -3401,6 +3419,7 @@ class EbEmpContract(models.Model):
     cost = models.DecimalField(max_digits=13, decimal_places=0, blank=True, null=True)
 
     class Meta:
+        managed = False
         db_table = 'eb_emp_contract'
 
 
@@ -3416,6 +3435,7 @@ class EbEmpEducation(models.Model):
     refid = models.ForeignKey('EbEmployee', db_column='REFID', blank=True, null=True)  
 
     class Meta:
+        managed = False
         db_table = 'eb_emp_education'
 
 
@@ -3427,6 +3447,7 @@ class EbEmpLanguage(models.Model):
     code = models.CharField(max_length=100)
 
     class Meta:
+        managed = False
         db_table = 'eb_emp_language'
 
 
@@ -3461,6 +3482,7 @@ class EbEmpPjCareer(models.Model):
     pj_scope_dd = models.CharField(max_length=20, blank=True, null=True)
 
     class Meta:
+        managed = False
         db_table = 'eb_emp_pj_career'
 
 
@@ -3472,6 +3494,7 @@ class EbEmpQulification(models.Model):
     refid = models.ForeignKey('EbEmployee', db_column='REFID', blank=True, null=True)  
 
     class Meta:
+        managed = False
         db_table = 'eb_emp_qulification'
 
 
@@ -3565,6 +3588,7 @@ class EbInsureLossCert(models.Model):
     doc_number = models.CharField(max_length=50, blank=True, null=True)
 
     class Meta:
+        managed = False
         db_table = 'eb_insure_loss_cert'
 
 
@@ -3574,6 +3598,7 @@ class EbMRoomDevice(models.Model):
     refid = models.ForeignKey('EbMeetingRoom', db_column='REFID', blank=True, null=True)  
 
     class Meta:
+        managed = False
         db_table = 'eb_m_room_device'
 
 
@@ -3589,6 +3614,7 @@ class EbMarriageContact(models.Model):
     attach_file_02 = models.CharField(max_length=2000, blank=True, null=True)
 
     class Meta:
+        managed = False
         db_table = 'eb_marriage_contact'
 
 
@@ -3609,6 +3635,7 @@ class EbMeeting(models.Model):
     room = models.CharField(max_length=50, blank=True, null=True)
 
     class Meta:
+        managed = False
         db_table = 'eb_meeting'
 
 
@@ -3618,6 +3645,7 @@ class EbMeetingRoom(models.Model):
     room_name = models.CharField(max_length=100, blank=True, null=True)
 
     class Meta:
+        managed = False
         db_table = 'eb_meeting_room'
 
 
@@ -3633,6 +3661,7 @@ class EbNotice(models.Model):
     summary = models.CharField(max_length=2000, blank=True, null=True)
 
     class Meta:
+        managed = False
         db_table = 'eb_notice'
 
 
@@ -3652,6 +3681,7 @@ class EbResume(models.Model):
     file_id = models.CharField(max_length=50, blank=True, null=True)
 
     class Meta:
+        managed = False
         db_table = 'eb_resume'
 
 
@@ -3668,6 +3698,7 @@ class EbResumeEducation(models.Model):
     refid = models.ForeignKey(EbResume, db_column='REFID', blank=True, null=True)  
 
     class Meta:
+        managed = False
         db_table = 'eb_resume_education'
 
 
@@ -3679,6 +3710,7 @@ class EbResumeLanguage(models.Model):
     refid = models.ForeignKey(EbResume, db_column='REFID', blank=True, null=True)  
 
     class Meta:
+        managed = False
         db_table = 'eb_resume_language'
 
 
@@ -3710,6 +3742,7 @@ class EbResumePjCareer(models.Model):
     refid = models.ForeignKey(EbResume, db_column='REFID', blank=True, null=True)  
 
     class Meta:
+        managed = False
         db_table = 'eb_resume_pj_career'
 
 
@@ -3722,6 +3755,7 @@ class EbResumeQualificat(models.Model):
     refid = models.ForeignKey(EbResume, db_column='REFID', blank=True, null=True)  
 
     class Meta:
+        managed = False
         db_table = 'eb_resume_qualificat'
 
 
@@ -3743,6 +3777,7 @@ class EbRetireCert(models.Model):
     doc_number = models.CharField(max_length=50, blank=True, null=True)
 
     class Meta:
+        managed = False
         db_table = 'eb_retire_cert'
 
 
@@ -3765,6 +3800,7 @@ class EbRetirement(models.Model):
     attach_file_02 = models.CharField(max_length=512, blank=True, null=True)
 
     class Meta:
+        managed = False
         db_table = 'eb_retirement'
 
 
@@ -3786,6 +3822,7 @@ class EbTransit(models.Model):
     total_cost = models.DecimalField(max_digits=5, decimal_places=0)
 
     class Meta:
+        managed = False
         db_table = 'eb_transit'
 
 
@@ -3801,6 +3838,7 @@ class EbTransitInterval(models.Model):
     refid = models.ForeignKey(EbTransit, db_column='REFID', blank=True, null=True)  
 
     class Meta:
+        managed = False
         db_table = 'eb_transit_interval'
 
 
@@ -3818,6 +3856,7 @@ class EbVisaApplicaton(models.Model):
     flg = models.CharField(max_length=20, blank=True, null=True)
 
     class Meta:
+        managed = False
         db_table = 'eb_visa_applicaton'
 
 
@@ -3833,6 +3872,7 @@ class EbVisaContact(models.Model):
     remark = models.CharField(max_length=2000, blank=True, null=True)
 
     class Meta:
+        managed = False
         db_table = 'eb_visa_contact'
 
 
@@ -3847,6 +3887,7 @@ class NameChangeNotify(models.Model):
     new_name_furigana = models.CharField(max_length=100, blank=True, null=True)
 
     class Meta:
+        managed = False
         db_table = 'name_change_notify'
 
 
@@ -3892,6 +3933,7 @@ class RecruitManagement(models.Model):
     result = models.CharField(max_length=10, blank=True, null=True)
 
     class Meta:
+        managed = False
         db_table = 'recruit_management'
 
 
@@ -3909,6 +3951,7 @@ class SchemaVersion(models.Model):
     success = models.IntegerField()
 
     class Meta:
+        managed = False
         db_table = 'schema_version'
 
 
@@ -3921,4 +3964,5 @@ class Test001(models.Model):
     xxxx = models.CharField(max_length=2000, blank=True, null=True)
 
     class Meta:
+        managed = False
         db_table = 'test001'

@@ -27,7 +27,10 @@ class BaseEboaAdmin(admin.ModelAdmin):
 
 class EbAttendanceAdmin(BaseEboaAdmin):
     form = forms.EbAttendanceForm
-    list_display = ['id', 'applicant', 'period', 'totalday', 'nightcount', 'transit', 'transit_interval']
+    list_display = ['id', 'applicant_name', 'period', 'totalday', 'nightcount', 'transit', 'transit_interval']
+
+    def applicant_name(self, obj):
+        return obj.applicant.fullname
 
 
 class EbEmployeeAdmin(BaseEboaAdmin):
@@ -59,7 +62,7 @@ class SysOrgAdmin(BaseEboaAdmin):
     def get_parent_org(self, obj):
         if obj.orgsupid:
             super_org = models.SysOrg.objects.get(pk=obj.orgsupid)
-            return super_org
+            return super_org.orgname
         else:
             return None
 

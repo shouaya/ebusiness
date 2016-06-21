@@ -1,5 +1,5 @@
 # coding: UTF-8
-import csv, codecs, cStringIO
+import csv
 import datetime
 import urllib
 
@@ -49,8 +49,8 @@ def download_attendance_list(request, year, month):
     for attendance in attendance_list:
         org = attendance.applicant.get_section()
         writer.writerow([attendance.applicant.ebemployee.code,
-                         attendance.applicant.__unicode__().encode('shift-jis'),
-                         org.__unicode__().encode('shift-jis') if org else '',
+                         attendance.applicant_name.encode('utf-8'),
+                         org.orgname.encode('utf-8') if org else '',
                          attendance.totalday,
                          attendance.totaltime,
                          attendance.get_cost_payment()])
