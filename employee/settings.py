@@ -92,6 +92,8 @@ DATABASES = {
     },
 }
 
+DATABASE_ROUTERS = ['employee.db_router.DbRouter']
+
 # Internationalization
 # https://docs.djangoproject.com/en/1.7/topics/i18n/
 

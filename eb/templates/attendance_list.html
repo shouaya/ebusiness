@@ -140,7 +140,7 @@
                 <th style="width: 120px;">定期券区間</th>
                 <th>天引</th>
                 <th>現場</th>
-                <th style="width: 60px;"></th>
+                <th style="width: 65px;"></th>
             </tr>
         </thead>
         <tbody>
@@ -187,7 +187,13 @@
                         <td></td>
                         <td></td>
                         <td class="center">
-                            <a href="javascript:void(0)" onclick="row_update(this, '{% url 'member_expanses_update' attendance.get_eb_member.pk year month %}')" member_id={{ attendance.get_eb_member.pk }}>保存</a>
+                            <a href="javascript:void(0)"
+                               {% if attendance.get_eb_member %}
+                               onclick="row_update(this, '{% url 'member_expanses_update' attendance.get_eb_member.pk year month %}')"
+                               {% else %}
+                               onclick="alert('該当する社員が見つかりません！')"
+                               {% endif %}
+                               member_id={{ attendance.get_eb_member.pk }}>保存</a>
                             <a href="javascript:void(0)" onclick="row_update_cancel(this)">取消</a>
                         </td>
                     </tr>

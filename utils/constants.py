@@ -169,3 +169,6 @@ xlDown = -4121
 
 URL_SYNC_MEMBERS = u"http://service.e-business.co.jp:8080/EmployeeManagement/api/employeelist?type=json"
 URL_CONTRACT = u"http://service.e-business.co.jp:8080/ContractManagement/api/newContract?uid=%s"
+
+DATABASE_BPM_EBOA = "bpm_eboa"
+DATABASE_EB = "default"
