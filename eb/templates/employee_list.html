@@ -125,7 +125,11 @@
                     <div class="clear"></div>
                 </th>
                 <!--<th>営業状態</th>-->
-                <th style="width: 99px;"></th>
+                <th style="width: 99px;">
+                    {% if page_type == "off_sales" %}
+                        営業対象外理由
+                    {% endif %}
+                </th>
                 <th></th>
             </tr>
         </thead>
@@ -167,9 +171,13 @@
                             <!--{% endifequal %}-->
                         <!--</td>-->
                         <td class="center">
-                            {% ifequal member.get_business_status "未提案" %}
-                                <a href="{% url 'recommended_project' member.employee_id %}">推薦された案件</a>
-                            {% endifequal %}
+                            {% if page_type == "off_sales" %}
+                                {{ member.sales_off_reason }}
+                            {% else %}
+                                {% ifequal member.get_business_status "未提案" %}
+                                    <a href="{% url 'recommended_project' member.employee_id %}">推薦された案件</a>
+                                {% endifequal %}
+                            {% endif %}
                         </td>
                         <td class="center"><a href="{% url 'admin:eb_member_change' member.pk %}?from=portal&_popup=1" target="_blank">編集</a></td>
                     </tr>

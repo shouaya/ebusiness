@@ -20,6 +20,8 @@ member_patterns = [
     url(r'^change_list.html$', views.change_list, name='change_list'),
     url(r'^project_list/(?P<employee_id>[^,/]+).html$', views.member_project_list, name='member_project_list'),
     url(r'^attendance_list.html$', eboa_views.attendance_list_monthly, name='attendance_list_monthly'),
+    url(r'^(?P<member_id>[0-9]+)/(?P<year>[0-9]{4})/(?P<month>[0-9]{2})/expanses.html$', views.member_expanses_update,
+        name='member_expanses_update'),
 ]
 
 download_patterns = [

@@ -1633,6 +1633,30 @@ class ExpensesCategory(models.Model):
         self.save()
 
 
+class EmployeeExpenses(models.Model):
+    member = models.ForeignKey(Member, verbose_name=u"社員")
+    year = models.CharField(max_length=4, default=str(datetime.date.today().year),
+                            choices=constants.CHOICE_ATTENDANCE_YEAR, verbose_name=u"対象年")
+    month = models.CharField(max_length=2, choices=constants.CHOICE_ATTENDANCE_MONTH, verbose_name=u"対象月")
+    advance_amount = models.IntegerField(default=0, verbose_name=u"管理職立替金額")
+    is_deleted = models.BooleanField(default=False, editable=False, verbose_name=u"削除フラグ")
+    deleted_date = models.DateTimeField(blank=True, null=True, editable=False, verbose_name=u"削除年月日")
+
+    objects = PublicManager(is_deleted=False, project_member__is_deleted=False, category__is_deleted=False)
+
+    class Meta:
+        unique_together = ('member', 'year', 'month')
+        verbose_name = verbose_name_plural = u"社員精算リスト"
+
+    def __unicode__(self):
+        return u"%s %s %s" % (self.member, self.get_year_display(), self.get_month_display())
+
+    def delete(self, using=None):
+        self.is_deleted = True
+        self.deleted_date = datetime.datetime.now()
+        self.save()
+
+
 class MemberExpenses(models.Model):
     project_member = models.ForeignKey(ProjectMember, verbose_name=u"要員")
     year = models.CharField(max_length=4, default=str(datetime.date.today().year),
@@ -1647,7 +1671,7 @@ class MemberExpenses(models.Model):
 
     class Meta:
         ordering = ['project_member', 'year', 'month']
-        verbose_name = verbose_name_plural = u"清算リスト"
+        verbose_name = verbose_name_plural = u"精算リスト"
 
     def __unicode__(self):
         return u"%s %s %s" % (self.project_member, self.get_year_display(), self.get_month_display())

@@ -29,7 +29,7 @@ from utils import constants, common, errors, loader as file_loader, file_gen
 from . import forms
 from .models import Member, Section, Project, ProjectMember, Salesperson, \
     MemberAttendance, Subcontractor, BankInfo, ClientOrder, History, BpMemberOrderInfo, Issue, \
-    ProjectRequest, Client
+    ProjectRequest, Client, EmployeeExpenses
 
 PAGE_SIZE = 50
 
@@ -149,6 +149,7 @@ def employee_list(request):
         'paginator': paginator,
         'params': "&" + params if params else "",
         'dict_order': dict_order,
+        'page_type': "off_sales" if status == "off_sales" else None,
     })
     template = loader.get_template('employee_list.html')
     return HttpResponse(template.render(context))
@@ -254,6 +255,7 @@ def members_subcontractor(request):
         'paginator': paginator,
         'params': "&" + params if params else "",
         'dict_order': dict_order,
+        'page_type': "off_sales" if status == "off_sales" else None,
     })
     template = loader.get_template('employee_list.html')
     return HttpResponse(template.render(context))
@@ -291,6 +293,20 @@ def change_list(request):
 
 
 @login_required(login_url='/eb/login/')
+def member_expanses_update(request, member_id, year, month):
+    advance_amount = request.POST.get("advance_amount", 0)
+    member = get_object_or_404(Member, pk=member_id)
+    try:
+        member_expanses = EmployeeExpenses.objects.get(member=member, year=year, month=month)
+    except ObjectDoesNotExist:
+        member_expanses = EmployeeExpenses(member=member, year=year, month=month)
+    member_expanses.advance_amount = advance_amount
+    member_expanses.save()
+    d = {'ret': 0}
+    return HttpResponse(json.dumps(d))
+
+
+@login_required(login_url='/eb/login/')
 def project_list(request):
     company = biz.get_company()
     param_list = common.get_request_params(request.GET)
@@ -317,7 +333,7 @@ def project_list(request):
         'projects': projects,
         'paginator': paginator,
         'salesperson': Salesperson.objects.public_all(),
-        'params': params,
+        'params': "&" + params if params else "",
         'orders': "&o=%s" % (o,) if o else "",
         'dict_order': dict_order,
     })

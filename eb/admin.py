@@ -19,7 +19,7 @@ from .models import Company, Section, Member, Salesperson, Project, Client, Clie
     ProjectMember, Skill, ProjectSkill, ProjectActivity, Subcontractor, PositionShip,\
     ProjectStage, OS, HistoryProject, MemberAttendance, Degree, ClientOrder, \
     create_group_salesperson, MemberExpenses, ExpensesCategory, BankInfo, History, ProjectRequest, Issue, \
-    ProjectRequestHeading, ProjectRequestDetail, SalesOffReason
+    ProjectRequestHeading, ProjectRequestDetail, SalesOffReason, EmployeeExpenses
 from utils import common
 
 
@@ -97,6 +97,15 @@ class ProjectMemberInline(admin.TabularInline):
 
     def get_queryset(self, request):
         queryset = super(ProjectMemberInline, self).get_queryset(request)
+        return queryset.filter(is_deleted=False)
+
+
+class EmployeeExpensesInline(admin.TabularInline):
+    model = EmployeeExpenses
+    extra = 0
+
+    def get_queryset(self, request):
+        queryset = super(EmployeeExpensesInline, self).get_queryset(request)
         return queryset.filter(is_deleted=False)
 
 
@@ -284,7 +293,7 @@ class MemberAdmin(BaseAdmin):
     list_filter = ['member_type', 'section', 'salesperson', NoUserFilter,
                    'is_retired', 'is_deleted']
     search_fields = ['first_name', 'last_name']
-    inlines = (DegreeInline,)
+    inlines = (DegreeInline, EmployeeExpensesInline)
     actions = ['create_users', 'delete_objects', 'active_objects', 'member_retire']
     fieldsets = (
         (None, {'fields': ('employee_id',

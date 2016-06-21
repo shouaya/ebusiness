@@ -143,6 +143,14 @@ section .row2 {
     background: #FFF;
 }
 
+section .row_updating {
+    background: rgb(249,225,139);
+}
+
+section .row_updated {
+    display: none;
+}
+
 section .issue_status1 {
     background: #FFF; /* 提出中 */
 }

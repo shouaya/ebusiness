@@ -11,6 +11,9 @@
 from __future__ import unicode_literals
 
 from django.db import models
+from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
+
+from eb import models as eb_models
 
 
 class EboaManager(models.Manager):
@@ -33,7 +36,6 @@ class ActEvtLog(models.Model):
     is_processed_field = models.IntegerField(db_column='IS_PROCESSED_', blank=True, null=True)  
 
     class Meta:
-        managed = False
         db_table = 'ACT_EVT_LOG'
 
 
@@ -46,7 +48,6 @@ class ActGeBytearray(models.Model):
     generated_field = models.IntegerField(db_column='GENERATED_', blank=True, null=True)  
 
     class Meta:
-        managed = False
         db_table = 'ACT_GE_BYTEARRAY'
 
 
@@ -56,7 +57,6 @@ class ActGeProperty(models.Model):
     rev_field = models.IntegerField(db_column='REV_', blank=True, null=True)  
 
     class Meta:
-        managed = False
         db_table = 'ACT_GE_PROPERTY'
 
 
@@ -78,7 +78,6 @@ class ActHiActinst(models.Model):
     tenant_id_field = models.CharField(db_column='TENANT_ID_', max_length=255, blank=True, null=True)  
 
     class Meta:
-        managed = False
         db_table = 'ACT_HI_ACTINST'
 
 
@@ -95,7 +94,6 @@ class ActHiAttachment(models.Model):
     content_id_field = models.CharField(db_column='CONTENT_ID_', max_length=64, blank=True, null=True)  
 
     class Meta:
-        managed = False
         db_table = 'ACT_HI_ATTACHMENT'
 
 
@@ -111,7 +109,6 @@ class ActHiComment(models.Model):
     full_msg_field = models.TextField(db_column='FULL_MSG_', blank=True, null=True)  
 
     class Meta:
-        managed = False
         db_table = 'ACT_HI_COMMENT'
 
 
@@ -133,7 +130,6 @@ class ActHiDetail(models.Model):
     text2_field = models.CharField(db_column='TEXT2_', max_length=4000, blank=True, null=True)  
 
     class Meta:
-        managed = False
         db_table = 'ACT_HI_DETAIL'
 
 
@@ -146,7 +142,6 @@ class ActHiIdentitylink(models.Model):
     proc_inst_id_field = models.CharField(db_column='PROC_INST_ID_', max_length=64, blank=True, null=True)  
 
     class Meta:
-        managed = False
         db_table = 'ACT_HI_IDENTITYLINK'
 
 
@@ -166,7 +161,6 @@ class ActHiProcinst(models.Model):
     tenant_id_field = models.CharField(db_column='TENANT_ID_', max_length=255, blank=True, null=True)  
 
     class Meta:
-        managed = False
         db_table = 'ACT_HI_PROCINST'
 
 
@@ -193,7 +187,6 @@ class ActHiTaskinst(models.Model):
     tenant_id_field = models.CharField(db_column='TENANT_ID_', max_length=255, blank=True, null=True)  
 
     class Meta:
-        managed = False
         db_table = 'ACT_HI_TASKINST'
 
 
@@ -214,7 +207,6 @@ class ActHiVarinst(models.Model):
     last_updated_time_field = models.DateTimeField(db_column='LAST_UPDATED_TIME_', blank=True, null=True)  
 
     class Meta:
-        managed = False
         db_table = 'ACT_HI_VARINST'
 
 
@@ -225,7 +217,6 @@ class ActIdGroup(models.Model):
     type_field = models.CharField(db_column='TYPE_', max_length=255, blank=True, null=True)  
 
     class Meta:
-        managed = False
         db_table = 'ACT_ID_GROUP'
 
 
@@ -240,7 +231,6 @@ class ActIdInfo(models.Model):
     parent_id_field = models.CharField(db_column='PARENT_ID_', max_length=255, blank=True, null=True)  
 
     class Meta:
-        managed = False
         db_table = 'ACT_ID_INFO'
 
 
@@ -249,7 +239,6 @@ class ActIdMembership(models.Model):
     group_id_field = models.ForeignKey(ActIdGroup, db_column='GROUP_ID_')  
 
     class Meta:
-        managed = False
         db_table = 'ACT_ID_MEMBERSHIP'
         unique_together = (('user_id_field', 'group_id_field'),)
 
@@ -264,7 +253,6 @@ class ActIdUser(models.Model):
     picture_id_field = models.CharField(db_column='PICTURE_ID_', max_length=64, blank=True, null=True)  
 
     class Meta:
-        managed = False
         db_table = 'ACT_ID_USER'
 
 
@@ -276,7 +264,6 @@ class ActReDeployment(models.Model):
     deploy_time_field = models.DateTimeField(db_column='DEPLOY_TIME_')  
 
     class Meta:
-        managed = False
         db_table = 'ACT_RE_DEPLOYMENT'
 
 
@@ -296,7 +283,6 @@ class ActReModel(models.Model):
     tenant_id_field = models.CharField(db_column='TENANT_ID_', max_length=255, blank=True, null=True)  
 
     class Meta:
-        managed = False
         db_table = 'ACT_RE_MODEL'
 
 
@@ -316,7 +302,6 @@ class ActReProcdef(models.Model):
     tenant_id_field = models.CharField(db_column='TENANT_ID_', max_length=255, blank=True, null=True)  
 
     class Meta:
-        managed = False
         db_table = 'ACT_RE_PROCDEF'
         unique_together = (('key_field', 'version_field', 'tenant_id_field'),)
 
@@ -335,7 +320,6 @@ class ActRuEventSubscr(models.Model):
     tenant_id_field = models.CharField(db_column='TENANT_ID_', max_length=255, blank=True, null=True)  
 
     class Meta:
-        managed = False
         db_table = 'ACT_RU_EVENT_SUBSCR'
 
 
@@ -357,7 +341,6 @@ class ActRuExecution(models.Model):
     tenant_id_field = models.CharField(db_column='TENANT_ID_', max_length=255, blank=True, null=True)  
 
     class Meta:
-        managed = False
         db_table = 'ACT_RU_EXECUTION'
 
 
@@ -372,7 +355,6 @@ class ActRuIdentitylink(models.Model):
     proc_def_id_field = models.ForeignKey(ActReProcdef, db_column='PROC_DEF_ID_', blank=True, null=True)  
 
     class Meta:
-        managed = False
         db_table = 'ACT_RU_IDENTITYLINK'
 
 
@@ -396,7 +378,6 @@ class ActRuJob(models.Model):
     tenant_id_field = models.CharField(db_column='TENANT_ID_', max_length=255, blank=True, null=True)  
 
     class Meta:
-        managed = False
         db_table = 'ACT_RU_JOB'
 
 
@@ -421,7 +402,6 @@ class ActRuTask(models.Model):
     tenant_id_field = models.CharField(db_column='TENANT_ID_', max_length=255, blank=True, null=True)  
 
     class Meta:
-        managed = False
         db_table = 'ACT_RU_TASK'
 
 
@@ -440,7 +420,6 @@ class ActRuVariable(models.Model):
     text2_field = models.CharField(db_column='TEXT2_', max_length=4000, blank=True, null=True)  
 
     class Meta:
-        managed = False
         db_table = 'ACT_RU_VARIABLE'
 
 
@@ -453,7 +432,6 @@ class BpmAgentCondition(models.Model):
     agent = models.CharField(db_column='AGENT', max_length=100, blank=True, null=True)  
 
     class Meta:
-        managed = False
         db_table = 'BPM_AGENT_CONDITION'
 
 
@@ -464,7 +442,6 @@ class BpmAgentDef(models.Model):
     flowname = models.CharField(db_column='FLOWNAME', max_length=200, blank=True, null=True)  
 
     class Meta:
-        managed = False
         db_table = 'BPM_AGENT_DEF'
 
 
@@ -483,7 +460,6 @@ class BpmAgentSetting(models.Model):
     flowname = models.CharField(db_column='FLOWNAME', max_length=100, blank=True, null=True)  
 
     class Meta:
-        managed = False
         db_table = 'BPM_AGENT_SETTING'
 
 
@@ -496,7 +472,6 @@ class BpmApprovalItem(models.Model):
     expression = models.CharField(db_column='EXPRESSION', max_length=3000, blank=True, null=True)  
 
     class Meta:
-        managed = False
         db_table = 'BPM_APPROVAL_ITEM'
 
 
@@ -517,7 +492,6 @@ class BpmBusLink(models.Model):
     bus_updtime = models.DateTimeField(db_column='BUS_UPDTIME')  
 
     class Meta:
-        managed = False
         db_table = 'BPM_BUS_LINK'
         unique_together = (('bus_id', 'bus_form_table'),)
 
@@ -530,7 +504,6 @@ class BpmCommonWsParams(models.Model):
     description = models.CharField(db_column='DESCRIPTION', max_length=400, blank=True, null=True)  
 
     class Meta:
-        managed = False
         db_table = 'BPM_COMMON_WS_PARAMS'
 
 
@@ -541,7 +514,6 @@ class BpmCommonWsSet(models.Model):
     document = models.TextField(db_column='DOCUMENT', blank=True, null=True)  
 
     class Meta:
-        managed = False
         db_table = 'BPM_COMMON_WS_SET'
 
 
@@ -557,7 +529,6 @@ class BpmCommuReceiver(models.Model):
     taskid = models.BigIntegerField(db_column='TASKID', blank=True, null=True)
 
     class Meta:
-        managed = False
         db_table = 'BPM_COMMU_RECEIVER'
 
 
@@ -587,7 +558,6 @@ class BpmDataTemplate(models.Model):
     exportfield = models.TextField(db_column='EXPORTFIELD', blank=True, null=True)
 
     class Meta:
-        managed = False
         db_table = 'BPM_DATA_TEMPLATE'
 
 
@@ -634,7 +604,6 @@ class BpmDefinition(models.Model):
     allowmobile = models.IntegerField(db_column='ALLOWMOBILE', blank=True, null=True)  
 
     class Meta:
-        managed = False
         db_table = 'BPM_DEFINITION'
 
 
@@ -646,7 +615,6 @@ class BpmDefAct(models.Model):
     right_content = models.CharField(db_column='RIGHT_CONTENT', max_length=400, blank=True, null=True)  
 
     class Meta:
-        managed = False
         db_table = 'BPM_DEF_ACT'
 
 
@@ -655,7 +623,6 @@ class BpmDefAuthorize(models.Model):
     authorize_desc = models.CharField(db_column='AUTHORIZE_DESC', max_length=512, blank=True, null=True)  
 
     class Meta:
-        managed = False
         db_table = 'BPM_DEF_AUTHORIZE'
 
 
@@ -665,7 +632,6 @@ class BpmDefAuthType(models.Model):
     authorize_type = models.CharField(db_column='AUTHORIZE_TYPE', max_length=64)  
 
     class Meta:
-        managed = False
         db_table = 'BPM_DEF_AUTH_TYPE'
 
 
@@ -679,7 +645,6 @@ class BpmDefRights(models.Model):
     defkey = models.CharField(db_column='DEFKEY', max_length=100, blank=True, null=True)  
 
     class Meta:
-        managed = False
         db_table = 'BPM_DEF_RIGHTS'
 
 
@@ -691,7 +656,6 @@ class BpmDefUser(models.Model):
     right_type = models.CharField(db_column='RIGHT_TYPE', max_length=200, blank=True, null=True)  
 
     class Meta:
-        managed = False
         db_table = 'BPM_DEF_USER'
 
 
@@ -708,7 +672,6 @@ class BpmDefVars(models.Model):
     varscope = models.CharField(db_column='VARSCOPE', max_length=64, blank=True, null=True)  
 
     class Meta:
-        managed = False
         db_table = 'BPM_DEF_VARS'
 
 
@@ -729,7 +692,6 @@ class BpmExeStack(models.Model):
     tasktoken = models.CharField(db_column='TASKTOKEN', max_length=128, blank=True, null=True)  
 
     class Meta:
-        managed = False
         db_table = 'BPM_EXE_STACK'
 
 
@@ -755,7 +717,6 @@ class BpmFormDef(models.Model):
     createtime = models.DateTimeField(db_column='CREATETIME')  
 
     class Meta:
-        managed = False
         db_table = 'BPM_FORM_DEF'
 
 
@@ -782,7 +743,6 @@ class BpmFormDefHi(models.Model):
     createtime = models.DateTimeField(db_column='CREATETIME', blank=True, null=True)  
 
     class Meta:
-        managed = False
         db_table = 'BPM_FORM_DEF_HI'
 
 
@@ -806,7 +766,6 @@ class BpmFormDialog(models.Model):
     sortfield = models.CharField(db_column='SORTFIELD', max_length=200, blank=True, null=True)  
 
     class Meta:
-        managed = False
         db_table = 'BPM_FORM_DIALOG'
 
 
@@ -840,7 +799,6 @@ class BpmFormField(models.Model):
     isreference = models.SmallIntegerField(db_column='ISREFERENCE', blank=True, null=True)  
 
     class Meta:
-        managed = False
         db_table = 'BPM_FORM_FIELD'
 
 
@@ -859,7 +817,6 @@ class BpmFormQuery(models.Model):
     sortfield = models.CharField(db_column='SORTFIELD', max_length=200, blank=True, null=True)  
 
     class Meta:
-        managed = False
         db_table = 'BPM_FORM_QUERY'
 
 
@@ -875,7 +832,6 @@ class BpmFormRights(models.Model):
     platform = models.IntegerField(db_column='PLATFORM', blank=True, null=True)  
 
     class Meta:
-        managed = False
         db_table = 'BPM_FORM_RIGHTS'
 
 
@@ -887,7 +843,6 @@ class BpmFormRule(models.Model):
     tipinfo = models.CharField(db_column='TIPINFO', max_length=100, blank=True, null=True)  
 
     class Meta:
-        managed = False
         db_table = 'BPM_FORM_RULE'
 
 
@@ -907,7 +862,6 @@ class BpmFormRun(models.Model):
     mobileformurl = models.CharField(db_column='MOBILEFORMURL', max_length=255, blank=True, null=True)  
 
     class Meta:
-        managed = False
         db_table = 'BPM_FORM_RUN'
 
 
@@ -937,7 +891,6 @@ class BpmFormTable(models.Model):
     team = models.TextField(db_column='TEAM', blank=True, null=True)  
 
     class Meta:
-        managed = False
         db_table = 'BPM_FORM_TABLE'
 
 
@@ -952,7 +905,6 @@ class BpmFormTemplate(models.Model):
     alias = models.CharField(db_column='ALIAS', max_length=50, blank=True, null=True)  
 
     class Meta:
-        managed = False
         db_table = 'BPM_FORM_TEMPLATE'
 
 
@@ -965,7 +917,6 @@ class BpmGangedSet(models.Model):
     changefield = models.TextField(db_column='CHANGEFIELD', blank=True, null=True)  
 
     class Meta:
-        managed = False
         db_table = 'BPM_GANGED_SET'
 
 
@@ -980,7 +931,6 @@ class BpmMobileForm(models.Model):
     formjson = models.TextField(db_column='FORMJSON', blank=True, null=True)  
 
     class Meta:
-        managed = False
         db_table = 'BPM_MOBILE_FORM'
 
 
@@ -994,7 +944,6 @@ class BpmMonGroup(models.Model):
     createtime = models.DateTimeField(db_column='CREATETIME', blank=True, null=True)  
 
     class Meta:
-        managed = False
         db_table = 'BPM_MON_GROUP'
 
 
@@ -1004,7 +953,6 @@ class BpmMonGroupitem(models.Model):
     flowkey = models.CharField(db_column='FLOWKEY', max_length=50, blank=True, null=True)  
 
     class Meta:
-        managed = False
         db_table = 'BPM_MON_GROUPITEM'
 
 
@@ -1015,7 +963,6 @@ class BpmMonOrgrole(models.Model):
     orgid = models.BigIntegerField(db_column='ORGID', blank=True, null=True)  
 
     class Meta:
-        managed = False
         db_table = 'BPM_MON_ORGROLE'
 
 
@@ -1034,7 +981,6 @@ class BpmNodeBtn(models.Model):
     defid = models.BigIntegerField(db_column='DEFID', blank=True, null=True)  
 
     class Meta:
-        managed = False
         db_table = 'BPM_NODE_BTN'
 
 
@@ -1048,7 +994,6 @@ class BpmNodeMessage(models.Model):
     issend = models.SmallIntegerField(db_column='ISSEND', blank=True, null=True)  
 
     class Meta:
-        managed = False
         db_table = 'BPM_NODE_MESSAGE'
 
 
@@ -1062,7 +1007,6 @@ class BpmNodePrivilege(models.Model):
     cmpids = models.TextField(db_column='CMPIDS', blank=True, null=True)  
 
     class Meta:
-        managed = False
         db_table = 'BPM_NODE_PRIVILEGE'
 
 
@@ -1078,7 +1022,6 @@ class BpmNodeRule(models.Model):
     memo = models.CharField(db_column='MEMO', max_length=200, blank=True, null=True)  
 
     class Meta:
-        managed = False
         db_table = 'BPM_NODE_RULE'
 
 
@@ -1091,7 +1034,6 @@ class BpmNodeScript(models.Model):
     scripttype = models.BigIntegerField(db_column='SCRIPTTYPE', blank=True, null=True)  
 
     class Meta:
-        managed = False
         db_table = 'BPM_NODE_SCRIPT'
 
 
@@ -1125,7 +1067,6 @@ class BpmNodeSet(models.Model):
     mobiledetailurl = models.CharField(db_column='MOBILEDETAILURL', max_length=256, blank=True, null=True)  
 
     class Meta:
-        managed = False
         db_table = 'BPM_NODE_SET'
 
 
@@ -1139,7 +1080,6 @@ class BpmNodeSign(models.Model):
     flowmode = models.SmallIntegerField(db_column='FLOWMODE', blank=True, null=True)  
 
     class Meta:
-        managed = False
         db_table = 'BPM_NODE_SIGN'
 
 
@@ -1154,7 +1094,6 @@ class BpmNodeUser(models.Model):
     extractuser = models.SmallIntegerField(db_column='EXTRACTUSER', blank=True, null=True)  
 
     class Meta:
-        managed = False
         db_table = 'BPM_NODE_USER'
 
 
@@ -1165,7 +1104,6 @@ class BpmNodeWebservice(models.Model):
     document = models.TextField(db_column='DOCUMENT', blank=True, null=True)  
 
     class Meta:
-        managed = False
         db_table = 'BPM_NODE_WEBSERVICE'
 
 
@@ -1178,7 +1116,6 @@ class BpmNodeWsParams(models.Model):
     type = models.CharField(db_column='TYPE', max_length=128, blank=True, null=True)  
 
     class Meta:
-        managed = False
         db_table = 'BPM_NODE_WS_PARAMS'
 
 
@@ -1192,7 +1129,6 @@ class BpmPrintTemplate(models.Model):
     template = models.TextField(db_column='TEMPLATE', blank=True, null=True)  
 
     class Meta:
-        managed = False
         db_table = 'BPM_PRINT_TEMPLATE'
 
 
@@ -1215,7 +1151,6 @@ class BpmProCpto(models.Model):
     def_typeid = models.BigIntegerField(db_column='DEF_TYPEID', blank=True, null=True)  
 
     class Meta:
-        managed = False
         db_table = 'BPM_PRO_CPTO'
 
 
@@ -1251,7 +1186,6 @@ class BpmProRun(models.Model):
     startnode = models.CharField(db_column='STARTNODE', max_length=50, blank=True, null=True)  
 
     class Meta:
-        managed = False
         db_table = 'BPM_PRO_RUN'
 
 
@@ -1287,7 +1221,6 @@ class BpmProRunHis(models.Model):
     startnode = models.CharField(db_column='STARTNODE', max_length=50, blank=True, null=True)  
 
     class Meta:
-        managed = False
         db_table = 'BPM_PRO_RUN_HIS'
 
 
@@ -1302,8 +1235,7 @@ class BpmProRunHis(models.Model):
 #     defid = models.BigIntegerField(db_column='DEFID', blank=True, null=True)
 #
 #     class Meta:
-#         managed = False
-#         db_table = 'BPM_PRO_STATUS'
+# #         db_table = 'BPM_PRO_STATUS'
 
 
 class BpmProTransto(models.Model):
@@ -1318,7 +1250,6 @@ class BpmProTransto(models.Model):
     assignee = models.CharField(db_column='ASSIGNEE', max_length=256, blank=True, null=True)  
 
     class Meta:
-        managed = False
         db_table = 'BPM_PRO_TRANSTO'
 
 
@@ -1335,7 +1266,6 @@ class BpmReferDefinition(models.Model):
     updateid = models.BigIntegerField(db_column='UPDATEID', blank=True, null=True)  
 
     class Meta:
-        managed = False
         db_table = 'BPM_REFER_DEFINITION'
 
 
@@ -1350,7 +1280,6 @@ class BpmRunLog(models.Model):
     processsubject = models.CharField(db_column='PROCESSSUBJECT', max_length=300, blank=True, null=True)  
 
     class Meta:
-        managed = False
         db_table = 'BPM_RUN_LOG'
 
 
@@ -1364,7 +1293,6 @@ class BpmSubtableRights(models.Model):
     parentactdefid = models.CharField(db_column='PARENTACTDEFID', max_length=100, blank=True, null=True)  
 
     class Meta:
-        managed = False
         db_table = 'BPM_SUBTABLE_RIGHTS'
 
 
@@ -1390,7 +1318,6 @@ class BpmTaskDue(models.Model):
     assignername = models.CharField(db_column='ASSIGNERNAME', max_length=50, blank=True, null=True)  
 
     class Meta:
-        managed = False
         db_table = 'BPM_TASK_DUE'
 
 
@@ -1418,7 +1345,6 @@ class BpmTaskExe(models.Model):
     creator = models.CharField(db_column='CREATOR', max_length=256, blank=True, null=True)  
 
     class Meta:
-        managed = False
         db_table = 'BPM_TASK_EXE'
 
 
@@ -1437,7 +1363,6 @@ class BpmTaskFork(models.Model):
     forktokenpre = models.CharField(db_column='FORKTOKENPRE', max_length=64, blank=True, null=True)  
 
     class Meta:
-        managed = False
         db_table = 'BPM_TASK_FORK'
 
 
@@ -1461,7 +1386,6 @@ class BpmTaskOpinion(models.Model):
     superexecution = models.BigIntegerField(db_column='SUPEREXECUTION', blank=True, null=True)  
 
     class Meta:
-        managed = False
         db_table = 'BPM_TASK_OPINION'
 
 
@@ -1474,7 +1398,6 @@ class BpmTaskRead(models.Model):
     createtime = models.DateTimeField(db_column='CREATETIME', blank=True, null=True)  
 
     class Meta:
-        managed = False
         db_table = 'BPM_TASK_READ'
 
 
@@ -1488,7 +1411,6 @@ class BpmTaskReminderstate(models.Model):
     remindtype = models.SmallIntegerField(db_column='REMINDTYPE', blank=True, null=True)  
 
     class Meta:
-        managed = False
         db_table = 'BPM_TASK_REMINDERSTATE'
 
 
@@ -1509,7 +1431,6 @@ class BpmTksignData(models.Model):
     batch = models.SmallIntegerField(db_column='BATCH', blank=True, null=True)  
 
     class Meta:
-        managed = False
         db_table = 'BPM_TKSIGN_DATA'
 
 
@@ -1528,7 +1449,6 @@ class BpmUserCondition(models.Model):
     parentactdefid = models.CharField(db_column='PARENTACTDEFID', max_length=128, blank=True, null=True)  
 
     class Meta:
-        managed = False
         db_table = 'BPM_USER_CONDITION'
 
 
@@ -1546,7 +1466,6 @@ class BusQueryFilter(models.Model):
     createby = models.BigIntegerField(db_column='CREATEBY', blank=True, null=True)  
 
     class Meta:
-        managed = False
         db_table = 'BUS_QUERY_FILTER'
 
 
@@ -1568,7 +1487,6 @@ class BusQueryRule(models.Model):
     updateby = models.BigIntegerField(db_column='UPDATEBY', blank=True, null=True)  
 
     class Meta:
-        managed = False
         db_table = 'BUS_QUERY_RULE'
 
 
@@ -1579,7 +1497,6 @@ class BusQuerySetting(models.Model):
     userid = models.BigIntegerField(db_column='USERID', blank=True, null=True)  
 
     class Meta:
-        managed = False
         db_table = 'BUS_QUERY_SETTING'
 
 
@@ -1591,7 +1508,6 @@ class BusQueryShare(models.Model):
     createtime = models.DateTimeField(db_column='CREATETIME')  
 
     class Meta:
-        managed = False
         db_table = 'BUS_QUERY_SHARE'
 
 
@@ -1601,7 +1517,6 @@ class MailCodeMap(models.Model):
     sex = models.IntegerField(blank=True, null=True)
 
     class Meta:
-        managed = False
         db_table = 'MAIL_CODE_MAP'
 
 
@@ -1611,7 +1526,6 @@ class MobileUserInfo(models.Model):
     idcard = models.CharField(db_column='IDCARD', max_length=40, blank=True, null=True)  
 
     class Meta:
-        managed = False
         db_table = 'MOBILE_USER_INFO'
 
 
@@ -1637,7 +1551,6 @@ class OutMail(models.Model):
     setid = models.BigIntegerField(db_column='SETID', blank=True, null=True)  
 
     class Meta:
-        managed = False
         db_table = 'OUT_MAIL'
 
 
@@ -1648,7 +1561,6 @@ class OutMailAttachment(models.Model):
     mailid = models.BigIntegerField(db_column='MAILID', blank=True, null=True)  
 
     class Meta:
-        managed = False
         db_table = 'OUT_MAIL_ATTACHMENT'
 
 
@@ -1661,7 +1573,6 @@ class OutMailLinkman(models.Model):
     linkaddress = models.CharField(db_column='LINKADDRESS', max_length=2000, blank=True, null=True)  
 
     class Meta:
-        managed = False
         db_table = 'OUT_MAIL_LINKMAN'
 
 
@@ -1685,7 +1596,6 @@ class OutMailUserSeting(models.Model):
     ishandleattach = models.SmallIntegerField(db_column='ISHANDLEATTACH', blank=True, null=True)  
 
     class Meta:
-        managed = False
         db_table = 'OUT_MAIL_USER_SETING'
 
 
@@ -1696,7 +1606,6 @@ class QrtzBlobTriggers(models.Model):
     blob_data = models.TextField(db_column='BLOB_DATA', blank=True, null=True)  
 
     class Meta:
-        managed = False
         db_table = 'QRTZ_BLOB_TRIGGERS'
         unique_together = (('sched_name', 'trigger_name', 'trigger_group'),)
 
@@ -1707,7 +1616,6 @@ class QrtzCalendars(models.Model):
     calendar = models.TextField(db_column='CALENDAR')  
 
     class Meta:
-        managed = False
         db_table = 'QRTZ_CALENDARS'
         unique_together = (('sched_name', 'calendar_name'),)
 
@@ -1720,7 +1628,6 @@ class QrtzCronTriggers(models.Model):
     time_zone_id = models.CharField(db_column='TIME_ZONE_ID', max_length=80, blank=True, null=True)  
 
     class Meta:
-        managed = False
         db_table = 'QRTZ_CRON_TRIGGERS'
         unique_together = (('sched_name', 'trigger_name', 'trigger_group'),)
 
@@ -1740,7 +1647,6 @@ class QrtzFiredTriggers(models.Model):
     requests_recovery = models.CharField(db_column='REQUESTS_RECOVERY', max_length=1, blank=True, null=True)  
 
     class Meta:
-        managed = False
         db_table = 'QRTZ_FIRED_TRIGGERS'
         unique_together = (('sched_name', 'entry_id'),)
 
@@ -1758,7 +1664,6 @@ class QrtzJobDetails(models.Model):
     job_data = models.TextField(db_column='JOB_DATA', blank=True, null=True)  
 
     class Meta:
-        managed = False
         db_table = 'QRTZ_JOB_DETAILS'
         unique_together = (('sched_name', 'job_name', 'job_group'),)
 
@@ -1768,7 +1673,6 @@ class QrtzLocks(models.Model):
     lock_name = models.CharField(db_column='LOCK_NAME', max_length=40)  
 
     class Meta:
-        managed = False
         db_table = 'QRTZ_LOCKS'
         unique_together = (('sched_name', 'lock_name'),)
 
@@ -1778,7 +1682,6 @@ class QrtzPausedTriggerGrps(models.Model):
     trigger_group = models.CharField(db_column='TRIGGER_GROUP', max_length=200)  
 
     class Meta:
-        managed = False
         db_table = 'QRTZ_PAUSED_TRIGGER_GRPS'
         unique_together = (('sched_name', 'trigger_group'),)
 
@@ -1790,7 +1693,6 @@ class QrtzSchedulerState(models.Model):
     checkin_interval = models.BigIntegerField(db_column='CHECKIN_INTERVAL')  
 
     class Meta:
-        managed = False
         db_table = 'QRTZ_SCHEDULER_STATE'
         unique_together = (('sched_name', 'instance_name'),)
 
@@ -1804,7 +1706,6 @@ class QrtzSimpleTriggers(models.Model):
     times_triggered = models.BigIntegerField(db_column='TIMES_TRIGGERED')  
 
     class Meta:
-        managed = False
         db_table = 'QRTZ_SIMPLE_TRIGGERS'
         unique_together = (('sched_name', 'trigger_name', 'trigger_group'),)
 
@@ -1826,7 +1727,6 @@ class QrtzSimpropTriggers(models.Model):
     bool_prop_2 = models.CharField(db_column='BOOL_PROP_2', max_length=1, blank=True, null=True)  
 
     class Meta:
-        managed = False
         db_table = 'QRTZ_SIMPROP_TRIGGERS'
         unique_together = (('sched_name', 'trigger_name', 'trigger_group'),)
 
@@ -1850,7 +1750,6 @@ class QrtzTriggers(models.Model):
     job_data = models.TextField(db_column='JOB_DATA', blank=True, null=True)  
 
     class Meta:
-        managed = False
         db_table = 'QRTZ_TRIGGERS'
         unique_together = (('sched_name', 'trigger_name', 'trigger_group'),)
 
@@ -1865,7 +1764,6 @@ class RepLabel(models.Model):
     lbl_page = models.CharField(db_column='LBL_PAGE', max_length=200, blank=True, null=True)  
 
     class Meta:
-        managed = False
         db_table = 'REP_LABEL'
 
 
@@ -1877,7 +1775,6 @@ class RepLabelLocale(models.Model):
     lal_updated = models.DateTimeField(db_column='LAL_UPDATED', blank=True, null=True)  
 
     class Meta:
-        managed = False
         db_table = 'REP_LABEL_LOCALE'
 
 
@@ -1888,7 +1785,6 @@ class RepLocale(models.Model):
     active = models.SmallIntegerField(db_column='ACTIVE', blank=True, null=True)  
 
     class Meta:
-        managed = False
         db_table = 'REP_LOCALE'
 
 
@@ -1900,7 +1796,6 @@ class RepMsg(models.Model):
     msg_page = models.CharField(db_column='MSG_PAGE', max_length=200, blank=True, null=True)  
 
     class Meta:
-        managed = False
         db_table = 'REP_MSG'
 
 
@@ -1912,7 +1807,6 @@ class RepMsgLocale(models.Model):
     msl_updated = models.DateTimeField(db_column='MSL_UPDATED', blank=True, null=True)  
 
     class Meta:
-        managed = False
         db_table = 'REP_MSG_LOCALE'
 
 
@@ -1924,7 +1818,6 @@ class SysAcceptIp(models.Model):
     remark = models.CharField(db_column='REMARK', max_length=200, blank=True, null=True)  
 
     class Meta:
-        managed = False
         db_table = 'SYS_ACCEPT_IP'
 
 
@@ -1943,7 +1836,6 @@ class SysAliasScript(models.Model):
     enable = models.DecimalField(db_column='ENABLE', max_digits=2, decimal_places=0, blank=True, null=True)  
 
     class Meta:
-        managed = False
         db_table = 'SYS_ALIAS_SCRIPT'
 
 
@@ -1963,7 +1855,6 @@ class SysAudit(models.Model):
     detail = models.TextField(db_column='DETAIL', blank=True, null=True)  
 
     class Meta:
-        managed = False
         db_table = 'SYS_AUDIT'
 
 
@@ -1973,7 +1864,6 @@ class SysAuthRole(models.Model):
     role_id = models.BigIntegerField(db_column='ROLE_ID', blank=True, null=True)  
 
     class Meta:
-        managed = False
         db_table = 'SYS_AUTH_ROLE'
 
 
@@ -1984,7 +1874,6 @@ class SysCalendar(models.Model):
     isdefault = models.BigIntegerField(db_column='ISDEFAULT', blank=True, null=True)  
 
     class Meta:
-        managed = False
         db_table = 'SYS_CALENDAR'
 
 
@@ -1995,7 +1884,6 @@ class SysCalendarAssign(models.Model):
     assignid = models.BigIntegerField(db_column='ASSIGNID', blank=True, null=True)  
 
     class Meta:
-        managed = False
         db_table = 'SYS_CALENDAR_ASSIGN'
 
 
@@ -2010,7 +1898,6 @@ class SysCalendarSetting(models.Model):
     calday = models.CharField(db_column='CALDAY', max_length=20, blank=True, null=True)  
 
     class Meta:
-        managed = False
         db_table = 'SYS_CALENDAR_SETTING'
 
 
@@ -2028,7 +1915,6 @@ class SysCodeTemplate(models.Model):
     formdetail = models.SmallIntegerField(db_column='FORMDETAIL', blank=True, null=True)  
 
     class Meta:
-        managed = False
         db_table = 'SYS_CODE_TEMPLATE'
 
 
@@ -2043,7 +1929,6 @@ class SysConditionScript(models.Model):
     enable = models.SmallIntegerField(db_column='ENABLE', blank=True, null=True)  
 
     class Meta:
-        managed = False
         db_table = 'SYS_CONDITION_SCRIPT'
 
 
@@ -2058,7 +1943,6 @@ class SysDatasource2(models.Model):
     dbtype = models.CharField(db_column='DBTYPE', max_length=20, blank=True, null=True)  
 
     class Meta:
-        managed = False
         db_table = 'SYS_DATASOURCE'
 
 
@@ -2075,7 +1959,6 @@ class SysDataSource(models.Model):
     close_method_field = models.CharField(db_column='CLOSE_METHOD_', max_length=128, blank=True, null=True)  
 
     class Meta:
-        managed = False
         db_table = 'SYS_DATA_SOURCE'
         unique_together = (('name_field', 'alias_field'),)
 
@@ -2090,7 +1973,6 @@ class SysDataSourceDef(models.Model):
     close_method_field = models.CharField(db_column='CLOSE_METHOD_', max_length=64, blank=True, null=True)  
 
     class Meta:
-        managed = False
         db_table = 'SYS_DATA_SOURCE_DEF'
         unique_together = (('class_path_field', 'name_field'),)
 
@@ -2101,7 +1983,6 @@ class SysDbId(models.Model):
     bound = models.BigIntegerField(db_column='BOUND', blank=True, null=True)  
 
     class Meta:
-        managed = False
         db_table = 'SYS_DB_ID'
 
 
@@ -2111,7 +1992,6 @@ class SysDemension(models.Model):
     demdesc = models.CharField(db_column='DEMDESC', max_length=1024, blank=True, null=True)  
 
     class Meta:
-        managed = False
         db_table = 'SYS_DEMENSION'
 
 
@@ -2129,7 +2009,6 @@ class SysDesktopColumn(models.Model):
     queryalias = models.CharField(db_column='QUERYALIAS', max_length=100, blank=True, null=True)  
 
     class Meta:
-        managed = False
         db_table = 'SYS_DESKTOP_COLUMN'
 
 
@@ -2142,7 +2021,6 @@ class SysDesktopLayout(models.Model):
     isdefault = models.BigIntegerField(db_column='ISDEFAULT', blank=True, null=True)  
 
     class Meta:
-        managed = False
         db_table = 'SYS_DESKTOP_LAYOUT'
 
 
@@ -2154,7 +2032,6 @@ class SysDesktopLayoutcol(models.Model):
     sn = models.BigIntegerField(db_column='SN', blank=True, null=True)  
 
     class Meta:
-        managed = False
         db_table = 'SYS_DESKTOP_LAYOUTCOL'
 
 
@@ -2171,7 +2048,6 @@ class SysDesktopMycolumn(models.Model):
     columnurl = models.CharField(db_column='COLUMNURL', max_length=200, blank=True, null=True)  
 
     class Meta:
-        managed = False
         db_table = 'SYS_DESKTOP_MYCOLUMN'
 
 
@@ -2187,7 +2063,6 @@ class SysDic(models.Model):
     parentid = models.BigIntegerField(db_column='PARENTID', blank=True, null=True)  
 
     class Meta:
-        managed = False
         db_table = 'SYS_DIC'
 
 
@@ -2201,7 +2076,6 @@ class SysErrorLog(models.Model):
     errordate = models.DateTimeField(db_column='ERRORDATE', blank=True, null=True)  
 
     class Meta:
-        managed = False
         db_table = 'SYS_ERROR_LOG'
 
 
@@ -2214,7 +2088,6 @@ class SysExcelImprule(models.Model):
     busi_date = models.DateTimeField(db_column='BUSI_DATE', blank=True, null=True)  
 
     class Meta:
-        managed = False
         db_table = 'SYS_EXCEL_IMPRULE'
 
 
@@ -2234,7 +2107,6 @@ class SysFile(models.Model):
     fileblob = models.TextField(db_column='FILEBLOB', blank=True, null=True)  
 
     class Meta:
-        managed = False
         db_table = 'SYS_FILE'
 
 
@@ -2257,7 +2129,6 @@ class SysGlType(models.Model):
     custdata = models.CharField(db_column='custData', max_length=200, blank=True, null=True)  
 
     class Meta:
-        managed = False
         db_table = 'SYS_GL_TYPE'
 
 
@@ -2274,7 +2145,6 @@ class SysIdentity(models.Model):
     step = models.SmallIntegerField(db_column='STEP', blank=True, null=True)  
 
     class Meta:
-        managed = False
         db_table = 'SYS_IDENTITY'
 
 
@@ -2287,7 +2157,6 @@ class SysJob(models.Model):
     isdelete = models.BigIntegerField(db_column='ISDELETE', blank=True, null=True)  
 
     class Meta:
-        managed = False
         db_table = 'SYS_JOB'
 
 
@@ -2302,7 +2171,6 @@ class SysJoblog(models.Model):
     runtime = models.BigIntegerField(db_column='RUNTIME', blank=True, null=True)  
 
     class Meta:
-        managed = False
         db_table = 'SYS_JOBLOG'
 
 
@@ -2319,7 +2187,6 @@ class SysLogSwitch(models.Model):
     lastuptime = models.DateTimeField(db_column='LASTUPTIME')  
 
     class Meta:
-        managed = False
         db_table = 'SYS_LOG_SWITCH'
 
 
@@ -2332,7 +2199,6 @@ class SysMessageLog(models.Model):
     state = models.BigIntegerField(db_column='STATE', blank=True, null=True)  
 
     class Meta:
-        managed = False
         db_table = 'SYS_MESSAGE_LOG'
 
 
@@ -2344,7 +2210,6 @@ class SysMsgRead(models.Model):
     receivetime = models.DateTimeField(db_column='RECEIVETIME', blank=True, null=True)  
 
     class Meta:
-        managed = False
         db_table = 'SYS_MSG_READ'
 
 
@@ -2356,7 +2221,6 @@ class SysMsgReceiver(models.Model):
     receiver = models.CharField(db_column='RECEIVER', max_length=20, blank=True, null=True)  
 
     class Meta:
-        managed = False
         db_table = 'SYS_MSG_RECEIVER'
 
 
@@ -2370,7 +2234,6 @@ class SysMsgReply(models.Model):
     isprivate = models.SmallIntegerField(db_column='ISPRIVATE', blank=True, null=True)  
 
     class Meta:
-        managed = False
         db_table = 'SYS_MSG_REPLY'
 
 
@@ -2386,7 +2249,6 @@ class SysMsgSend(models.Model):
     receivername = models.TextField(db_column='RECEIVERNAME', blank=True, null=True)  
 
     class Meta:
-        managed = False
         db_table = 'SYS_MSG_SEND'
 
 
@@ -2402,7 +2264,6 @@ class SysOfficeTemplate(models.Model):
     templateblob = models.TextField(db_column='TEMPLATEBLOB', blank=True, null=True)  
 
     class Meta:
-        managed = False
         db_table = 'SYS_OFFICE_TEMPLATE'
 
 
@@ -2429,7 +2290,6 @@ class SysOrg(models.Model):
     objects = EboaManager()
 
     class Meta:
-        managed = False
         db_table = 'SYS_ORG'
         verbose_name = verbose_name_plural = u"組織"
 
@@ -2446,7 +2306,6 @@ class SysOrgAuth(models.Model):
     user_perms = models.CharField(db_column='USER_PERMS', max_length=255, blank=True, null=True)  
 
     class Meta:
-        managed = False
         db_table = 'SYS_ORG_AUTH'
 
 
@@ -2459,7 +2318,6 @@ class SysOrgParam(models.Model):
     paramintvalue = models.DecimalField(db_column='PARAMINTVALUE', max_digits=18, decimal_places=2, blank=True, null=True)  
 
     class Meta:
-        managed = False
         db_table = 'SYS_ORG_PARAM'
 
 
@@ -2470,7 +2328,6 @@ class SysOrgRole(models.Model):
     candel = models.SmallIntegerField(db_column='CANDEL', blank=True, null=True)  
 
     class Meta:
-        managed = False
         db_table = 'SYS_ORG_ROLE'
 
 
@@ -2481,7 +2338,6 @@ class SysOrgRolemanage(models.Model):
     candel = models.SmallIntegerField(db_column='CANDEL', blank=True, null=True)  
 
     class Meta:
-        managed = False
         db_table = 'SYS_ORG_ROLEMANAGE'
 
 
@@ -2494,7 +2350,6 @@ class SysOrgType(models.Model):
     icon = models.CharField(db_column='ICON', max_length=100, blank=True, null=True)  
 
     class Meta:
-        managed = False
         db_table = 'SYS_ORG_TYPE'
 
 
@@ -2508,7 +2363,6 @@ class SysOvertime(models.Model):
     memo = models.CharField(db_column='MEMO', max_length=200, blank=True, null=True)  
 
     class Meta:
-        managed = False
         db_table = 'SYS_OVERTIME'
 
 
@@ -2520,7 +2374,6 @@ class SysParam(models.Model):
     effect = models.SmallIntegerField(db_column='EFFECT', blank=True, null=True)  
 
     class Meta:
-        managed = False
         db_table = 'SYS_PARAM'
 
 
@@ -2532,7 +2385,6 @@ class SysPaur(models.Model):
     userid = models.BigIntegerField(db_column='USERID', blank=True, null=True)  
 
     class Meta:
-        managed = False
         db_table = 'SYS_PAUR'
 
 
@@ -2547,7 +2399,6 @@ class SysPersonScript(models.Model):
     enable = models.DecimalField(db_column='ENABLE', max_digits=1, decimal_places=0, blank=True, null=True)  
 
     class Meta:
-        managed = False
         db_table = 'SYS_PERSON_SCRIPT'
 
 
@@ -2560,7 +2411,6 @@ class SysPos(models.Model):
     isdelete = models.IntegerField(db_column='ISDELETE', blank=True, null=True)  
 
     class Meta:
-        managed = False
         db_table = 'SYS_POS'
 
 
@@ -2575,7 +2425,6 @@ class SysPosition(models.Model):
     isleaf = models.SmallIntegerField(db_column='ISLEAF', blank=True, null=True)  
 
     class Meta:
-        managed = False
         db_table = 'SYS_POSITION'
 
 
@@ -2584,7 +2433,6 @@ class SysPosSub(models.Model):
     subpositionid = models.BigIntegerField(db_column='SUBPOSITIONID')  
 
     class Meta:
-        managed = False
         db_table = 'SYS_POS_SUB'
         unique_together = (('mainpositionid', 'subpositionid'),)
 
@@ -2596,7 +2444,6 @@ class SysProfile(models.Model):
     skin = models.CharField(db_column='SKIN', max_length=20, blank=True, null=True)  
 
     class Meta:
-        managed = False
         db_table = 'SYS_PROFILE'
 
 
@@ -2613,7 +2460,6 @@ class SysQueryField(models.Model):
     format = models.CharField(db_column='FORMAT', max_length=400, blank=True, null=True)  
 
     class Meta:
-        managed = False
         db_table = 'SYS_QUERY_FIELD'
 
 
@@ -2636,7 +2482,6 @@ class SysQuerySetting(models.Model):
     manage_field = models.TextField(db_column='MANAGE_FIELD', blank=True, null=True)  
 
     class Meta:
-        managed = False
         db_table = 'SYS_QUERY_SETTING'
 
 
@@ -2649,7 +2494,6 @@ class SysQuerySql(models.Model):
     categoryid = models.BigIntegerField(db_column='CATEGORYID', blank=True, null=True)  
 
     class Meta:
-        managed = False
         db_table = 'SYS_QUERY_SQL'
 
 
@@ -2668,7 +2512,6 @@ class SysReport(models.Model):
     realsql = models.TextField(db_column='REALSQL', blank=True, null=True)  
 
     class Meta:
-        managed = False
         db_table = 'SYS_REPORT'
 
 
@@ -2684,7 +2527,6 @@ class SysReportTemplate(models.Model):
     typeid = models.BigIntegerField(db_column='TYPEID', blank=True, null=True)  
 
     class Meta:
-        managed = False
         db_table = 'SYS_REPORT_TEMPLATE'
 
 
@@ -2703,7 +2545,6 @@ class SysRes(models.Model):
     path = models.CharField(db_column='PATH', max_length=500, blank=True, null=True)  
 
     class Meta:
-        managed = False
         db_table = 'SYS_RES'
 
 
@@ -2714,7 +2555,6 @@ class SysResurl(models.Model):
     url = models.CharField(db_column='URL', max_length=200, blank=True, null=True)  
 
     class Meta:
-        managed = False
         db_table = 'SYS_RESURL'
 
 
@@ -2729,7 +2569,6 @@ class SysRole(models.Model):
     enabled = models.SmallIntegerField(db_column='ENABLED', blank=True, null=True)  
 
     class Meta:
-        managed = False
         db_table = 'SYS_ROLE'
 
 
@@ -2738,7 +2577,6 @@ class SysRolePos(models.Model):
     roleid = models.BigIntegerField(db_column='ROLEID')  
 
     class Meta:
-        managed = False
         db_table = 'SYS_ROLE_POS'
         unique_together = (('posid', 'roleid'),)
 
@@ -2750,7 +2588,6 @@ class SysRoleRes(models.Model):
     systemid = models.BigIntegerField(db_column='SYSTEMID', blank=True, null=True)  
 
     class Meta:
-        managed = False
         db_table = 'SYS_ROLE_RES'
 
 
@@ -2762,7 +2599,6 @@ class SysScript(models.Model):
     memo = models.CharField(db_column='MEMO', max_length=200, blank=True, null=True)  
 
     class Meta:
-        managed = False
         db_table = 'SYS_SCRIPT'
 
 
@@ -2776,7 +2612,6 @@ class SysSeal(models.Model):
     showimageid = models.CharField(db_column='SHOWIMAGEID', max_length=80, blank=True, null=True)  
 
     class Meta:
-        managed = False
         db_table = 'SYS_SEAL'
 
 
@@ -2791,7 +2626,6 @@ class SysSealRight(models.Model):
     controltype = models.SmallIntegerField(db_column='CONTROLTYPE', blank=True, null=True)  
 
     class Meta:
-        managed = False
         db_table = 'SYS_SEAL_RIGHT'
 
 
@@ -2811,7 +2645,6 @@ class SysSubsystem(models.Model):
     homepage = models.CharField(db_column='HOMEPAGE', max_length=256, blank=True, null=True)  
 
     class Meta:
-        managed = False
         db_table = 'SYS_SUBSYSTEM'
 
 
@@ -2825,7 +2658,6 @@ class SysTemplate(models.Model):
     htmlcontent = models.CharField(db_column='HTMLCONTENT', max_length=500, blank=True, null=True)  
 
     class Meta:
-        managed = False
         db_table = 'SYS_TEMPLATE'
 
 
@@ -2838,7 +2670,6 @@ class SysTypeKey(models.Model):
     type = models.BigIntegerField(db_column='TYPE', blank=True, null=True)  
 
     class Meta:
-        managed = False
         db_table = 'SYS_TYPE_KEY'
 
 
@@ -2850,7 +2681,6 @@ class SysUrlPermission(models.Model):
     enable_field = models.SmallIntegerField(db_column='ENABLE_', blank=True, null=True)  
 
     class Meta:
-        managed = False
         db_table = 'SYS_URL_PERMISSION'
 
 
@@ -2863,7 +2693,6 @@ class SysUrlRules(models.Model):
     sort_field = models.SmallIntegerField(db_column='SORT_', blank=True, null=True)  
 
     class Meta:
-        managed = False
         db_table = 'SYS_URL_RULES'
 
 
@@ -2883,8 +2712,9 @@ class SysUser(models.Model):
     picture = models.CharField(db_column='PICTURE', max_length=300, blank=True, null=True)  
     fromtype = models.SmallIntegerField(db_column='FROMTYPE', blank=True, null=True)
 
+    objects = EboaManager()
+
     class Meta:
-        managed = False
         db_table = 'SYS_USER'
 
     def __unicode__(self):
@@ -2908,7 +2738,6 @@ class SysUserOrg(models.Model):
     isdelete = models.NullBooleanField(db_column='ISDELETE', blank=True, null=True)
 
     class Meta:
-        managed = False
         db_table = 'SYS_USER_ORG'
 
 
@@ -2921,7 +2750,6 @@ class SysUserParam(models.Model):
     paramintvalue = models.BigIntegerField(db_column='PARAMINTVALUE', blank=True, null=True)  
 
     class Meta:
-        managed = False
         db_table = 'SYS_USER_PARAM'
 
 
@@ -2936,7 +2764,6 @@ class SysUserPos(models.Model):
     isdelete = models.SmallIntegerField(db_column='ISDELETE', blank=True, null=True)  
 
     class Meta:
-        managed = False
         db_table = 'SYS_USER_POS'
 
 
@@ -2946,7 +2773,6 @@ class SysUserRole(models.Model):
     userid = models.BigIntegerField(db_column='USERID', blank=True, null=True)  
 
     class Meta:
-        managed = False
         db_table = 'SYS_USER_ROLE'
 
 
@@ -2957,7 +2783,6 @@ class SysUserUnder(models.Model):
     underusername = models.CharField(db_column='UNDERUSERNAME', max_length=50, blank=True, null=True)  
 
     class Meta:
-        managed = False
         db_table = 'SYS_USER_UNDER'
 
 
@@ -2969,7 +2794,6 @@ class SysVacation(models.Model):
     endtime = models.DateTimeField(db_column='ENDTIME', blank=True, null=True)  
 
     class Meta:
-        managed = False
         db_table = 'SYS_VACATION'
 
 
@@ -2981,7 +2805,6 @@ class SysWorktime(models.Model):
     memo = models.CharField(db_column='MEMO', max_length=200, blank=True, null=True)  
 
     class Meta:
-        managed = False
         db_table = 'SYS_WORKTIME'
 
 
@@ -2991,7 +2814,6 @@ class SysWorktimeSetting(models.Model):
     memo = models.CharField(db_column='MEMO', max_length=200, blank=True, null=True)  
 
     class Meta:
-        managed = False
         db_table = 'SYS_WORKTIME_SETTING'
 
 
@@ -3003,7 +2825,6 @@ class SysWsDataTemplate(models.Model):
     script = models.TextField(db_column='SCRIPT', blank=True, null=True)  
 
     class Meta:
-        managed = False
         db_table = 'SYS_WS_DATA_TEMPLATE'
 
 
@@ -3028,7 +2849,6 @@ class ApplyCompaign(models.Model):
     hdnr = models.CharField(max_length=2000, blank=True, null=True)
 
     class Meta:
-        managed = False
         db_table = 'apply_compaign'
 
 
@@ -3050,7 +2870,6 @@ class ApplyForm(models.Model):
     zdssexcel = models.CharField(db_column='zdssExcel', max_length=200, blank=True, null=True)  
 
     class Meta:
-        managed = False
         db_table = 'apply_form'
 
 
@@ -3062,7 +2881,6 @@ class CompaignDepts(models.Model):
     refid = models.ForeignKey(ApplyCompaign, db_column='REFID', blank=True, null=True)  
 
     class Meta:
-        managed = False
         db_table = 'compaign_depts'
 
 
@@ -3076,7 +2894,6 @@ class CompaignDetail(models.Model):
     refid = models.ForeignKey(ApplyCompaign, db_column='REFID', blank=True, null=True)  
 
     class Meta:
-        managed = False
         db_table = 'compaign_detail'
 
 
@@ -3093,7 +2910,6 @@ class CompanyInfo(models.Model):
     staff_count = models.CharField(max_length=100, blank=True, null=True)
 
     class Meta:
-        managed = False
         db_table = 'company_info'
 
 
@@ -3108,7 +2924,6 @@ class ContractNotify(models.Model):
     changed_flag = models.CharField(max_length=2000, blank=True, null=True)
 
     class Meta:
-        managed = False
         db_table = 'contract_notify'
 
 
@@ -3129,7 +2944,6 @@ class DeviceLendNotify(models.Model):
     content = models.CharField(max_length=2000, blank=True, null=True)
 
     class Meta:
-        managed = False
         db_table = 'device_lend_notify'
 
 
@@ -3147,7 +2961,6 @@ class EbApplications(models.Model):
     doc_number = models.CharField(max_length=50, blank=True, null=True)
 
     class Meta:
-        managed = False
         db_table = 'eb_applications'
 
 
@@ -3169,7 +2982,6 @@ class EbAttendance(models.Model):
     objects = EboaManager()
 
     class Meta:
-        managed = False
         db_table = 'eb_attendance'
         verbose_name = verbose_name_plural = u"出勤"
 
@@ -3190,6 +3002,31 @@ class EbAttendance(models.Model):
             return cost.totalamountinside
         return 0
 
+    def get_eb_member(self):
+        if not self.applicant and not hasattr(self.applicant, 'ebemployee'):
+            return None
+        user_code = self.applicant.ebemployee.code
+        try:
+            return eb_models.Member.objects.get(employee_id=user_code)
+        except ObjectDoesNotExist:
+            return None
+        except MultipleObjectsReturned:
+            return None
+
+    def get_advance_amount(self):
+        """管理職立替金額を取得する。
+
+        :return:
+        """
+        member = self.get_eb_member()
+        if member:
+            expenses = member.employeeexpenses_set.filter(year=self.period[:4], month=self.period[-2:])
+            if expenses.count() > 0:
+                return expenses[0].advance_amount
+            else:
+                return 0
+        return 0
+
 
 class EbBankinfoUpdate(models.Model):
     id = models.BigIntegerField(db_column='ID', primary_key=True)  
@@ -3203,7 +3040,6 @@ class EbBankinfoUpdate(models.Model):
     owner_name_kana = models.CharField(max_length=50, blank=True, null=True)
 
     class Meta:
-        managed = False
         db_table = 'eb_bankinfo_update'
 
 
@@ -3221,7 +3057,6 @@ class EbCostPayment(models.Model):
     objects = EboaManager()
 
     class Meta:
-        managed = False
         db_table = 'eb_cost_payment'
 
 
@@ -3237,7 +3072,6 @@ class EbCostPaymentList(models.Model):
     type = models.CharField(max_length=1000)
 
     class Meta:
-        managed = False
         db_table = 'eb_cost_payment_list'
 
 
@@ -3267,7 +3101,6 @@ class EbDependment(models.Model):
     employment_insurance = models.CharField(max_length=1, blank=True, null=True)
 
     class Meta:
-        managed = False
         db_table = 'eb_dependment'
 
 
@@ -3283,7 +3116,6 @@ class EbDevice(models.Model):
     status = models.CharField(max_length=2000, blank=True, null=True)
 
     class Meta:
-        managed = False
         db_table = 'eb_device'
 
 
@@ -3302,7 +3134,6 @@ class EbDeviceLend(models.Model):
     content = models.CharField(max_length=2000, blank=True, null=True)
 
     class Meta:
-        managed = False
         db_table = 'eb_device_lend'
 
 
@@ -3313,7 +3144,6 @@ class EbDeviceSpecs(models.Model):
     refid = models.ForeignKey(EbDevice, db_column='REFID', blank=True, null=True)  
 
     class Meta:
-        managed = False
         db_table = 'eb_device_specs'
 
 
@@ -3330,7 +3160,6 @@ class EbDuringMbCert(models.Model):
     doc_number = models.CharField(max_length=50, blank=True, null=True)
 
     class Meta:
-        managed = False
         db_table = 'eb_during_mb_cert'
 
 
@@ -3353,7 +3182,6 @@ class EbEmpAddrUpdate(models.Model):
     nearby_station = models.CharField(max_length=50, blank=True, null=True)
 
     class Meta:
-        managed = False
         db_table = 'eb_emp_addr_update'
 
 
@@ -3399,7 +3227,6 @@ class EbEmpContract(models.Model):
     cost = models.DecimalField(max_digits=13, decimal_places=0, blank=True, null=True)
 
     class Meta:
-        managed = False
         db_table = 'eb_emp_contract'
 
 
@@ -3415,7 +3242,6 @@ class EbEmpEducation(models.Model):
     refid = models.ForeignKey('EbEmployee', db_column='REFID', blank=True, null=True)  
 
     class Meta:
-        managed = False
         db_table = 'eb_emp_education'
 
 
@@ -3427,7 +3253,6 @@ class EbEmpLanguage(models.Model):
     code = models.CharField(max_length=100)
 
     class Meta:
-        managed = False
         db_table = 'eb_emp_language'
 
 
@@ -3462,7 +3287,6 @@ class EbEmpPjCareer(models.Model):
     pj_scope_dd = models.CharField(max_length=20, blank=True, null=True)
 
     class Meta:
-        managed = False
         db_table = 'eb_emp_pj_career'
 
 
@@ -3474,7 +3298,6 @@ class EbEmpQulification(models.Model):
     refid = models.ForeignKey('EbEmployee', db_column='REFID', blank=True, null=True)  
 
     class Meta:
-        managed = False
         db_table = 'eb_emp_qulification'
 
 
@@ -3541,7 +3364,6 @@ class EbEmployee(models.Model):
     objects = EboaManager()
 
     class Meta:
-        managed = False
         db_table = 'eb_employee'
         verbose_name = verbose_name_plural = u"社員"
 
@@ -3568,7 +3390,6 @@ class EbInsureLossCert(models.Model):
     doc_number = models.CharField(max_length=50, blank=True, null=True)
 
     class Meta:
-        managed = False
         db_table = 'eb_insure_loss_cert'
 
 
@@ -3578,7 +3399,6 @@ class EbMRoomDevice(models.Model):
     refid = models.ForeignKey('EbMeetingRoom', db_column='REFID', blank=True, null=True)  
 
     class Meta:
-        managed = False
         db_table = 'eb_m_room_device'
 
 
@@ -3594,7 +3414,6 @@ class EbMarriageContact(models.Model):
     attach_file_02 = models.CharField(max_length=2000, blank=True, null=True)
 
     class Meta:
-        managed = False
         db_table = 'eb_marriage_contact'
 
 
@@ -3615,7 +3434,6 @@ class EbMeeting(models.Model):
     room = models.CharField(max_length=50, blank=True, null=True)
 
     class Meta:
-        managed = False
         db_table = 'eb_meeting'
 
 
@@ -3625,7 +3443,6 @@ class EbMeetingRoom(models.Model):
     room_name = models.CharField(max_length=100, blank=True, null=True)
 
     class Meta:
-        managed = False
         db_table = 'eb_meeting_room'
 
 
@@ -3641,7 +3458,6 @@ class EbNotice(models.Model):
     summary = models.CharField(max_length=2000, blank=True, null=True)
 
     class Meta:
-        managed = False
         db_table = 'eb_notice'
 
 
@@ -3661,7 +3477,6 @@ class EbResume(models.Model):
     file_id = models.CharField(max_length=50, blank=True, null=True)
 
     class Meta:
-        managed = False
         db_table = 'eb_resume'
 
 
@@ -3678,7 +3493,6 @@ class EbResumeEducation(models.Model):
     refid = models.ForeignKey(EbResume, db_column='REFID', blank=True, null=True)  
 
     class Meta:
-        managed = False
         db_table = 'eb_resume_education'
 
 
@@ -3690,7 +3504,6 @@ class EbResumeLanguage(models.Model):
     refid = models.ForeignKey(EbResume, db_column='REFID', blank=True, null=True)  
 
     class Meta:
-        managed = False
         db_table = 'eb_resume_language'
 
 
@@ -3722,7 +3535,6 @@ class EbResumePjCareer(models.Model):
     refid = models.ForeignKey(EbResume, db_column='REFID', blank=True, null=True)  
 
     class Meta:
-        managed = False
         db_table = 'eb_resume_pj_career'
 
 
@@ -3735,7 +3547,6 @@ class EbResumeQualificat(models.Model):
     refid = models.ForeignKey(EbResume, db_column='REFID', blank=True, null=True)  
 
     class Meta:
-        managed = False
         db_table = 'eb_resume_qualificat'
 
 
@@ -3757,7 +3568,6 @@ class EbRetireCert(models.Model):
     doc_number = models.CharField(max_length=50, blank=True, null=True)
 
     class Meta:
-        managed = False
         db_table = 'eb_retire_cert'
 
 
@@ -3780,7 +3590,6 @@ class EbRetirement(models.Model):
     attach_file_02 = models.CharField(max_length=512, blank=True, null=True)
 
     class Meta:
-        managed = False
         db_table = 'eb_retirement'
 
 
@@ -3802,7 +3611,6 @@ class EbTransit(models.Model):
     total_cost = models.DecimalField(max_digits=5, decimal_places=0)
 
     class Meta:
-        managed = False
         db_table = 'eb_transit'
 
 
@@ -3818,7 +3626,6 @@ class EbTransitInterval(models.Model):
     refid = models.ForeignKey(EbTransit, db_column='REFID', blank=True, null=True)  
 
     class Meta:
-        managed = False
         db_table = 'eb_transit_interval'
 
 
@@ -3836,7 +3643,6 @@ class EbVisaApplicaton(models.Model):
     flg = models.CharField(max_length=20, blank=True, null=True)
 
     class Meta:
-        managed = False
         db_table = 'eb_visa_applicaton'
 
 
@@ -3852,7 +3658,6 @@ class EbVisaContact(models.Model):
     remark = models.CharField(max_length=2000, blank=True, null=True)
 
     class Meta:
-        managed = False
         db_table = 'eb_visa_contact'
 
 
@@ -3867,7 +3672,6 @@ class NameChangeNotify(models.Model):
     new_name_furigana = models.CharField(max_length=100, blank=True, null=True)
 
     class Meta:
-        managed = False
         db_table = 'name_change_notify'
 
 
@@ -3913,7 +3717,6 @@ class RecruitManagement(models.Model):
     result = models.CharField(max_length=10, blank=True, null=True)
 
     class Meta:
-        managed = False
         db_table = 'recruit_management'
 
 
@@ -3931,7 +3734,6 @@ class SchemaVersion(models.Model):
     success = models.IntegerField()
 
     class Meta:
-        managed = False
         db_table = 'schema_version'
 
 
@@ -3944,5 +3746,4 @@ class Test001(models.Model):
     xxxx = models.CharField(max_length=2000, blank=True, null=True)
 
     class Meta:
-        managed = False
         db_table = 'test001'

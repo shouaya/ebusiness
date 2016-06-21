@@ -304,3 +304,20 @@ function calc_price_for_minus_portal(obj) {
         }
     }
 }
+
+
+function row_update_show(obj) {
+    row_show = $(obj).parent().parent();
+    row_show.css("display", "none");
+    
+    row_for_update = row_show.next();
+    row_for_update.attr("class", "row_updating");
+}
+
+function row_update_cancel(obj) {
+    row_for_update = $(obj).parent().parent();
+    row_for_update.attr("class", "row_updated");
+
+    row_show = row_for_update.prev();
+    row_show.css("display", "");
+}

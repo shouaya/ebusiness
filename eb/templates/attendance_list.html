@@ -10,6 +10,45 @@
             $("#year").val("{{ year }}");
             $("#month").val("{{ month }}");
         };
+        
+        function row_update(obj, url) {
+            row_for_update = $(obj).parent().parent();
+            row_show = row_for_update.prev();
+            advance_amount = row_for_update.find("input[type='number']").val();
+            if (advance_amount == "") {
+                alert("値を入力してください！");
+                return false;
+            }
+            member_id = $(obj).attr("member_id");
+            if (member_id == "") {
+                alert("対象の社員が見つかりません！");
+                return false;
+            }
+
+            $.ajax({
+                type: 'post',
+                url: url,
+                data: {'csrfmiddlewaretoken': $("input[name='csrfmiddlewaretoken']").val(),
+                       'advance_amount': advance_amount
+                      },
+                cache: false,
+                async : false, // 默认为true 异步
+                dataType: 'json',
+                success: function(data){
+                    if (data.ret == 0) {
+                        alert("更新しました！");
+                        row_show.find("td[name='advance_amount']").text(advance_amount);
+                        row_update_cancel(obj);
+                    } else {
+                        alert("失敗！");
+                    }
+                },
+                error: function(data) {
+                    alert("Error!");
+                }
+            });
+            return false;
+        }
     </script>
 {% endblock %}
 
@@ -43,6 +82,7 @@
             <input type="submit" value="Filter" />
             <a href="{{ request.path }}">クリア</a>
             <a href="{% url 'download_attendance_list' year month %}" class="button" target="_blank">ダウンロード</a>
+            {% csrf_token %}
         </form>
     </div>
     <table class="list" cellpadding="0" cellspacing="0">
@@ -93,13 +133,14 @@
                 <th>出勤日数</th>
                 <th>出勤時間</th>
                 <th>立替金額</th>
-                <th>管理職立替金額</th>
+                <th style="width: 70px;">管理職立替</th>
                 <th>総立替金額</th>
                 <th>夜残業回数</th>
                 <th>定期券</th>
                 <th style="width: 120px;">定期券区間</th>
                 <th>天引</th>
                 <th>現場</th>
+                <th style="width: 60px;"></th>
             </tr>
         </thead>
         <tbody>
@@ -112,7 +153,7 @@
                         <td>{{ attendance.totalday }}</td>
                         <td>{{ attendance.totaltime }}</td>
                         <td>{{ attendance.get_cost_payment|intcomma }}</td>
-                        <td></td>
+                        <td name="advance_amount">{{ attendance.get_advance_amount }}</td>
                         <td></td>
                         <td>{{ attendance.nightcount|default:'0' }}</td>
                         <td>{{ attendance.transit|intcomma }}</td>
@@ -123,15 +164,41 @@
                         </td>
                         <td></td>
                         <td></td>
+                        <td class="center">
+                            <a href="javascript:void(0)" onclick="row_update_show(this)">変更</a>
+                        </td>
+                    </tr>
+                    <tr class="row_updated">
+                        <td>{{ attendance.applicant.ebemployee.code }}</td>
+                        <td>{{ attendance.applicant }}</td>
+                        <td>{{ attendance.applicant.get_section }}</td>
+                        <td>{{ attendance.totalday }}</td>
+                        <td>{{ attendance.totaltime }}</td>
+                        <td>{{ attendance.get_cost_payment|intcomma }}</td>
+                        <td><input type="number" style="width: 62px;" value="{{ attendance.get_advance_amount }}" /></td>
+                        <td></td>
+                        <td>{{ attendance.nightcount|default:'0' }}</td>
+                        <td>{{ attendance.transit|intcomma }}</td>
+                        <td title="{{ attendance.transit_interval }}">
+                            <div style="width: 120px; white-space: nowrap; overflow: hidden;">
+                                {{ attendance.transit_interval }}
+                            </div>
+                        </td>
+                        <td></td>
+                        <td></td>
+                        <td class="center">
+                            <a href="javascript:void(0)" onclick="row_update(this, '{% url 'member_expanses_update' attendance.get_eb_member.pk year month %}')" member_id={{ attendance.get_eb_member.pk }}>保存</a>
+                            <a href="javascript:void(0)" onclick="row_update_cancel(this)">取消</a>
+                        </td>
                     </tr>
                 {% endfor %}
             {% else %}
-                <tr class="row1"><td class="center red" colspan="13">該当する要員がいません。</td></tr>
+                <tr class="row1"><td class="center red" colspan="14">該当する要員がいません。</td></tr>
             {% endif %}
         </tbody>
         <tfoot>
             <tr>
-                <td colspan="13">
+                <td colspan="14">
                     <div class="pagination">
                         <span class="step-links">
                             {% if members.has_previous %}
