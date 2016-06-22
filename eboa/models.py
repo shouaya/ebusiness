@@ -4,6 +4,7 @@ from django.db import models
 from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
 
 from eb import models as eb_models
+from utils import common
 
 
 class EboaManager(models.Manager):
@@ -2427,7 +2428,7 @@ class SysOrg(models.Model):
         verbose_name = verbose_name_plural = u"組織"
 
     def __unicode__(self):
-        return self.orgname
+        return common.get_unicode(self.orgname)
 
 
 class SysOrgAuth(models.Model):
@@ -3170,9 +3171,9 @@ class EbAttendance(models.Model):
 
     def __unicode__(self):
         if self.applicant:
-            return self.applicant.fullname
+            return common.get_unicode(self.applicant.fullname)
         else:
-            return self.applicant_name
+            return common.get_unicode(self.applicant_name)
 
     def get_cost_payment(self):
         """精算金額を取得する。
@@ -3566,7 +3567,7 @@ class EbEmployee(models.Model):
         verbose_name = verbose_name_plural = u"社員"
 
     def __unicode__(self):
-        return self.name
+        return common.get_unicode(self.name)
 
 
 class EbInsureLossCert(models.Model):

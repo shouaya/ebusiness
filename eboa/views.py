@@ -47,10 +47,21 @@ def download_attendance_list(request, year, month):
     response['Content-Disposition'] = 'attachment; filename=' + urllib.quote(filename.encode('utf-8')) + '.csv' 
     writer = csv.writer(response, quoting=csv.QUOTE_ALL)
     for attendance in attendance_list:
+        if isinstance(attendance.applicant_name, unicode):
+            applicant_name = attendance.applicant_name.encode('utf8')
+        else:
+            applicant_name = attendance.applicant_name
         org = attendance.applicant.get_section()
+        if org:
+            if isinstance(org.orgname, unicode):
+                orgname = org.orgname.encode('utf8')
+            else:
+                orgname = org.orgname
+        else:
+            orgname = ""
         writer.writerow([attendance.applicant.ebemployee.code,
-                         attendance.applicant_name.encode('utf-8'),
-                         org.orgname.encode('utf-8') if org else '',
+                         applicant_name,
+                         orgname,
                          attendance.totalday,
                          attendance.totaltime,
                          attendance.get_cost_payment()])

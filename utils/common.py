@@ -764,3 +764,12 @@ if __name__ == "__main__":
     for text in [u"注文番号：{$ORDER_NO$}", u"注文番号：{$ORDER_NO$} TEL:{$TEL$} ",
                  u"注文番号：{$ORDER_NO$", u"注文番号：ORDER_NO", u"注文番号：{$ORDER_NO"]:
         print text.ljust(50), get_excel_replacements(text)
+
+
+def get_unicode(s):
+    if isinstance(s, unicode):
+        return s
+    elif isinstance(s, str):
+        return s.decode('utf8')
+    else:
+        return s
