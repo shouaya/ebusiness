@@ -76,6 +76,7 @@ class AbstractMember(models.Model):
     is_retired = models.BooleanField(blank=False, null=False, default=False, verbose_name=u"退職")
     id_from_api = models.CharField(blank=True, null=True, unique=True, max_length=30, editable=False,
                                    verbose_name=u"社員ID", help_text=u"データを導入するために、API側のID")
+    eboa_user_id = models.BigIntegerField(blank=True, null=True, unique=True)
 
     class Meta:
         abstract = True
