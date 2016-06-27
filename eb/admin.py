@@ -310,7 +310,7 @@ class MemberAdmin(BaseAdmin):
                      'country', 'graduate_date', 'phone', 'japanese_description',
                      'certificate', 'skill_description', 'comment')}),
         (u"勤務情報", {'fields': ['member_type', 'join_date', 'email', 'is_notify', 'notify_type', 'section', 'company',
-                              'subcontractor', 'is_on_sales', 'sales_off_reason', 'salesperson', 'eboa_user_id', 'is_retired']})
+                              'subcontractor', 'is_on_sales', 'sales_off_reason', 'salesperson', 'is_retired']})
     )
 
     def get_actions(self, request):
@@ -419,8 +419,7 @@ class SalespersonAdmin(BaseAdmin):
                      'post_code',
                      ('address1', 'address2'),
                      'country', 'graduate_date', 'phone', 'japanese_description', 'certificate', 'comment')}),
-        (u"勤務情報", {'fields': ('member_type', 'email', 'is_notify', 'notify_type', 'section', 'company',
-                              'eboa_user_id', 'is_retired')})
+        (u"勤務情報", {'fields': ('member_type', 'email', 'is_notify', 'notify_type', 'section', 'company', 'is_retired')})
     )
     actions = ['create_users', 'delete_objects', 'active_objects']
 
@@ -726,7 +725,8 @@ class ProjectMemberAdmin(BaseAdmin):
     form = forms.ProjectMemberForm
     search_fields = ['project__name', 'project__client__name', 'member__first_name', 'member__last_name']
 
-    list_display = ['project', 'display_project_client', 'member', 'start_date', 'end_date', 'status', 'is_deleted']
+    list_display = ['project', 'display_project_client', 'member', 'start_date', 'end_date', 'status',
+                    'display_eboa_user_id', 'is_deleted']
     filter_horizontal = ['stages']
     list_display_links = ['member']
     list_filter = ['status', 'is_deleted']
@@ -741,9 +741,12 @@ class ProjectMemberAdmin(BaseAdmin):
 
     def display_project_client(self, obj):
         return obj.project.client.name
-
+    def display_eboa_user_id(self, obj):
+        return obj.member.eboa_user_id
     display_project_client.short_description = u"関連会社"
     display_project_client.admin_order_field = 'project__client'
+    display_eboa_user_id.short_description = u"EBOA連携ID"
+    display_eboa_user_id.admin_order_field = 'member__eboa_user_id'
 
     def delete_objects(self, request, queryset):
         cnt = 0
