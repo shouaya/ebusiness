@@ -2882,6 +2882,8 @@ class SysUser(models.Model):
     class Meta:
         managed = False
         db_table = 'SYS_USER'
+        ordering = ['fullname']
+        verbose_name = verbose_name_plural = u"ユーザ"
 
     def __unicode__(self):
         return self.fullname
@@ -3189,9 +3191,9 @@ class EbAttendance(models.Model):
     def get_eb_member(self):
         if not self.applicant and not hasattr(self.applicant, 'ebemployee'):
             return None
-        user_code = self.applicant.ebemployee.code
+        user_id = self.applicant.userid
         try:
-            return eb_models.Member.objects.get(employee_id=user_code)
+            return eb_models.Member.objects.get(eboa_user_id=user_id)
         except ObjectDoesNotExist:
             return None
         except MultipleObjectsReturned:
@@ -3564,6 +3566,7 @@ class EbEmployee(models.Model):
     class Meta:
         managed = False
         db_table = 'eb_employee'
+        ordering = ['name']
         verbose_name = verbose_name_plural = u"社員"
 
     def __unicode__(self):

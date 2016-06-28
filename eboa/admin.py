@@ -67,6 +67,12 @@ class SysOrgAdmin(BaseEboaAdmin):
             return None
 
 
+class SysUserAdmin(BaseEboaAdmin):
+    form = forms.SysUserForm
+    list_display = ['userid', 'fullname']
+    search_fields = ['userid', 'fullname']
+
+
 class EboaAdminSite(admin.AdminSite):
     site_header = "EBOAデータ参照（データは変更できません）"
     site_title = "管理サイト"
@@ -76,3 +82,4 @@ eboa_admin_site = EboaAdminSite(name='eboa_admin')
 eboa_admin_site.register(models.EbAttendance, EbAttendanceAdmin)
 eboa_admin_site.register(models.EbEmployee, EbEmployeeAdmin)
 eboa_admin_site.register(models.SysOrg, SysOrgAdmin)
+eboa_admin_site.register(models.SysUser, SysUserAdmin)

@@ -14,6 +14,7 @@ from django.utils import timezone
 
 from utils import common
 from eb import models
+from eboa import models as eboa_models
 
 
 def get_company():
@@ -667,3 +668,23 @@ def get_request_expenses_list(project, year, month, project_members):
         d['ITEM_EXPENSES_CATEGORY_AMOUNT'] = amount
         detail_expenses.append(d)
     return detail_expenses, expenses_amount
+
+
+def get_attendance_time_from_eboa(project_member, year, month):
+    """EBOAから出勤時間を取得する。
+
+    :param year:
+    :param month:
+    :return:
+    """
+    if not project_member.member.eboa_user_id:
+        return 0
+
+    period = '%04d/%02d' % (int(year), int(month))
+    eboa_attendances = eboa_models.EbAttendance.objects.filter(applicant__userid=project_member.member.eboa_user_id,
+                                                               period=period)
+    if eboa_attendances.count() > 0:
+        return float(eboa_attendances[0].totaltime)
+    else:
+        return 0
+

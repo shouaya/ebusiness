@@ -301,8 +301,12 @@ def member_expanses_update(request, member_id, year, month):
     except ObjectDoesNotExist:
         member_expanses = EmployeeExpenses(member=member, year=year, month=month)
     member_expanses.advance_amount = advance_amount
-    member_expanses.save()
-    d = {'ret': 0}
+
+    try:
+        member_expanses.save()
+        d = {'ret': 0, 'message': None}
+    except Exception as e:
+        d = {'ret': 1, 'message': e.message}
     return HttpResponse(json.dumps(d))
 
 
@@ -476,6 +480,7 @@ def project_attendance_list(request, project_id):
                 project_members = project.get_project_members_by_month(date)
                 dict_initials = []
                 for project_member in project_members:
+                    # 既に入力済みの場合、DBから取得する。
                     attendance = project_member.get_attendance(date.year, date.month)
                     if attendance:
                         initial_form_count += 1
@@ -509,23 +514,41 @@ def project_attendance_list(request, project_id):
                                  'comment': attendance.comment,
                                  }
                     else:
+                        # まだ入力してない場合、EBOAの出勤情報から取得する。
+                        total_hours = biz.get_attendance_time_from_eboa(project_member, date.year, date.month)
                         if project.is_hourly_pay:
                             d = {'id': u"",
                                  'project_member': project_member,
                                  'year': str_year,
                                  'month': str_month,
+                                 'total_hours': total_hours,
                                  'hourly_pay': project_member.hourly_pay
                                  }
                         else:
+                            total_price = 0
+                            if total_hours > project_member.max_hours:
+                                extra_hours = total_hours - float(project_member.max_hours)
+                                total_price = project_member.price + (extra_hours * project_member.plus_per_hour)
+                            elif total_hours < project_member.min_hours and total_hours > 0:
+                                extra_hours = total_hours - float(project_member.min_hours)
+                                total_price = project_member.price + (extra_hours * project_member.minus_per_hour)
+                            elif total_hours > 0:
+                                extra_hours = 0
+                                total_price = project_member.price
+                            else:
+                                extra_hours = 0
                             d = {'id': u"",
                                  'project_member': project_member,
                                  'year': str_year,
                                  'month': str_month,
                                  'basic_price': project_member.price,
+                                 'total_hours': total_hours,
+                                 'extra_hours': extra_hours,
                                  'max_hours': project_member.max_hours,
                                  'min_hours': project_member.min_hours,
                                  'plus_per_hour': project_member.plus_per_hour,
                                  'minus_per_hour': project_member.minus_per_hour,
+                                 'price': total_price,
                                  }
                     dict_initials.append(d)
                 if project.is_hourly_pay:
