@@ -10,6 +10,7 @@ import datetime
 from django.http import HttpResponse
 from django.contrib import admin
 from django.contrib import messages
+from django.contrib.admin.models import LogEntry, ADDITION, CHANGE, DELETION
 from django.contrib.auth.models import User
 from django.contrib.auth.admin import UserAdmin
 from django.utils.translation import ugettext_lazy as _
@@ -83,6 +84,22 @@ class NoUserFilter(admin.SimpleListFilter):
             return queryset.filter(user__isnull=True)
         if self.value() == 'False':
             return queryset.filter(user__isnull=False)
+
+
+class ActionFlagFilter(admin.SimpleListFilter):
+    title = u"操作種別 "
+    parameter_name = "action_flag"
+
+    def lookups(self, request, model_admin):
+        return (
+            ('1', u"追加"),
+            ('2', u"修正"),
+            ('3', u"削除"),
+        )
+
+    def queryset(self, request, queryset):
+        if self.value():
+            return queryset.filter(action_flag=self.value())
 
 
 class ProjectSkillInline(admin.TabularInline):
@@ -1045,6 +1062,42 @@ class CustomUserAdmin(UserAdmin):
         return actions
 
 
+class LogEntryAdmin(AdminOnlyAdmin):
+    list_display = ['get_user_name', 'content_type', 'object_repr', 'get_action_flag_name', 'action_time']
+    list_filter = [ActionFlagFilter, 'user']
+    search_fields = ['object_repr']
+
+    def get_user_name(self, obj):
+        if obj.user.first_name or obj.user.last_name:
+            return u"%s %s" % (obj.user.first_name, obj.user.last_name)
+        else:
+            return obj.user.username
+    get_user_name.short_description = u"User"
+    get_user_name.admin_order_field = 'user'
+
+    def get_action_flag_name(self, obj):
+        if obj.action_flag == ADDITION:
+            return u"追加"
+        elif obj.action_flag == CHANGE:
+            return u"修正"
+        else:
+            return u"削除"
+    get_action_flag_name.short_description = u"操作種別"
+    get_action_flag_name.admin_order_field = 'action_flag'
+
+    def get_actions(self, request):
+        actions = super(LogEntryAdmin, self).get_actions(request)
+        if 'delete_selected' in actions:
+            del actions['delete_selected']
+        return actions
+
+    def get_readonly_fields(self, request, obj=None):
+        return list(set(
+            [field.name for field in self.opts.local_fields] +
+            [field.name for field in self.opts.local_many_to_many]
+        ))
+
+
 # Register your models here.
 admin.site.register(Company, CompanyAdmin)
 admin.site.register(BankInfo, BankInfoAdmin)
@@ -1075,6 +1128,7 @@ admin.site.register(History, HistoryAdmin)
 
 admin.site.unregister(User)
 admin.site.register(User, CustomUserAdmin)
+admin.site.register(LogEntry, LogEntryAdmin)
 
 admin.site.site_header = u'社員営業状況管理システム'
 admin.site.site_title = u'管理サイト'
