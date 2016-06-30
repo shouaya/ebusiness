@@ -7,6 +7,9 @@ from . import models, forms
 
 class BaseEboaAdmin(admin.ModelAdmin):
 
+    class Media:
+        js = ('/static/js/jquery-2.1.4.min.js', '/static/js/readonly.js',)
+
     def save_model(self, request, obj, form, change):
         # Tell Django to save objects to the 'other' database.
         # obj.save(using=self.using)
@@ -23,6 +26,12 @@ class BaseEboaAdmin(admin.ModelAdmin):
 
     def has_delete_permission(self, request, obj=None):
         return False
+
+    def get_readonly_fields(self, request, obj=None):
+        return list(set(
+            [field.name for field in self.opts.local_fields] +
+            [field.name for field in self.opts.local_many_to_many]
+        ))
 
 
 class EbAttendanceAdmin(BaseEboaAdmin):

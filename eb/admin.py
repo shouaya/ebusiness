@@ -10,7 +10,7 @@ import datetime
 from django.http import HttpResponse
 from django.contrib import admin
 from django.contrib import messages
-from django.contrib.admin.models import LogEntry, ADDITION, CHANGE, DELETION
+from django.contrib.admin.models import LogEntry, ADDITION, CHANGE
 from django.contrib.auth.models import User
 from django.contrib.auth.admin import UserAdmin
 from django.utils.translation import ugettext_lazy as _
@@ -205,6 +205,30 @@ class AdminOnlyAdmin(BaseAdmin):
             return True
         else:
             return False
+
+
+class ReadonlyAdmin(admin.ModelAdmin):
+
+    class Media:
+        js = ('/static/js/jquery-2.1.4.min.js', '/static/js/readonly.js',)
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        if request.user.username == u"admin":
+            return True
+        else:
+            return False
+
+    def get_readonly_fields(self, request, obj=None):
+        return list(set(
+            [field.name for field in self.opts.local_fields] +
+            [field.name for field in self.opts.local_many_to_many]
+        ))
 
 
 class CompanyAdmin(BaseAdmin):
@@ -1062,9 +1086,14 @@ class CustomUserAdmin(UserAdmin):
         return actions
 
 
-class LogEntryAdmin(AdminOnlyAdmin):
-    list_display = ['get_user_name', 'content_type', 'object_repr', 'get_action_flag_name', 'action_time']
-    list_filter = [ActionFlagFilter, 'user']
+class LogEntryAdmin(ReadonlyAdmin):
+    list_display = ['get_user_name', 'content_type', 'get_object_repr', 'get_action_flag_name', 'action_time',
+                    'get_change_message']
+    list_filter = (
+        ActionFlagFilter,
+        ('content_type', admin.RelatedOnlyFieldListFilter),
+        'user'
+    )
     search_fields = ['object_repr']
 
     def get_user_name(self, obj):
@@ -1085,17 +1114,21 @@ class LogEntryAdmin(AdminOnlyAdmin):
     get_action_flag_name.short_description = u"操作種別"
     get_action_flag_name.admin_order_field = 'action_flag'
 
+    def get_object_repr(self, obj):
+        return obj.object_repr[:25]
+    get_object_repr.short_description = u"オブジェクトの文字列表現"
+    get_object_repr.admin_order_field = 'object_repr'
+
+    def get_change_message(self, obj):
+        return obj.change_message[:50]
+    get_change_message.short_description = u"変更メッセージ"
+    get_change_message.admin_order_field = 'change_message'
+
     def get_actions(self, request):
         actions = super(LogEntryAdmin, self).get_actions(request)
         if 'delete_selected' in actions:
             del actions['delete_selected']
         return actions
-
-    def get_readonly_fields(self, request, obj=None):
-        return list(set(
-            [field.name for field in self.opts.local_fields] +
-            [field.name for field in self.opts.local_many_to_many]
-        ))
 
 
 # Register your models here.
