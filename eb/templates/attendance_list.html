@@ -111,9 +111,9 @@
                         <td>{{ attendance.applicant.ebemployee.code }}</td>
                         <td>
                             {% if attendance.get_eb_member %}
-                            <a href="{% url 'member_detail' attendance.get_eb_member.employee_id %}">{{ attendance.applicant }}</a>
+                            <a href="{% url 'member_detail' attendance.get_eb_member.employee_id %}">{{ attendance.applicant_name }}</a>
                             {% else %}
-                            {{ attendance.applicant }}
+                            {{ attendance.applicant_name }}
                             {% endif %}
                         </td>
                         <td>{{ attendance.applicant.get_section }}</td>
@@ -137,7 +137,7 @@
                     </tr>
                     <tr class="row_updated">
                         <td>{{ attendance.applicant.ebemployee.code }}</td>
-                        <td>{{ attendance.applicant }}</td>
+                        <td>{{ attendance.applicant_name }}</td>
                         <td>{{ attendance.applicant.get_section }}</td>
                         <td>{{ attendance.totalday }}</td>
                         <td>{{ attendance.totaltime }}</td>
