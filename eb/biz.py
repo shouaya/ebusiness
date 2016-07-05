@@ -505,10 +505,14 @@ def get_request_members_in_project(project, client_order, ym):
         if client_order.member_comma_list:
             # 重複したメンバーを外す。
             member_id_list = sorted(set(client_order.member_comma_list.split(",")))
+            first_day = common.get_first_day_from_ym(ym)
+            last_day = common.get_last_day_by_month(first_day)
             for pm_id in member_id_list:
                 try:
                     project_members.append(
-                        models.ProjectMember.objects.get(pk=int(pm_id), is_deleted=False, status=2))
+                        models.ProjectMember.objects.get(pk=int(pm_id), is_deleted=False, status=2,
+                                                         start_date__lte=last_day,
+                                                         end_date__gte=first_day))
                 except ObjectDoesNotExist:
                     pass
     else:
