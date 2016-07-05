@@ -144,51 +144,33 @@ class SubcontractorOrderAdmin(BaseAdmin):
     list_display = ['subcontractor', 'order_no', 'year', 'month', 'deleted_date']
 
 
-if models.EbBankinfo.objects.all().count() > 0:
-    admin.site.register(models.EbBankinfo, BankInfoAdmin)
-if models.EbBpmemberorderinfo.objects.all().count() > 0:
-    admin.site.register(models.EbBpmemberorderinfo, BpMemberOrderInfoAdmin)
-if models.EbClient.objects.all().count() > 0:
-    admin.site.register(models.EbClient, ClientAdmin)
-if models.EbClientmember.objects.all().count() > 0:
-    admin.site.register(models.EbClientmember, ClientMemberAdmin)
-if models.EbClientorder.objects.all().count() > 0:
-    admin.site.register(models.EbClientorder, ClientOrderAdmin)
-if models.EbDegree.objects.all().count() > 0:
-    admin.site.register(models.EbDegree, DegreeAdmin)
-if models.EbExpensescategory.objects.all().count() > 0:
-    admin.site.register(models.EbExpensescategory, ExpensesCategoryAdmin)
-if models.EbHistoryproject.objects.all().count() > 0:
-    admin.site.register(models.EbHistoryproject, HistoryProjectAdmin)
-if models.EbMember.objects.all().count() > 0:
-    admin.site.register(models.EbMember, MemberAdmin)
-if models.EbMemberattendance.objects.all().count() > 0:
-    admin.site.register(models.EbMemberattendance, MemberAttendanceAdmin)
-if models.EbMemberexpenses.objects.all().count() > 0:
-    admin.site.register(models.EbMemberexpenses, MemberExpensesAdmin)
-if models.EbPositionship.objects.all().count() > 0:
-    admin.site.register(models.EbPositionship, PositionShipAdmin)
-if models.EbOs.objects.all().count() > 0:
-    admin.site.register(models.EbOs, OsAdmin)
-if models.EbProject.objects.all().count() > 0:
-    admin.site.register(models.EbProject, ProjectAdmin)
-if models.EbProjectactivity.objects.all().count() > 0:
-    admin.site.register(models.EbProjectactivity, ProjectActivityAdmin)
-if models.EbProjectmember.objects.all().count() > 0:
-    admin.site.register(models.EbProjectmember, ProjectMemberAdmin)
-if models.EbProjectskill.objects.all().count() > 0:
-    admin.site.register(models.EbProjectskill, ProjectSkillAdmin)
-if models.EbProjectstage.objects.all().count() > 0:
-    admin.site.register(models.EbProjectstage, ProjectStageAdmin)
-if models.EbSalesoffreason.objects.all().count() > 0:
-    admin.site.register(models.EbSalesoffreason, SalesOffReasonAdmin)
-if models.EbSalesperson.objects.all().count() > 0:
-    admin.site.register(models.EbSalesperson, SalespersonAdmin)
-if models.EbSection.objects.all().count() > 0:
-    admin.site.register(models.EbSection, SectionAdmin)
-if models.EbSkill.objects.all().count() > 0:
-    admin.site.register(models.EbSkill, SkillAdmin)
-if models.EbSubcontractor.objects.all().count() > 0:
-    admin.site.register(models.EbSubcontractor, SubcontractorAdmin)
-if models.EbSubcontractororder.objects.all().count() > 0:
-    admin.site.register(models.EbSubcontractororder, SubcontractorOrderAdmin)
+class DelDataAdminSite(admin.AdminSite):
+    site_header = "削除したデータ（データ復元できます）"
+    site_title = "管理サイト"
+
+
+del_data_admin_site = DelDataAdminSite(name='del_data_admin')
+del_data_admin_site.register(models.EbBankinfo, BankInfoAdmin)
+del_data_admin_site.register(models.EbBpmemberorderinfo, BpMemberOrderInfoAdmin)
+del_data_admin_site.register(models.EbClient, ClientAdmin)
+del_data_admin_site.register(models.EbClientmember, ClientMemberAdmin)
+del_data_admin_site.register(models.EbClientorder, ClientOrderAdmin)
+del_data_admin_site.register(models.EbDegree, DegreeAdmin)
+del_data_admin_site.register(models.EbExpensescategory, ExpensesCategoryAdmin)
+del_data_admin_site.register(models.EbHistoryproject, HistoryProjectAdmin)
+del_data_admin_site.register(models.EbMember, MemberAdmin)
+del_data_admin_site.register(models.EbMemberattendance, MemberAttendanceAdmin)
+del_data_admin_site.register(models.EbMemberexpenses, MemberExpensesAdmin)
+del_data_admin_site.register(models.EbPositionship, PositionShipAdmin)
+del_data_admin_site.register(models.EbOs, OsAdmin)
+del_data_admin_site.register(models.EbProject, ProjectAdmin)
+del_data_admin_site.register(models.EbProjectactivity, ProjectActivityAdmin)
+del_data_admin_site.register(models.EbProjectmember, ProjectMemberAdmin)
+del_data_admin_site.register(models.EbProjectskill, ProjectSkillAdmin)
+del_data_admin_site.register(models.EbProjectstage, ProjectStageAdmin)
+del_data_admin_site.register(models.EbSalesoffreason, SalesOffReasonAdmin)
+del_data_admin_site.register(models.EbSalesperson, SalespersonAdmin)
+del_data_admin_site.register(models.EbSection, SectionAdmin)
+del_data_admin_site.register(models.EbSkill, SkillAdmin)
+del_data_admin_site.register(models.EbSubcontractor, SubcontractorAdmin)
+del_data_admin_site.register(models.EbSubcontractororder, SubcontractorOrderAdmin)

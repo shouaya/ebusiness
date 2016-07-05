@@ -36,7 +36,8 @@ class BaseEboaAdmin(admin.ModelAdmin):
 
 class EbAttendanceAdmin(BaseEboaAdmin):
     form = forms.EbAttendanceForm
-    list_display = ['id', 'applicant_name', 'period', 'totalday', 'nightcount', 'transit', 'transit_interval']
+    list_display = ['id', 'applicant_name', 'period', 'totalday', 'nightcount',
+                    'totaltime', 'transit', 'transit_interval']
 
     def applicant_name(self, obj):
         return obj.applicant.fullname
