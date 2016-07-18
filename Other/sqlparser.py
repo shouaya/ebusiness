@@ -303,8 +303,7 @@ class SqlLexer(object):
     t_LT      = r'<'
     t_LE      = r'<='
     t_EQ      = r'='
-    t_NE      = r'!='
-    #t_NE      = r'<>'
+    t_NE      = r'!=|<>'
 
     def t_error(self, t):
         raise TypeError("Unknown text '%s'" % (t.value,))
@@ -328,19 +327,21 @@ class SqlLexer(object):
 
 # TODO: consider using a more formal AST representation
 class Node(object):
-    def __init__(self, name, children=None, leaf=None, sql=None):
+    def __init__(self, name, children=None, sql=None):
         self.name = name
-        if isinstance(children, tuple) or isinstance    (children, list):
+        if isinstance(children, tuple) or isinstance(children, list):
             self.children = children
         elif children:
             self.children = [children]
         else:
             self.children = []
-        self.leaf = leaf
         self.sql = sql
 
     def to_sql(self):
         return self.sql
+
+    def set_indent(self):
+        pass
 
 
 class SqlParser(object):
@@ -351,14 +352,13 @@ class SqlParser(object):
         """
         query_specification : SELECT set_quantifier select_list table_expression
         """
-        children = (p[2], p[3], p[4])
-        leaf = p[1]
         set_quantifier = ' ' + p[2].sql if p[2].sql else ''
         select_list = '\n       ' + p[3].sql if set_quantifier else p[3].sql
         sql = '%s%s %s %s' % (p[1],
                                  set_quantifier,
                                  select_list, p[4].sql)
-        p[0] = Node('query_specification', children, leaf, sql)
+        children = [p[2], p[3], p[4]]
+        p[0] = Node('query_specification', children, sql)
 
     def p_set_quantifier(self, p):
         """
@@ -368,12 +368,10 @@ class SqlParser(object):
         """
         children = None
         if len(p) == 1:
-            leaf = None
             sql = ''
         else:
-            leaf = p[1]
             sql = p[1]
-        p[0] = Node('set_quantifier', children, leaf, sql)
+        p[0] = Node('set_quantifier', children, sql)
 
     def p_select_list(self, p):
         """
@@ -381,7 +379,6 @@ class SqlParser(object):
                     | select_sublist
                     | select_list COMMA select_sublist
         """
-        leaf = None
         if p[1] == '*':
             children = None
             sql = p[1]
@@ -391,38 +388,37 @@ class SqlParser(object):
         else:
             children = p[1]
             sql = p[1].sql
-        p[0] = Node('select_list', children, leaf, sql)
+        p[0] = Node('select_list', children, sql)
 
     def p_select_sublist(self, p):
         """
         select_sublist : derived_column
                        | qualifier PERIOD TIMES
         """
+        children = p[1]
         if len(p) == 2:
-            children = p[1]
             sql = p[1].sql
         else:
-            children = (p[1], p[3])
             sql = '%s.%s' % (p[1].sql, p[3])
-        p[0] = Node('select_sublist', children, None, sql)
+        p[0] = Node('select_sublist', children, sql)
 
     def p_derived_column(self, p):
         """
         derived_column : value_expression as_clause
         """
         children = [p[1], p[2]]
-        leaf = None
         value_expression = p[1].sql
         as_clause = ' ' + p[2].sql if p[2].sql else ''
         sql = '%s%s' % (value_expression, as_clause)
-        p[0] = Node('derived_column', children, leaf, sql)
+        p[0] = Node('derived_column', children, sql)
 
     def p_value_expression(self, p):
         """
         value_expression : numeric_value_expression
         """
+        children = p[1]
         sql = p[1].sql
-        p[0] = Node('value_expression', None, None, sql)
+        p[0] = Node('value_expression', children, sql)
 
     def p_value_expression_repeat(self, p):
         """
@@ -430,10 +426,12 @@ class SqlParser(object):
                                 | value_expression_repeat COMMA value_expression
         """
         if len(p) == 2:
+            children = p[1]
             sql = p[1].sql
         else:
+            children = [p[1], p[3]]
             sql = '%s, %s' % (p[1].sql, p[3].sql)
-        p[0] = Node('value_expression_repeat', None, None, sql)
+        p[0] = Node('value_expression_repeat', children, sql)
 
     def p_numeric_value_expression(self, p):
         """
@@ -443,13 +441,11 @@ class SqlParser(object):
         """
         if len(p) == 2:
             children = p[1]
-            leaf = None
             sql = p[1].sql
         else:
             children = [p[1], p[3]]
-            leaf = p[2]
             sql = '%s %s %s' % (p[1].sql, p[2], p[3].sql)
-        p[0] = Node('numeric_value_expression', children, leaf, sql)
+        p[0] = Node('numeric_value_expression', children, sql)
 
     def p_term(self, p):
         """
@@ -459,13 +455,11 @@ class SqlParser(object):
         """
         if len(p) == 2:
             children = p[1]
-            leaf = None
             sql = p[1].sql
         else:
             children = [p[1], p[3]]
-            leaf = p[2]
             sql = '%s %s %s' % (p[1].sql, p[2], p[3].sql)
-        p[0] = Node('term', children, leaf, sql)
+        p[0] = Node('term', children, sql)
 
     def p_factor(self, p):
         """
@@ -474,19 +468,20 @@ class SqlParser(object):
                | numeric_primary
         """
         if len(p) == 2:
+            children = p[1]
             sql = p[1].sql
         else:
+            children = p[2]
             sql = '%s %s' % (p[1], p[2].sql)
-        p[0] = Node('factor', None, None, sql)
+        p[0] = Node('factor', children, sql)
 
     def p_numeric_primary(self, p):
         """
         numeric_primary : value_expression_primary
         """
         children = p[1]
-        leaf = None
         sql = p[1].sql
-        p[0] = Node('numeric_primary', children, leaf, sql)
+        p[0] = Node('numeric_primary', children, sql)
 
     def p_value_expression_primary(self, p):
         """
@@ -498,36 +493,38 @@ class SqlParser(object):
                                  | LPAREN value_expression RPAREN
                                  | cast_specification
         """
-        leaf = None
         if len(p) == 4:
             sql = '(%s)' % (p[2].sql,)
             children = p[2]
         else:
             children = p[1]
             sql = p[1].sql
-        p[0] = Node('value_expression_primary', children, leaf, sql)
+        p[0] = Node('value_expression_primary', children, sql)
 
     def p_scalar_subquery(self, p):
         """
         scalar_subquery : subquery
         """
+        children = p[1]
         sql = p[1].sql
-        p[0] = Node('scalar_subquery', None, None, sql)
+        p[0] = Node('scalar_subquery', children, sql)
 
     def p_subquery(self, p):
         """
         subquery : LPAREN query_expression RPAREN
         """
-        sql = '(%s)' % (p[2].sql,)
-        p[0] = Node('subquery', None, None, sql)
+        children = p[2]
+        sql = '(%s\n)' % (p[2].sql,)
+        p[0] = Node('subquery', children, sql)
 
     def p_query_expression(self, p):
         """
         query_expression : non_join_query_expression
                          | joined_table
         """
+        children = p[1]
         sql = p[1].sql
-        p[0] = Node('query_expression', None, None, sql)
+        p[0] = Node('query_expression', children, sql)
 
     def p_non_join_query_expression(self, p):
         """
@@ -538,12 +535,15 @@ class SqlParser(object):
                                   | query_expression EXCEPT corresponding_spec query_term
         """
         if len(p) == 2:
+            children = p[1]
             sql = p[1].sql
         elif len(p) == 5:
+            children = [p[1], p[3], p[4]]
             sql = '%s %s %s %s' % (p[1].sql, p[2], p[3].sql, p[4].sql)
         else:
+            children = [p[1], p[4], p[5]]
             sql = '%s %s %s %s %s' % (p[1].sql, p[2], p[3], p[4].sql, p[5].sql)
-        p[0] = Node('non_join_query_expression', None, None, sql)
+        p[0] = Node('non_join_query_expression', children, sql)
 
     def p_non_join_query_term(self,p):
         """
@@ -552,19 +552,28 @@ class SqlParser(object):
                             | query_term INTERSECT corresponding_spec query_primary
         """
         if len(p) == 2:
+            children = p[1]
             sql = p[1].sql
         elif len(p) == 5:
+            children = [p[1], p[3], p[4]]
             sql = '%s %s %s %s' % (p[1].sql, p[2], p[3].sql, p[4].sql)
         else:
+            children = [p[1], p[4], p[5]]
             sql = '%s %s %s %s %s' % (p[1].sql, p[2], p[3], p[4].sql, p[5].sql)
-        p[0] = Node('non_join_query_term', None, None, sql)
+        p[0] = Node('non_join_query_term', children, sql)
 
     def p_non_join_query_primary(self, p):
         """
-        non_join_query_primary : simple_table LPAREN non_join_query_expression RPAREN
+        non_join_query_primary : simple_table
+                               | LPAREN non_join_query_expression RPAREN
         """
-        sql = '%s(%s)' % (p[1].sql, p[3].sql)
-        p[0] = Node('non_join_query_primary', None, None, sql)
+        if len(p):
+            children = p[1]
+            sql = p[1].sql
+        else:
+            children = p[2]
+            sql = '(%s)' % (p[2].sql,)
+        p[0] = Node('non_join_query_primary', children, sql)
 
     def p_simple_table(self, p):
         """
@@ -572,15 +581,17 @@ class SqlParser(object):
                      | table_value_constructor
                      | explicit_table
         """
+        children = p[1]
         sql = p[1].sql
-        p[0] = Node('simple_table', None, None, sql)
+        p[0] = Node('simple_table', children, sql)
 
     def p_table_value_constructor(self, p):
         """
         table_value_constructor : VALUES table_value_constructor_list
         """
+        children = p[2]
         sql = '%s %s' % (p[1], p[2].sql)
-        p[0] = Node('table_value_constructor', None, None, sql)
+        p[0] = Node('table_value_constructor', children, sql)
 
     def p_table_value_constructor_list(self, p):
         """
@@ -588,25 +599,29 @@ class SqlParser(object):
                                      | table_value_constructor_list COMMA row_value_constructor
         """
         if len(p) == 2:
+            children = p[1]
             sql = p[1].sql
         else:
+            children = [p[1], p[3]]
             sql = '%s, %s' % (p[1].sql, p[3].sql)
-        p[0] = Node('table_value_constructor_list', None, None, sql)
+        p[0] = Node('table_value_constructor_list', children, sql)
 
     def p_explicit_table(self, p):
         """
         explicit_table : TABLE table_name
         """
+        children = p[2]
         sql = '%s %s' % (p[1], p[2].sql)
-        p[0] = Node('explicit_table', None, None, sql)
+        p[0] = Node('explicit_table', children, sql)
 
     def p_query_primary(self, p):
         """
         query_primary : non_join_query_primary
                       | joined_table
         """
+        children = p[1]
         sql = p[1].sql
-        p[0] = Node('query_primary', None, None, sql)
+        p[0] = Node('query_primary', children, sql)
 
     def p_corresponding_spec(self, p):
         """
@@ -614,17 +629,20 @@ class SqlParser(object):
                            | CORRESPONDING
         """
         if len(p) == 2:
+            children = None
             sql = p[1]
         else:
+            children = p[4]
             sql = '%s %s(%s)' % (p[1], p[2], p[4].sql)
-        p[0] = Node('corresponding_spec', None, None, sql)
+        p[0] = Node('corresponding_spec', children, sql)
 
     def p_corresponding_column_list(self, p):
         """
         corresponding_column_list : column_name_list
         """
+        children = p[1]
         sql = p[1]
-        p[0] = Node('corresponding_column_list', None, None, sql)
+        p[0] = Node('corresponding_column_list', children, sql)
 
     def p_query_term(self, p):
         """
@@ -632,14 +650,15 @@ class SqlParser(object):
                    | joined_table
         """
         sql = p[1].sql
-        p[0] = Node('query_term', None, None, sql)
+        p[0] = Node('query_term', None, sql)
 
     def p_cast_specification(self, p):
         """
         cast_specification : CAST LPAREN cast_operand AS cast_target RPAREN
         """
+        children = [p[3], p[5]]
         sql = '%s(%s %s %s)' % (p[1], p[3].sql, p[4], p[5].sql)
-        p[0] = Node('cast_specification', None, None, sql)
+        p[0] = Node('cast_specification', children, sql)
 
     def p_cast_operand(self, p):
         """
@@ -647,17 +666,20 @@ class SqlParser(object):
                      | NULL
         """
         if isinstance(p[1], Node):
+            children = p[1]
             sql = p[1].sql
         else:
+            children = None
             sql = p[1]
-        p[0] = Node('cast_operand', None, None, sql)
+        p[0] = Node('cast_operand', children, sql)
 
     def p_cast_target(self, p):
         """
         cast_target : data_type
         """
+        children = p[1]
         sql = p[1].sql
-        p[0] = Node('cast_target', None, None, sql)
+        p[0] = Node('cast_target', children, sql)
 
     def p_data_type(self, p):
         """
@@ -667,8 +689,9 @@ class SqlParser(object):
                   | numeric_type
                   | datetime_type
         """
+        children = p[1]
         sql = p[1].sql
-        p[0] = Node('data_type', None, None, sql)
+        p[0] = Node('data_type', children, sql)
 
     def p_character_string_type(self, p):
         """
@@ -683,6 +706,7 @@ class SqlParser(object):
                               | VARCHAR LPAREN NUMBER RPAREN
                               | VARCHAR
         """
+        children = None
         if len(p) == 2:
             sql = p[1]
         elif len(p) == 3:
@@ -691,7 +715,7 @@ class SqlParser(object):
             sql = '%s(%s)' % (p[1], p[3])
         else:
             sql = '%s %s(%s)' % (p[1], p[2], p[4])
-        p[0] = Node('character_string_type', None, None, sql)
+        p[0] = Node('character_string_type', children, sql)
 
     def p_national_character_string_type(self, p):
         """
@@ -708,6 +732,7 @@ class SqlParser(object):
                                        | NCHAR VARYING LPAREN NUMBER RPAREN
                                        | NCHAR VARYING
         """
+        children = None
         if len(p) == 2:
             sql = p[1]
         elif len(p) == 3:
@@ -720,7 +745,7 @@ class SqlParser(object):
             sql = '%s %s(%s)' % (p[1], p[2], p[4])
         else:
             sql = '%s %s %s(%s)' % (p[1], p[2], p[3], p[5])
-        p[0] = Node('national_character_string_type', None, None, sql)
+        p[0] = Node('national_character_string_type', children, sql)
 
     def p_bit_string_type(self, p):
         """
@@ -729,6 +754,7 @@ class SqlParser(object):
                         | BIT VARYING LPAREN NUMBER RPAREN
                         | BIT VARYING
         """
+        children = None
         if len(p) == 2:
             sql = p[1]
         elif len(p) == 3:
@@ -737,15 +763,16 @@ class SqlParser(object):
             sql = '%s(%s)' % (p[1], p[3])
         else:
             sql = '%s %s(%s)' % (p[1], p[2], p[4])
-        p[0] = Node('bit_string_type', None, None, sql)
+        p[0] = Node('bit_string_type', children, sql)
 
     def p_numeric_type(self, p):
         """
         numeric_type : exact_numeric_type
                      | approximate_numeric_type
         """
+        children = p[1]
         sql = p[1].sql
-        p[0] = Node('numeric_type', None, None, sql)
+        p[0] = Node('numeric_type', children, sql)
 
     def p_exact_numeric_type(self, p):
         """
@@ -762,13 +789,14 @@ class SqlParser(object):
                            | INT
                            | SMALLINT
         """
+        children = None
         if len(p) == 7:
             sql = '%s(%s, %s)' % (p[1], p[3], p[5])
         elif len(p) == 5:
             sql = '%s(%s)' % (p[1], p[3])
         else:
             sql = p[1]
-        p[0] = Node('exact_numeric_type', None, None, sql)
+        p[0] = Node('exact_numeric_type', children, sql)
 
     def p_approximate_numeric_type(self, p):
         """
@@ -777,13 +805,14 @@ class SqlParser(object):
                                  | REAL
                                  | DOUBLE PRECISION
         """
+        children = None
         if len(p) == 2:
             sql = p[1]
         elif len(p) == 3:
             sql = '%s %s' % (p[1], p[2])
         else:
             sql = '%s(%s)' % (p[1], p[3])
-        p[0] = Node('approximate_numeric_type', None, None, sql)
+        p[0] = Node('approximate_numeric_type', children, sql)
 
     def p_datetime_type(self, p):
         """
@@ -792,53 +821,60 @@ class SqlParser(object):
                       | TIME
                       | TIMESTAMP
         """
+        children = None
         if len(p) == 2:
             sql = p[1]
         else:
             sql = '%s(%s)' % (p[1], p[3])
-        p[0] = Node('datetime_type', None, None, sql)
+        p[0] = Node('datetime_type', children, sql)
 
     def p_case_expression(self, p):
         """
         case_expression : case_abbreviation
                         | case_specification
         """
+        children = p[1]
         sql = p[1].sql
-        p[0] = Node('case_expression', None, None, sql)
+        p[0] = Node('case_expression', children, sql)
 
     def p_case_abbreviation(self, p):
         """
         case_abbreviation : NULLIF LPAREN value_expression COMMA value_expression RPAREN
-                        | COALESCE LPAREN value_expression_repeat RPAREN
+                          | COALESCE LPAREN value_expression_repeat RPAREN
         """
         if len(p) == 7:
+            children = [p[3], p[5]]
             sql = '%s(%s, %s)' % (p[1], p[3].sql, p[5].sql)
         else:
+            children = p[3]
             sql = '%s(%s)' % (p[1], p[3].sql)
-        p[0] = Node('case_abbreviation', None, None, sql)
+        p[0] = Node('case_abbreviation', children, sql)
 
     def p_case_specification(self, p):
         """
         case_specification : simple_case
                            | searched_case
         """
+        children = p[1]
         sql = p[1].sql
-        p[0] = Node('case_specification', None, None, sql)
+        p[0] = Node('case_specification', children, sql)
 
     def p_simple_case(self, p):
         """
         simple_case : CASE case_operand simple_when_clause_repeat else_clause END
         """
+        children = [p[2], p[3], p[4]]
         else_clause = '\n           ' + p[4].sql if p[4].sql else ''
         sql = '%s %s\n           %s %s\n       %s' % (p[1], p[2].sql, p[3].sql, else_clause, p[5])
-        p[0] = Node('simple_case', None, None, sql)
+        p[0] = Node('simple_case', children, sql)
 
     def p_case_operand(self, p):
         """
         case_operand : value_expression
         """
+        children = p[1]
         sql = p[1].sql
-        p[0] = Node('case_operand', None, None, sql)
+        p[0] = Node('case_operand', children, sql)
 
     def p_simple_when_clause_repeat(self, p):
         """
@@ -846,24 +882,28 @@ class SqlParser(object):
                                   | simple_when_clause_repeat simple_when_clause
         """
         if len(p) == 2:
+            children = p[1]
             sql = p[1].sql
         else:
+            children = [p[1], p[2]]
             sql = "%s\n           %s" % (p[1].sql, p[2].sql)
-        p[0] = Node('simple_when_clause_repeat', None, None, sql)
+        p[0] = Node('simple_when_clause_repeat', children, sql)
 
     def p_simple_when_clause(self, p):
         """
         simple_when_clause : WHEN when_operand THEN result
         """
+        children = [p[2], p[4]]
         sql = '%s %s %s %s' % (p[1], p[2].sql, p[3], p[4].sql)
-        p[0] = Node('simple_when_clause', None, None, sql)
+        p[0] = Node('simple_when_clause', children, sql)
 
     def p_when_operand(self, p):
         """
         when_operand : value_expression
         """
+        children = p[1]
         sql = p[1].sql
-        p[0] = Node('when_operand', None, None, sql)
+        p[0] = Node('when_operand', children, sql)
 
     def p_result(self, p):
         """
@@ -871,17 +911,20 @@ class SqlParser(object):
                | NULL
         """
         if isinstance(p[1], Node):
+            children = p[1]
             sql = p[1].sql
         else:
+            children = None
             sql = p[1]
-        p[0] = Node('result', None, None, sql)
+        p[0] = Node('result', children, sql)
 
     def p_result_expression(self, p):
         """
         result_expression : value_expression
         """
+        children = p[1]
         sql = p[1].sql
-        p[0] = Node('result_expression', None, None, sql)
+        p[0] = Node('result_expression', children, sql)
 
     def p_else_clause(self, p):
         """
@@ -889,28 +932,30 @@ class SqlParser(object):
                     |
         """
         if len(p) == 1:
+            children = None
             sql = ''
         else:
+            children = p[2]
             sql = '%s %s' % (p[1], p[2].sql)
-        p[0] = Node('else_clause', None, None, sql)
+        p[0] = Node('else_clause', children, sql)
 
     def p_searched_case(self, p):
         """
         searched_case : CASE simple_when_clause_repeat else_clause END
         """
+        children = [p[2], p[3]]
         else_clause = '\n           ' + p[3].sql if p[3].sql else ''
         sql = '%s\n           %s %s\n       %s' % (p[1], p[2].sql, else_clause, p[4])
-        p[0] = Node('searched_case', None, None, sql)
+        p[0] = Node('searched_case', children, sql)
 
     def p_unsigned_value_specification(self, p):
         """
         unsigned_value_specification : unsigned_literal
                                      | general_value_specification
         """
-        leaf = None
         children = p[1]
         sql = p[1].sql
-        p[0] = Node('unsigned_value_specification', children, leaf, sql)
+        p[0] = Node('unsigned_value_specification', children, sql)
 
     def p_column_reference(self, p):
         """
@@ -918,14 +963,12 @@ class SqlParser(object):
                          | ID
         """
         if len(p) == 2:
-            leaf = p[1]
             children = None
             sql = p[1]
         else:
-            leaf = p[3]
             children = p[1]
             sql = '%s.%s' % (p[1].sql, p[3])
-        p[0] = Node('column_reference', children, leaf, sql)
+        p[0] = Node('column_reference', children, sql)
 
     def p_set_function_specification(self, p):
         """
@@ -934,13 +977,11 @@ class SqlParser(object):
         """
         if len(p) == 5:
             children = None
-            leaf = p[1] + p[2] + p[3] + p[4]
             sql = '%s(*)' % (p[1],)
         else:
             children = p[1]
-            leaf = None
             sql = p[1].sql
-        p[0] = Node('set_function_specification', children, leaf, sql)
+        p[0] = Node('set_function_specification', children, sql)
 
     def p_general_set_function(self, p):
         """
@@ -951,71 +992,63 @@ class SqlParser(object):
                              | COUNT LPAREN set_quantifier value_expression RPAREN
         """
         children = [p[3], p[4]]
-        leaf = p[1]
         set_quantifier = p[3].sql + ' ' if p[3].sql else ''
         sql = '%s(%s%s)' % (p[1], set_quantifier, p[4].sql)
-        p[0] = Node('general_set_function', children, leaf, sql)
+        p[0] = Node('general_set_function', children, sql)
 
     def p_qualifier(self, p):
         """
         qualifier : ID
         """
-        leaf = p[1]
         children = None
         sql = p[1]
-        p[0] = Node('qualifier', children, leaf, sql)
+        p[0] = Node('qualifier', children, sql)
 
     def p_unsigned_literal(self, p):
         """
         unsigned_literal : unsigned_numeric_literal
                          | general_literal
         """
-        leaf = None
         children = p[1]
         sql = p[1].sql
-        p[0] = Node('unsigned_literal', children, leaf, sql)
+        p[0] = Node('unsigned_literal', children, sql)
 
     def p_general_value_specification(self, p):
         """
         general_value_specification : parameter_specification
         """
         children = p[1]
-        leaf = None
         sql = p[1].sql
-        p[0] = Node('general_value_specification', children, leaf, sql)
+        p[0] = Node('general_value_specification', children, sql)
 
     def p_parameter_specification(self, p):
         """
         parameter_specification : COLON ID
         """
         children = None
-        leaf = p[1] + p[2]
         sql = '%s%s' % (p[1], p[2])
-        p[0] = Node('parameter_specification', children, leaf, sql)
+        p[0] = Node('parameter_specification', children, sql)
 
     def p_unsigned_numeric_literal(self, p):
         """
         unsigned_numeric_literal : exact_numeric_literal
         """
-        leaf = None
         children = p[1]
         sql = p[1].sql
-        p[0] = Node('unsigned_numeric_literal', children, leaf, sql)
+        p[0] = Node('unsigned_numeric_literal', children, sql)
 
     def p_exact_numeric_literal(self, p):
         """
         exact_numeric_literal : unsigned_integer_with_period_option
                               | PERIOD NUMBER
         """
-        leaf = None
         if len(p) == 2:
             children = p[1]
             sql = p[1].sql
         else:
             children = None
-            leaf = p[1] + p[2]
             sql = '%s%s' % (p[1], p[2])
-        p[0] = Node('exact_numeric_literal', children, leaf, sql)
+        p[0] = Node('exact_numeric_literal', children, sql)
 
     def p_unsigned_integer_with_period_option(self, p):
         """
@@ -1025,30 +1058,28 @@ class SqlParser(object):
         """
         children = None
         if len(p) == 2:
-            leaf = str(p[1])
             sql = str(p[1])
         elif len(p) == 3:
-            leaf = sql = '%s.' % (p[1],)
+            sql = '%s.' % (p[1],)
         else:
-            leaf = sql = '%s.%s' % (p[1], p[3])
-        p[0] = Node('unsigned_integer_with_period_option', children, leaf, sql)
+            sql = '%s.%s' % (p[1], p[3])
+        p[0] = Node('unsigned_integer_with_period_option', children, sql)
 
     def p_general_literal(self, p):
         """
         general_literal : character_string_literal
         """
         children = p[1]
-        leaf = None
         sql = p[1].sql
-        p[0] = Node('general_literal', children, leaf, sql)
+        p[0] = Node('general_literal', children, sql)
 
     def p_character_string_literal(self, p):
         """
         character_string_literal : STRING
         """
         children = None
-        leaf = sql = "'%s'" % (p[1],)
-        p[0] = Node('character_string_literal', children, leaf, sql)
+        sql = "'%s'" % (p[1],)
+        p[0] = Node('character_string_literal', children, sql)
 
     def p_as_clause(self, p):
         """
@@ -1062,21 +1093,23 @@ class SqlParser(object):
             sql = p[1]
         else:
             sql = '%s %s' % (p[1], p[2])
-        p[0] = Node('as_clause', None, None, sql)
+        p[0] = Node('as_clause', None, sql)
 
     def p_table_expression(self, p):
         """
         table_expression : from_clause where_clause group_by_clause having_clause
         """
+        children = [p[1], p[2], p[3], p[4]]
         sql = '%s %s %s %s' % (p[1].sql, p[2].sql, p[3].sql, p[4].sql)
-        p[0] = Node('table_expression', None, None, sql)
+        p[0] = Node('table_expression', children, sql)
 
     def p_from_clause(self, p):
         """
         from_clause : FROM table_reference_repeat
         """
+        children = p[2]
         sql = '\n  %s %s' % (p[1], p[2].sql)
-        p[0] = Node('from_clause', None, None, sql)
+        p[0] = Node('from_clause', children, sql)
 
     def p_where_clause(self, p):
         """
@@ -1085,9 +1118,11 @@ class SqlParser(object):
         """
         if len(p) == 1:
             sql = ''
+            children = None
         else:
+            children = p[2]
             sql = '\n %s %s' % (p[1], p[2].sql)
-        p[0] = Node('where_clause', None, None, sql)
+        p[0] = Node('where_clause', children, sql)
 
     def p_group_by_clause(self, p):
         """
@@ -1095,10 +1130,12 @@ class SqlParser(object):
                         |
         """
         if len(p) == 1:
+            children = None
             sql = ''
         else:
+            children = p[3]
             sql = '\n %s %s %s' % (p[1], p[2], p[3].sql)
-        p[0] = Node('group_by_clause', None, None, sql)
+        p[0] = Node('group_by_clause', children, sql)
 
     def p_having_clause(self, p):
         """
@@ -1106,10 +1143,12 @@ class SqlParser(object):
                       |
         """
         if len(p) == 1:
+            children = None
             sql = ''
         else:
+            children = p[2]
             sql = '\n%s %s' % (p[1], p[2].sql)
-        p[0] = Node('having_clause', None, None, sql)
+        p[0] = Node('having_clause', children, sql)
 
     def p_grouping_column_reference_list(self, p):
         """
@@ -1117,10 +1156,12 @@ class SqlParser(object):
                                        | grouping_column_reference_list COMMA grouping_column_reference
         """
         if len(p) == 2:
+            children = p[1]
             sql = p[1].sql
         else:
+            children = [p[1], p[3]]
             sql = '%s, %s' % (p[1].sql, p[3].sql)
-        p[0] = Node('grouping_column_reference_list', None, None, sql)
+        p[0] = Node('grouping_column_reference_list', children, sql)
 
     def p_grouping_column_reference(self, p):
         """
@@ -1128,24 +1169,28 @@ class SqlParser(object):
                                   | column_reference
         """
         if len(p) == 2:
+            children = p[1]
             sql = p[1].sql
         else:
+            children = [p[1], p[2]]
             sql = '%s  %s' % (p[1].sql, p[2].sql)
-        p[0] = Node('grouping_column_reference', None, None, sql)
+        p[0] = Node('grouping_column_reference', children, sql)
 
     def p_collate_clause(self, p):
         """
         collate_clause : COLLATE collation_name
         """
+        children = p[2]
         sql = '%s %s' % (p[1], p[2].sql)
-        p[0] = Node('collate_clause', None, None, sql)
+        p[0] = Node('collate_clause', children, sql)
 
     def p_collation_name(self, p):
         """
         collation_name : qualified_name
         """
+        children = p[1]
         sql = p[1].sql
-        p[0] = Node('collation_name', None, None, sql)
+        p[0] = Node('collation_name', children, sql)
 
     def p_table_reference_repeat(self, p):
         """
@@ -1154,9 +1199,11 @@ class SqlParser(object):
         """
         if len(p) == 2:
             sql = p[1].sql
+            children = p[1]
         else:
+            children = [p[1], p[3]]
             sql = '%s, %s' % (p[1].sql, p[3].sql)
-        p[0] = Node('table_reference_repeat', None, None, sql)
+        p[0] = Node('table_reference_repeat', children, sql)
 
     def p_table_reference(self, p):
         """
@@ -1166,10 +1213,12 @@ class SqlParser(object):
                         | joined_table
         """
         if len(p) == 2:
+            children = p[1]
             sql = p[1].sql
         else:
+            children = [p[1], p[2]]
             sql = '%s %s' % (p[1].sql, p[2].sql)
-        p[0] = Node('table_reference', None, None, sql)
+        p[0] = Node('table_reference', children, sql)
 
     def p_joined_table(self, p):
         """
@@ -1178,24 +1227,28 @@ class SqlParser(object):
                      | LPAREN joined_table RPAREN
         """
         if len(p) == 2:
+            children = p[1]
             sql = p[1].sql
         else:
+            children = p[2]
             sql = '(%s)' % (p[2].sql,)
-        p[0] = Node('joined_table', None, None, sql)
+        p[0] = Node('joined_table', children, sql)
 
     def p_cross_join(self, p):
         """
         cross_join : table_reference CROSS JOIN table_reference
         """
+        children = [p[1], p[4]]
         sql = '%s %s %s %s' % (p[1].sql, p[2], p[3], p[4].sql)
-        p[0] = Node('cross_join', None, None, sql)
+        p[0] = Node('cross_join', children, sql)
 
     def p_qualified_join(self, p):
         """
         qualified_join : table_reference join_type JOIN table_reference join_specification
         """
+        children = [p[1], p[2], p[4], p[5]]
         sql = '%s %s %s %s %s' % (p[1].sql, p[2].sql, p[3], p[4].sql, p[5].sql)
-        p[0] = Node('qualified_join', None, None, sql)
+        p[0] = Node('qualified_join', children, sql)
 
     def p_join_type(self, p):
         """
@@ -1205,16 +1258,19 @@ class SqlParser(object):
                   | UNION
                   |
         """
+        children = None
         if len(p) == 1:
             sql = ''
         elif len(p) == 2:
             if isinstance(p[1], Node):
                 sql = p[1].sql
+                children = p[1]
             else:
                 sql = p[1]
         else:
+            children = p[1]
             sql = '%s %s' % (p[1].sql, p[2])
-        p[0] = Node('join_type', None, None, sql)
+        p[0] = Node('join_type', children, sql)
 
     def p_outer_join_type(self, p):
         """
@@ -1223,36 +1279,40 @@ class SqlParser(object):
                         | FULL
         """
         sql = p[0]
-        p[0] = Node('outer_join_type', None, None, sql)
+        p[0] = Node('outer_join_type', None, sql)
 
     def p_join_specification(self, p):
         """
         join_specification : join_condition
                            | named_columns_join
         """
+        children = p[1]
         sql = p[1].sql
-        p[0] = Node('join_specification', None, None, sql)
+        p[0] = Node('join_specification', children, sql)
 
     def p_join_condition(self, p):
         """
         join_condition : ON search_condition
         """
+        children = p[2]
         sql = '%s %s' % (p[1], p[2].sql,)
-        p[0] = Node('join_condition', None, None, sql)
+        p[0] = Node('join_condition', children, sql)
 
     def p_named_columns_join(self, p):
         """
         named_columns_join : USING LPAREN join_column_list RPAREN
         """
+        children = p[3]
         sql = '%s(%s)' % (p[1], p[3].sql)
-        p[0] = Node('named_columns_join', None, None, sql)
+        p[0] = Node('named_columns_join', children, sql)
 
     def p_join_column_list(self, p):
         """
         join_column_list : column_name_list
         """
+        children = p[1]
         sql = p[1].sql
-        p[0] = Node('join_column_list', None, None, sql)
+        p[0] = Node('join_column_list', children, sql)
 
     def p_search_condition(self, p):
         """
@@ -1260,10 +1320,12 @@ class SqlParser(object):
                          | search_condition OR boolean_term
         """
         if len(p) == 2:
+            children = p[1]
             sql = p[1].sql
         else:
+            children = [p[1], p[3]]
             sql = '%s\n    %s %s' % (p[1].sql, p[2], p[3].sql)
-        p[0] = Node('search_condition', None, None, sql)
+        p[0] = Node('search_condition', children, sql)
 
     def p_boolean_term(self, p):
         """
@@ -1271,10 +1333,12 @@ class SqlParser(object):
                      | boolean_term AND boolean_factor
         """
         if len(p) == 2:
+            children = p[1]
             sql = p[1].sql
         else:
+            children = [p[1], p[3]]
             sql = '%s\n   %s %s' % (p[1].sql, p[2], p[3].sql)
-        p[0] = Node('boolean_term', None, None, sql)
+        p[0] = Node('boolean_term', children, sql)
 
     def p_boolean_factor(self, p):
         """
@@ -1282,17 +1346,20 @@ class SqlParser(object):
                        | boolean_test
         """
         if len(p) == 2:
+            children = p[1]
             sql = p[1].sql
         else:
+            children = p[2]
             sql = '%s %s' % (p[1], p[2].sql)
-        p[0] = Node('boolean_factor', None, None, sql)
+        p[0] = Node('boolean_factor', children, sql)
 
     def p_boolean_test(self, p):
         """
         boolean_test : boolean_primary
         """
+        children = p[1]
         sql = p[1].sql
-        p[0] = Node('boolean_test', None, None, sql)
+        p[0] = Node('boolean_test', children, sql)
 
     def p_boolean_primary(self, p):
         """
@@ -1300,10 +1367,12 @@ class SqlParser(object):
                         | LPAREN search_condition RPAREN
         """
         if len(p) == 2:
+            children = p[1]
             sql = p[1].sql
         else:
+            children = p[2]
             sql = '(%s)' % (p[2].sql,)
-        p[0] = Node('boolean_primary', None, None, sql)
+        p[0] = Node('boolean_primary', children, sql)
 
     def p_predicate(self, p):
         """
@@ -1317,29 +1386,33 @@ class SqlParser(object):
                   | match_predicate
                   | overlaps_predicate
         """
+        children = p[1]
         sql = p[1].sql
-        p[0] = Node('predicate', None, None, sql)
+        p[0] = Node('predicate', children, sql)
 
     def p_comparison_predicate(self, p):
         """
         comparison_predicate : row_value_constructor comp_op row_value_constructor
         """
+        children = [p[1], p[2], p[3]]
         sql = '%s %s %s' % (p[1].sql, p[2].sql, p[3].sql)
-        p[0] = Node('comparison_predicate', None, None, sql)
+        p[0] = Node('comparison_predicate', children, sql)
 
     def p_between_predicate(self, p):
         """
         between_predicate : row_value_constructor opt_not BETWEEN row_value_constructor AND row_value_constructor
         """
+        children = [p[1], p[2], p[4], p[6]]
         sql = '%s %s %s %s %s %s' % (p[1].sql, p[2].sql, p[3], p[4].sql, p[5], p[6].sql)
-        p[0] = Node('between_predicate', None, None, sql)
+        p[0] = Node('between_predicate', children, sql)
 
     def p_in_predicate(self, p):
         """
         in_predicate : row_value_constructor opt_not IN in_predicate_value
         """
+        children = [p[1], p[2], p[4]]
         sql = '%s %s %s %s' % (p[1].sql, p[2].sql, p[3], p[4].sql)
-        p[0] = Node('row_value_constructor', None, None, sql)
+        p[0] = Node('row_value_constructor', children, sql)
 
     def p_like_predicate(self, p):
         """
@@ -1347,10 +1420,12 @@ class SqlParser(object):
                        | match_value opt_not LIKE pattern
         """
         if len(p) == 5:
+            children = [p[1], p[2], p[4]]
             sql = '%s %s %s %s' % (p[1].sql, p[2].sql, p[3], p[4].sql)
         else:
+            children = [p[1], p[2], p[4], p[6]]
             sql = '%s %s %s %s %s %s' % (p[1].sql, p[2].sql, p[3], p[4].sql, p[5], p[6].sql)
-        p[0] = Node('like_predicate', None, None, sql)
+        p[0] = Node('like_predicate', children, sql)
 
     def p_null_predicate(self, p):
         """
@@ -1361,21 +1436,23 @@ class SqlParser(object):
             sql = '%s %s %s' % (p[1], p[2], p[3])
         else:
             sql = '%s %s' % (p[1], p[2])
-        p[0] = Node('null_predicate', None, None, sql)
+        p[0] = Node('null_predicate', None, sql)
 
     def p_quantified_comparison_predicate(self, p):
         """
         quantified_comparison_predicate : row_value_constructor comp_op quantifier table_subquery
         """
+        children = [p[1], p[2], p[3], p[4]]
         sql = '%s %s %s %s' % (p[1].sql, p[2].sql, p[3].sql, p[4].sql)
-        p[0] = Node('quantified_comparison_predicate', None, None, sql)
+        p[0] = Node('quantified_comparison_predicate', children, sql)
 
     def p_exists_predicate(self, p):
         """
         exists_predicate : EXISTS table_subquery
         """
+        children = p[2]
         sql = '%s %s' % (p[1], p[2].sql)
-        p[0] = Node('exists_predicate', None, None, sql)
+        p[0] = Node('exists_predicate', children, sql)
 
     def p_match_predicate(self, p):
         """
@@ -1384,17 +1461,20 @@ class SqlParser(object):
                         | row_value_constructor MATCH opt_unique table_subquery
         """
         if len(p) == 5:
+            children = [p[1], p[3], p[4]]
             sql = '%s %s %s %s' % (p[1].sql, p[2], p[3].sql, p[4].sql)
         else:
+            children = [p[1], p[3], p[5]]
             sql = '%s %s %s %s %s' % (p[1].sql, p[2], p[3].sql, p[4], p[5].sql)
-        p[0] = Node('match_predicate', None, None, sql)
+        p[0] = Node('match_predicate', children, sql)
 
     def p_overlaps_predicate(self, p):
         """
         overlaps_predicate : row_value_constructor OVERLAPS row_value_constructor
         """
+        children = [p[1], p[3]]
         sql = '%s %s %s' % (p[1].sql, p[2], p[3].sql)
-        p[0] = Node('overlaps_predicate', None, None, sql)
+        p[0] = Node('overlaps_predicate', children, sql)
 
     def p_opt_unique(self, p):
         """
@@ -1405,7 +1485,7 @@ class SqlParser(object):
             sql = ''
         else:
             sql = p[1]
-        p[0] = Node('opt_unique', None, None, sql)
+        p[0] = Node('opt_unique', None, sql)
 
     def p_quantifier(self, p):
         """
@@ -1414,28 +1494,31 @@ class SqlParser(object):
                    | ANY
         """
         sql = p[1]
-        p[0] = Node('match_value', None, None, sql)
+        p[0] = Node('match_value', None, sql)
 
     def p_match_value(self, p):
         """
         match_value : value_expression_primary
         """
+        children = p[1]
         sql = p[1].sql
-        p[0] = Node('match_value', None, None, sql)
+        p[0] = Node('match_value', children, sql)
 
     def p_pattern(self, p):
         """
         pattern : value_expression_primary
         """
+        children = p[1]
         sql = p[1].sql
-        p[0] = Node('pattern', None, None, sql)
+        p[0] = Node('pattern', children, sql)
 
     def p_escape_character(self, p):
         """
         escape_character : value_expression_primary
         """
+        children = p[1]
         sql = p[1].sql
-        p[0] = Node('escape_character', None, None, sql)
+        p[0] = Node('escape_character', children, sql)
 
     def p_opt_not(self, p):
         """
@@ -1446,7 +1529,7 @@ class SqlParser(object):
             sql = ''
         else:
             sql = p[1]
-        p[0] = Node('opt_not', None, None, sql)
+        p[0] = Node('opt_not', None, sql)
 
     def p_in_predicate_value(self, p):
         """
@@ -1454,17 +1537,19 @@ class SqlParser(object):
                            | LPAREN in_value_list RPAREN
         """
         if len(p) == 2:
+            children = p[1]
             sql = p[1].sql
         else:
+            children = p[2]
             sql = '(%s)' % (p[2].sql,)
-        p[0] = Node('in_predicate_value', None, None, sql)
+        p[0] = Node('in_predicate_value', children, sql)
 
     def p_table_subquery(self, p):
         """
         table_subquery : subquery
         """
         sql = p[1].sql
-        p[0] = Node('table_subquery', None, None, sql)
+        p[0] = Node('table_subquery', None, sql)
 
     def p_in_value_list(self, p):
         """
@@ -1472,10 +1557,12 @@ class SqlParser(object):
                       | in_value_list COMMA value_expression
         """
         if len(p) == 2:
+            children = p[1]
             sql = p[1].sql
         else:
+            children = [p[1], p[3]]
             sql = '%s, %s' % (p[1].sql, p[3].sql)
-        p[0] = Node('in_predicate_value', None, None, sql)
+        p[0] = Node('in_predicate_value', children, sql)
 
     def p_comp_op(self, p):
         """
@@ -1487,7 +1574,7 @@ class SqlParser(object):
                 | GE
         """
         sql = p[1]
-        p[0] = Node('comp_op', None, None, sql)
+        p[0] = Node('comp_op', None, sql)
 
     def p_row_value_constructor(self, p):
         """
@@ -1496,17 +1583,20 @@ class SqlParser(object):
                               | row_subquery
         """
         if len(p) == 2:
+            children = p[1]
             sql = p[1].sql
         else:
+            children = p[2]
             sql = '(%s)' % (p[2].sql,)
-        p[0] = Node('row_value_constructor', None, None, sql)
+        p[0] = Node('row_value_constructor', children, sql)
 
     def p_row_subquery(self, p):
         """
         row_subquery : subquery
         """
+        children = p[1]
         sql = p[1].sql
-        p[0] = Node('row_subquery', None, None, sql)
+        p[0] = Node('row_subquery', children, sql)
 
     def p_row_value_constructor_list(self, p):
         """
@@ -1514,10 +1604,12 @@ class SqlParser(object):
                                    | row_value_constructor_list COMMA row_value_constructor_element
         """
         if len(p) == 2:
+            children = p[1]
             sql = p[1].sql
         else:
-            sql = '%s, %s' % (p[1].sql, p[2].sql)
-        p[0] = Node('row_value_constructor_list', None, None, sql)
+            children = [p[1], p[3]]
+            sql = '%s, %s' % (p[1].sql, p[3].sql)
+        p[0] = Node('row_value_constructor_list', children, sql)
 
     def p_row_value_constructor_element(self, p):
         """
@@ -1525,50 +1617,54 @@ class SqlParser(object):
                                       | null_specification
                                       | default_specification
         """
+        children = p[1]
         sql = p[1].sql
-        p[0] = Node('row_value_constructor_element', None, None, sql)
+        p[0] = Node('row_value_constructor_element', children, sql)
 
     def p_null_specification(self, p):
         """
         null_specification : NULL
         """
         sql = p[1]
-        p[0] = Node('null_specification', None, None, sql)
+        p[0] = Node('null_specification', None, sql)
 
     def p_default_specification(self, p):
         """
         default_specification : DEFAULT
         """
         sql = p[1]
-        p[0] = Node('default_specification', None, None, sql)
+        p[0] = Node('default_specification', None, sql)
 
     def p_derived_table(self, p):
         """
         derived_table : subquery
         """
+        children = p[1]
         sql = p[1].sql
-        p[0] = Node('derived_table', None, None, sql)
+        p[0] = Node('derived_table', children, sql)
 
     def p_table_name(self, p):
         """
         table_name : qualified_name
         """
+        children = p[1]
         sql = p[1].sql
-        p[0] = Node('table_name', None, None, sql)
+        p[0] = Node('table_name', children, sql)
 
     def p_qualified_name(self, p):
         """
         qualified_name : qualified_identifier
         """
+        children = p[1]
         sql = p[1].sql
-        p[0] = Node('qualified_name', None, None, sql)
+        p[0] = Node('qualified_name', children, sql)
 
     def p_qualified_identifier(self, p):
         """
         qualified_identifier : ID
         """
         sql = p[1]
-        p[0] = Node('qualified_identifier', None, None, sql)
+        p[0] = Node('qualified_identifier', None, sql)
 
     def p_correlation_specification(self, p):
         """
@@ -1576,24 +1672,27 @@ class SqlParser(object):
                                   | correlation_name LPAREN derived_column_list RPAREN
         """
         if len(p) == 6:
+            children = [p[2], p[4]]
             sql = '%s %s(%s)' % (p[1], p[2].sql, p[4].sql)
         else:
+            children = [p[1], p[3]]
             sql = '%s(%s)' % (p[1].sql, p[3].sql)
-        p[0] = Node('correlation_specification', None, None, sql)
+        p[0] = Node('correlation_specification', children, sql)
 
     def p_correlation_name(self, p):
         """
         correlation_name : ID
         """
         sql = p[1]
-        p[0] = Node('correlation_name', None, None, sql)
+        p[0] = Node('correlation_name', None, sql)
 
     def p_derived_column_list(self, p):
         """
         derived_column_list : column_name_list
         """
+        children = p[1]
         sql = p[1]
-        p[0] = Node('derived_column_list', None, None, sql)
+        p[0] = Node('derived_column_list', children, sql)
 
     def p_column_name_list(self, p):
         """
@@ -1601,17 +1700,19 @@ class SqlParser(object):
                          | column_name_list COMMA column_name
         """
         if len(p) == 2:
+            children = p[1]
             sql = p[1].sql
         else:
+            children = [p[1], p[3]]
             sql = '%s, %s' % (p[1].sql, p[3].sql)
-        p[0] = Node('column_name_list', None, None, sql)
+        p[0] = Node('column_name_list', children, sql)
 
     def p_column_name(self, p):
         """
         column_name : ID
         """
         sql = p[1]
-        p[0] = Node('column_name', None, None, sql)
+        p[0] = Node('column_name', None, sql)
 
     def p_error(self, p):
         print "Syntax error near %s! at line %d, pos %d!" % (p.value, p.lineno, p.lexpos)
@@ -1622,62 +1723,62 @@ class SqlParser(object):
 
     def test(self):
         lexer = SqlLexer().build()
-        print self.parser.parse("Select (select 1 from s)  from b", lexer=lexer).to_sql()
-        #print "=========================================="
-        #print self.parser.parse("Select distinct * from a WHere a1=b1 AND (a2=b2 or a3=c3) and a4=b4", lexer=lexer).to_sql()
-        #print "=========================================="
-        #print self.parser.parse("select 1 a,'Abc123' as b,c,(d),"
-        #                        "(select count(*) from sub_table) subsel,"
-        #                        "case a when '1' then a1 when '2' then a2 when '3' then a3 end b,"
-        #                        "case  when '1' then a1 when '2' then a2 else a9 end as ax from a", lexer=lexer).to_sql()
-        #print "=========================================="
-        #print self.parser.parse("select a, cast(123 as char) as b1"
-        #                        ", cast(123 as character) as b2"
-        #                        ", cast(123 as character(10)) as b3"
-        #                        ", cast(123 as char(20)) as b4"
-        #                        ", cast(123 as character varying) as b5"
-        #                        ", cast(123 as character varying (100)) as b6"
-        #                        ", cast(123 as char varying) as b7"
-        #                        ", cast(123 as char varying   (10)) as b7"
-        #                        ", cast(123 as varchar(10)) as b8"
-        #                        ", cast(123 as varchar) as b9"
-        #                        ", cast(123 as national character(10)) as c1"
-        #                        ", cast(123 as national character) as c2"
-        #                        ", cast(123 as national char(10)) as c3"
-        #                        ", cast(123 as national char) as c4"
-        #                        ", cast(123 as nchar(10)) as c5"
-        #                        ", cast(123 as nchar) as c6"
-        #                        ", cast(123 as national character varying (10)) as c7"
-        #                        ", cast(123		 as national character varying) as c8"
-        #                        ", cast(123 as	 national char varying (10)) as c9"
-        #                        ", cast(123 \nas national char varying) as c10"
-        #                        ", cast(123 as nchar varying(10)) as c11"
-        #                        ", cast(123 as nchar varying   ) as c12"
-        #                        ", cast(123 as bit) as d1"
-        #                        ", cast(123 as bit(0)) as d2"
-        #                        ", cast(123 as bit varying) as d3"
-        #                        ", cast(123 as bit varying(10)) as d4"
-        #                        ", cast('123' as numeric(4,1)) as e1"
-        #                        ", cast('123' as decimal(4,1)) as e2"
-        #                        ", cast('123' as dec(4,1)) as e3"
-        #                        ", cast('123' as numeric(5)) as e4"
-        #                        ", cast('123' as decimal(5)) as e5"
-        #                        ", cast('123' as dec(5)) as e6"
-        #                        ", cast('123' as numeric) as e7"
-        #                        ", cast('123' as decimal) as e8"
-        #                        ", cast('123' as dec) as e9"
-        #                        ", cast('123' as integer) as e10"
-        #                        ", cast('123' as int) as e11"
-        #                        ", cast('123' as smallint) as e12"
-        #                        ", cast('123' as float (5)) as f1"
-        #                        ", cast('123' as float) as f2"
-        #                        ", cast('123' as real) as f3"
-        #                        ", cast('123' as double precision) as f4"
-        #                        ", cast('2016-07-15 10:32:01' as time (5)) as g1"
-        #                        ", cast('2016-07-15 10:32:01' as date) as g2"
-        #                        ", cast('2016-07-15 10:32:01' as time) as g3"
-        #                        ", cast('2016-07-15 10:32:01' as timestamp) as g4"
-        #                        "		 from          tbl", lexer=lexer).to_sql()
+        # print "=========================================="
+        # print self.parser.parse("Select distinct * from a WHere a1=b1 AND (a2=b2 or a3=c3) and a4=b4", lexer=lexer).to_sql()
+        print "=========================================="
+        print self.parser.parse("select 1 a,'Abc123' as b,c,(d),"
+                                "(select count(*) from sub_table) subsel,"
+                                "case a when '1' then a1 when '2' then a2 when '3' then a3 end b,"
+                                "case  when '1' then a1 when '2' then a2 else a9 end as ax from a", lexer=lexer).to_sql()
+        return
+        print "=========================================="
+        print self.parser.parse("select a, cast(123 as char) as b1"
+                                ", cast(123 as character) as b2"
+                                ", cast(123 as character(10)) as b3"
+                                ", cast(123 as char(20)) as b4"
+                                ", cast(123 as character varying) as b5"
+                                ", cast(123 as character varying (100)) as b6"
+                                ", cast(123 as char varying) as b7"
+                                ", cast(123 as char varying   (10)) as b7"
+                                ", cast(123 as varchar(10)) as b8"
+                                ", cast(123 as varchar) as b9"
+                                ", cast(123 as national character(10)) as c1"
+                                ", cast(123 as national character) as c2"
+                                ", cast(123 as national char(10)) as c3"
+                                ", cast(123 as national char) as c4"
+                                ", cast(123 as nchar(10)) as c5"
+                                ", cast(123 as nchar) as c6"
+                                ", cast(123 as national character varying (10)) as c7"
+                                ", cast(123		 as national character varying) as c8"
+                                ", cast(123 as	 national char varying (10)) as c9"
+                                ", cast(123 \nas national char varying) as c10"
+                                ", cast(123 as nchar varying(10)) as c11"
+                                ", cast(123 as nchar varying   ) as c12"
+                                ", cast(123 as bit) as d1"
+                                ", cast(123 as bit(0)) as d2"
+                                ", cast(123 as bit varying) as d3"
+                                ", cast(123 as bit varying(10)) as d4"
+                                ", cast('123' as numeric(4,1)) as e1"
+                                ", cast('123' as decimal(4,1)) as e2"
+                                ", cast('123' as dec(4,1)) as e3"
+                                ", cast('123' as numeric(5)) as e4"
+                                ", cast('123' as decimal(5)) as e5"
+                                ", cast('123' as dec(5)) as e6"
+                                ", cast('123' as numeric) as e7"
+                                ", cast('123' as decimal) as e8"
+                                ", cast('123' as dec) as e9"
+                                ", cast('123' as integer) as e10"
+                                ", cast('123' as int) as e11"
+                                ", cast('123' as smallint) as e12"
+                                ", cast('123' as float (5)) as f1"
+                                ", cast('123' as float) as f2"
+                                ", cast('123' as real) as f3"
+                                ", cast('123' as double precision) as f4"
+                                ", cast('2016-07-15 10:32:01' as time (5)) as g1"
+                                ", cast('2016-07-15 10:32:01' as date) as g2"
+                                ", cast('2016-07-15 10:32:01' as time) as g3"
+                                ", cast('2016-07-15 10:32:01' as timestamp) as g4"
+                                "		 from          tbl", lexer=lexer).to_sql()
         while True:
             text = raw_input("sql> ").strip()
             if text.lower() == "quit":
