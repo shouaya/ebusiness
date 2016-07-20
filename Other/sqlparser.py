@@ -269,6 +269,10 @@ class SqlLexer(object):
             t.value = t.value.upper()
         return t
 
+    def t_COMMENT(self, t):
+        r'\-\-.*'
+        pass
+
     def t_STRING(self, t):
         # TODO: unicode...
         # Note: this regex is from pyparsing,
@@ -340,8 +344,17 @@ class Node(object):
     def to_sql(self):
         return self.sql
 
-    def set_indent(self):
-        pass
+    def set_indent(self, indent):
+        if indent and self.sql.find('\n') > 0:
+            sqls = []
+            for sql in self.sql.split('\n'):
+                if sqls:
+                    sqls.append('\n%s%s' % (indent, sql))
+                else:
+                    sqls.append(sql)
+            return ''.join(sqls)
+        else:
+            return self.sql
 
 
 class SqlParser(object):
@@ -353,10 +366,11 @@ class SqlParser(object):
         query_specification : SELECT set_quantifier select_list table_expression
         """
         set_quantifier = ' ' + p[2].sql if p[2].sql else ''
-        select_list = '\n       ' + p[3].sql if set_quantifier else p[3].sql
+        sql_select_list = p[3].set_indent('     ')
+        select_list = '\n       ' + sql_select_list if set_quantifier else sql_select_list
         sql = '%s%s %s %s' % (p[1],
-                                 set_quantifier,
-                                 select_list, p[4].sql)
+                              set_quantifier,
+                              select_list, p[4].sql)
         children = [p[2], p[3], p[4]]
         p[0] = Node('query_specification', children, sql)
 
@@ -384,7 +398,7 @@ class SqlParser(object):
             sql = p[1]
         elif len(p) == 4:
             children = [p[1], p[3]]
-            sql = '%s\n     , %s' % (p[1].sql, p[3].sql)
+            sql = '%s\n, %s' % (p[1].sql, p[3].sql)
         else:
             children = p[1]
             sql = p[1].sql
@@ -514,7 +528,8 @@ class SqlParser(object):
         subquery : LPAREN query_expression RPAREN
         """
         children = p[2]
-        sql = '(%s\n)' % (p[2].sql,)
+        sql_query_expression = p[2].set_indent('   ')
+        sql = '(%s\n  )' % (sql_query_expression,)
         p[0] = Node('subquery', children, sql)
 
     def p_query_expression(self, p):
@@ -864,8 +879,8 @@ class SqlParser(object):
         simple_case : CASE case_operand simple_when_clause_repeat else_clause END
         """
         children = [p[2], p[3], p[4]]
-        else_clause = '\n           ' + p[4].sql if p[4].sql else ''
-        sql = '%s %s\n           %s %s\n       %s' % (p[1], p[2].sql, p[3].sql, else_clause, p[5])
+        else_clause = '\n      ' + p[4].sql if p[4].sql else ''
+        sql = '%s %s\n      %s %s\n  %s' % (p[1], p[2].sql, p[3].sql, else_clause, p[5])
         p[0] = Node('simple_case', children, sql)
 
     def p_case_operand(self, p):
@@ -886,7 +901,7 @@ class SqlParser(object):
             sql = p[1].sql
         else:
             children = [p[1], p[2]]
-            sql = "%s\n           %s" % (p[1].sql, p[2].sql)
+            sql = "%s\n      %s" % (p[1].sql, p[2].sql)
         p[0] = Node('simple_when_clause_repeat', children, sql)
 
     def p_simple_when_clause(self, p):
@@ -944,8 +959,8 @@ class SqlParser(object):
         searched_case : CASE simple_when_clause_repeat else_clause END
         """
         children = [p[2], p[3]]
-        else_clause = '\n           ' + p[3].sql if p[3].sql else ''
-        sql = '%s\n           %s %s\n       %s' % (p[1], p[2].sql, else_clause, p[4])
+        else_clause = '\n      ' + p[3].sql if p[3].sql else ''
+        sql = '%s\n      %s %s\n  %s' % (p[1], p[2].sql, else_clause, p[4])
         p[0] = Node('searched_case', children, sql)
 
     def p_unsigned_value_specification(self, p):
@@ -1260,13 +1275,13 @@ class SqlParser(object):
         """
         children = None
         if len(p) == 1:
-            sql = ''
+            sql = '\n '
         elif len(p) == 2:
             if isinstance(p[1], Node):
                 sql = p[1].sql
                 children = p[1]
             else:
-                sql = p[1]
+                sql = '\n ' + p[1]
         else:
             children = p[1]
             sql = '%s %s' % (p[1].sql, p[2])
@@ -1278,7 +1293,7 @@ class SqlParser(object):
                         | RIGHT
                         | FULL
         """
-        sql = p[0]
+        sql = '\n' + ' ' * (6 - len(p[1])) + p[1]
         p[0] = Node('outer_join_type', None, sql)
 
     def p_join_specification(self, p):
@@ -1395,7 +1410,8 @@ class SqlParser(object):
         comparison_predicate : row_value_constructor comp_op row_value_constructor
         """
         children = [p[1], p[2], p[3]]
-        sql = '%s %s %s' % (p[1].sql, p[2].sql, p[3].sql)
+        sql_right = p[3].set_indent(' ' * (len(p[1].sql) + 8))
+        sql = '%s %s %s' % (p[1].sql, p[2].sql, sql_right)
         p[0] = Node('comparison_predicate', children, sql)
 
     def p_between_predicate(self, p):
@@ -1451,7 +1467,8 @@ class SqlParser(object):
         exists_predicate : EXISTS table_subquery
         """
         children = p[2]
-        sql = '%s %s' % (p[1], p[2].sql)
+        sql_table_subquery = p[2].set_indent(' ' * 12)
+        sql = '%s %s' % (p[1], sql_table_subquery)
         p[0] = Node('exists_predicate', children, sql)
 
     def p_match_predicate(self, p):
@@ -1670,13 +1687,21 @@ class SqlParser(object):
         """
         correlation_specification : AS correlation_name LPAREN derived_column_list RPAREN
                                   | correlation_name LPAREN derived_column_list RPAREN
+                                  | AS correlation_name
+                                  | correlation_name
         """
         if len(p) == 6:
             children = [p[2], p[4]]
             sql = '%s %s(%s)' % (p[1], p[2].sql, p[4].sql)
-        else:
+        elif len(p) == 5:
             children = [p[1], p[3]]
             sql = '%s(%s)' % (p[1].sql, p[3].sql)
+        elif len(p) == 3:
+            children = p[2]
+            sql = '%s %s' % (p[1], p[2].sql)
+        else:
+            children = p[1]
+            sql = p[1].sql
         p[0] = Node('correlation_specification', children, sql)
 
     def p_correlation_name(self, p):
@@ -1723,16 +1748,23 @@ class SqlParser(object):
 
     def test(self):
         lexer = SqlLexer().build()
-        # print "=========================================="
-        # print self.parser.parse("Select distinct * from a WHere a1=b1 AND (a2=b2 or a3=c3) and a4=b4", lexer=lexer).to_sql()
         print "=========================================="
-        print self.parser.parse("select 1 a,'Abc123' as b,c,(d),"
-                                "(select count(*) from sub_table) subsel,"
+        print self.parser.parse("Select distinct * from a WHere a1=b1 AND"
+                                " (a2=b2 or a3=c3) and a4=b4", lexer=lexer).to_sql()
+        print "=========================================="
+        print self.parser.parse("select 1 a,'Abc123' as b,c,(1+2*3/4) d,"
+                                "(select distinct count(*), sub_col1, (select sub_sub_col1, sub_sub_col2 "
+                                "from sub_sub_table where sub_sub_col1=sub_sub_col2 and d=c) As sub_col2 "
+                                "from sub_table where sub_col1=sub_col2 and c1=c2 and "
+                                "exists(select 1 from b where b1=b2 and c!=3 and b<>4)) sub_sel,"
                                 "case a when '1' then a1 when '2' then a2 when '3' then a3 end b,"
-                                "case  when '1' then a1 when '2' then a2 else a9 end as ax from a", lexer=lexer).to_sql()
-        return
+                                "case  when '1' then a1 when '2' then a2 else a9 end as ax "
+                                "from a WHere a1=b1 AND (a2=b2 or a3=c3) "
+                                "and a4=(select max(a) from b where b=c and a=b and "
+                                "exists(select 1 from b where b1=b2 and c!=3 and b<>4)) "
+                                "and exists(select 1 from b where b1=b2 and c!=3 and b<>4)", lexer=lexer).to_sql()
         print "=========================================="
-        print self.parser.parse("select a, cast(123 as char) as b1"
+        print self.parser.parse("select a, cast(123 as char) as b1  -- comment\n"
                                 ", cast(123 as character) as b2"
                                 ", cast(123 as character(10)) as b3"
                                 ", cast(123 as char(20)) as b4"
@@ -1778,16 +1810,20 @@ class SqlParser(object):
                                 ", cast('2016-07-15 10:32:01' as date) as g2"
                                 ", cast('2016-07-15 10:32:01' as time) as g3"
                                 ", cast('2016-07-15 10:32:01' as timestamp) as g4"
-                                "		 from          tbl", lexer=lexer).to_sql()
-        while True:
-            text = raw_input("sql> ").strip()
-            if text.lower() == "quit":
-                break
-            if text:
-                result = self.parser.parse(text, lexer=lexer)
-                #print "parse result -> %s" % result
-                if result:
-                    print result.to_sql()
+                                "		 from          tbl as a "
+                                "left outer join tbl2 b on a.col1 = b.col1 and a.col2=b.col2 right"
+                                " join tbl3 c on a.col1=c.col1 and a.col2=c.col2 "
+                                " inner join tbl4 as d on a.col1=d.col1 and a.col2=d.cols2 "
+                                "join tbl5 e on a.col1=e.col1 and a.col2=e.col2", lexer=lexer).to_sql()
+        # while True:
+        #     text = raw_input("sql> ").strip()
+        #     if text.lower() == "quit":
+        #         break
+        #     if text:
+        #         result = self.parser.parse(text, lexer=lexer)
+        #         #print "parse result -> %s" % result
+        #         if result:
+        #             print result.to_sql()
 
 
 def unittest_lexer():
