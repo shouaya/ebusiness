@@ -8,6 +8,7 @@ from django.template import RequestContext, loader
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
 from . import biz
+from utils import common
 
 PAGE_SIZE = 50
 
@@ -41,28 +42,47 @@ def attendance_list_monthly(request):
 @login_required(login_url='/eb/login/')
 def download_attendance_list(request, year, month):
     attendance_list = biz.get_attendance_by_month(year, month)
+    # 就業日数
+    business_days = common.get_business_days(year, month)
 
     response = HttpResponse(content_type='text/csv')
     filename = u"%s年%s月出勤一覧_%s" % (year, month, datetime.datetime.now().strftime("%Y%m%d%H%M%S"))
     response['Content-Disposition'] = 'attachment; filename=' + urllib.quote(filename.encode('utf-8')) + '.csv' 
-    writer = csv.writer(response, quoting=csv.QUOTE_ALL)
+    writer = csv.writer(response)      # , quoting=csv.QUOTE_ALL
     for attendance in attendance_list:
-        if isinstance(attendance.applicant_name, unicode):
-            applicant_name = attendance.applicant_name.encode('utf8')
-        else:
-            applicant_name = attendance.applicant_name
-        org = attendance.applicant.get_section()
-        if org:
-            if isinstance(org.orgname, unicode):
-                orgname = org.orgname.encode('utf8')
-            else:
-                orgname = org.orgname
-        else:
-            orgname = ""
-        writer.writerow([attendance.applicant.ebemployee.code,
-                         applicant_name,
-                         orgname,
-                         attendance.totalday,
-                         attendance.totaltime,
-                         attendance.get_cost_payment()])
+        # 欠勤日数
+        absence_days = (business_days - attendance.totalday) if (business_days - attendance.totalday) > 0 else 0
+        # 有休日数
+        paid_holidays = attendance.applicant.get_paid_holidays() if attendance.applicant else 0
+        writer.writerow([attendance.applicant.ebemployee.code,        # 社員コード
+                         business_days,                               # 就業日数
+                         attendance.totalday,                         # 出勤日数
+                         absence_days,                                # 欠勤日数
+                         paid_holidays,                               # 有休日数
+                         0,                                           # 特休日数
+                         0,                                           # 休出日数
+                         0,                                           # 代休日数
+                         0,                                           # 遅早回数
+                         attendance.totaltime,                        # 出勤時間
+                         0,                                           # 遅早時間
+                         0,                                           # 平日普通残業時間
+                         attendance.nightcount,                       # 平日深夜残業時間
+                         0,                                           # 休日残業時間
+                         0,                                           # 休日深夜残業時間
+                         '',                                          # 予備項目
+                         '',                                          # 予備項目
+                         '',                                          # 予備項目
+                         '',                                          # 予備項目
+                         '',                                          # 予備項目
+                         '',                                          # 予備項目
+                         '',                                          # 予備項目
+                         '',                                          # 予備項目
+                         '',                                          # 予備項目
+                         '',                                          # 予備項目
+                         '',                                          # 予備項目
+                         '',                                          # 予備項目
+                         '',                                          # 予備項目
+                         '',                                          # 予備項目
+                         ''                                           # 予備項目
+                         ])
     return response

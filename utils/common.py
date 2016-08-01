@@ -13,7 +13,7 @@ import xlsxwriter
 import StringIO
 
 import constants
-
+import jholiday
 
 def add_months(source_date, months=1):
     month = source_date.month - 1 + months
@@ -759,13 +759,6 @@ def get_excel_replacements(text):
     return re.findall(constants.REG_EXCEL_REPLACEMENT, text, re.U)
 
 
-if __name__ == "__main__":
-    # line_counter()
-    for text in [u"注文番号：{$ORDER_NO$}", u"注文番号：{$ORDER_NO$} TEL:{$TEL$} ",
-                 u"注文番号：{$ORDER_NO$", u"注文番号：ORDER_NO", u"注文番号：{$ORDER_NO"]:
-        print text.ljust(50), get_excel_replacements(text)
-
-
 def get_unicode(s):
     if isinstance(s, unicode):
         return s
@@ -773,3 +766,20 @@ def get_unicode(s):
         return s.decode('utf8')
     else:
         return s
+
+
+def get_business_days(year, month):
+    business_days = 0
+    for i in range(1, 32):
+        try:
+            this_date = datetime.date(int(year), int(month), i)
+        except(ValueError):
+            break
+        if this_date.weekday() < 5 and jholiday.holiday_name(int(year), int(month), i) is None: # Monday == 0, Sunday == 6
+            business_days += 1
+    return business_days
+
+
+if __name__ == "__main__":
+    for i in range(1, 10):
+        print u'2016年%02d月' % (i,), get_business_days(2016, i)

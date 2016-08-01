@@ -1,5 +1,7 @@
 # coding: UTF-8
 
+import datetime
+
 from django.db import models
 from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
 
@@ -2895,6 +2897,19 @@ class SysUser(models.Model):
 
         return None
 
+    def get_paid_holidays(self):
+        year = datetime.date.today().year
+        paid_holidays_list = self.paidholidays_set.filter(year=year)
+        if paid_holidays_list.count() == 0:
+            paid_holidays_list = self.paidholidays_set.filter(year=(year - 1))
+            if paid_holidays_list.count() == 0:
+                paid_holidays_list = self.paidholidays_set.filter(year=(year - 1))
+        if paid_holidays_list.count() > 0:
+            days = paid_holidays = paid_holidays_list[0].days
+        else:
+            days = 0
+        return days
+
 
 class SysUserOrg(models.Model):
     userorgid = models.BigIntegerField(db_column='USERORGID', primary_key=True)
@@ -3893,6 +3908,21 @@ class NameChangeNotify(models.Model):
     class Meta:
         managed = False
         db_table = 'name_change_notify'
+
+
+class PaidHolidays(models.Model):
+    id = models.BigIntegerField(db_column='ID', primary_key=True)  
+    employee_name = models.CharField(max_length=100, db_column='employee', blank=True, null=True)
+    employee = models.ForeignKey(SysUser, to_field='userid', db_column='employeeID', max_length=100,
+                                  blank=True, null=True)
+    year = models.IntegerField()
+    days = models.IntegerField()
+    used = models.IntegerField()
+
+    class Meta:
+        managed = False
+        db_table = 'paid_holidays'
+        verbose_name = verbose_name_plural = u"有給休暇"
 
 
 class RecruitManagement(models.Model):

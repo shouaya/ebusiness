@@ -64,6 +64,11 @@ class EbEmployeeAdmin(BaseEboaAdmin):
     get_sections_name.short_description = u"所属"
 
 
+class PaidHolidaysAdmin(BaseEboaAdmin):
+    list_display = ['id', 'employee_name', 'year', 'days', 'used']
+    search_fields = ['employee__userid', 'employee_name', 'year']
+
+
 class SysOrgAdmin(BaseEboaAdmin):
     form = forms.SysOrgForm
     list_display = ['orgid', 'orgname', 'get_parent_org', 'isdelete']
@@ -91,5 +96,6 @@ class EboaAdminSite(admin.AdminSite):
 eboa_admin_site = EboaAdminSite(name='eboa_admin')
 eboa_admin_site.register(models.EbAttendance, EbAttendanceAdmin)
 eboa_admin_site.register(models.EbEmployee, EbEmployeeAdmin)
+eboa_admin_site.register(models.PaidHolidays, PaidHolidaysAdmin)
 eboa_admin_site.register(models.SysOrg, SysOrgAdmin)
 eboa_admin_site.register(models.SysUser, SysUserAdmin)
