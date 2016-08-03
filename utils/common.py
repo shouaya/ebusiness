@@ -768,7 +768,7 @@ def get_unicode(s):
         return s
 
 
-def get_business_days(year, month):
+def get_business_days(year, month, exclude=None):
     business_days = 0
     for i in range(1, 32):
         try:
@@ -776,7 +776,8 @@ def get_business_days(year, month):
         except(ValueError):
             break
         if this_date.weekday() < 5 and jholiday.holiday_name(int(year), int(month), i) is None: # Monday == 0, Sunday == 6
-            business_days += 1
+            if exclude and this_date.strftime("%Y/%m/%d") not in exclude:
+                business_days += 1
     return business_days
 
 

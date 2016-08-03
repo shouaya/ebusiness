@@ -3588,6 +3588,19 @@ class EbEmployee(models.Model):
         return common.get_unicode(self.name)
 
 
+class EbHoliday(models.Model):
+    id = models.BigIntegerField(db_column='ID', primary_key=True)  
+    holiday = models.DateTimeField()
+    memo = models.CharField(db_column='memo', max_length=100, blank=True, null=True)  
+    maker = models.CharField(db_column='maker', max_length=2000, blank=True, null=True)  
+    maker_id = models.CharField(db_column='makerID', max_length=2000, blank=True, null=True)  
+
+    class Meta:
+        managed = False
+        db_table = 'eb_holiday'
+        verbose_name = verbose_name_plural = u"EB休日"
+
+
 class EbInsureLossCert(models.Model):
     id = models.BigIntegerField(db_column='ID', primary_key=True)  
     code = models.CharField(max_length=10, blank=True, null=True)

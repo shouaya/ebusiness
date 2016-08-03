@@ -100,7 +100,7 @@
                 <th>定期券</th>
                 <th style="width: 120px;">定期券区間</th>
                 <th>天引</th>
-                <th>現場</th>
+                <th style="width: 120px;">現場</th>
                 <th style="width: 65px;"></th>
             </tr>
         </thead>
@@ -123,16 +123,28 @@
                         <td name="advance_amount">{{ attendance.get_advance_amount }}</td>
                         <td>{{ attendance.get_cost_payment|add:attendance.get_advance_amount }}</td>
                         <td>{{ attendance.nightcount|default:'0' }}</td>
-                        <td>{{ attendance.transit|intcomma }}</td>
+                        <td>
+                            {% if attendance.totalday < 14 %}
+                                <span class="red">{{ attendance.transit|intcomma }}</span>
+                            {% else %}
+                                {{ attendance.transit|intcomma }}
+                            {% endif %}
+                        </td>
                         <td title="{{ attendance.transit_interval }}">
                             <div style="width: 120px; white-space: nowrap; overflow: hidden;">
                                 {{ attendance.transit_interval }}
                             </div>
                         </td>
                         <td></td>
-                        <td></td>
+                        <td title="{{ attendance.address }}">
+                            <div style="width: 120px; white-space: nowrap; overflow: hidden;">
+                                {{ attendance.address }}
+                            </div>
+                        </td>
                         <td class="center">
+                            {% if attendance.get_eb_member %}
                             <a href="javascript:void(0)" onclick="row_update_show(this)">変更</a>
+                            {% endif %}
                         </td>
                     </tr>
                     <tr class="row_updated">
@@ -145,14 +157,24 @@
                         <td><input type="number" style="width: 62px;" value="{{ attendance.get_advance_amount }}" /></td>
                         <td>{{ attendance.get_cost_payment|add:attendance.get_advance_amount }}</td>
                         <td>{{ attendance.nightcount|default:'0' }}</td>
-                        <td>{{ attendance.transit|intcomma }}</td>
+                        <td>
+                            {% if attendance.totalday < 14 %}
+                                <span class="red">{{ attendance.transit|intcomma }}</span>
+                            {% else %}
+                                {{ attendance.transit|intcomma }}
+                            {% endif %}
+                        </td>
                         <td title="{{ attendance.transit_interval }}">
                             <div style="width: 120px; white-space: nowrap; overflow: hidden;">
                                 {{ attendance.transit_interval }}
                             </div>
                         </td>
                         <td></td>
-                        <td></td>
+                        <td title="{{ attendance.address }}">
+                            <div style="width: 120px; white-space: nowrap; overflow: hidden;">
+                                {{ attendance.address }}
+                            </div>
+                        </td>
                         <td class="center">
                             <a href="javascript:void(0)"
                                {% if attendance.get_eb_member %}

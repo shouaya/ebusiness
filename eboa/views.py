@@ -42,8 +42,10 @@ def attendance_list_monthly(request):
 @login_required(login_url='/eb/login/')
 def download_attendance_list(request, year, month):
     attendance_list = biz.get_attendance_by_month(year, month)
+    # ＥＢの休日を取得する。
+    eb_holidays = biz.get_eb_holiday_list()
     # 就業日数
-    business_days = common.get_business_days(year, month)
+    business_days = common.get_business_days(year, month, eb_holidays)
 
     response = HttpResponse(content_type='text/csv')
     filename = u"%s年%s月出勤一覧_%s" % (year, month, datetime.datetime.now().strftime("%Y%m%d%H%M%S"))

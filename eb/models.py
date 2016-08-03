@@ -687,6 +687,18 @@ class Member(AbstractMember):
         else:
             return None
 
+    def get_project_by_month(self, year, month):
+        ym = '%s%02d' % (year, int(month))
+        first_day = common.get_first_day_from_ym(ym)
+        last_day = common.get_last_day_by_month(first_day)
+        project_member_set = self.projectmember_set.public_filter(start_date__lte=last_day, 
+                                                                  end_date__gte=first_day,
+                                                                  is_deleted=False)
+        if project_member_set.count() > 0:
+            return project_member_set[0].project
+        else:
+            return None
+
     def delete(self, using=None):
         self.is_deleted = True
         self.deleted_date = datetime.datetime.now()
