@@ -58,17 +58,17 @@ def download_attendance_list(request, year, month):
         used_holidays = biz.get_user_holidays_by_month(attendance.applicant, year, month)
         writer.writerow([attendance.applicant.ebemployee.code,        # 社員コード
                          business_days,                               # 就業日数
-                         attendance.totalday,                         # 出勤日数
+                         attendance.totalday if attendance.totalday else 0,      # 出勤日数
                          absence_days,                                # 欠勤日数
                          used_holidays,                               # 有休日数
                          0,                                           # 特休日数
                          0,                                           # 休出日数
                          0,                                           # 代休日数
                          0,                                           # 遅早回数
-                         attendance.totaltime,                        # 出勤時間
+                         attendance.totaltime if attendance.totaltime else 0,    # 出勤時間
                          0,                                           # 遅早時間
                          0,                                           # 平日普通残業時間
-                         attendance.nightcount,                       # 平日深夜残業時間
+                         attendance.nightcount if attendance.nightcount else 0,  # 平日深夜残業時間
                          0,                                           # 休日残業時間
                          0,                                           # 休日深夜残業時間
                          '',                                          # 予備項目
