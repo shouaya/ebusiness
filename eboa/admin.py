@@ -68,8 +68,12 @@ class EbHolidayAdmin(BaseEboaAdmin):
     list_display = ['id', 'holiday', 'memo', 'maker', 'maker_id']
 
 
+class HolidaysApplicationAdmin(BaseEboaAdmin):
+    list_display = ['id', 'employee_name', 'start_date', 'end_date', 'use_days']
+
+
 class PaidHolidaysAdmin(BaseEboaAdmin):
-    list_display = ['id', 'employee_name', 'year', 'days', 'used']
+    list_display = ['id', 'employee_name', 'years', 'days', 'used']
     search_fields = ['employee__userid', 'employee_name', 'year']
 
 
@@ -101,6 +105,7 @@ eboa_admin_site = EboaAdminSite(name='eboa_admin')
 eboa_admin_site.register(models.EbAttendance, EbAttendanceAdmin)
 eboa_admin_site.register(models.EbEmployee, EbEmployeeAdmin)
 eboa_admin_site.register(models.EbHoliday, EbHolidayAdmin)
+eboa_admin_site.register(models.HolidaysApplication, HolidaysApplicationAdmin)
 eboa_admin_site.register(models.PaidHolidays, PaidHolidaysAdmin)
 eboa_admin_site.register(models.SysOrg, SysOrgAdmin)
 eboa_admin_site.register(models.SysUser, SysUserAdmin)

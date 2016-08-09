@@ -3908,6 +3908,24 @@ class EbVisaContact(models.Model):
         db_table = 'eb_visa_contact'
 
 
+class HolidaysApplication(models.Model):
+    id = models.BigIntegerField(db_column='ID', primary_key=True)  # Field name made lowercase.
+    employee_name = models.CharField(db_column='employee', max_length=2000, blank=True, null=True)
+    employee = models.ForeignKey(SysUser, db_column='employeeID', max_length=2000, blank=True, null=True)  # Field name made lowercase.
+    status = models.CharField(max_length=2000, blank=True, null=True)
+    insert_date = models.DateTimeField()
+    start_date = models.DateTimeField()
+    end_date = models.DateTimeField()
+    use_days = models.DecimalField(max_digits=3, decimal_places=0, blank=True, null=True)
+    reason = models.CharField(max_length=2000, blank=True, null=True)
+    contact = models.CharField(max_length=500, blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'holidays_application'
+        verbose_name = verbose_name_plural = u"休暇履歴"
+
+
 class NameChangeNotify(models.Model):
     id = models.BigIntegerField(db_column='ID', primary_key=True)  
     code = models.CharField(max_length=2000, blank=True, null=True)
@@ -3928,7 +3946,7 @@ class PaidHolidays(models.Model):
     employee_name = models.CharField(max_length=100, db_column='employee', blank=True, null=True)
     employee = models.ForeignKey(SysUser, to_field='userid', db_column='employeeID', max_length=100,
                                   blank=True, null=True)
-    year = models.IntegerField()
+    years = models.IntegerField()
     days = models.IntegerField()
     used = models.IntegerField()
 
