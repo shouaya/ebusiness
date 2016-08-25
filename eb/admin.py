@@ -114,7 +114,7 @@ class ProjectMemberInline(admin.TabularInline):
 
     def get_queryset(self, request):
         queryset = super(ProjectMemberInline, self).get_queryset(request)
-        return queryset.filter(is_deleted=False)
+        return queryset.filter(is_deleted=False, member__is_retired=False, member__is_deleted=False)
 
 
 class EmployeeExpensesInline(admin.TabularInline):
