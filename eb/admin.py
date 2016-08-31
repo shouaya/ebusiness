@@ -14,6 +14,7 @@ from django.contrib.admin.models import LogEntry, ADDITION, CHANGE
 from django.contrib.auth.models import User
 from django.contrib.auth.admin import UserAdmin
 from django.utils.translation import ugettext_lazy as _
+from django.db.models import Max
 
 import forms
 from .models import Company, Section, Member, Salesperson, Project, Client, ClientMember, \
@@ -570,6 +571,12 @@ class ProjectAdmin(BaseAdmin):
                 member = pm.member
                 member.salesperson = project.salesperson
                 member.save()
+        # 保存時、案件の終了日を一番後ろの案件メンバーの終了日とする。
+        max_end_date = project.projectmember_set.filter(is_deleted=False).aggregate(Max('end_date'))
+        max_end_date = max_end_date.get('end_date__max')
+        if max_end_date and (project.end_date is None or max_end_date > project.end_date):
+            project.end_date = max_end_date
+            project.save()
 
     def delete_objects(self, request, queryset):
         cnt = 0

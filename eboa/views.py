@@ -56,7 +56,10 @@ def download_attendance_list(request, year, month):
         absence_days = (business_days - attendance.totalday) if (business_days - attendance.totalday) > 0 else 0
         # 有休日数
         used_holidays = biz.get_user_holidays_by_month(attendance.applicant, year, month)
-        writer.writerow([attendance.applicant.ebemployee.code,        # 社員コード
+        # 社員コード
+        employee_code = attendance.applicant.ebemployee.code \
+            if attendance.applicant and attendance.applicant.ebemployee else ''
+        writer.writerow([employee_code,                               # 社員コード
                          business_days,                               # 就業日数
                          attendance.totalday if attendance.totalday else 0,      # 出勤日数
                          absence_days,                                # 欠勤日数

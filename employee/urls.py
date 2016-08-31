@@ -1,12 +1,12 @@
-from django.conf.urls import patterns, include, url
+from django.conf.urls import include, url
 from django.contrib import admin
 from django.contrib.auth import views as auth_views
 from eboa.admin import eboa_admin_site
 from del_data.admin import del_data_admin_site
+from employee import views
 
-urlpatterns = patterns(
-    '',
-    url(r'^$', 'employee.views.home', name='home'),
+urlpatterns = [
+    url(r'^$', views.home, name='home'),
     url(r'^eb/', include('eb.urls')),
 
     url(r'^admin/', include(admin.site.urls)),
@@ -19,4 +19,4 @@ urlpatterns = patterns(
 
     url(r'^eboa-admin/', include(eboa_admin_site.urls)),
     url(r'^del-data-admin/', include(del_data_admin_site.urls)),
-)
+]
