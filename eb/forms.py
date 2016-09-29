@@ -41,13 +41,12 @@ class SearchSelect(forms.Select):
             ),
             current_app=admin.site.name,
         )
-        output.append('<a href="%s%s" class="related-lookup" id="lookup_id_%s" title="%s">'
-                      ' <img src="/static/admin/img/selector-search.gif" />'
+        output.append('<a href="%s%s" class="related-lookup selector search-label-icon" id="lookup_id_%s" title="%s">'
                       '</a>' %
                       (related_url, '', name, _('Lookup')))
         output.append(u'<a class="related-widget-wrapper-link change-related" id="change_id_%s"'
                       u' data-href-template="/admin/eb/%s/__fk__/?_to_field=id&_popup=1" title="%s">'
-                      u'  <img src="/static/admin/img/icon_changelink.gif" width="10" height="10" '
+                      u'  <img src="/static/admin/img/icon-changelink.svg" width="15" height="15" style="margin-top: -4px;" '
                       u'   alt="%s"/></a>' % (name, self.clsModel._meta.model_name, _("Change"), _("Change")))
         output.append('</div>')
         return mark_safe('\n'.join(output))
