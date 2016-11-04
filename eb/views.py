@@ -23,6 +23,8 @@ from django.shortcuts import redirect, render_to_response, get_object_or_404
 from django.template import RequestContext, loader
 from django.template.context_processors import csrf
 from django.views.decorators.csrf import csrf_protect
+from django.contrib.admin.models import LogEntry, ADDITION, CHANGE
+from django.contrib.contenttypes.models import ContentType
 
 from eb import biz, biz_batch, biz_turnover
 from utils import constants, common, errors, loader as file_loader, file_gen
@@ -582,7 +584,14 @@ def project_attendance_list(request, project_id):
                     if not attendance.pk:
                         attendance_id = request.POST.get("form-%s-id" % (i,), None)
                         attendance.pk = int(attendance_id) if attendance_id else None
+                    action_flag = CHANGE if attendance.pk else ADDITION
                     attendance.save()
+                    if action_flag == ADDITION:
+                        LogEntry.objects.log_action(request.user.id,
+                                                    ContentType.objects.get_for_model(attendance).pk,
+                                                    attendance.pk,
+                                                    unicode(attendance),
+                                                    action_flag)
                 return redirect(reverse("project_detail", args=(project.pk,)))
             else:
                 context.update({'formset': formset})
@@ -1222,7 +1231,14 @@ def download_project_request(request, project_id):
             project_request.created_user = request.user if not project_request.pk else project_request.created_user
             project_request.updated_user = request.user
             # 請求履歴を保存する。
+            action_flag = CHANGE if project_request.pk else ADDITION
             project_request.save(data=data)
+            LogEntry.objects.log_action(request.user.id,
+                                        ContentType.objects.get_for_model(project_request).pk,
+                                        project_request.pk,
+                                        unicode(project_request),
+                                        action_flag,
+                                        '' if action_flag == ADDITION else u'再作成しました。')
 
         response = HttpResponse(open(path, 'rb'), content_type="application/excel")
         response['Content-Disposition'] = "filename=" + urllib.quote(filename.encode('UTF-8'))
