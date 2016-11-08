@@ -1205,6 +1205,9 @@ class ProjectRequest(models.Model):
             ('generate_request', u"請求書作成"),
         )
 
+    def __unicode__(self):
+        return u"%s-%s" % (self.request_no, self.project.name)
+
     def save(self, force_insert=False, force_update=False, using=None,
              update_fields=None, data=None):
         super(ProjectRequest, self).save(force_insert, force_update, using, update_fields)

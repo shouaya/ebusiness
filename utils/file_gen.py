@@ -586,6 +586,7 @@ def generate_request_linux(project, data, request_no, ym):
                                     'top': 1,
                                     'bottom': 1})
     num_format = book.add_format({'num_format': '#,###', 'border': 1})
+    float_format = book.add_format({'num_format': '#,###.00', 'border': 1})
     start_row = 24
 
     def border_row(row_index, is_lump=False):
@@ -636,10 +637,10 @@ def generate_request_linux(project, data, request_no, ym):
             sheet.merge_range(start_row, 2, start_row, 6, item['ITEM_NAME'], cell_format)
             sheet.write_number(start_row, 7, item['ITEM_PRICE'], num_format)
             if item['ITEM_WORK_HOURS']:
-                sheet.write_number(start_row, 8, float(item['ITEM_WORK_HOURS']), num_format)
+                sheet.write_number(start_row, 8, float(item['ITEM_WORK_HOURS']), float_format)
             else:
                 sheet.write_string(start_row, 8, '', cell_format)
-            sheet.write_number(start_row, 9, item['ITEM_RATE'], num_format)
+            sheet.write_number(start_row, 9, item['ITEM_RATE'], float_format)
             sheet.write_string(start_row, 10, item['ITEM_MIN_MAX'], cell_format)
             sheet.write_number(start_row, 11, item['ITEM_MINUS_PER_HOUR'], num_format)
             sheet.write_number(start_row, 12, item['ITEM_PLUS_PER_HOUR'], num_format)
@@ -682,7 +683,8 @@ def generate_request_linux(project, data, request_no, ym):
             border_row(start_row, project.is_lump)
             if i == 0:
                 sheet.write_string(start_row, 1, u"追加", cell_format)
-            sheet.write_string(start_row, 3, item['ITEM_EXPENSES_CATEGORY_SUMMARY'], range2_format)
+            #sheet.write_string(start_row, 3, item['ITEM_EXPENSES_CATEGORY_SUMMARY'], range2_format)
+            sheet.merge_range(start_row, 3, start_row, 13, item['ITEM_EXPENSES_CATEGORY_SUMMARY'], range3_format)
             sheet.write_number(start_row, 14, item['ITEM_EXPENSES_CATEGORY_AMOUNT'], num_format)
             start_row += 1
     else:
