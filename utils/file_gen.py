@@ -698,7 +698,7 @@ def generate_request_linux(project, data, request_no, ym):
     sheet.write_string(start_row + 2, 2, data['DETAIL']['BANK_NAME'])
     sheet.write_string(start_row + 3, 2, u"%s（%s）" % (data['DETAIL']['BRANCH_NAME'], data['DETAIL']['BRANCH_NO']))
     sheet.write_string(start_row + 4, 2, u"%s　%s" % (data['DETAIL']['ACCOUNT_TYPE'], data['DETAIL']['ACCOUNT_NUMBER']))
-    sheet.write_string(start_row + 5, 2, u"名義　　　　%s" % (data['DETAIL']['BANK_NAME'],))
+    sheet.write_string(start_row + 5, 2, u"名義　　　　%s" % (data['DETAIL']['BANK_ACCOUNT_HOLDER'],))
     border_right_format = book.add_format({'right': 1})
     border_top_format = book.add_format({'top': 1})
     for i in range(start_row + 1, start_row + 6):
