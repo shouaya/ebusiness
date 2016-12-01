@@ -43,7 +43,7 @@ class SearchSelect(forms.Select):
         )
         output.append('<a href="%s%s" class="related-lookup selector search-label-icon" id="lookup_id_%s" title="%s">'
                       '</a>' %
-                      (related_url, '', name, _('Lookup')))
+                      (related_url, '?is_deleted__exact=0&is_retired__exact=0', name, _('Lookup')))
         output.append(u'<a class="related-widget-wrapper-link change-related" id="change_id_%s"'
                       u' data-href-template="/admin/eb/%s/__fk__/?_to_field=id&_popup=1" title="%s">'
                       u'  <img src="/static/admin/img/icon-changelink.svg" width="15" height="15" style="margin-top: -4px;" '
