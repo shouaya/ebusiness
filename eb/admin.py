@@ -361,6 +361,11 @@ class MemberAdmin(BaseAdmin):
             del actions['delete_selected']
         return actions
 
+    def get_form(self, request, obj=None, **kwargs):
+        form = super(MemberAdmin, self).get_form(request, obj, **kwargs)
+        form.base_fields['section'].queryset = Section.objects.public_filter(is_on_sales=True)
+        return form
+
     def is_user_created(self, obj):
         return obj.user is not None
     is_user_created.short_description = u"ユーザ作成"
