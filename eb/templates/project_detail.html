@@ -366,8 +366,8 @@
                             <td>
                                 {% ifnotequal cnt 1 %}
                                     <a style="float: right; font-size: 9px;"
-                                       href="javascript:order_member_assign('order_member_assign_{{ client_order.pk }}', '{{ client_order.pk }}')">要員指定</a>
-                                    <div id="order_member_assign_{{ client_order.pk }}" class="dialog">
+                                       href="javascript:order_member_assign('order_member_assign_{{ year }}{{ month }}_{{ client_order.pk }}', '{{ client_order.pk }}')">要員指定</a>
+                                    <div id="order_member_assign_{{ year }}{{ month }}_{{ client_order.pk }}" class="dialog">
                                         <table id="order_member_list_{{ client_order.pk }}" class="list" cellpadding="0" cellspacing="0">
                                             <thead>
                                                 <tr>
