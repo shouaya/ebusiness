@@ -65,7 +65,6 @@ class AbstractMember(models.Model):
     phone = models.CharField(blank=True, null=True, max_length=11, verbose_name=u"電話番号")
     is_married = models.CharField(blank=True, null=True, max_length=1,
                                   choices=constants.CHOICE_MARRIED, verbose_name=u"婚姻状況")
-    section = models.ForeignKey('Section', blank=False, null=True, verbose_name=u"部署")
     company = models.ForeignKey('Company', blank=True, null=True, verbose_name=u"会社")
     japanese_description = models.TextField(blank=True, null=True, verbose_name=u"日本語能力の説明")
     certificate = models.TextField(blank=True, null=True, verbose_name=u"資格の説明")
@@ -84,7 +83,7 @@ class AbstractMember(models.Model):
 
 class PublicManager(models.Manager):
 
-    use_for_related_fields = True
+    # use_for_related_fields = True
 
     def __init__(self, *args, **kwargs):
         super(PublicManager, self).__init__()
@@ -92,7 +91,7 @@ class PublicManager(models.Manager):
         self.kwargs = kwargs
 
     def get_queryset(self):
-        return super(PublicManager, self).get_queryset()#.filter(*self.args, **self.kwargs)
+        return super(PublicManager, self).get_queryset().filter(is_deleted=False)
 
     def public_all(self):
         return self.get_queryset().filter(*self.args, **self.kwargs)
@@ -388,6 +387,7 @@ class SalesOffReason(models.Model):
 class Salesperson(AbstractMember):
 
     user = models.OneToOneField(User, blank=True, null=True)
+    section = models.ForeignKey('Section', blank=False, null=True, verbose_name=u"部署")
     member_type = models.IntegerField(default=5, choices=constants.CHOICE_SALESPERSON_TYPE, verbose_name=u"社員区分")
     is_deleted = models.BooleanField(default=False, editable=False, verbose_name=u"削除フラグ")
     deleted_date = models.DateTimeField(blank=True, null=True, editable=False, verbose_name=u"削除年月日")
@@ -482,6 +482,7 @@ class Salesperson(AbstractMember):
 class Member(AbstractMember):
     user = models.OneToOneField(User, blank=True, null=True)
     member_type = models.IntegerField(default=0, choices=constants.CHOICE_MEMBER_TYPE, verbose_name=u"社員区分")
+    section = models.ForeignKey('Section', blank=False, null=True, verbose_name=u"部署")
     salesperson = models.ForeignKey(Salesperson, blank=True, null=True, verbose_name=u"営業員")
     is_individual_pay = models.BooleanField(default=False, verbose_name=u"個別精算")
     subcontractor = models.ForeignKey(Subcontractor, blank=True, null=True, verbose_name=u"協力会社")
@@ -525,6 +526,34 @@ class Member(AbstractMember):
             return years
         else:
             return None
+
+    def get_section(self, date=None):
+        """部署を取得する。
+
+        :param date:
+        :return:
+        """
+        if not date:
+            date = datetime.date.today()
+        results = self.membersectionperiod_set.filter((Q(start_date__lte=date) & Q(end_date__isnull=True)) |
+                                                      (Q(start_date__lte=date) & Q(end_date__gte=date)))
+        if results.count() > 0:
+            return results[0].section
+        return None
+
+    def get_salesperson(self, date=None):
+        """営業員を取得する。
+
+        :param date:
+        :return:
+        """
+        if not date:
+            date = datetime.date.today()
+        results = self.membersalespersonperiod_set.filter((Q(start_date__lte=date) & Q(end_date__isnull=True)) |
+                                                          (Q(start_date__lte=date) & Q(end_date__gte=date)))
+        if results.count() > 0:
+            return results[0].salesperson
+        return None
 
     def get_current_project_member(self):
         """現在実施中の案件アサイン情報を取得する
@@ -698,6 +727,54 @@ class Member(AbstractMember):
             return project_member_set[0].project
         else:
             return None
+
+    def delete(self, using=None):
+        self.is_deleted = True
+        self.deleted_date = datetime.datetime.now()
+        self.save()
+
+
+class MemberSectionPeriod(models.Model):
+    member = models.ForeignKey(Member, verbose_name=u"社員名")
+    section = models.ForeignKey(Section, verbose_name=u"部署")
+    start_date = models.DateField(verbose_name=u"開始日")
+    end_date = models.DateField(blank=True, null=True, verbose_name=u"終了日")
+    is_deleted = models.BooleanField(default=False, editable=False, verbose_name=u"削除フラグ")
+    deleted_date = models.DateTimeField(blank=True, null=True, editable=False, verbose_name=u"削除年月日")
+
+    objects = PublicManager(is_deleted=False)
+
+    class Meta:
+        ordering = ['start_date']
+        verbose_name = verbose_name_plural = u"社員の部署期間"
+
+    def __unicode__(self):
+        return u"%s - %s(%s〜%s)" % (self.member.__unicode__(), self.section.__unicode__(),
+                                    self.start_date, self.end_date)
+
+    def delete(self, using=None):
+        self.is_deleted = True
+        self.deleted_date = datetime.datetime.now()
+        self.save()
+
+
+class MemberSalespersonPeriod(models.Model):
+    member = models.ForeignKey(Member, verbose_name=u"社員名")
+    salesperson = models.ForeignKey(Salesperson, verbose_name=u"営業員")
+    start_date = models.DateField(verbose_name=u"開始日")
+    end_date = models.DateField(blank=True, null=True, verbose_name=u"終了日")
+    is_deleted = models.BooleanField(default=False, editable=False, verbose_name=u"削除フラグ")
+    deleted_date = models.DateTimeField(blank=True, null=True, editable=False, verbose_name=u"削除年月日")
+
+    objects = PublicManager(is_deleted=False)
+
+    class Meta:
+        ordering = ['start_date']
+        verbose_name = verbose_name_plural = u"社員の営業員期間"
+
+    def __unicode__(self):
+        return u"%s - %s(%s〜%s)" % (self.member.__unicode__(), self.salesperson.__unicode__(),
+                                    self.start_date, self.end_date)
 
     def delete(self, using=None):
         self.is_deleted = True
@@ -1218,6 +1295,7 @@ class ProjectRequest(models.Model):
                 self.projectrequestheading.delete()
             self.projectrequestdetail_set.all().delete()
             bank = data['EXTRA']['BANK']
+            date = datetime.date(int(self.year), int(self.month), 1)
             heading = ProjectRequestHeading(project_request=self,
                                             is_lump=self.project.is_lump,
                                             lump_amount=self.project.lump_amount,
@@ -1252,9 +1330,9 @@ class ProjectRequest(models.Model):
                 ym = data['EXTRA']['YM']
                 detail = ProjectRequestDetail(project_request=self,
                                               project_member=project_member,
-                                              member_section=project_member.member.section,
+                                              member_section=project_member.member.get_section(date),
                                               member_type=project_member.member.member_type,
-                                              salesperson=project_member.member.salesperson,
+                                              salesperson=project_member.member.get_salesperson(date),
                                               subcontractor=project_member.member.subcontractor,
                                               cost=project_member.member.cost,
                                               no=str(i + 1),

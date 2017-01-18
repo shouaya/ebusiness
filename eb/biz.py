@@ -39,7 +39,29 @@ def get_all_members():
     """
     today = datetime.date.today()
     return models.Member.objects.public_filter(Q(join_date__isnull=True) | Q(join_date__lte=today),
-                                               section__is_on_sales=True)
+                                               membersectionperiod__section__is_on_sales=True).distinct()
+
+
+def get_members_by_section(all_members, section_id):
+    if not section_id:
+        return all_members
+    today = datetime.date.today()
+    return all_members.filter((Q(membersectionperiod__start_date__lte=today) &
+                               Q(membersectionperiod__end_date__isnull=True)) |
+                              (Q(membersectionperiod__start_date__lte=today) &
+                               Q(membersectionperiod__end_date__gte=today)),
+                              membersectionperiod__section__pk=section_id)
+
+
+def get_members_by_salesperson(all_members, salesperson_id):
+    if not salesperson_id:
+        return all_members
+    today = datetime.date.today()
+    return all_members.filter((Q(membersalespersonperiod__start_date__lte=today) &
+                               Q(membersalespersonperiod__end_date__isnull=True)) |
+                              (Q(membersalespersonperiod__start_date__lte=today) &
+                               Q(membersalespersonperiod__end_date__gte=today)),
+                              membersalespersonperiod__salesperson__pk=salesperson_id)
 
 
 def get_sales_members():
@@ -189,7 +211,7 @@ def get_next_change_list():
                                                       projectmember__start_date__lte=next_last_day,
                                                       projectmember__is_deleted=False,
                                                       projectmember__status=2)).distinct()
-    return members.filter(section__is_on_sales=True)
+    return members.filter(membersectionperiod__section__is_on_sales=True)
 
 
 def get_release_members_by_month(date, p=None):
@@ -199,7 +221,7 @@ def get_release_members_by_month(date, p=None):
     :param p: 画面からの絞り込み条件
     """
     working_member_next_date = get_working_members(date=common.add_months(date, 1))
-    project_members = get_project_members_month(date).filter(member__section__is_on_sales=True,
+    project_members = get_project_members_month(date).filter(member__membersectionperiod__section__is_on_sales=True,
                                                              member__is_on_sales=True)\
         .exclude(member__in=working_member_next_date)
     if p:

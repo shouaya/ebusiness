@@ -10,12 +10,12 @@
             init_select_name("member_section__pk", "member_section__name");
             init_select("project_request__project__name__contains");
             init_select("project_request__projectrequestheading__client__name__contains");
-            init_select("project_member__member__salesperson__pk");
+            init_select("salesperson__pk");
 
             params = GetQueryString();
-            first_name = params["project_member__member__salesperson__first_name"];
-            last_name = params["project_member__member__salesperson__last_name"];
-            init_select_text("project_member__member__salesperson__pk", first_name + " " + last_name);
+            first_name = params["salesperson__first_name"];
+            last_name = params["salesperson__last_name"];
+            init_select_text("salesperson__pk", first_name + " " + last_name);
         };
     </script>
 {% endblock %}
@@ -36,7 +36,7 @@
             <span>案件: </span><input type="text" id="project_request__project__name__contains" name="project_request__project__name__contains" style="width: 150px;"/>
             <span>関連会社: </span><input type="text" id="project_request__projectrequestheading__client__name__contains" name="project_request__projectrequestheading__client__name__contains" style="width: 150px;"/>
             <span>営業：</span>
-            <select id="project_member__member__salesperson__pk" name="project_member__member__salesperson__pk">
+            <select id="salesperson__pk" name="salesperson__pk">
                 <option value="">すべて</option>
                 {% for member in salesperson %}
                     <option value="{{ member.pk }}">{{ member }}</option>
@@ -63,20 +63,7 @@
                     </div>
                     <div class="clear"></div>
                 </th>
-                <th>
-                    {% if dict_order.project_member__member__section__name.is_in_ordering %}
-                        <div class="sortoptions">
-                            <a class="sortremove" href="?o={{ dict_order.project_member__member__section__name.url_list_removed }}{{ params }}"></a>
-                            <span class="sortpriority">{{ dict_order.project_member__member__section__name.priority }}</span>
-                            <a class="{% if dict_order.project_member__member__section__name.is_asc %}descending{% else %}ascending{% endif %}"
-                               href="?o={{ dict_order.project_member__member__section__name.url }}{{ params }}"></a>
-                        </div>
-                    {% endif %}
-                    <div class="text">
-                        <a href="?o={{ dict_order.project_member__member__section__name.url }}{{ params }}">部署</a>
-                    </div>
-                    <div class="clear"></div>
-                </th>
+                <th>部署</th>
                 <th style="width: 220px;">
                     {% if dict_order.project_request__project__name.is_in_ordering %}
                         <div class="sortoptions">
@@ -120,7 +107,7 @@
                         <td>
                             <a href="{% url 'member_detail' turnover_detail.project_member.member.employee_id %}">{{ turnover_detail.project_member.member }}</a>
                         </td>
-                        <td>{{ turnover_detail.project_member.member.section }}</td>
+                        <td>{{ turnover_detail.member_section }}</td>
                         <td>
                             <div style="width: 220px; overflow: hidden; white-space: nowrap;">
                             <a href="{% url 'project_detail' turnover_detail.project_member.project.pk %}" title="{{ turnover_detail.project_member.project }}">
@@ -133,7 +120,7 @@
                                 {{ turnover_detail.project_member.project.client }}
                             </div>
                         </td>
-                        <td>{{ turnover_detail.project_member.member.salesperson }}</td>
+                        <td>{{ turnover_detail.salesperson }}</td>
                         <td style="text-align: right">{{ turnover_detail.cost|intcomma }}</td>
                         <td style="text-align: right">{{ turnover_detail.total_price|intcomma }}</td>
                         <td style="text-align: right">

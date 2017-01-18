@@ -271,7 +271,7 @@ def generate_business_plan(projects, filename):
         sheet.write(row + 2 + i, col + 1, project.middleman.name if project.middleman else "", cell_format)
         sheet.write(row + 2 + i, col + 2, project.address, cell_format)
         first_project_member = project.get_first_project_member()
-        sheet.write(row + 2 + i, col + 3, first_project_member.member.section.name, cell_format)
+        sheet.write(row + 2 + i, col + 3, first_project_member.member.get_section().name, cell_format)
         member_name = first_project_member.member.__unicode__()
         position_ship = first_project_member.member.get_position_ship()
         member_name = u"%s(%s)" % (member_name, position_ship.get_position_display()) if position_ship else member_name
@@ -301,7 +301,7 @@ def generate_business_plan(projects, filename):
             sheet.write(row + 2 + i, col + 0, "", cell_format)
             sheet.write(row + 2 + i, col + 1, "", cell_format)
             sheet.write(row + 2 + i, col + 2, "", cell_format)
-            sheet.write(row + 2 + i, col + 3, project_member.member.section.name, cell_format)
+            sheet.write(row + 2 + i, col + 3, project_member.member.get_section().name, cell_format)
             member_name = project_member.member.__unicode__()
             position_ship = project_member.member.get_position_ship()
             member_name = u"%s(%s)" % (member_name, position_ship.get_position_display()) if position_ship else member_name

@@ -79,7 +79,7 @@ class HistoryProjectAdmin(BaseAdmin):
 
 
 class MemberAdmin(BaseAdmin):
-    list_display = ['employee_id', get_full_name, 'section', 'subcontractor', 'salesperson',
+    list_display = ['employee_id', get_full_name, 'subcontractor',
                     is_user_created, 'is_retired', 'deleted_date']
 
 

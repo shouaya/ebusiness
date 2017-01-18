@@ -295,6 +295,8 @@ section div.dialog {
     width: 600px;
     background-color: white;
     z-index: 1000;
+    overflow-y: scroll;
+    max-height: 600px;
 }
 
 section div.dialog .sep {

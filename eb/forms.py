@@ -445,3 +445,101 @@ class BpMemberOrderInfoFormSet(forms.ModelForm):
                               widget=forms.TextInput(attrs={'style': 'width: 70px;',
                                                             'type': 'number'}),
                               label=u"コスト")
+
+
+class MemberSectionPeriodForm(forms.ModelForm):
+
+    class Meta:
+        model = models.MemberSectionPeriod
+        fields = '__all__'
+
+    def __init__(self, *args, **kwargs):
+        forms.ModelForm.__init__(self, *args, **kwargs)
+        self.fields['section'].queryset = models.Section.objects.public_filter(is_on_sales=True)
+
+    def clean(self):
+        cleaned_data = super(MemberSectionPeriodForm, self).clean()
+        start_date = cleaned_data.get("start_date")
+        end_date = cleaned_data.get("end_date")
+        if end_date and end_date <= start_date:
+            self.add_error('end_date', u"終了日は開始日以降に設定してください。")
+
+
+class MemberSalespersonPeriodForm(forms.ModelForm):
+
+    class Meta:
+        model = models.MemberSalespersonPeriod
+        fields = '__all__'
+
+    def __init__(self, *args, **kwargs):
+        forms.ModelForm.__init__(self, *args, **kwargs)
+        self.fields['salesperson'].queryset = models.Salesperson.objects.public_all()
+
+    def clean(self):
+        cleaned_data = super(MemberSalespersonPeriodForm, self).clean()
+        start_date = cleaned_data.get("start_date")
+        end_date = cleaned_data.get("end_date")
+        if end_date and end_date <= start_date:
+            self.add_error('end_date', u"終了日は開始日以降に設定してください。")
+
+
+class MemberSectionPeriodFormset(forms.BaseInlineFormSet):
+    def clean(self):
+        count = 0
+        dates = []
+        for form in self.forms:
+            try:
+                if form.cleaned_data:
+                    start_date = form.cleaned_data.get("start_date")
+                    end_date = form.cleaned_data.get("end_date")
+                    dates.append((start_date, end_date))
+                    count += 1
+            except AttributeError:
+                pass
+        if count < 1:
+            raise forms.ValidationError(u'部署期間を少なくとも１つ追加してください。')
+        elif count > 1:
+            dates.sort(key=lambda date: date[0])
+            for i, period in enumerate(dates):
+                start_date, end_date = period
+                if is_cross_date(dates, start_date, i):
+                    raise forms.ValidationError(u"部署期間の開始日が重複している。")
+                if end_date and is_cross_date(dates, end_date, i):
+                    raise forms.ValidationError(u"部署期間の終了日が重複している。")
+
+
+class MemberSalespersonPeriodFormset(forms.BaseInlineFormSet):
+    def clean(self):
+        count = 0
+        dates = []
+        for form in self.forms:
+            try:
+                if form.cleaned_data:
+                    start_date = form.cleaned_data.get("start_date")
+                    end_date = form.cleaned_data.get("end_date")
+                    dates.append((start_date, end_date))
+                    count += 1
+            except AttributeError:
+                pass
+        if count < 1:
+            raise forms.ValidationError(u'営業員期間を少なくとも１つ追加してください。')
+        elif count > 1:
+            dates.sort(key=lambda date: date[0])
+            for i, period in enumerate(dates):
+                start_date, end_date = period
+                if is_cross_date(dates, start_date, i):
+                    raise forms.ValidationError(u"営業員期間の開始日が重複している。")
+                if end_date and is_cross_date(dates, end_date, i):
+                    raise forms.ValidationError(u"営業員期間の終了日が重複している。")
+
+
+def is_cross_date(dates, d, index):
+    for j, p in enumerate(dates):
+        d1, d2 = p
+        if j == index:
+            continue
+        if d2 is not None and d1 <= d <= d2:
+            return True
+        elif d2 is None and d1 <= d:
+            return True
+    return False

@@ -21,7 +21,8 @@ from .models import Company, Section, Member, Salesperson, Project, Client, Clie
     ProjectMember, Skill, ProjectSkill, ProjectActivity, Subcontractor, PositionShip,\
     ProjectStage, OS, HistoryProject, MemberAttendance, Degree, ClientOrder, \
     create_group_salesperson, MemberExpenses, ExpensesCategory, BankInfo, History, ProjectRequest, Issue, \
-    ProjectRequestHeading, ProjectRequestDetail, SalesOffReason, EmployeeExpenses
+    ProjectRequestHeading, ProjectRequestDetail, SalesOffReason, EmployeeExpenses, \
+    MemberSectionPeriod, MemberSalespersonPeriod
 from utils import common
 
 
@@ -146,6 +147,20 @@ class MemberAttendanceInline(admin.TabularInline):
         return queryset.filter(is_deleted=False)
 
 
+class MemberSectionPeriodInline(admin.TabularInline):
+    model = MemberSectionPeriod
+    extra = 1
+    form = forms.MemberSectionPeriodForm
+    formset = forms.MemberSectionPeriodFormset
+
+
+class MemberSalespersonPeriodInline(admin.TabularInline):
+    model = MemberSalespersonPeriod
+    extra = 1
+    form = forms.MemberSalespersonPeriodForm
+    formset = forms.MemberSalespersonPeriodFormset
+
+
 class DegreeInline(admin.TabularInline):
     model = Degree
     extra = 0
@@ -160,7 +175,7 @@ get_full_name.admin_order_field = "first_name"
 class BaseAdmin(admin.ModelAdmin):
 
     class Media:
-        js = ('http://ajaxzip3.googlecode.com/svn/trunk/ajaxzip3/ajaxzip3.js',
+        js = ('https://ajaxzip3.github.io/ajaxzip3.js',
               '/static/js/jquery-2.1.4.min.js',
               '/static/js/filterlist.js',
               '/static/js/select_filter.js',
@@ -329,13 +344,13 @@ class SalesOffReasonAdmin(BaseAdmin):
 class MemberAdmin(BaseAdmin):
 
     form = forms.MemberForm
-    list_display = ['employee_id', get_full_name, 'section', 'subcontractor', 'salesperson',
+    list_display = ['employee_id', get_full_name, 'subcontractor',
                     'is_user_created', 'is_retired', 'is_deleted']
     list_display_links = [get_full_name]
-    list_filter = ['member_type', 'section', 'salesperson', NoUserFilter,
+    list_filter = ['member_type', NoUserFilter,
                    'is_retired', 'is_deleted']
     search_fields = ['first_name', 'last_name']
-    inlines = (DegreeInline, EmployeeExpensesInline)
+    inlines = (DegreeInline, MemberSectionPeriodInline, MemberSalespersonPeriodInline, EmployeeExpensesInline)
     actions = ['create_users', 'delete_objects', 'active_objects', 'member_retire']
     fieldsets = (
         (None, {'fields': ('employee_id',
@@ -351,8 +366,8 @@ class MemberAdmin(BaseAdmin):
                      ('address1', 'address2'), 'nearest_station',
                      'country', 'graduate_date', 'phone', 'japanese_description',
                      'certificate', 'skill_description', 'comment')}),
-        (u"勤務情報", {'fields': ['member_type', 'join_date', 'email', 'is_notify', 'notify_type', 'section', 'company',
-                              'subcontractor', 'is_on_sales', 'sales_off_reason', 'salesperson', 'is_retired']})
+        (u"勤務情報", {'fields': ['member_type', 'join_date', 'email', 'is_notify', 'notify_type', 'company',
+                              'subcontractor', 'is_on_sales', 'sales_off_reason', 'is_retired']})
     )
 
     def get_actions(self, request):
@@ -360,11 +375,6 @@ class MemberAdmin(BaseAdmin):
         if 'delete_selected' in actions:
             del actions['delete_selected']
         return actions
-
-    def get_form(self, request, obj=None, **kwargs):
-        form = super(MemberAdmin, self).get_form(request, obj, **kwargs)
-        form.base_fields['section'].queryset = Section.objects.public_filter(is_on_sales=True)
-        return form
 
     def is_user_created(self, obj):
         return obj.user is not None
@@ -570,12 +580,12 @@ class ProjectAdmin(BaseAdmin):
         super(ProjectAdmin, self).save_related(request, form, formsets, change)
         # 保存時、配下のすべてのメンバーの営業員項目を案件の営業員に更新する。
         project = form.instance
-        today = datetime.date.today()
-        if project.salesperson:
-            for pm in project.projectmember_set.filter(is_deleted=False, start_date__lte=today, end_date__gte=today):
-                member = pm.member
-                member.salesperson = project.salesperson
-                member.save()
+        # today = datetime.date.today()
+        # if project.salesperson:
+        #     for pm in project.projectmember_set.filter(is_deleted=False, start_date__lte=today, end_date__gte=today):
+        #         member = pm.member
+        #         member.salesperson = project.salesperson
+        #         member.save()
         # 保存時、案件の終了日を一番後ろの案件メンバーの終了日とする。
         max_end_date = project.projectmember_set.filter(is_deleted=False).aggregate(Max('end_date'))
         max_end_date = max_end_date.get('end_date__max')

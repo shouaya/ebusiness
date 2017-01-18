@@ -76,7 +76,7 @@
                                 {{ member.first_name }}&nbsp;{{ member.last_name }}
                             </a>
                         </td>
-                        <td>{{ member.section.name }}</td>
+                        <td>{{ member.get_section }}</td>
                         <td>
                             {% if member.get_current_end_project_member %}
                             <a href="{% url 'project_detail' member.get_current_end_project_member.project.pk %}">
@@ -92,8 +92,8 @@
                             {% endif %}
                         </td>
                         <td>
-                            {% if member.salesperson %}
-                                <a href="?salesperson={{ member.salesperson.pk }}">{{ member.salesperson }}</a>
+                            {% if member.get_salesperson %}
+                                <a href="?salesperson={{ member.get_salesperson.pk }}">{{ member.get_salesperson }}</a>
                             {% endif %}
                         </td>
                         <td class="center"><a href="{% url 'admin:eb_member_change' member.pk %}?from=portal&_popup=1" target="_blank">編集</a></td>

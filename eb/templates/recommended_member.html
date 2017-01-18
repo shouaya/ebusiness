@@ -47,8 +47,8 @@
                 {% for member in members %}
                     <tr class="{% cycle 'row1' 'row2' %}">
                         <td>{{ member }}</td>
-                        <td>{{ member.section }}</td>
-                        <td>{{ member.salesperson }}</td>
+                        <td>{{ member.get_section }}</td>
+                        <td>{{ member.get_salesperson }}</td>
                         <td>{{ member.get_project_end_date|date:"Y-m-d" }}</td>
                         <td class="center">
                             <a href="{% url 'member_project_list' member.employee_id %}?skill={{ skill_name }}">経験した案件</a>

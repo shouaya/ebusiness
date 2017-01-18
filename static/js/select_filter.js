@@ -12,11 +12,12 @@ function replaceToFilter(id_select, id_input) {
             obj.attr("size", "9");
             obj.css("width", "400px");
             obj.css("height", "17.2em");
-            obj.before("<p id='id_members_filter' style='margin-left: 0px; padding-left:3px;' class='selector-filter'>" +
-            "<label style='width: 12px;'>" +
-            "    <img src='/static/admin/img/selector-search.gif'></img>" +
+            obj.parent().addClass('selector');
+            obj.before("<p id='id_members_filter' style='width: 382px;border-top-width:1px;border-radius:4px 4px 0 0' class='selector-filter'>" +
+            "<label for='" + id_input + "'>" +
+            "    <span class='help-tooltip search-label-icon'></span>" +
             "</label>" +
-            "<input id='" + id_input + "' type='text' placeholder='フィルター' style='width: 367px;' />" +
+            "<input id='" + id_input + "' type='text' placeholder='フィルター' style='width: 340px;margin-left:8px' />" +
             "</p>");
 
             select_filter(id_select, id_input);

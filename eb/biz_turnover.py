@@ -72,14 +72,14 @@ def salesperson_turnover_monthly(ym):
     """
     turnover_details = models.ProjectRequestDetail.objects.filter(project_request__year=ym[:4],
                                                                   project_request__month=ym[4:]).\
-        values('project_member__member__salesperson').annotate(cost_amount=Sum('cost'),
-                                                               attendance_amount=Sum('total_price'),
-                                                               expenses_amount=Sum('expenses_price')).\
-        order_by('project_member__member__salesperson').distinct()
+        values('salesperson').annotate(cost_amount=Sum('cost'),
+                                       attendance_amount=Sum('total_price'),
+                                       expenses_amount=Sum('expenses_price')).\
+        order_by('salesperson').distinct()
     salesperson_turnover = []
     for turnover_detail in turnover_details:
         d = dict()
-        d['salesperson'] = models.Salesperson.objects.get(pk=turnover_detail['project_member__member__salesperson'])
+        d['salesperson'] = models.Salesperson.objects.get(pk=turnover_detail['salesperson'])
         d['cost_amount'] = turnover_detail['cost_amount']
         d['attendance_amount'] = turnover_detail['attendance_amount']
         d['attendance_tex'] = int(d['attendance_amount'] * 0.08)

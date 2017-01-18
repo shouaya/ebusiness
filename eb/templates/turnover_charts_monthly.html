@@ -89,8 +89,8 @@
                         formatter: function () {
                             first_name = this.value.split(" ")[0];
                             last_name = this.value.split(" ")[1];
-                            return '<a href="{% url 'turnover_members_monthly' ym %}?project_member__member__salesperson__first_name=' + first_name
-                                + '&project_member__member__salesperson__last_name=' + last_name + '">' + this.value + '</a>'
+                            return '<a href="{% url 'turnover_members_monthly' ym %}?salesperson__first_name=' + first_name
+                                + '&salesperson__last_name=' + last_name + '">' + this.value + '</a>'
                         },
                         useHTML: true
                     }

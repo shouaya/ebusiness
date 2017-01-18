@@ -74,20 +74,7 @@
                     </div>
                     <div class="clear"></div>
                 </th>
-                <th>
-                    {% if dict_order.section.is_in_ordering %}
-                        <div class="sortoptions">
-                            <a class="sortremove" href="?o={{ dict_order.section.url_list_removed }}{{ params }}"></a>
-                            <span class="sortpriority">{{ dict_order.section.priority }}</span>
-                            <a class="{% if dict_order.section.is_asc %}descending{% else %}ascending{% endif %}"
-                               href="?o={{ dict_order.section.url }}{{ params }}"></a>
-                        </div>
-                    {% endif %}
-                    <div class="text">
-                        <a href="?o={{ dict_order.section.url }}{{ params }}">所属</a>
-                    </div>
-                    <div class="clear"></div>
-                </th>
+                <th>所属</th>
                 <th>
                     {% if dict_order.subcontractor__name.is_in_ordering %}
                         <div class="sortoptions">
@@ -110,20 +97,7 @@
                         リリース予定日
                     {% endif %}
                 </th>
-                <th style="width: 90px;">
-                    {% if dict_order.salesperson__first_name.is_in_ordering %}
-                        <div class="sortoptions">
-                            <a class="sortremove" href="?o={{ dict_order.salesperson__first_name.url_list_removed }}{{ params }}"></a>
-                            <span class="sortpriority">{{ dict_order.salesperson__first_name.priority }}</span>
-                            <a class="{% if dict_order.salesperson__first_name.is_asc %}descending{% else %}ascending{% endif %}"
-                               href="?o={{ dict_order.salesperson__first_name.url }}{{ params }}"></a>
-                        </div>
-                    {% endif %}
-                    <div class="text">
-                        <a href="?o={{ dict_order.salesperson__first_name.url }}{{ params }}">営業員</a>
-                    </div>
-                    <div class="clear"></div>
-                </th>
+                <th style="width: 90px;">営業員</th>
                 <!--<th>営業状態</th>-->
                 <th style="width: 99px;">
                     {% if page_type == "off_sales" %}
@@ -142,7 +116,7 @@
                                 {{ member.first_name }}&nbsp;{{ member.last_name }}
                             </a>
                         </td>
-                        <td>{{ member.section.name }}</td>
+                        <td>{{ member.get_section }}</td>
                         <td>{{ member.subcontractor|default:"" }}</td>
                         <td class="center">
                             {% if member.get_project_end_date %}
@@ -159,8 +133,8 @@
                             {% endif %}
                         </td>
                         <td>
-                            {% if member.salesperson %}
-                                <a href="?salesperson={{ member.salesperson.pk }}">{{ member.salesperson }}</a>
+                            {% if member.get_salesperson %}
+                                <a href="?salesperson={{ member.get_salesperson.pk }}">{{ member.get_salesperson }}</a>
                             {% endif %}
                         </td>
                         <!--<td class="center">-->

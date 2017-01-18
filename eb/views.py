@@ -96,6 +96,8 @@ def index(request):
 def employee_list(request):
     company = biz.get_company()
     status = request.GET.get('status', None)
+    section_id = request.GET.get('section', None)
+    salesperson_id = request.GET.get('salesperson', None)
     if status == "sales":
         all_members = biz.get_sales_members()
     elif status == "working":
@@ -111,9 +113,17 @@ def employee_list(request):
     params = "&".join(["%s=%s" % (key, value) for key, value in param_list.items()]) if param_list else ""
     if 'status' in param_list:
         del param_list['status']
+    if 'section' in param_list:
+        del param_list['section']
+    if 'salesperson' in param_list:
+        del param_list['salesperson']
     if param_list:
         all_members = all_members.filter(**param_list)
 
+    if section_id:
+        all_members = biz.get_members_by_section(all_members, section_id)
+    if salesperson_id:
+        all_members = biz.get_members_by_salesperson(all_members, salesperson_id)
     o = request.GET.get('o', None)
     dict_order = common.get_ordering_dict(o, ['first_name', 'section', 'subcontractor__name',
                                               'salesperson__first_name'])

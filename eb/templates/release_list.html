@@ -137,7 +137,7 @@
                         <td><a href="{% url 'member_detail' project_member.member.employee_id %}">
                             {{ project_member.member }}</a>
                         </td>
-                        <td>{{ project_member.member.section }}</td>
+                        <td>{{ project_member.member.get_section }}</td>
                         <td><div style="width: 170px; white-space: nowrap; overflow: hidden;">
                             {{ project_member.member.subcontractor|default:"" }}</div></td>
                         <td>
@@ -148,7 +148,7 @@
                             </div>
                         </td>
                         <td>{{ project_member.start_date|date:"Y-m-d" }}</td>
-                        <td>{{ project_member.member.salesperson }}</td>
+                        <td>{{ project_member.member.get_salesperson }}</td>
                         <td class="center">
                             {% ifequal project_member.member.get_business_status "営業中" %}
                                 <a href="{% url 'member_project_list' project_member.member.employee_id %}?status=1">営業中</a>
