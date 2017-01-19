@@ -75,7 +75,7 @@ DATABASES = {
 
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': '',
+        'NAME': 'eb_sales',
         'USER': '',
         'PASSWORD': '',
         'HOST': '',
@@ -84,7 +84,7 @@ DATABASES = {
 
     'bpm_eboa': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': '',
+        'NAME': 'bpm_eboa',
         'USER': '',
         'PASSWORD': '',
         'HOST': '',
