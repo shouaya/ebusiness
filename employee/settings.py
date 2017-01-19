@@ -75,19 +75,19 @@ DATABASES = {
 
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'eb_sales',
-        'USER': 'root',
-        'PASSWORD': 'eb2016',
-        'HOST': '54.65.139.168',
+        'NAME': '',
+        'USER': '',
+        'PASSWORD': '',
+        'HOST': '',
         'PORT': '3306',
     },
 
     'bpm_eboa': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'bpm_eboa',
-        'USER': 'root',
-        'PASSWORD': 'eb2016',
-        'HOST': '54.65.139.168',
+        'NAME': '',
+        'USER': '',
+        'PASSWORD': '',
+        'HOST': '',
         'PORT': '3306',
     },
 }
