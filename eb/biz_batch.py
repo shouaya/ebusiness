@@ -140,3 +140,11 @@ def get_cost(code):
             if item['EMPLOYER_NO'] == code:
                 return item['ALLOWANLE_COST'] if item['ALLOWANLE_COST'] != "-" else 0
     return 0
+
+
+def get_batch_manager(name):
+    try:
+        batch = models.BatchManage.objects.get(name=name)
+    except ObjectDoesNotExist:
+        batch = models.BatchManage(name=name)
+    return batch

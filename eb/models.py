@@ -2039,6 +2039,46 @@ class History(models.Model):
         self.save()
 
 
+class BatchManage(models.Model):
+    name = models.CharField(max_length=50, unique=True, verbose_name=u"バッチＩＤ")
+    title = models.CharField(max_length=50, verbose_name=u"バッチタイトル")
+    is_active = models.BooleanField(default=True, verbose_name=u"有効フラグ")
+    mail_title = models.CharField(max_length=50, verbose_name=u"送信メールのタイトル")
+    mail_body = models.TextField(blank=True, null=True, verbose_name=u"メール本文(Plain Text)")
+    mail_html = models.TextField(blank=True, null=True, verbose_name=u"メール本文(HTML)")
+    attachment1 = models.FileField(blank=True, null=True, upload_to="./attachment", verbose_name=u"添付ファイル１",
+                                   help_text=u"メール送信時の添付ファイルその１。")
+    attachment2 = models.FileField(blank=True, null=True, upload_to="./attachment", verbose_name=u"添付ファイル２",
+                                   help_text=u"メール送信時の添付ファイルその２。")
+    attachment3 = models.FileField(blank=True, null=True, upload_to="./attachment", verbose_name=u"添付ファイル３",
+                                   help_text=u"メール送信時の添付ファイルその３。")
+    is_deleted = models.BooleanField(default=False, editable=False, verbose_name=u"削除フラグ")
+    deleted_date = models.DateTimeField(blank=True, null=True, editable=False, verbose_name=u"削除年月日")
+
+    objects = PublicManager(is_deleted=False)
+
+    class Meta:
+        verbose_name = verbose_name_plural = u"バッチ管理"
+
+    def __unicode__(self):
+        return self.title
+
+
+class BatchCarbonCopy(models.Model):
+    batch = models.ForeignKey(BatchManage, verbose_name=u"バッチ名")
+    member = models.ForeignKey(Member, blank=True, null=True, verbose_name=u"ＣＣ先の社員")
+    salesperson = models.ForeignKey(Salesperson, blank=True, null=True, verbose_name=u"ＣＣ先の営業員")
+    email = models.EmailField(blank=True, null=True, verbose_name=u"メールアドレス")
+    is_deleted = models.BooleanField(default=False, editable=False, verbose_name=u"削除フラグ")
+    deleted_date = models.DateTimeField(blank=True, null=True, editable=False, verbose_name=u"削除年月日")
+
+    objects = PublicManager(is_deleted=False)
+
+    class Meta:
+        ordering = ['batch']
+        verbose_name = verbose_name_plural = u"バッチ送信時のＣＣリスト"
+
+
 def create_group_salesperson():
     group_salesperson, created = Group.objects.get_or_create(name="Salesperson")
     if created:
