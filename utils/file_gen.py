@@ -10,6 +10,11 @@ import StringIO
 import xlsxwriter
 
 try:
+    import openpyxl as px
+except:
+    pass
+
+try:
     import pythoncom
     import win32com.client
     is_win32 = True
@@ -19,7 +24,6 @@ except:
 import constants
 import common
 import errors
-# import openpyxl as px
 
 
 def generate_resume(member):
@@ -950,8 +954,29 @@ def replace_excel_list(sheet, items, range_start='ITERATOR_START', range_end='IT
         print ex.message
 
 
-# def generate_attendance_format(template_path, project_members):
-#     book = px.load_workbook(template_path)
-#     sheet = book.get_sheet_by_name('Sheet1')
-#
-#     start_row = 5
+def generate_attendance_format(template_path, project_members):
+    book = px.load_workbook(template_path)
+    sheet = book.get_sheet_by_name('Sheet1')
+    output = StringIO.StringIO()
+
+    start_row = 5
+    for project_member in project_members:
+        # 社員番号
+        sheet.cell(row=start_row, column=3).value = project_member.id
+        # 氏名
+        sheet.cell(row=start_row, column=4).value = project_member.member.__unicode__()
+        # 所在部署
+        section = project_member.member.get_section()
+        if section:
+            sheet.cell(row=start_row, column=5).value = section.__unicode__()
+        # 会社
+        if project_member.member.member_type == 4:
+            # 他者技術者
+            sheet.cell(row=start_row, column=6).value = project_member.member.subcontractor.name
+        else:
+            sheet.cell(row=start_row, column=6).value = project_member.member.company.name
+        # 契約形態
+        sheet.cell(row=start_row, column=7).value = project_member.member.get_member_type_display()
+        start_row += 1
+
+    book.save('/Users/YangWanjun/Downloads/attendance.xlsx')

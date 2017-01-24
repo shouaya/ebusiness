@@ -11,7 +11,7 @@ import logging
 import os
 
 from . import biz
-from utils import constants, common
+from utils import constants, common, file_gen
 from eb import models
 
 from django.core.mail import EmailMultiAlternatives
@@ -288,8 +288,10 @@ def send_attendance_format(batch):
         if statistician.count() == 0:
             logger.info(u"部署「%s」の勤務統計者が設定していません。" % (section.__unicode__(),))
             continue
-        project_members = biz.get_project_members_month_section(section, today)
-        print project_members.count()
+        if section.name == u"開発部　4部":
+            project_members = biz.get_project_members_month_section(section, today)
+            file_gen.generate_attendance_format(batch.attachment1.path, project_members)
+
 
 
 def get_salesperson_director():
