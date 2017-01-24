@@ -7,23 +7,22 @@ Created on 2016/01/12
 import logging
 import traceback
 
-from django.core.management.base import BaseCommand
-
-from eb.biz_batch import sync_members
+from .base_batch import BaseBatch
+from eb import biz_batch
+from utils import constants
 
 logger = logging.getLogger(__name__)
 
 
-class Command(BaseCommand):
-    help = u'社員ＤＢから社員の情報を導入する。'
+class Command(BaseBatch):
+    BATCH_NAME = constants.BATCH_SYNC_MEMBERS
+    BATCH_TITLE = u"社員導入バッチ"
+    MAIL_TITLE = u"【営業支援システム】社員導入"
 
     def handle(self, *args, **options):
-        try:
-            message_list = sync_members()
-            if message_list:
-                for message in message_list:
-                    logger.info(u"【%s】name: %s, birthday: %s, address: %s, %s" % message)
-            else:
-                logger.info(u"新入社員がいません。")
-        except Exception as e:
-            logger.error(traceback.format_exc())
+        message_list = biz_batch.sync_members()
+        if message_list:
+            for message in message_list:
+                logger.info(u"【%s】code: %s, name: %s, birthday: %s, address: %s, %s" % message)
+        else:
+            logger.info(u"新入社員がいません。")

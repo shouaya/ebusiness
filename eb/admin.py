@@ -5,7 +5,6 @@ Created on 2015/08/21
 @author: Yang Wanjun
 """
 import os
-import datetime
 
 from django.http import HttpResponse
 from django.contrib import admin
@@ -17,12 +16,7 @@ from django.utils.translation import ugettext_lazy as _
 from django.db.models import Max
 
 import forms
-from .models import Company, Section, Member, Salesperson, Project, Client, ClientMember, \
-    ProjectMember, Skill, ProjectSkill, ProjectActivity, Subcontractor, PositionShip,\
-    ProjectStage, OS, HistoryProject, MemberAttendance, Degree, ClientOrder, \
-    create_group_salesperson, MemberExpenses, ExpensesCategory, BankInfo, History, ProjectRequest, Issue, \
-    ProjectRequestHeading, ProjectRequestDetail, SalesOffReason, EmployeeExpenses, \
-    MemberSectionPeriod, MemberSalespersonPeriod
+from . import models
 from utils import common
 
 
@@ -105,12 +99,12 @@ class ActionFlagFilter(admin.SimpleListFilter):
 
 
 class ProjectSkillInline(admin.TabularInline):
-    model = ProjectSkill
+    model = models.ProjectSkill
     extra = 0
 
 
 class ProjectMemberInline(admin.TabularInline):
-    model = ProjectMember
+    model = models.ProjectMember
     form = forms.ProjectMemberForm
     extra = 0
 
@@ -120,7 +114,7 @@ class ProjectMemberInline(admin.TabularInline):
 
 
 class EmployeeExpensesInline(admin.TabularInline):
-    model = EmployeeExpenses
+    model = models.EmployeeExpenses
     extra = 0
 
     def get_queryset(self, request):
@@ -129,7 +123,7 @@ class EmployeeExpensesInline(admin.TabularInline):
 
 
 class MemberExpensesInline(admin.TabularInline):
-    model = MemberExpenses
+    model = models.MemberExpenses
     extra = 0
 
     def get_queryset(self, request):
@@ -139,7 +133,7 @@ class MemberExpensesInline(admin.TabularInline):
 
 class MemberAttendanceInline(admin.TabularInline):
     form = forms.MemberAttendanceForm
-    model = MemberAttendance
+    model = models.MemberAttendance
     extra = 0
 
     def get_queryset(self, request):
@@ -148,21 +142,26 @@ class MemberAttendanceInline(admin.TabularInline):
 
 
 class MemberSectionPeriodInline(admin.TabularInline):
-    model = MemberSectionPeriod
+    model = models.MemberSectionPeriod
     extra = 1
     form = forms.MemberSectionPeriodForm
     formset = forms.MemberSectionPeriodFormset
 
 
 class MemberSalespersonPeriodInline(admin.TabularInline):
-    model = MemberSalespersonPeriod
+    model = models.MemberSalespersonPeriod
     extra = 1
     form = forms.MemberSalespersonPeriodForm
     formset = forms.MemberSalespersonPeriodFormset
 
 
 class DegreeInline(admin.TabularInline):
-    model = Degree
+    model = models.Degree
+    extra = 0
+
+
+class BatchCarbonCopyInline(admin.TabularInline):
+    model = models.BatchCarbonCopy
     extra = 0
 
 
@@ -256,7 +255,7 @@ class CompanyAdmin(BaseAdmin):
         return False
 
     def has_add_permission(self, request):
-        if Company.objects.all().count() > 0:
+        if models.Company.objects.all().count() > 0:
             # データが存在する場合、追加を禁止
             return False
         else:
@@ -270,7 +269,7 @@ class BankInfoAdmin(BaseAdmin):
 
     def get_form(self, request, obj=None, **kwargs):
         form = super(BankInfoAdmin, self).get_form(request, obj, **kwargs)
-        company = Company.objects.all()[0]
+        company = models.Company.objects.all()[0]
         if company:
             form.base_fields['company'].initial = company
         return form
@@ -305,7 +304,7 @@ class SectionAdmin(BaseAdmin):
 
     def get_form(self, request, obj=None, **kwargs):
         form = super(SectionAdmin, self).get_form(request, obj, **kwargs)
-        company = Company.objects.all()[0]
+        company = models.Company.objects.all()[0]
         if company:
             form.base_fields['company'].initial = company
         return form
@@ -383,7 +382,7 @@ class MemberAdmin(BaseAdmin):
     is_user_created.boolean = True
 
     def change_view(self, request, object_id, form_url='', extra_context=None):
-        member = Member.objects.get(pk=object_id)
+        member = models.Member.objects.get(pk=object_id)
         if member.member_type == 4:
             # 他社技術者
             if self.fieldsets[2][1]['fields'].count('cost') == 0:
@@ -488,7 +487,7 @@ class SalespersonAdmin(BaseAdmin):
 
     def get_form(self, request, obj=None, **kwargs):
         form = super(SalespersonAdmin, self).get_form(request, obj, **kwargs)
-        company = Company.objects.all()[0]
+        company = models.Company.objects.all()[0]
         if company:
             form.base_fields['company'].initial = company
         return form
@@ -505,7 +504,7 @@ class SalespersonAdmin(BaseAdmin):
                     pwd = common.get_default_password(member)
                     user = User.objects.create_user(name, member.email, pwd)
                     user.is_staff = True
-                    group = create_group_salesperson()
+                    group = models.create_group_salesperson()
                     user.groups.add(group)
                     user.first_name = member.first_name
                     user.last_name = member.last_name
@@ -558,7 +557,7 @@ class ProjectAdmin(BaseAdmin):
     def _create_formsets(self, request, obj, change):
         formsets, inline_instances = super(ProjectAdmin, self)._create_formsets(request, obj, change)
         for fm in formsets:
-            if fm.model == ProjectMember:
+            if fm.model == models.ProjectMember:
                 fm.form.base_fields['min_hours'].initial = obj.min_hours
                 fm.form.base_fields['max_hours'].initial = obj.max_hours
         return formsets, inline_instances
@@ -572,8 +571,8 @@ class ProjectAdmin(BaseAdmin):
     def get_form(self, request, obj=None, **kwargs):
         form = super(ProjectAdmin, self).get_form(request, obj, **kwargs)
         if obj and obj.client:
-            form.base_fields['boss'].queryset = ClientMember.objects.filter(client=obj.client)
-            form.base_fields['middleman'].queryset = ClientMember.objects.filter(client=obj.client)
+            form.base_fields['boss'].queryset = models.ClientMember.objects.filter(client=obj.client)
+            form.base_fields['middleman'].queryset = models.ClientMember.objects.filter(client=obj.client)
         return form
 
     def save_related(self, request, form, formsets, change):
@@ -675,9 +674,9 @@ class ClientOrderAdmin(BaseAdmin):
         form = super(ClientOrderAdmin, self).get_form(request, obj, **kwargs)
         project_id = request.GET.get('project_id', None)
         ym = request.GET.get("ym", None)
-        banks = BankInfo.objects.public_all()
+        banks = models.BankInfo.objects.public_all()
         if project_id:
-            project = Project.objects.public_filter(pk=project_id)
+            project = models.Project.objects.public_filter(pk=project_id)
             form.base_fields['projects'].initial = project
             form.base_fields['name'].initial = project[0].name if project.count() > 0 else ""
         if ym:
@@ -834,9 +833,9 @@ class ProjectMemberAdmin(BaseAdmin):
     def get_form(self, request, obj=None, **kwargs):
         form = super(ProjectMemberAdmin, self).get_form(request, obj, **kwargs)
         project_id = request.GET.get('project_id', None)
-        form.base_fields['member'].queryset = Member.objects.public_all()
+        form.base_fields['member'].queryset = models.Member.objects.public_all()
         if project_id:
-            project = Project.objects.get(pk=project_id)
+            project = models.Project.objects.get(pk=project_id)
             form.base_fields['project'].initial = project
             form.base_fields['start_date'].initial = project.start_date
             form.base_fields['end_date'].initial = project.end_date
@@ -844,7 +843,7 @@ class ProjectMemberAdmin(BaseAdmin):
             form.base_fields['max_hours'].initial = project.max_hours
         employee_id = request.GET.get('employee_id', None)
         if employee_id:
-            form.base_fields['member'].initial = Member.objects.get(employee_id=employee_id)
+            form.base_fields['member'].initial = models.Member.objects.get(employee_id=employee_id)
         return form
 
 
@@ -958,13 +957,13 @@ class ProjectActivityAdmin(BaseAdmin):
         form = super(ProjectActivityAdmin, self).get_form(request, obj, **kwargs)
         if obj:
             # 修正している場合、すべての案件を表示
-            form.base_fields['project'].queryset = Project.objects.public_all()
+            form.base_fields['project'].queryset = models.Project.objects.public_all()
         else:
             # 追加する場合、現在実施中の案件を表示
-            form.base_fields['project'].queryset = Project.objects.public_filter(status=4)
+            form.base_fields['project'].queryset = models.Project.objects.public_filter(status=4)
         project_id = request.GET.get('project_id', None)
         if project_id:
-            project = Project.objects.get(pk=project_id)
+            project = models.Project.objects.get(pk=project_id)
             form.base_fields['project'].initial = project
         return form
 
@@ -1153,33 +1152,51 @@ class LogEntryAdmin(ReadonlyAdmin):
         return actions
 
 
+class BatchManageAdmin(BaseAdmin):
+    list_display = ['name', 'title', 'is_active', 'mail_title', 'is_deleted']
+    list_filter = ['is_active', 'is_deleted']
+    inlines = (BatchCarbonCopyInline,)
+
+    def get_actions(self, request):
+        actions = super(BatchManageAdmin, self).get_actions(request)
+        if 'delete_selected' in actions:
+            del actions['delete_selected']
+        return actions
+
+
+class ConfigAdmin(BaseAdmin):
+    list_display = ['name', 'value']
+
+
 # Register your models here.
-admin.site.register(Company, CompanyAdmin)
-admin.site.register(BankInfo, BankInfoAdmin)
-admin.site.register(Section, SectionAdmin)
-admin.site.register(Member, MemberAdmin)
-admin.site.register(SalesOffReason, SalesOffReasonAdmin)
-admin.site.register(Salesperson, SalespersonAdmin)
-admin.site.register(Skill)
+admin.site.register(models.Company, CompanyAdmin)
+admin.site.register(models.BankInfo, BankInfoAdmin)
+admin.site.register(models.Section, SectionAdmin)
+admin.site.register(models.Member, MemberAdmin)
+admin.site.register(models.SalesOffReason, SalesOffReasonAdmin)
+admin.site.register(models.Salesperson, SalespersonAdmin)
+admin.site.register(models.Skill)
 # admin.site.register(ProjectSkill)
-admin.site.register(Project, ProjectAdmin)
-admin.site.register(Client, ClientAdmin)
-admin.site.register(ClientOrder, ClientOrderAdmin)
-admin.site.register(ClientMember, ClientMemberAdmin)
-admin.site.register(ProjectMember, ProjectMemberAdmin)
-admin.site.register(ProjectRequest, ProjectRequestAdmin)
-admin.site.register(ProjectRequestHeading, ProjectRequestHeadingAdmin)
-admin.site.register(ProjectRequestDetail, ProjectRequestDetailAdmin)
-admin.site.register(MemberAttendance)
-admin.site.register(ProjectActivity, ProjectActivityAdmin)
-admin.site.register(Subcontractor, SubcontractorAdmin)
-admin.site.register(PositionShip, PositionShipAdmin)
-admin.site.register(ProjectStage, ProjectStageAdmin)
-admin.site.register(OS)
-admin.site.register(ExpensesCategory)
-admin.site.register(HistoryProject, HistoryProjectAdmin)
-admin.site.register(Issue, IssueAdmin)
-admin.site.register(History, HistoryAdmin)
+admin.site.register(models.Project, ProjectAdmin)
+admin.site.register(models.Client, ClientAdmin)
+admin.site.register(models.ClientOrder, ClientOrderAdmin)
+admin.site.register(models.ClientMember, ClientMemberAdmin)
+admin.site.register(models.ProjectMember, ProjectMemberAdmin)
+admin.site.register(models.ProjectRequest, ProjectRequestAdmin)
+admin.site.register(models.ProjectRequestHeading, ProjectRequestHeadingAdmin)
+admin.site.register(models.ProjectRequestDetail, ProjectRequestDetailAdmin)
+admin.site.register(models.MemberAttendance)
+admin.site.register(models.ProjectActivity, ProjectActivityAdmin)
+admin.site.register(models.Subcontractor, SubcontractorAdmin)
+admin.site.register(models.PositionShip, PositionShipAdmin)
+admin.site.register(models.ProjectStage, ProjectStageAdmin)
+admin.site.register(models.OS)
+admin.site.register(models.ExpensesCategory)
+admin.site.register(models.HistoryProject, HistoryProjectAdmin)
+admin.site.register(models.Issue, IssueAdmin)
+admin.site.register(models.History, HistoryAdmin)
+admin.site.register(models.BatchManage, BatchManageAdmin)
+admin.site.register(models.Config, ConfigAdmin)
 
 admin.site.unregister(User)
 admin.site.register(User, CustomUserAdmin)

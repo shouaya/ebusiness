@@ -47,6 +47,7 @@ INSTALLED_APPS = (
     'eb',
     'eboa',
     'del_data',
+    'django_crontab',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -153,11 +154,11 @@ LOGGING = {
             'formatter': 'standard',
             'filename': os.path.join(BASE_DIR, "log/batch/sync_members.log"),
         },
-        'notify': {
+        'member_status': {
             'level': 'INFO',
             'class': 'logging.FileHandler',
             'formatter': 'standard',
-            'filename': os.path.join(BASE_DIR, "log/batch/notify.log"),
+            'filename': os.path.join(BASE_DIR, "log/batch/member_status.log"),
         },
     },
     'loggers': {
@@ -166,10 +167,14 @@ LOGGING = {
             'level': 'INFO',
             'propagate': True,
         },
-        'eb.management.commands.notify': {
-            'handlers': ['notify'],
+        'eb.management.commands.member_status': {
+            'handlers': ['member_status'],
             'level': 'INFO',
             'propagate': True,
         },
     }
 }
+
+CRONJOBS = [
+    ('*/5 * * * *', 'django.core.management.call_command', ['sync_members']),
+]

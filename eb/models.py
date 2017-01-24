@@ -2126,12 +2126,20 @@ class Config(models.Model):
         return self.name
 
     @staticmethod
-    def get(config_name):
+    def get(config_name, default_value):
+        """システム設定を取得する。
+
+        DBから値を取得する。
+
+        :param config_name: 設定名
+        :param default_value: デフォルト値
+        :return:
+        """
         try:
             c = Config.objects.get(name=config_name)
             return c.value
         except ObjectDoesNotExist:
-            return ''
+            return default_value
 
 
 def create_group_salesperson():

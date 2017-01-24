@@ -17,6 +17,30 @@ from eb import models
 from eboa import models as eboa_models
 
 
+def get_config(name, default_value=None):
+    """システム設定を取得する。
+
+    DBから値を取得する。
+
+    :param name: 設定名
+    :param default_value: デフォルト値
+    :return:
+    """
+    return models.Config.get(name, default_value)
+
+
+def get_batch_manage(name):
+    """バッチ名によてバッチを取得する。
+
+    :param name: バッチ名
+    :return:
+    """
+    try:
+        return models.BatchManage.objects.get(name=name)
+    except ObjectDoesNotExist:
+        return None
+
+
 def get_company():
     company_list = models.Company.objects.all()
     if company_list.count() == 0:
@@ -350,48 +374,6 @@ def get_activities_incoming():
     now = timezone.now()
     activities = models.ProjectActivity.objects.public_filter(open_date__gte=now).order_by('open_date')
     return activities[:5]
-
-
-def get_salesperson_director():
-    """営業の管理者を取得する。
-    """
-    return models.Salesperson.objects.public_filter(member_type=0, is_notify=True)
-
-
-def get_salesperson_members():
-    """営業のメンバーを取得する。
-    """
-    return models.Salesperson.objects.public_filter(member_type=5, is_notify=True)
-
-
-def get_members_information():
-    status_list = []
-    summary = {'all_member_count': 0,
-               'working_member_count': 0,
-               'waiting_member_count': 0,
-               'current_month_count': 0,
-               'next_month_count': 0,
-               'next_2_month_count': 0,
-               }
-    for salesperson in models.Salesperson.objects.public_filter(user__isnull=False, member_type=5):
-        d = dict()
-        d['salesperson'] = salesperson
-        d['all_member_count'] = salesperson.get_all_members().count()
-        d['working_member_count'] = salesperson.get_working_members().count()
-        d['waiting_member_count'] = salesperson.get_waiting_members().count()
-        d['current_month_count'] = get_release_current_month().count()
-        d['next_month_count'] = get_release_next_month().count()
-        d['next_2_month_count'] = get_release_next_2_month().count()
-        status_list.append(d)
-
-        summary['all_member_count'] += d['all_member_count']
-        summary['working_member_count'] += d['working_member_count']
-        summary['waiting_member_count'] += d['waiting_member_count']
-        summary['current_month_count'] += d['current_month_count']
-        summary['next_month_count'] += d['next_month_count']
-        summary['next_2_month_count'] += d['next_2_month_count']
-
-    return status_list, summary
 
 
 def get_order_no(user):

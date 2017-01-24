@@ -7,20 +7,24 @@ Created on 2016/06/03
 import datetime
 import urllib2
 import json
+import logging
 
-from biz import get_company
+from . import biz
 from utils import constants, common
 from eb import models
 
+from django.core.mail import EmailMultiAlternatives
 from django.core.exceptions import ObjectDoesNotExist
+from django.core.mail import get_connection
 
 
 def sync_members():
-    company = get_company()
+    company = biz.get_company()
     response = urllib2.urlopen(constants.URL_SYNC_MEMBERS)
     html = response.read()
     dict_data = json.loads(html.replace("\r", "").replace("\n", ""))
     message_list = []
+    lll = []
     if 'employeeList' in dict_data:
         for data in dict_data.get("employeeList"):
             employee_code = data.get("id", None)
@@ -36,6 +40,9 @@ def sync_members():
                 department_name = u"開発部　4部"
             elif department_name == u"SS　5部":
                 department_name = u"開発部　5部"
+            department_id = data.get('departmentId', None)
+            if (department_id, department_name) not in lll:
+                lll.append((department_id, department_name))
             eb_mail = data.get("ebMailAddress", None)
             introduction = data.get("introduction", None)
             join_date = data.get("joinDate", None)
@@ -55,13 +62,17 @@ def sync_members():
                     # 0126 丁 玲
                     # 0249 齋藤 善次
                     # 0335 蒋杰
-                    if models.Salesperson.objects.filter(id_from_api=employee_code).count() == 0:
+                    query_set = models.Salesperson.objects.raw('select * from eb_salesperson where id_from_api=%s',
+                                                               [employee_code])
+                    if len(list(query_set)) == 0:
                         member = models.Salesperson(employee_id=employee_code, id_from_api=employee_code)
                     else:
                         # message_list.append(("WARN", name, birthday, address, u"既に存在しているレコードです。"))
                         continue
                 else:
-                    if models.Member.objects.filter(id_from_api=employee_code).count() == 0:
+                    query_set = models.Member.objects.raw('select * from eb_member where id_from_api=%s',
+                                                          [employee_code])
+                    if len(list(query_set)) == 0:
                         member = models.Member(employee_id=employee_code, id_from_api=employee_code)
                     else:
                         # message_list.append(("WARN", name, birthday, address, u"既に存在しているレコードです。"))
@@ -95,7 +106,8 @@ def sync_members():
                             section = models.Section(name=department_name)
                             section.company = company
                             section.save()
-                        member.section = section
+                    else:
+                        section = None
                     member.email = eb_mail
                     member.private_email = private_mail
                     member.comment = introduction
@@ -114,9 +126,12 @@ def sync_members():
                     member.cost = get_cost(employee_code)
                     member.company = company
                     member.save()
-                    message_list.append(("INFO", name, birthday, address, u"完了"))
+                    # 部署を設定する。
+                    sp = models.MemberSectionPeriod(member=member, section=section, start_date=member.join_date)
+                    sp.save()
+                    message_list.append(("INFO", employee_code, name, birthday, address, u"完了"))
                 except Exception as e:
-                    message_list.append(("ERROR", name, birthday, address, u"エラー：" + str(e)))
+                    message_list.append(("ERROR", employee_code, name, birthday, address, u"エラー：" + str(e)))
     return message_list
 
 
@@ -148,3 +163,132 @@ def get_batch_manager(name):
     except ObjectDoesNotExist:
         batch = models.BatchManage(name=name)
     return batch
+
+
+def get_members_information():
+    all_members = biz.get_sales_members()
+    working_members = biz.get_working_members()
+    waiting_members = biz.get_waiting_members()
+    current_month_release = biz.get_release_current_month()
+    next_month_release = biz.get_release_next_month()
+    next_2_month_release = biz.get_release_next_2_month()
+
+    summary = {'all_member_count': all_members.count(),
+               'working_member_count': working_members.count(),
+               'waiting_member_count': waiting_members.count(),
+               'current_month_count': current_month_release.count(),
+               'next_month_count': next_month_release.count(),
+               'next_2_month_count': next_2_month_release.count(),
+              }
+
+    status_list = []
+    for salesperson in models.Salesperson.objects.public_filter(user__isnull=False, member_type=5):
+        d = dict()
+        d['salesperson'] = salesperson
+        d['all_member_count'] = biz.get_members_by_salesperson(biz.get_sales_members(), salesperson.id).count()
+        d['working_member_count'] = biz.get_members_by_salesperson(all_members, salesperson.id).count()
+        d['waiting_member_count'] = biz.get_members_by_salesperson(all_members, salesperson.id).count()
+        d['current_month_count'] = biz.get_members_by_salesperson(all_members, salesperson.id).count()
+        d['next_month_count'] = biz.get_members_by_salesperson(all_members, salesperson.id).count()
+        d['next_2_month_count'] = biz.get_members_by_salesperson(all_members, salesperson.id).count()
+        status_list.append(d)
+        print salesperson.__unicode__(), d
+
+    return status_list, summary
+
+
+def notify_member_status_mails(batch, status_list, summary):
+    """メールを通知する。
+
+    :param batch バッチに管理ファイル
+    :param status_list 通知の内容リスト
+    :param summary 通知の集計情報
+    """
+    def get_status_info(salesperson_id):
+        for status in status_list:
+            if status['salesperson'].pk == salesperson_id:
+                return [status]
+        return []
+
+    connection = get_custom_connection()
+    logger = logging.getLogger('eb.management.commands.member_status')
+    cc_list = batch.get_cc_list()
+    from_email=biz.get_config(constants.CONFIG_ADMIN_EMAIL_ADDRESS)
+    # 営業部長取得する
+    directors = get_salesperson_director()
+    if directors:
+        context = {'salesperson_list': directors,
+                   'status_list': status_list,
+                   'summary': summary,
+                   'domain': biz.get_config(constants.CONFIG_DOMAIN_NAME),
+                   }
+        title, body, html = batch.get_formatted_batch(context)
+
+        recipient_list = []
+        for salesperson in directors:
+            recipient_list.extend(salesperson.get_notify_mail_list())
+        if len(recipient_list) > 0:
+            email = EmailMultiAlternatives(
+                subject=title,
+                body=body,
+                from_email=from_email,
+                to=recipient_list,
+                cc=cc_list,
+                connection=connection
+            )
+            email.attach_alternative(html, "text/html")
+
+            # email.send()
+            log_format = u"題名: %s; FROM: %s; TO: %s; CC: %s; 送信完了。"
+            logger.info(log_format % (title, from_email,
+                                      ','.join(recipient_list),
+                                      ','.join(cc_list),))
+    salesperson_list = get_salesperson_members()
+    if salesperson_list:
+        for salesperson in salesperson_list:
+            recipient_list = salesperson.get_notify_mail_list()
+            context = {'salesperson_list': [salesperson],
+                       'status_list': get_status_info(salesperson.pk),
+                       'summary': None,
+                       'domain': biz.get_config(constants.CONFIG_DOMAIN_NAME),
+                       }
+            title, body, html = batch.get_formatted_batch(context)
+            if len(recipient_list) > 0:
+                email = EmailMultiAlternatives(
+                    subject=title,
+                    body=body,
+                    from_email=from_email,
+                    to=recipient_list,
+                    connection=connection
+                )
+                email.attach_alternative(html, "text/html")
+
+                # email.send()
+                log_format = u"題名: %s; FROM: %s; TO: %s; 送信完了。"
+                logger.info(log_format % (title, from_email,
+                                          ','.join(recipient_list)))
+
+
+def get_salesperson_director():
+    """営業の管理者を取得する。
+    """
+    return models.Salesperson.objects.public_filter(member_type=0, is_notify=True)
+
+
+def get_salesperson_members():
+    """営業のメンバーを取得する。
+    """
+    return models.Salesperson.objects.public_filter(member_type=5, is_notify=True)
+
+
+def get_custom_connection():
+    host = biz.get_config(constants.CONFIG_ADMIN_EMAIL_SMTP_HOST, default_value='smtp.e-business.co.jp')
+    port = biz.get_config(constants.CONFIG_ADMIN_EMAIL_SMTP_PORT, default_value=587)
+    username = biz.get_config(constants.CONFIG_ADMIN_EMAIL_ADDRESS)
+    password = biz.get_config(constants.CONFIG_ADMIN_EMAIL_PASSWORD)
+    backend = get_connection()
+    backend.host = str(host)
+    backend.port = int(port)
+    backend.username = str(username)
+    backend.password = str(password)
+    return backend

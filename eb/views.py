@@ -25,13 +25,14 @@ from django.template.context_processors import csrf
 from django.views.decorators.csrf import csrf_protect
 from django.contrib.admin.models import LogEntry, ADDITION, CHANGE
 from django.contrib.contenttypes.models import ContentType
+from django.core.management import call_command
 
 from eb import biz, biz_batch, biz_turnover
 from utils import constants, common, errors, loader as file_loader, file_gen
 from . import forms
 from .models import Member, Section, Project, ProjectMember, Salesperson, \
     MemberAttendance, Subcontractor, BankInfo, ClientOrder, History, BpMemberOrderInfo, Issue, \
-    ProjectRequest, Client, EmployeeExpenses
+    ProjectRequest, Client, EmployeeExpenses, BatchManage
 
 PAGE_SIZE = 50
 
@@ -1380,6 +1381,28 @@ def sync_members(request):
         })
 
     r = render_to_response('sync_members.html', context)
+    return HttpResponse(r)
+
+
+@login_required(login_url='/eb/login/')
+def batch_list(request):
+    context = {
+        'title': u'バッチ一覧',
+        'site_header': admin.site.site_header,
+        'site_title': admin.site.site_title,
+    }
+    context.update(csrf(request))
+    batches = BatchManage.objects.public_all()
+    context.update({
+        'batches': batches,
+    })
+    if request.method == 'GET':
+        pass
+    else:
+        batch_name = request.POST.get('batch_name', None)
+        call_command(batch_name)
+
+    r = render_to_response('batch_list.html', context)
     return HttpResponse(r)
 
 

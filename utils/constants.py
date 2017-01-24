@@ -17,6 +17,15 @@ NAME_BUSINESS_PLAN = u"%02d月営業企画"
 NAME_MEMBER_LIST = u"最新要員一覧"
 NAME_RESUME = u"EB履歴書_%s_%s"
 
+BATCH_MEMBER_STATUS = 'member_status'
+BATCH_SYNC_MEMBERS = 'sync_members'
+
+CONFIG_ADMIN_EMAIL_ADDRESS = 'admin_email_address'
+CONFIG_ADMIN_EMAIL_SMTP_HOST = 'admin_email_smtp_host'
+CONFIG_ADMIN_EMAIL_SMTP_PORT = 'admin_email_smtp_port'
+CONFIG_ADMIN_EMAIL_PASSWORD = 'admin_email_password'
+CONFIG_DOMAIN_NAME = 'domain_name'
+
 MARK_POST_CODE = u"〒"
 
 DOWNLOAD_REQUEST = "request"
@@ -54,6 +63,7 @@ CHOICE_DEGREE_TYPE = ((1, u"小・中学校"),
                       (6, u"大学学部"),
                       (7, u"大学大学院"))
 CHOICE_SALESPERSON_TYPE = ((0, u"営業部長"),
+                           (1, u"その他"),
                            (5, u"営業担当"),
                            (6, u"取締役"),
                            (7, u"代表取締役社長"))
