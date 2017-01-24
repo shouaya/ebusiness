@@ -375,6 +375,7 @@ class SalesOffReason(models.Model):
 
     class Meta:
         verbose_name = verbose_name_plural = u"営業対象外理由"
+        db_table = 'mst_salesofreason'
 
     def __unicode__(self):
         return self.name
@@ -915,6 +916,7 @@ class Skill(models.Model):
     class Meta:
         ordering = ['name']
         verbose_name = verbose_name_plural = u"スキル"
+        db_table = 'mst_skill'
 
     def __unicode__(self):
         return self.name
@@ -935,6 +937,7 @@ class OS(models.Model):
     class Meta:
         ordering = ['name']
         verbose_name = verbose_name_plural = u"機種／OS"
+        db_table = 'mst_os'
 
     def __unicode__(self):
         return self.name
@@ -1499,6 +1502,7 @@ class ProjectStage(models.Model):
 
     class Meta:
         verbose_name = verbose_name_plural = u"作業工程"
+        db_table = 'mst_project_stage'
 
     def __unicode__(self):
         return self.name
@@ -1717,7 +1721,9 @@ class ExpensesCategory(models.Model):
     objects = PublicManager(is_deleted=False)
 
     class Meta:
-        verbose_name = verbose_name_plural = u"清算分類"
+        verbose_name = verbose_name_plural = u"精算分類"
+        db_table = 'mst_expenses_category'
+
 
     def __unicode__(self):
         return self.name
@@ -2121,6 +2127,7 @@ class Config(models.Model):
     class Meta:
         ordering = ['name']
         verbose_name = verbose_name_plural = u"設定"
+        db_table = 'mst_config'
 
     def __unicode__(self):
         return self.name

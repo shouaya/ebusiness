@@ -165,6 +165,11 @@ class BatchCarbonCopyInline(admin.TabularInline):
     extra = 0
 
 
+class PositionShipInline(admin.TabularInline):
+    model = models.PositionShip
+    extra = 0
+
+
 def get_full_name(obj):
     return "%s %s" % (obj.first_name, obj.last_name)
 get_full_name.short_description = u"名前"
@@ -301,6 +306,7 @@ class SectionAdmin(BaseAdmin):
     list_display = ['name', 'is_on_sales', 'is_deleted']
     list_filter = ['is_on_sales', 'is_deleted']
     actions = ['delete_objects', 'active_objects']
+    inlines = (PositionShipInline,)
 
     def get_form(self, request, obj=None, **kwargs):
         form = super(SectionAdmin, self).get_form(request, obj, **kwargs)
@@ -1020,6 +1026,11 @@ class PositionShipAdmin(BaseAdmin):
         if 'delete_selected' in actions:
             del actions['delete_selected']
         return actions
+
+    def get_form(self, request, obj=None, **kwargs):
+        form = super(PositionShipAdmin, self).get_form(request, obj, **kwargs)
+        form.base_fields['section'].queryset = models.Section.objects.public_filter(is_on_sales=True)
+        return form
 
     def delete_objects(self, request, queryset):
         cnt = 0
