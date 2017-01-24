@@ -176,5 +176,5 @@ LOGGING = {
 }
 
 CRONJOBS = [
-    ('*/5 * * * *', 'django.core.management.call_command', ['sync_members']),
+    ('0 2 * * *', 'django.core.management.call_command', ['sync_members']),
 ]
