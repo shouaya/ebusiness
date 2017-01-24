@@ -10,6 +10,7 @@ https://docs.djangoproject.com/en/1.7/ref/settings/
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 import os
+import sys
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 
 
@@ -68,30 +69,52 @@ WSGI_APPLICATION = 'employee.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/1.7/ref/settings/#databases
 
-DATABASES = {
-    # 'default': {
-    #     'ENGINE': 'django.db.backends.sqlite3',
-    #     'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
-    # },
+if sys.platform == 'linux2':
+    # AWS docker
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.mysql',
+            'NAME': 'eb_sales',
+            'USER': '',
+            'PASSWORD': '',
+            'HOST': '',
+            'PORT': '3306',
+        },
 
-    'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'eb_sales',
-        'USER': '',
-        'PASSWORD': '',
-        'HOST': '',
-        'PORT': '3306',
-    },
+        'bpm_eboa': {
+            'ENGINE': 'django.db.backends.mysql',
+            'NAME': 'bpm_eboa',
+            'USER': '',
+            'PASSWORD': '',
+            'HOST': '',
+            'PORT': '3306',
+        },
+    }
+else:
+    DATABASES = {
+        # 'default': {
+        #     'ENGINE': 'django.db.backends.sqlite3',
+        #     'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        # },
 
-    'bpm_eboa': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'bpm_eboa',
-        'USER': '',
-        'PASSWORD': '',
-        'HOST': '',
-        'PORT': '3306',
-    },
-}
+        'default': {
+            'ENGINE': 'django.db.backends.mysql',
+            'NAME': 'eb_sales',
+            'USER': 'root',
+            'PASSWORD': 'root',
+            'HOST': '',
+            'PORT': '',
+        },
+
+        'bpm_eboa': {
+            'ENGINE': 'django.db.backends.mysql',
+            'NAME': 'bpm_eboa',
+            'USER': 'root',
+            'PASSWORD': 'root',
+            'HOST': '',
+            'PORT': '',
+        },
+    }
 
 DATABASE_ROUTERS = ['employee.db_router.DbRouter']
 
@@ -160,6 +183,12 @@ LOGGING = {
             'formatter': 'standard',
             'filename': os.path.join(BASE_DIR, "log/batch/member_status.log"),
         },
+        'send_attendance_format': {
+            'level': 'INFO',
+            'class': 'logging.FileHandler',
+            'formatter': 'standard',
+            'filename': os.path.join(BASE_DIR, "log/batch/send_attendance_format.log"),
+        },
     },
     'loggers': {
         'eb.management.commands.sync_members': {
@@ -172,9 +201,16 @@ LOGGING = {
             'level': 'INFO',
             'propagate': True,
         },
+        'eb.management.commands.send_attendance_format': {
+            'handlers': ['send_attendance_format'],
+            'level': 'INFO',
+            'propagate': True,
+        },
     }
 }
 
 CRONJOBS = [
     ('0 2 * * *', 'django.core.management.call_command', ['sync_members']),
+    ('0 6 * * MON', 'django.core.management.call_command', ['member_status']),
+    ('0 6 25 * *', 'django.core.management.call_command', ['send_attendance_format']),
 ]

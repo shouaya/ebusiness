@@ -1017,7 +1017,7 @@ class ProjectStageAdmin(AdminOnlyAdmin):
 
 class PositionShipAdmin(BaseAdmin):
 
-    list_display = ['position', 'member', 'is_deleted']
+    list_display = ['position', 'member', 'section', 'is_deleted']
     list_filter = ['is_deleted']
     actions = ['delete_objects', 'active_objects']
 

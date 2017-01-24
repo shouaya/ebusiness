@@ -360,6 +360,15 @@ class Section(models.Model):
     def get_cost_amount(self, ym):
         pass
 
+    def get_attendance_statistician(self):
+        """勤務情報の統計者を取得する。
+
+        :return:
+        """
+        query_set = Member.objects.public_filter(positionship__section=self,
+                                                 positionship__position=11)
+        return query_set
+
     def delete(self, using=None):
         self.is_deleted = True
         self.deleted_date = datetime.datetime.now()
@@ -2059,6 +2068,9 @@ class BatchManage(models.Model):
                                    help_text=u"メール送信時の添付ファイルその２。")
     attachment3 = models.FileField(blank=True, null=True, upload_to="./attachment", verbose_name=u"添付ファイル３",
                                    help_text=u"メール送信時の添付ファイルその３。")
+    is_send_to_boss = models.BooleanField(default=True, verbose_name=u"上司に送る")
+    is_send_to_self = models.BooleanField(default=True, verbose_name=u"自分に送る")
+    description = models.TextField(blank=True, null=True, verbose_name=u"説明")
     is_deleted = models.BooleanField(default=False, editable=False, verbose_name=u"削除フラグ")
     deleted_date = models.DateTimeField(blank=True, null=True, editable=False, verbose_name=u"削除年月日")
 

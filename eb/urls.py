@@ -87,6 +87,7 @@ urlpatterns = [
     url(r"^sync_coordinate.html", views.sync_coordinate, name="sync_coordinate"),
     url(r"^sync_members.html", views.sync_members, name="sync_members"),
     url(r"^batch_list.html", views.batch_list, name="batch_list"),
+    url(r"^batch/(?P<name>[A-Za-z0-9_-]+).log$", views.batch_log, name="batch_log"),
     url(r"^syncdb2.html", views.sync_db2, name="syncdb2"),
     url(r"^upload_file.html$", views.upload_resume, name="upload_file"),
     url(r'^login/$', views.login_user, name='login'),

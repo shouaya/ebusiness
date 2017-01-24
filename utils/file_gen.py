@@ -19,6 +19,7 @@ except:
 import constants
 import common
 import errors
+# import openpyxl as px
 
 
 def generate_resume(member):
@@ -947,3 +948,10 @@ def replace_excel_list(sheet, items, range_start='ITERATOR_START', range_end='IT
                     sheet.Cells(r + (i * row_span), c).Value = text
     except Exception as ex:
         print ex.message
+
+
+# def generate_attendance_format(template_path, project_members):
+#     book = px.load_workbook(template_path)
+#     sheet = book.get_sheet_by_name('Sheet1')
+#
+#     start_row = 5

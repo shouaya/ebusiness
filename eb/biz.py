@@ -96,6 +96,14 @@ def get_sales_members():
     return get_all_members().filter(is_on_sales=True)
 
 
+def get_on_sales_section():
+    """営業対象の部署を取得する。
+
+    :return:
+    """
+    return models.Section.objects.public_filter(is_on_sales=True)
+
+
 def get_working_members(date=None):
     """稼働中のメンバー
 
@@ -207,6 +215,21 @@ def get_project_members_month(date):
                                                       end_date__lte=last_day,
                                                       project__status=4,
                                                       status=2)
+
+
+def get_project_members_month_section(section, date):
+    """該当する日付に指定された部署に配属される案件メンバーを取得する。
+
+    :param section: 部署
+    :param date: 日付
+    :return:
+    """
+    project_members = get_project_members_month(date)
+    return project_members.filter((Q(member__membersectionperiod__start_date__lte=date) &
+                                   Q(member__membersectionperiod__end_date__isnull=date)) |
+                                  (Q(member__membersectionperiod__start_date__lte=date) &
+                                   Q(member__membersectionperiod__end_date__gte=date)),
+                                  member__membersectionperiod__section=section)
 
 
 def get_subcontractor_project_members_month(date):

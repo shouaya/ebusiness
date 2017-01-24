@@ -8,6 +8,7 @@ import datetime
 import urllib2
 import json
 import logging
+import os
 
 from . import biz
 from utils import constants, common
@@ -267,6 +268,28 @@ def notify_member_status_mails(batch, status_list, summary):
                 log_format = u"題名: %s; FROM: %s; TO: %s; 送信完了。"
                 logger.info(log_format % (title, from_email,
                                           ','.join(recipient_list)))
+
+
+def send_attendance_format(batch):
+    """勤怠フォーマットを各部署の部長に送付する。
+
+    :param batch:
+    :return:
+    """
+    logger = logging.getLogger('eb.management.commands.send_attendance_format')
+    if not os.path.exists(batch.attachment1.path):
+        logger.info(u"出勤フォーマットの添付ファイルが設定していません。")
+        return
+
+    sections = biz.get_on_sales_section()
+    today = datetime.datetime.today()
+    for section in sections:
+        statistician = section.get_attendance_statistician()
+        if statistician.count() == 0:
+            logger.info(u"部署「%s」の勤務統計者が設定していません。" % (section.__unicode__(),))
+            continue
+        project_members = biz.get_project_members_month_section(section, today)
+        print project_members.count()
 
 
 def get_salesperson_director():

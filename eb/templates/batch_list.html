@@ -13,7 +13,8 @@
                 <th>バッチID</th>
                 <th>バッチ名</th>
                 <th>有効</th>
-                <th></th>
+                <th>実行</th>
+                <th>ログ</th>
             </tr>
         </thead>
         <tbody>
@@ -34,6 +35,9 @@
                            onclick="execute_batch('{{ batch.name }}')"
                            style="padding: 2px 15px;"/>
                     {% endif %}
+                </td>
+                <td>
+                    <a href="{% url 'batch_log' batch.name %}">ログを参照</a>
                 </td>
             </tr>
         {% endfor %}

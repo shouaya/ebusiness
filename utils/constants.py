@@ -19,6 +19,7 @@ NAME_RESUME = u"EB履歴書_%s_%s"
 
 BATCH_MEMBER_STATUS = 'member_status'
 BATCH_SYNC_MEMBERS = 'sync_members'
+BATCH_SEND_ATTENDANCE_FORMAT = 'send_attendance_format'
 
 CONFIG_ADMIN_EMAIL_ADDRESS = 'admin_email_address'
 CONFIG_ADMIN_EMAIL_SMTP_HOST = 'admin_email_smtp_host'

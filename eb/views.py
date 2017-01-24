@@ -1407,6 +1407,18 @@ def batch_list(request):
 
 
 @login_required(login_url='/eb/login/')
+def batch_log(request, name):
+    log_file = os.path.join(settings.BASE_DIR, 'log/batch', name + '.log')
+    if os.path.exists(log_file):
+        f = open(log_file, 'r')
+        log = u"<pre>" + f.read().decode('utf-8') + u"</pre>"
+        f.close()
+    else:
+        log = u"ログファイル「%s」が存在しません。" % (log_file,)
+    return HttpResponse(log)
+
+
+@login_required(login_url='/eb/login/')
 def sync_db2(request):
     context = {
         'title': u'社員管理DBのデータを同期する。',
