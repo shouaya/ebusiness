@@ -14,6 +14,7 @@ from django.contrib.auth.models import User, Group, Permission
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Max, Min, Q, Sum
 from django.utils import timezone
+from django.template import Context, Template
 
 
 from utils import common, constants
@@ -2063,6 +2064,39 @@ class BatchManage(models.Model):
     def __unicode__(self):
         return self.title
 
+    def get_formatted_batch(self, context):
+        """フォーマット後のバッチを返す
+
+        メールタイトルに日付追加とか、メール本文にパラメーターなどを設定する。
+
+        :param context:
+        :return:
+        """
+        today = datetime.datetime.now()
+        title = self.mail_title + today.strftime(u"_%y-%m-%d")
+        # BODY
+        t = Template(self.mail_body)
+        ctx = Context(context)
+        body = t.render(ctx)
+        # HTML
+        t = Template(self.mail_html)
+        ctx = Context(context)
+        html = t.render(ctx)
+
+        return title, body, html
+
+    def get_cc_list(self):
+        batch_carbon_copies = self.batchcarboncopy_set.public_all()
+        cc_list = []
+        for cc in batch_carbon_copies:
+            if cc.member and cc.member.email:
+                cc_list.append(cc.member.email)
+            if cc.salesperson and cc.salesperson.email:
+                cc_list.append(cc.salesperson.email)
+            if cc.email:
+                cc_list.append(cc.email)
+        return cc_list
+
 
 class BatchCarbonCopy(models.Model):
     batch = models.ForeignKey(BatchManage, verbose_name=u"バッチ名")
@@ -2077,6 +2111,27 @@ class BatchCarbonCopy(models.Model):
     class Meta:
         ordering = ['batch']
         verbose_name = verbose_name_plural = u"バッチ送信時のＣＣリスト"
+
+
+class Config(models.Model):
+    name = models.CharField(max_length=50, unique=True, verbose_name=u"設定名")
+    value = models.CharField(max_length=255, verbose_name=u"設定値")
+    description = models.TextField(blank=True, null=True, verbose_name=u"説明")
+
+    class Meta:
+        ordering = ['name']
+        verbose_name = verbose_name_plural = u"設定"
+
+    def __unicode__(self):
+        return self.name
+
+    @staticmethod
+    def get(config_name):
+        try:
+            c = Config.objects.get(name=config_name)
+            return c.value
+        except ObjectDoesNotExist:
+            return ''
 
 
 def create_group_salesperson():
