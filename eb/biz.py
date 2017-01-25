@@ -12,7 +12,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.humanize.templatetags import humanize
 from django.utils import timezone
 
-from utils import common
+from utils import common, constants
 from eb import models
 from eboa import models as eboa_models
 
@@ -54,6 +54,12 @@ def get_admin_user():
         return User.objects.get(username='admin')
     except ObjectDoesNotExist:
         return None
+
+
+def get_year_list():
+    start = get_config(constants.CONFIG_YEAR_LIST_START, 2015)
+    end = get_config(constants.CONFIG_YEAR_LIST_END, 2020)
+    return range(int(start), int(end))
 
 
 def get_all_members():
@@ -212,9 +218,14 @@ def get_project_members_month(date):
         first_day = today
     last_day = common.get_last_day_by_month(date)
     return models.ProjectMember.objects.public_filter(end_date__gte=first_day,
-                                                      end_date__lte=last_day,
+                                                      start_date__lte=last_day,
                                                       project__status=4,
                                                       status=2)
+
+
+def get_members_section(section):
+    all_members = get_all_members()
+    return get_members_by_section(all_members, section.id)
 
 
 def get_project_members_month_section(section, date):
@@ -718,4 +729,3 @@ def get_attendance_time_from_eboa(project_member, year, month):
         return float(eboa_attendances[0].totaltime)
     else:
         return 0
-

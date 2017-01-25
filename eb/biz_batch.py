@@ -270,27 +270,28 @@ def notify_member_status_mails(batch, status_list, summary):
                                           ','.join(recipient_list)))
 
 
-def send_attendance_format(batch):
+def send_attendance_format(batch, date=None):
     """勤怠フォーマットを各部署の部長に送付する。
 
     :param batch:
     :return:
     """
     logger = logging.getLogger('eb.management.commands.send_attendance_format')
-    if not os.path.exists(batch.attachment1.path):
+    if not batch.attachment1 or not os.path.exists(batch.attachment1.path):
         logger.info(u"出勤フォーマットの添付ファイルが設定していません。")
         return
 
     sections = biz.get_on_sales_section()
-    today = datetime.datetime.today()
+    if date is None:
+        date = datetime.datetime.today()
     for section in sections:
         statistician = section.get_attendance_statistician()
         if statistician.count() == 0:
             logger.info(u"部署「%s」の勤務統計者が設定していません。" % (section.__unicode__(),))
             continue
         if section.name == u"開発部　4部":
-            project_members = biz.get_project_members_month_section(section, today)
-            file_gen.generate_attendance_format(batch.attachment1.path, project_members)
+            project_members = biz.get_project_members_month_section(section, date)
+            file_gen.generate_attendance_format(batch.attachment1.path, project_members, date)
 
 
 

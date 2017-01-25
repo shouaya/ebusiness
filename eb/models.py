@@ -360,6 +360,11 @@ class Section(models.Model):
     def get_cost_amount(self, ym):
         pass
 
+    def get_chief(self):
+        query_set = Member.objects.public_filter(positionship__section=self,
+                                                 positionship__position=4)
+        return query_set
+
     def get_attendance_statistician(self):
         """勤務情報の統計者を取得する。
 
@@ -1802,6 +1807,8 @@ class MemberAttendance(models.Model):
     basic_price = models.IntegerField(default=0, editable=False, verbose_name=u"単価")
     total_hours = models.DecimalField(max_digits=5, decimal_places=2, verbose_name=u"合計時間")
     extra_hours = models.DecimalField(max_digits=5, decimal_places=2, default=0, verbose_name=u"残業時間")
+    total_days = models.IntegerField(blank=True, null=True, editable=False, verbose_name=u"勤務日数")
+    night_days = models.IntegerField(blank=True, null=True, editable=False, verbose_name=u"深夜日数")
     min_hours = models.DecimalField(max_digits=5, decimal_places=2, default=0, editable=False, verbose_name=u"基準時間")
     max_hours = models.DecimalField(max_digits=5, decimal_places=2, default=0, editable=False, verbose_name=u"最大時間")
     plus_per_hour = models.IntegerField(default=0, editable=False, verbose_name=u"増（円）")
@@ -2158,6 +2165,8 @@ class Config(models.Model):
             c = Config.objects.get(name=config_name)
             return c.value
         except ObjectDoesNotExist:
+            c = Config(name=config_name, value=default_value)
+            c.save()
             return default_value
 
 

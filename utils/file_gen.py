@@ -11,6 +11,7 @@ import xlsxwriter
 
 try:
     import openpyxl as px
+    from openpyxl.writer.excel import save_virtual_workbook
 except:
     pass
 
@@ -954,7 +955,7 @@ def replace_excel_list(sheet, items, range_start='ITERATOR_START', range_end='IT
         print ex.message
 
 
-def generate_attendance_format(template_path, project_members):
+def generate_attendance_format(template_path, project_members, date):
     book = px.load_workbook(template_path)
     sheet = book.get_sheet_by_name('Sheet1')
     output = StringIO.StringIO()
@@ -977,6 +978,16 @@ def generate_attendance_format(template_path, project_members):
             sheet.cell(row=start_row, column=6).value = project_member.member.company.name
         # 契約形態
         sheet.cell(row=start_row, column=7).value = project_member.member.get_member_type_display()
+        # 案件名
+        sheet.cell(row=start_row, column=8).value = project_member.project.name
+        # 顧客名
+        sheet.cell(row=start_row, column=9).value = project_member.project.client.name
+
+        # 出勤情報取得
+        attendance = project_member.get_attendance(date.year, date.month)
+        if attendance:
+            print u"出勤情報あり。"
+            pass
         start_row += 1
 
-    book.save('/Users/YangWanjun/Downloads/attendance.xlsx')
+    return save_virtual_workbook(book)

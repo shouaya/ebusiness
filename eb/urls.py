@@ -24,6 +24,12 @@ member_patterns = [
         name='member_expanses_update'),
 ]
 
+section_patterns = [
+    url(r'^sections.html$', views.section_list, name='section_list'),
+    url(r'^(?P<section_id>[0-9]+).html$', views.section_detail, name='section_detail'),
+    url(r'^(?P<section_id>[0-9]+)/attendance.html$', views.section_attendance, name='section_attendance'),
+]
+
 download_patterns = [
     url(r'^project_request/(?P<project_id>[0-9]+).html$', views.download_project_request,
         name='download_project_request'),
@@ -35,6 +41,8 @@ download_patterns = [
     url(r'^resume/(?P<member_id>[0-9]+).html$', views.download_resume, name='download_resume'),
     url(r'^attendance_list/(?P<year>[0-9]{4})/(?P<month>[0-9]{2}).html$', eboa_views.download_attendance_list,
         name='download_attendance_list'),
+    url(r'^section/(?P<section_id>[0-9]+)/attendance/(?P<year>[0-9]{4})/(?P<month>[0-9]{2}).html$', views.download_section_attendance,
+        name='download_section_attendance'),
 ]
 
 turnover_patterns = [
@@ -74,6 +82,7 @@ project_patterns = [
 urlpatterns = [
     url(r'^$', views.index, name='index'),
     url(r'^member/', include(member_patterns)),
+    url(r'^section/', include(section_patterns)),
     url(r'^project/', include(project_patterns)),
     url(r'^release_list.html$', views.release_list_current, name='release_list_current'),
     url(r'^release_list/(?P<ym>[0-9]{6}).html$', views.release_list, name='release_list'),

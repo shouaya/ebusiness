@@ -1,0 +1,163 @@
+{% extends "base.html" %}
+
+{% block header %}
+<style type="text/css">
+    table {
+        border-top: thin solid black;
+        border-right: thin solid black;
+        font-size: 12px;
+        table-layout: fixed;
+    }
+    table thead th {
+        text-align: center;
+        border-left: thin solid black;
+        border-bottom: thin solid black;
+    }
+    table tbody {
+        background: white;
+    }
+    table tbody td {
+        padding-top: 2px;
+        padding-bottom: 2px;
+        border-left: thin solid black;
+        border-bottom: thin solid black;
+    }
+    table tfoot {
+        font-size: 13px;
+        background: linear-gradient(#fff, #eee);
+    }
+    table tfoot tr {
+        height: 30px;
+    }
+    table tfoot td {
+        padding-top: 4px;
+        padding-left: 5px;
+        border-left: thin solid lightgray;
+        border-bottom: thin solid lightgray;
+        border-right: thin solid lightgray;
+    }
+    th.bk01 {
+        background: rgb(180, 198, 231);
+    }
+    th.bk02 {
+        background: rgb(198, 224, 180);
+    }
+    th.bk03 {
+        background: rgb(255, 230, 153);
+    }
+    th.bk04 {
+        background: rgb(244, 176, 132);
+    }
+    th.bk05 {
+        background: rgb(155, 194, 230);
+    }
+    th.bk06 {
+        background: rgb(255, 255, 0);
+    }
+    th, td {
+        padding: 0 3px;
+        overflow: hidden;
+        white-space: nowrap;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+    <div class="dashboard">
+        <div class="dashboard-title">{{ title }}</div>
+        <form>
+            <a href="{% url 'download_section_attendance' section.pk year month %}" target="_blank" class="button">ダウンロード</a>
+        </form>
+    </div>
+    <div class="scroll_container">
+        <table cellspacing="0" cellpadding="0">
+            <thead>
+                <tr>
+                    <th class="bk01" rowspan="2" style="width: 30px;">No</th>
+                    <th class="bk01" colspan="5">基本データ</th>
+                    <th class="bk02" colspan="3">案件情報</th>
+                    <th class="bk03" colspan="6">勤務情報</th>
+                    <th class="bk04" rowspan="2">売上</th>
+                    <th class="bk05" colspan="8">原価</th>
+                    <th class="bk06" rowspan="2">利益</th>
+                </tr>
+                <tr>
+                    <th class="bk01" style="width: 50px;">社員番号</th>
+                    <th class="bk01" style="width: 50px;">氏名</th>
+                    <th class="bk01" style="width: 50px;">所在部署</th>
+                    <th class="bk01" style="width: 50px;">所属</th>
+                    <th class="bk01" style="width: 50px;">契約形態</th>
+                    <th class="bk02" style="width: 50px;">案件名</th>
+                    <th class="bk02" style="width: 50px;">顧客</th>
+                    <th class="bk02" style="width: 50px;">契約種類</th>
+                    <th class="bk03" style="width: 50px;">勤務時間</th>
+                    <th class="bk03" style="width: 50px;">勤務日数</th>
+                    <th class="bk03" style="width: 50px;">深夜日数</th>
+                    <th class="bk03" style="width: 50px;">客先立替金</th>
+                    <th class="bk03" style="width: 50px;">立替金</th>
+                    <th class="bk03" style="width: 50px;">勤務交通費</th>
+                    <th class="bk05" style="width: 50px;">月給</th>
+                    <th class="bk05" style="width: 50px;">ボーナス</th>
+                    <th class="bk05" style="width: 50px;">手当</th>
+                    <th class="bk05" style="width: 50px;">残業／控除</th>
+                    <th class="bk05" style="width: 50px;">交通費</th>
+                    <th class="bk05" style="width: 50px;">雇用／労災</th>
+                    <th class="bk05" style="width: 50px;">健康／厚生</th>
+                    <th class="bk05" style="width: 50px;">業績ボーナス</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if project_members %}
+                    {% for project_member in project_members %}
+                        <tr>
+                            <td style="text-align:center;">{{ forloop.counter }}</td>
+                            <td>{{ project_member.member.employee_id }}</td>
+                            <td>
+                                <a href="{% url 'member_detail' project_member.member.employee_id %}">
+                                    {{ project_member.member }}
+                                </a>
+                            </td>
+                            <td>{{ project_member.member.get_section }}</td>
+                            <td>
+                                {% if project_member.member.company %}
+                                    {{ project_member.member.company }}
+                                {% else %}
+                                    {{ project_member.member.subcontractor }}
+                                {% endif %}
+                            </td>
+                            <td>{{ project_member.member.get_member_type_display }}</td>
+                            <td>{{ project_member.project }}</td>
+                            <td>{{ project_member.project.client }}</td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                        </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr class="row2"><td class="center red" colspan="8">メンバーがいません。</td></tr>
+                {% endif %}
+            </tbody>
+            <tfoot>
+                <tr>
+                    <td colspan="25">
+                        {{ project_members.count }} 件
+                    </td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+{% endblock %}

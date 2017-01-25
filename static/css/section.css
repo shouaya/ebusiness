@@ -5,6 +5,11 @@ section {
     padding-top: 10px;
 }
 
+section div.scroll_container {
+    width: 1100px;
+    overflow-x: scroll;
+}
+
 section table.nested_list {
     margin: 0 auto;
     border: 1px solid #eee;
@@ -31,10 +36,6 @@ section table.list {
 section table.list th, section table.list tfoot td {
     border-right: 1px solid #eee;
     background: linear-gradient(#fff, #eee)
-}
-
-section table.list tr:hover {
-    background-color: LightGreen;
 }
 
 section table.list th {
@@ -109,6 +110,15 @@ section table.list th, section table.list tfoot td {
     color: #666;
     border-top: 1px solid #eee;
     border-bottom: 1px solid #eee;
+}
+
+section table.list tr.waiting,
+section table.list tr.off_sales {
+    background: lightgray;
+}
+
+section table.list tr:hover {
+    background-color: LightGreen;
 }
 
 section table.detail {

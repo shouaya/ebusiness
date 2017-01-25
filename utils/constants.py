@@ -16,6 +16,7 @@ REG_EXCEL_REPLACEMENT = ur"\{\$([A-Z0-9_]+)\$\}"
 NAME_BUSINESS_PLAN = u"%02d月営業企画"
 NAME_MEMBER_LIST = u"最新要員一覧"
 NAME_RESUME = u"EB履歴書_%s_%s"
+NAME_SECTION_ATTENDANCE = u"勤怠情報_%s_%s"
 
 BATCH_MEMBER_STATUS = 'member_status'
 BATCH_SYNC_MEMBERS = 'sync_members'
@@ -26,6 +27,8 @@ CONFIG_ADMIN_EMAIL_SMTP_HOST = 'admin_email_smtp_host'
 CONFIG_ADMIN_EMAIL_SMTP_PORT = 'admin_email_smtp_port'
 CONFIG_ADMIN_EMAIL_PASSWORD = 'admin_email_password'
 CONFIG_DOMAIN_NAME = 'domain_name'
+CONFIG_YEAR_LIST_START = 'year_list_start'
+CONFIG_YEAR_LIST_END = 'year_list_end'
 
 MARK_POST_CODE = u"〒"
 

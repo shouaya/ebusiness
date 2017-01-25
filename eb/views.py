@@ -655,6 +655,65 @@ def project_member_list(request, project_id):
 
 
 @login_required(login_url='/eb/login/')
+def section_list(request):
+    sections = biz.get_on_sales_section()
+
+    context = RequestContext(request, {
+        'title': u'部署情報一覧',
+        'sections': sections,
+    })
+    template = loader.get_template('section_list.html')
+    return HttpResponse(template.render(context))
+
+
+@login_required(login_url='/eb/login/')
+def section_detail(request, section_id):
+    company = biz.get_company()
+    section = get_object_or_404(Section, pk=section_id)
+    all_members = biz.get_members_section(section)
+    paginator = Paginator(all_members, PAGE_SIZE)
+    page = request.GET.get('page')
+    try:
+        members = paginator.page(page)
+    except PageNotAnInteger:
+        members = paginator.page(1)
+    except EmptyPage:
+        members = paginator.page(paginator.num_pages)
+
+    context = RequestContext(request, {
+        'company': company,
+        'title': u'%s | 部署' % (section.name,),
+        'section': section,
+        'members': members,
+        'paginator': paginator,
+        'year_list': biz.get_year_list()
+    })
+    template = loader.get_template('section_detail.html')
+    return HttpResponse(template.render(context))
+
+
+@login_required(login_url='/eb/login/')
+def section_attendance(request, section_id):
+    company = biz.get_company()
+    section = get_object_or_404(Section, pk=section_id)
+    today = datetime.date.today()
+    year = request.GET.get('year', today.year)
+    month = request.GET.get('month', today.month)
+    project_members = biz.get_project_members_month_section(section, datetime.date(int(year), int(month), 20))
+
+    context = RequestContext(request, {
+        'company': company,
+        'title': u'%s | %s年%s月 | 出勤' % (section.name, year, month),
+        'section': section,
+        'project_members': project_members,
+        'year': year,
+        'month': month,
+    })
+    template = loader.get_template('section_attendance.html')
+    return HttpResponse(template.render(context))
+
+
+@login_required(login_url='/eb/login/')
 def view_project_request(request, request_id):
     company = biz.get_company()
     project_request = get_object_or_404(ProjectRequest, pk=request_id)
@@ -1265,6 +1324,18 @@ def download_resume(request, member_id):
     filename = constants.NAME_RESUME % (member.first_name + member.last_name, date)
     output = file_gen.generate_resume(member)
     response = HttpResponse(output.read(), content_type="application/ms-excel")
+    response['Content-Disposition'] = "filename=" + urllib.quote(filename.encode('utf-8')) + ".xlsx"
+    return response
+
+
+@login_required(login_url='/eb/login/')
+def download_section_attendance(request, section_id, year, month):
+    section = get_object_or_404(Section, pk=section_id)
+    batch = biz.get_batch_manage(constants.BATCH_SEND_ATTENDANCE_FORMAT)
+    project_members = biz.get_project_members_month_section(section, datetime.date(int(year), int(month), 20))
+    filename = constants.NAME_SECTION_ATTENDANCE % (section.name, year + month)
+    output = file_gen.generate_attendance_format(batch.attachment1.path, project_members, datetime.date(int(year), int(month), 20))
+    response = HttpResponse(output, content_type="application/ms-excel")
     response['Content-Disposition'] = "filename=" + urllib.quote(filename.encode('utf-8')) + ".xlsx"
     return response
 

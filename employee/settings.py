@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/1.7/ref/settings/
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 import os
 import sys
+import getpass
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 
 
@@ -90,13 +91,19 @@ if sys.platform == 'linux2':
             'PORT': '3306',
         },
     }
+elif sys.platform == 'win32' and getpass.getuser() == '411328':
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        },
+        'bpm_eboa': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': os.path.join(BASE_DIR, 'eboa.sqlite3'),
+        },
+    }
 else:
     DATABASES = {
-        # 'default': {
-        #     'ENGINE': 'django.db.backends.sqlite3',
-        #     'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
-        # },
-
         'default': {
             'ENGINE': 'django.db.backends.mysql',
             'NAME': 'eb_sales',
