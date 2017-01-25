@@ -958,7 +958,6 @@ def replace_excel_list(sheet, items, range_start='ITERATOR_START', range_end='IT
 def generate_attendance_format(template_path, project_members, date):
     book = px.load_workbook(template_path)
     sheet = book.get_sheet_by_name('Sheet1')
-    output = StringIO.StringIO()
 
     start_row = 5
     for project_member in project_members:

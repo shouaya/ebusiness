@@ -8,6 +8,7 @@ import datetime
 import re
 import urllib2
 import xml.etree.ElementTree as ET
+import logging
 
 from django.db import models
 from django.contrib.auth.models import User, Group, Permission
@@ -15,6 +16,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Max, Min, Q, Sum
 from django.utils import timezone
 from django.template import Context, Template
+from django.core.mail import EmailMultiAlternatives, get_connection
 
 
 from utils import common, constants
@@ -80,6 +82,17 @@ class AbstractMember(models.Model):
 
     class Meta:
         abstract = True
+
+    def get_notify_mail_list(self):
+        if self.is_notify:
+            if self.notify_type == 1:
+                return [self.email]
+            elif self.notify_type == 2:
+                return [self.private_email]
+            elif self.notify_type == 3:
+                return [self.email, self.private_email]
+
+        return []
 
 
 class PublicManager(models.Manager):
@@ -460,17 +473,6 @@ class Salesperson(AbstractMember):
             return self.section.salesperson_set.public_all()
         else:
             return [self]
-
-    def get_notify_mail_list(self):
-        if self.is_notify:
-            if self.notify_type == 1:
-                return [self.email]
-            elif self.notify_type == 2:
-                return [self.private_email]
-            elif self.notify_type == 3:
-                return [self.email, self.private_email]
-
-        return []
 
     def get_attendance_amount(self, ym):
         """対象年月の出勤売上を取得する。
@@ -2098,7 +2100,9 @@ class BatchManage(models.Model):
         :return:
         """
         today = datetime.datetime.now()
-        title = self.mail_title + today.strftime(u"_%y-%m-%d")
+        # FROM
+        from_email = Config.get(constants.CONFIG_ADMIN_EMAIL_ADDRESS)
+        title = self.mail_title + today.strftime(u"_%y%m%d")
         # BODY
         t = Template(self.mail_body)
         ctx = Context(context)
@@ -2108,7 +2112,7 @@ class BatchManage(models.Model):
         ctx = Context(context)
         html = t.render(ctx)
 
-        return title, body, html
+        return from_email, title, body, html
 
     def get_cc_list(self):
         batch_carbon_copies = self.batchcarboncopy_set.public_all()
@@ -2121,6 +2125,43 @@ class BatchManage(models.Model):
             if cc.email:
                 cc_list.append(cc.email)
         return cc_list
+
+    def send_notify_mail(self, context, recipient_list, attachments=None):
+        logger = logging.getLogger('eb.management.commands.%s' % (self.name,))
+        if not recipient_list:
+            logger.info(u"宛先が空白になっている。")
+            return False
+        from_email, title, body, html = self.get_formatted_batch(context)
+        connection = BatchManage.get_custom_connection()
+        email = EmailMultiAlternatives(
+            subject=title,
+            body=body,
+            from_email=from_email,
+            to=recipient_list,
+            cc=self.get_cc_list(),
+            connection=connection
+        )
+        if html:
+            email.attach_alternative(html, constants.MIME_TYPE_HTML)
+        if attachments:
+            for filename, content, mimetype in attachments:
+                email.attach(filename, content, mimetype)
+        email.send()
+        log_format = u"題名: %s; FROM: %s; TO: %s; 送信完了。"
+        logger.info(log_format % (title, from_email, ','.join(recipient_list)))
+
+    @staticmethod
+    def get_custom_connection():
+        host = Config.get(constants.CONFIG_ADMIN_EMAIL_SMTP_HOST, default_value='smtp.e-business.co.jp')
+        port = Config.get(constants.CONFIG_ADMIN_EMAIL_SMTP_PORT, default_value=587)
+        username = Config.get(constants.CONFIG_ADMIN_EMAIL_ADDRESS)
+        password = Config.get(constants.CONFIG_ADMIN_EMAIL_PASSWORD)
+        backend = get_connection()
+        backend.host = str(host)
+        backend.port = int(port)
+        backend.username = str(username)
+        backend.password = str(password)
+        return backend
 
 
 class BatchCarbonCopy(models.Model):
@@ -2152,7 +2193,7 @@ class Config(models.Model):
         return self.name
 
     @staticmethod
-    def get(config_name, default_value):
+    def get(config_name, default_value=None):
         """システム設定を取得する。
 
         DBから値を取得する。

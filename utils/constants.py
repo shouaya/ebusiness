@@ -13,6 +13,9 @@ REG_DATE_STR = ur"\d{4}([-/.年])\d{1,2}([-/.月])\d{1,2}([日]?)"
 REG_DATE_STR2 = ur"\d{4}([-/.年])\d{1,2}([-/.月]?)"
 REG_EXCEL_REPLACEMENT = ur"\{\$([A-Z0-9_]+)\$\}"
 
+MIME_TYPE_EXCEL = 'application/excel'
+MIME_TYPE_HTML = 'text/html'
+
 NAME_BUSINESS_PLAN = u"%02d月営業企画"
 NAME_MEMBER_LIST = u"最新要員一覧"
 NAME_RESUME = u"EB履歴書_%s_%s"

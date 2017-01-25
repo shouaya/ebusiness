@@ -14,9 +14,7 @@ from . import biz
 from utils import constants, common, file_gen
 from eb import models
 
-from django.core.mail import EmailMultiAlternatives
 from django.core.exceptions import ObjectDoesNotExist
-from django.core.mail import get_connection
 
 
 def sync_members():
@@ -211,10 +209,6 @@ def notify_member_status_mails(batch, status_list, summary):
                 return [status]
         return []
 
-    connection = get_custom_connection()
-    logger = logging.getLogger('eb.management.commands.member_status')
-    cc_list = batch.get_cc_list()
-    from_email=biz.get_config(constants.CONFIG_ADMIN_EMAIL_ADDRESS)
     # 営業部長取得する
     directors = get_salesperson_director()
     if directors:
@@ -223,27 +217,11 @@ def notify_member_status_mails(batch, status_list, summary):
                    'summary': summary,
                    'domain': biz.get_config(constants.CONFIG_DOMAIN_NAME),
                    }
-        title, body, html = batch.get_formatted_batch(context)
-
         recipient_list = []
         for salesperson in directors:
             recipient_list.extend(salesperson.get_notify_mail_list())
-        if len(recipient_list) > 0:
-            email = EmailMultiAlternatives(
-                subject=title,
-                body=body,
-                from_email=from_email,
-                to=recipient_list,
-                cc=cc_list,
-                connection=connection
-            )
-            email.attach_alternative(html, "text/html")
-
-            # email.send()
-            log_format = u"題名: %s; FROM: %s; TO: %s; CC: %s; 送信完了。"
-            logger.info(log_format % (title, from_email,
-                                      ','.join(recipient_list),
-                                      ','.join(cc_list),))
+        if recipient_list:
+            batch.send_notify_mail(context, recipient_list)
     salesperson_list = get_salesperson_members()
     if salesperson_list:
         for salesperson in salesperson_list:
@@ -253,21 +231,8 @@ def notify_member_status_mails(batch, status_list, summary):
                        'summary': None,
                        'domain': biz.get_config(constants.CONFIG_DOMAIN_NAME),
                        }
-            title, body, html = batch.get_formatted_batch(context)
-            if len(recipient_list) > 0:
-                email = EmailMultiAlternatives(
-                    subject=title,
-                    body=body,
-                    from_email=from_email,
-                    to=recipient_list,
-                    connection=connection
-                )
-                email.attach_alternative(html, "text/html")
-
-                # email.send()
-                log_format = u"題名: %s; FROM: %s; TO: %s; 送信完了。"
-                logger.info(log_format % (title, from_email,
-                                          ','.join(recipient_list)))
+            if recipient_list:
+                batch.send_notify_mail(context, recipient_list)
 
 
 def send_attendance_format(batch, date=None):
@@ -278,7 +243,7 @@ def send_attendance_format(batch, date=None):
     """
     logger = logging.getLogger('eb.management.commands.send_attendance_format')
     if not batch.attachment1 or not os.path.exists(batch.attachment1.path):
-        logger.info(u"出勤フォーマットの添付ファイルが設定していません。")
+        logger.error(u"出勤フォーマットの添付ファイルが設定していません。")
         return
 
     sections = biz.get_on_sales_section()
@@ -287,12 +252,27 @@ def send_attendance_format(batch, date=None):
     for section in sections:
         statistician = section.get_attendance_statistician()
         if statistician.count() == 0:
-            logger.info(u"部署「%s」の勤務統計者が設定していません。" % (section.__unicode__(),))
+            logger.error(u"部署「%s」の勤務統計者が設定していません。" % (section.__unicode__(),))
             continue
         if section.name == u"開発部　4部":
             project_members = biz.get_project_members_month_section(section, date)
-            file_gen.generate_attendance_format(batch.attachment1.path, project_members, date)
+            output = file_gen.generate_attendance_format(batch.attachment1.path, project_members, date)
 
+            context = {'statistician': statistician,
+                       'section': section,
+                       }
+            recipient_list = []
+            name_list = []
+            attachment = (u"%s_勤怠情報_%s.xlsx" % (section.name, date.strftime('%y%m%d')),
+                          output,
+                          constants.MIME_TYPE_EXCEL)
+            for member in statistician:
+                recipient_list.extend(member.get_notify_mail_list())
+                name_list.append(member.__unicode__())
+            if recipient_list:
+                batch.send_notify_mail(context, recipient_list, [attachment])
+            else:
+                logger.error(u"%s の送信先メールアドレスが設定していません。" % (u",".join(name_list),))
 
 
 def get_salesperson_director():
@@ -305,16 +285,3 @@ def get_salesperson_members():
     """営業のメンバーを取得する。
     """
     return models.Salesperson.objects.public_filter(member_type=5, is_notify=True)
-
-
-def get_custom_connection():
-    host = biz.get_config(constants.CONFIG_ADMIN_EMAIL_SMTP_HOST, default_value='smtp.e-business.co.jp')
-    port = biz.get_config(constants.CONFIG_ADMIN_EMAIL_SMTP_PORT, default_value=587)
-    username = biz.get_config(constants.CONFIG_ADMIN_EMAIL_ADDRESS)
-    password = biz.get_config(constants.CONFIG_ADMIN_EMAIL_PASSWORD)
-    backend = get_connection()
-    backend.host = str(host)
-    backend.port = int(port)
-    backend.username = str(username)
-    backend.password = str(password)
-    return backend
