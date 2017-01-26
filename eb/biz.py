@@ -240,7 +240,7 @@ def get_project_members_month_section(section, date):
                                    Q(member__membersectionperiod__end_date__isnull=date)) |
                                   (Q(member__membersectionperiod__start_date__lte=date) &
                                    Q(member__membersectionperiod__end_date__gte=date)),
-                                  member__membersectionperiod__section=section)
+                                  member__membersectionperiod__section=section).distinct()
 
 
 def get_subcontractor_project_members_month(date):

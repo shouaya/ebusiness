@@ -44,11 +44,11 @@ section table.list th {
     text-align: left;
 }
 
-section table.list th div.sortoptions {
+section table th div.sortoptions {
     float: right;
 }
 
-section table.list th div.sortoptions a.sortremove {
+section table th div.sortoptions a.sortremove {
     background: url(/static/img/sorting-icons.gif) -4px -2px no-repeat;
     width: 14px;
     height: 12px;
@@ -56,15 +56,15 @@ section table.list th div.sortoptions a.sortremove {
     cursor: pointer;
 }
 
-section table.list th div.sortoptions a.sortremove:hover {
+section table th div.sortoptions a.sortremove:hover {
     background: url(/static/img/sorting-icons.gif) -4px -24px no-repeat;
 }
 
-section table.list th div.sortoptions .sortpriority {
+section table th div.sortoptions .sortpriority {
     font-size: .8em;
 }
 
-section table.list th div.sortoptions a.ascending {
+section table th div.sortoptions a.ascending {
     background: url(/static/img/sorting-icons.gif) -5px -47px no-repeat;
     display: inline-block;
     width: 14px;
@@ -72,11 +72,11 @@ section table.list th div.sortoptions a.ascending {
     cursor: pointer;
 }
 
-section table.list th div.sortoptions a.ascending:hover {
+section table th div.sortoptions a.ascending:hover {
     background: url(/static/img/sorting-icons.gif) -5px -69px no-repeat;
 }
 
-section table.list th div.sortoptions a.descending {
+section table th div.sortoptions a.descending {
     background: url(/static/img/sorting-icons.gif) -5px -91px no-repeat;
     display: inline-block;
     width: 14px;
@@ -84,7 +84,7 @@ section table.list th div.sortoptions a.descending {
     cursor: pointer;
 }
 
-section table.list th div.sortoptions a.descending:hover {
+section table th div.sortoptions a.descending:hover {
     background: url(/static/img/sorting-icons.gif) -5px -112px no-repeat;
 }
 

@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load order_by_tag %}
 
 {% block header %}
 <style type="text/css">
@@ -82,12 +83,12 @@
                     <th class="bk06" rowspan="2">利益</th>
                 </tr>
                 <tr>
-                    <th class="bk01" style="width: 50px;">社員番号</th>
-                    <th class="bk01" style="width: 50px;">氏名</th>
+                    <th class="bk01" style="width: 50px;">{% create_order_display "社員番号" "member__employee_id" %}</th>
+                    <th class="bk01" style="width: 50px;">{% create_order_display "名前" "member__first_name" %}</th>
                     <th class="bk01" style="width: 50px;">所在部署</th>
-                    <th class="bk01" style="width: 50px;">所属</th>
+                    <th class="bk01" style="width: 50px;">{% create_order_display "所属" "member__subcontractor__name" %}</th>
                     <th class="bk01" style="width: 50px;">契約形態</th>
-                    <th class="bk02" style="width: 50px;">案件名</th>
+                    <th class="bk02" style="width: 50px;">{% create_order_display "案件名" "project__name" %}</th>
                     <th class="bk02" style="width: 50px;">顧客</th>
                     <th class="bk02" style="width: 50px;">契約種類</th>
                     <th class="bk03" style="width: 50px;">勤務時間</th>

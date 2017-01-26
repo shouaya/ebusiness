@@ -671,6 +671,14 @@ def section_detail(request, section_id):
     company = biz.get_company()
     section = get_object_or_404(Section, pk=section_id)
     all_members = biz.get_members_section(section)
+
+    o = request.GET.get('o', None)
+    dict_order = common.get_ordering_dict(o, ['first_name', 'projectmember__project__name'])
+    order_list = common.get_ordering_list(o)
+
+    if order_list:
+        all_members = all_members.order_by(*order_list)
+
     paginator = Paginator(all_members, PAGE_SIZE)
     page = request.GET.get('page')
     try:
@@ -685,6 +693,7 @@ def section_detail(request, section_id):
         'title': u'%s | 部署' % (section.name,),
         'section': section,
         'members': members,
+        'dict_order': dict_order,
         'paginator': paginator,
         'year_list': biz.get_year_list()
     })
@@ -699,13 +708,27 @@ def section_attendance(request, section_id):
     today = datetime.date.today()
     year = request.GET.get('year', today.year)
     month = request.GET.get('month', today.month)
+
+    param_list = common.get_request_params(request.GET)
+    params = "&".join(["%s=%s" % (key, value) for key, value in param_list.items()]) if param_list else ""
+
     project_members = biz.get_project_members_month_section(section, datetime.date(int(year), int(month), 20))
+
+    o = request.GET.get('o', None)
+    dict_order = common.get_ordering_dict(o, ['member__first_name', 'member__employee_id',
+                                              'member__subcontractor__name', 'project__name'])
+    order_list = common.get_ordering_list(o)
+
+    if order_list:
+        project_members = project_members.order_by(*order_list)
 
     context = RequestContext(request, {
         'company': company,
         'title': u'%s | %s年%s月 | 出勤' % (section.name, year, month),
         'section': section,
         'project_members': project_members,
+        'dict_order': dict_order,
+        'params': "&" + params if params else "",
         'year': year,
         'month': month,
     })
