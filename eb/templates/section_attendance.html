@@ -87,9 +87,9 @@
                     <th class="bk01" style="width: 50px;">{% create_order_display "名前" "member__first_name" %}</th>
                     <th class="bk01" style="width: 50px;">所在部署</th>
                     <th class="bk01" style="width: 50px;">{% create_order_display "所属" "member__subcontractor__name" %}</th>
-                    <th class="bk01" style="width: 50px;">契約形態</th>
+                    <th class="bk01" style="width: 50px;">{% create_order_display "契約形態" "member__member_type" %}</th>
                     <th class="bk02" style="width: 50px;">{% create_order_display "案件名" "project__name" %}</th>
-                    <th class="bk02" style="width: 50px;">顧客</th>
+                    <th class="bk02" style="width: 50px;">{% create_order_display "顧客" "project__client__name" %}</th>
                     <th class="bk02" style="width: 50px;">契約種類</th>
                     <th class="bk03" style="width: 50px;">勤務時間</th>
                     <th class="bk03" style="width: 50px;">勤務日数</th>

@@ -14,14 +14,16 @@
         <thead>
             <tr>
                 <th>名称</th>
+                <th>人数</th>
                 <th>部長</th>
                 <th>勤務統計者</th>
             </tr>
         </thead>
         <tbody>
-        {% for section in sections %}
+        {% for section, count in sections %}
             <tr class="{% cycle 'row1' 'row2' %}">
                 <td><a href="{% url 'section_detail' section.pk %}">{{ section }}</a></td>
+                <td>{{ count }}</td>
                 <td>
                     {% for member in section.get_chief %}
                         {{ member}},
@@ -38,6 +40,7 @@
         <tfoot>
             <tr>
                 <th>名称</th>
+                <th>{{ total_count }}</th>
                 <th>部長</th>
                 <th>勤務統計者</th>
             </tr>

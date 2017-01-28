@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load humanize %}
+{% load order_by_tag %}
 
 {% block header %}
     <script type="text/javascript">
@@ -148,20 +149,7 @@
     <table class="list" cellpadding="0" cellspacing="0">
         <thead>
             <tr>
-                <th>
-                    {% if dict_order.first_name.is_in_ordering %}
-                        <div class="sortoptions">
-                            <a class="sortremove" href="?o={{ dict_order.first_name.url_list_removed }}{{ params }}"></a>
-                            <span class="sortpriority">{{ dict_order.first_name.priority }}</span>
-                            <a class="{% if dict_order.first_name.is_asc %}descending{% else %}ascending{% endif %}"
-                               href="?o={{ dict_order.first_name.url }}{{ params }}"></a>
-                        </div>
-                    {% endif %}
-                    <div class="text">
-                        <a href="?o={{ dict_order.first_name.url }}{{ params }}">名前</a>
-                    </div>
-                    <div class="clear"></div>
-                </th>
+                <th>{% create_order_display "名前" "first_name" %}</th>
                 <th>案件</th>
                 <th>開始日</th>
                 <th>終了日</th>

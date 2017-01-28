@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load humanize %}
+{% load order_by_tag %}
 
 {% block header %}
     <script type="text/javascript">
@@ -28,63 +29,11 @@
         <thead>
             <tr>
                 <th>案件名称</th>
-                <th>
-                    {% if dict_order.member__first_name.is_in_ordering %}
-                        <div class="sortoptions">
-                            <a class="sortremove" href="?o={{ dict_order.member__first_name.url_list_removed }}{{ params }}"></a>
-                            <span class="sortpriority">{{ dict_order.member__first_name.priority }}</span>
-                            <a class="{% if dict_order.member__first_name.is_asc %}descending{% else %}ascending{% endif %}"
-                               href="?o={{ dict_order.member__first_name.url }}{{ params }}"></a>
-                        </div>
-                    {% endif %}
-                    <div class="text">
-                        <a href="?o={{ dict_order.member__first_name.url }}{{ params }}">名称</a>
-                    </div>
-                    <div class="clear"></div>
-                </th>
-                <th>
-                    {% if dict_order.member__section.is_in_ordering %}
-                        <div class="sortoptions">
-                            <a class="sortremove" href="?o={{ dict_order.member__section.url_list_removed }}{{ params }}"></a>
-                            <span class="sortpriority">{{ dict_order.member__section.priority }}</span>
-                            <a class="{% if dict_order.member__section.is_asc %}descending{% else %}ascending{% endif %}"
-                               href="?o={{ dict_order.member__section.url }}{{ params }}"></a>
-                        </div>
-                    {% endif %}
-                    <div class="text">
-                        <a href="?o={{ dict_order.member__section.url }}{{ params }}">所属</a>
-                    </div>
-                    <div class="clear"></div>
-                </th>
+                <th>{% create_order_display "名前" "member__first_name" %}</th>
+                <th>{% create_order_display "所属" "member__section" %}</th>
                 <th>稼働状態</th>
-                <th>
-                    {% if dict_order.start_date.is_in_ordering %}
-                        <div class="sortoptions">
-                            <a class="sortremove" href="?o={{ dict_order.start_date.url_list_removed }}{{ params }}"></a>
-                            <span class="sortpriority">{{ dict_order.start_date.priority }}</span>
-                            <a class="{% if dict_order.start_date.is_asc %}descending{% else %}ascending{% endif %}"
-                               href="?o={{ dict_order.start_date.url }}{{ params }}"></a>
-                        </div>
-                    {% endif %}
-                    <div class="text">
-                        <a href="?o={{ dict_order.start_date.url }}{{ params }}">稼働開始日</a>
-                    </div>
-                    <div class="clear"></div>
-                </th>
-                <th>
-                    {% if dict_order.end_date.is_in_ordering %}
-                        <div class="sortoptions">
-                            <a class="sortremove" href="?o={{ dict_order.end_date.url_list_removed }}{{ params }}"></a>
-                            <span class="sortpriority">{{ dict_order.end_date.priority }}</span>
-                            <a class="{% if dict_order.end_date.is_asc %}descending{% else %}ascending{% endif %}"
-                               href="?o={{ dict_order.end_date.url }}{{ params }}"></a>
-                        </div>
-                    {% endif %}
-                    <div class="text">
-                        <a href="?o={{ dict_order.end_date.url }}{{ params }}">稼働終了日</a>
-                    </div>
-                    <div class="clear"></div>
-                </th>
+                <th>{% create_order_display "稼働開始日" "start_date" %}</th>
+                <th>{% create_order_display "稼働終了日" "end_date" %}</th>
                 <th>単価</th>
                 <th></th>
             </tr>

@@ -657,10 +657,17 @@ def project_member_list(request, project_id):
 @login_required(login_url='/eb/login/')
 def section_list(request):
     sections = biz.get_on_sales_section()
+    section_count_list = []
+    total_count = 0
+    for section in sections:
+        count = biz.get_members_section(section).count()
+        total_count += count
+        section_count_list.append((section, count))
 
     context = RequestContext(request, {
         'title': u'部署情報一覧',
-        'sections': sections,
+        'sections': section_count_list,
+        'total_count': total_count,
     })
     template = loader.get_template('section_list.html')
     return HttpResponse(template.render(context))
@@ -716,7 +723,8 @@ def section_attendance(request, section_id):
 
     o = request.GET.get('o', None)
     dict_order = common.get_ordering_dict(o, ['member__first_name', 'member__employee_id',
-                                              'member__subcontractor__name', 'project__name'])
+                                              'member__subcontractor__name', 'project__name',
+                                              'project__client__name', 'member__member_type'])
     order_list = common.get_ordering_list(o)
 
     if order_list:

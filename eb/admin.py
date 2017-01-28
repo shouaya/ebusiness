@@ -209,8 +209,18 @@ class BaseAdmin(admin.ModelAdmin):
                                              'object': force_text(added_object)})
                 for changed_object, changed_fields in formset.changed_objects:
                     changed_list = []
-                    for field in changed_fields:
-                        changed_list.append(u"%s(%s)" % (field, getattr(changed_object, field)))
+                    for field_name in changed_fields:
+                        field_value = getattr(changed_object, field_name)
+                        fields = [field for field in changed_object._meta.fields
+                                  if field.name == field_name and field.choices]
+                        if len(fields) == 1:
+                            field_value = getattr(changed_object, 'get_' + field_name + '_display')()
+                        initial_values = [form.initial.get(field_name) for form in formset.initial_forms
+                                          if form.cleaned_data.get('id').pk == changed_object.pk]
+                        initial_value = ''
+                        if len(initial_values) == 1:
+                            initial_value = initial_values[0]
+                        changed_list.append(u"%s(%s→%s)" % (field_name, initial_value, field_value))
                     change_message.append(_('Changed %(list)s for %(name)s "%(object)s".')
                                           % {'list': get_text_list(changed_list, _('and')),
                                              'name': force_text(changed_object._meta.verbose_name),

@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load humanize %}
+{% load order_by_tag %}
 
 {% block header %}
     <script type="text/javascript">
@@ -49,49 +50,10 @@
     <table id="tbl_sections_monthly" class="list" cellpadding="0" cellspacing="0">
         <thead>
             <tr>
-                <th style="width: 75px;">
-                    {% if dict_order.project_member__member__first_name.is_in_ordering %}
-                        <div class="sortoptions">
-                            <a class="sortremove" href="?o={{ dict_order.project_member__member__first_name.url_list_removed }}{{ params }}"></a>
-                            <span class="sortpriority">{{ dict_order.project_member__member__first_name.priority }}</span>
-                            <a class="{% if dict_order.project_member__member__first_name.is_asc %}descending{% else %}ascending{% endif %}"
-                               href="?o={{ dict_order.project_member__member__first_name.url }}{{ params }}"></a>
-                        </div>
-                    {% endif %}
-                    <div class="text">
-                        <a href="?o={{ dict_order.project_member__member__first_name.url }}{{ params }}">名前</a>
-                    </div>
-                    <div class="clear"></div>
-                </th>
+                <th style="width: 75px;">{% create_order_display "名前" "project_member__member__first_name" %}</th>
                 <th>部署</th>
-                <th style="width: 220px;">
-                    {% if dict_order.project_request__project__name.is_in_ordering %}
-                        <div class="sortoptions">
-                            <a class="sortremove" href="?o={{ dict_order.project_request__project__name.url_list_removed }}{{ params }}"></a>
-                            <span class="sortpriority">{{ dict_order.project_request__project__name.priority }}</span>
-                            <a class="{% if dict_order.project_request__project__name.is_asc %}descending{% else %}ascending{% endif %}"
-                               href="?o={{ dict_order.project_request__project__name.url }}{{ params }}"></a>
-                        </div>
-                    {% endif %}
-                    <div class="text">
-                        <a href="?o={{ dict_order.project_request__project__name.url }}{{ params }}">案件名称</a>
-                    </div>
-                    <div class="clear"></div>
-                </th>
-                <th style="width: 160px;">
-                    {% if dict_order.project_request__projectrequestheading__client__name.is_in_ordering %}
-                        <div class="sortoptions">
-                            <a class="sortremove" href="?o={{ dict_order.project_request__projectrequestheading__client__name.url_list_removed }}{{ params }}"></a>
-                            <span class="sortpriority">{{ dict_order.project_request__projectrequestheading__client__name.priority }}</span>
-                            <a class="{% if dict_order.project_request__projectrequestheading__client__name.is_asc %}descending{% else %}ascending{% endif %}"
-                               href="?o={{ dict_order.project_request__projectrequestheading__client__name.url }}{{ params }}"></a>
-                        </div>
-                    {% endif %}
-                    <div class="text">
-                        <a href="?o={{ dict_order.project_request__projectrequestheading__client__name.url }}{{ params }}">関連会社</a>
-                    </div>
-                    <div class="clear"></div>
-                </th>
+                <th style="width: 220px;">{% create_order_display "案件名称" "project_request__project__name" %}</th>
+                <th style="width: 160px;">{% create_order_display "関連会社" "project_request__projectrequestheading__client__name" %}</th>
                 <th>営業</th>
                 <th>コスト</th>
                 <th>売上（税別）</th>

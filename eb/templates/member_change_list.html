@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load order_by_tag %}
 
 {% block header %}
     <script type="text/javascript">
@@ -20,50 +21,11 @@
     <table class="list" cellpadding="0" cellspacing="0">
         <thead>
             <tr>
-                <th>
-                    {% if dict_order.first_name.is_in_ordering %}
-                        <div class="sortoptions">
-                            <a class="sortremove" href="?o={{ dict_order.first_name.url_list_removed }}{{ params }}"></a>
-                            <span class="sortpriority">{{ dict_order.first_name.priority }}</span>
-                            <a class="{% if dict_order.first_name.is_asc %}descending{% else %}ascending{% endif %}"
-                               href="?o={{ dict_order.first_name.url }}{{ params }}"></a>
-                        </div>
-                    {% endif %}
-                    <div class="text">
-                        <a href="?o={{ dict_order.first_name.url }}{{ params }}">名前</a>
-                    </div>
-                    <div class="clear"></div>
-                </th>
-                <th>
-                    {% if dict_order.section__name.is_in_ordering %}
-                        <div class="sortoptions">
-                            <a class="sortremove" href="?o={{ dict_order.section__name.url_list_removed }}{{ params }}"></a>
-                            <span class="sortpriority">{{ dict_order.section__name.priority }}</span>
-                            <a class="{% if dict_order.section__name.is_asc %}descending{% else %}ascending{% endif %}"
-                               href="?o={{ dict_order.section__name.url }}{{ params }}"></a>
-                        </div>
-                    {% endif %}
-                    <div class="text">
-                        <a href="?o={{ dict_order.section__name.url }}{{ params }}">所属</a>
-                    </div>
-                    <div class="clear"></div>
-                </th>
+                <th>{% create_order_display "名前" "first_name" %}</th>
+                <th>{% create_order_display "所属" "section__name" %}</th>
                 <th>今月リリース案件</th>
                 <th>来月アサイン案件</th>
-                <th style="width: 90px;">
-                    {% if dict_order.salesperson__first_name.is_in_ordering %}
-                        <div class="sortoptions">
-                            <a class="sortremove" href="?o={{ dict_order.salesperson__first_name.url_list_removed }}{{ params }}"></a>
-                            <span class="sortpriority">{{ dict_order.salesperson__first_name.priority }}</span>
-                            <a class="{% if dict_order.salesperson__first_name.is_asc %}descending{% else %}ascending{% endif %}"
-                               href="?o={{ dict_order.salesperson__first_name.url }}{{ params }}"></a>
-                        </div>
-                    {% endif %}
-                    <div class="text">
-                        <a href="?o={{ dict_order.salesperson__first_name.url }}{{ params }}">営業員</a>
-                    </div>
-                    <div class="clear"></div>
-                </th>
+                <th style="width: 90px;">{% create_order_display "営業員" "salesperson__first_name" %}</th>
                 <th></th>
             </tr>
         </thead>

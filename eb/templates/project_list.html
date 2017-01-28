@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load order_by_tag %}
 
 {% block header %}
     <script type="text/javascript">
@@ -44,65 +45,13 @@
     <table class="list" cellpadding="0" cellspacing="0">
         <thead>
             <tr>
-                <th style="width: 320px;">
-                    {% if dict_order.name.is_in_ordering %}
-                        <div class="sortoptions">
-                            <a class="sortremove" href="?o={{ dict_order.name.url_list_removed }}{{ params }}"></a>
-                            <span class="sortpriority">{{ dict_order.name.priority }}</span>
-                            <a class="{% if dict_order.name.is_asc %}descending{% else %}ascending{% endif %}"
-                               href="?o={{ dict_order.name.url }}{{ params }}"></a>
-                        </div>
-                    {% endif %}
-                    <div class="text">
-                        <a href="?o={{ dict_order.name.url }}{{ params }}">案件名称</a>
-                    </div>
-                    <div class="clear"></div>
-                </th>
-                <th style="width: 190px;">
-                    {% if dict_order.client__name.is_in_ordering %}
-                        <div class="sortoptions">
-                            <a class="sortremove" href="?o={{ dict_order.client__name.url_list_removed }}{{ params }}"></a>
-                            <span class="sortpriority">{{ dict_order.client__name.priority }}</span>
-                            <a class="{% if dict_order.client__name.is_asc %}descending{% else %}ascending{% endif %}"
-                               href="?o={{ dict_order.client__name.url }}{{ params }}"></a>
-                        </div>
-                    {% endif %}
-                    <div class="text">
-                        <a href="?o={{ dict_order.client__name.url }}{{ params }}">関連会社</a>
-                    </div>
-                    <div class="clear"></div>
-                </th>
-                <th style="width: 80px;">
-                    {% if dict_order.salesperson__first_name.is_in_ordering %}
-                        <div class="sortoptions">
-                            <a class="sortremove" href="?o={{ dict_order.salesperson__first_name.url_list_removed }}{{ params }}"></a>
-                            <span class="sortpriority">{{ dict_order.salesperson__first_name.priority }}</span>
-                            <a class="{% if dict_order.salesperson__first_name.is_asc %}descending{% else %}ascending{% endif %}"
-                               href="?o={{ dict_order.salesperson__first_name.url }}{{ params }}"></a>
-                        </div>
-                    {% endif %}
-                    <div class="text">
-                        <a href="?o={{ dict_order.salesperson__first_name.url }}{{ params }}">営業員</a>
-                    </div>
-                    <div class="clear"></div>
-                </th>
+                <th style="width: 320px;">{% create_order_display "案件名称" "name" %}</th>
+                <th style="width: 190px;">{% create_order_display "関連会社" "client__name" %}</th>
+                <th style="width: 80px;">{% create_order_display "営業員" "salesperson__first_name" %}</th>
                 <th style="width: 35px;">人数</th>
                 <th style="width: 70px;">メンバー</th>
                 <th style="width: 60px;">状態</th>
-                <th style="width: 125px;">
-                    {% if dict_order.update_date.is_in_ordering %}
-                        <div class="sortoptions">
-                            <a class="sortremove" href="?o={{ dict_order.update_date.url_list_removed }}{{ params }}"></a>
-                            <span class="sortpriority">{{ dict_order.update_date.priority }}</span>
-                            <a class="{% if dict_order.update_date.is_asc %}descending{% else %}ascending{% endif %}"
-                               href="?o={{ dict_order.update_date.url }}{{ params }}"></a>
-                        </div>
-                    {% endif %}
-                    <div class="text">
-                        <a href="?o={{ dict_order.update_date.url }}{{ params }}">更新日</a>
-                    </div>
-                    <div class="clear"></div>
-                </th>
+                <th style="width: 125px;">{% create_order_display "更新日" "update_date" %}</th>
                 <th class="noprint" style="width: 65px;"></th>
             </tr>
         </thead>

@@ -37,20 +37,19 @@ class GenerateOrderTag(template.Node):
             dict_order = context['dict_order']
             order_name = dict_order.get(self.dict_name)
             params = context.get('params', '')
-            html = u""
+            html = u"""<span class="text"><a href="?o={0}{1}">{2}</a></span>
+                    """.format(order_name.get('url'),
+                                                             params,
+                                                             self.display_name)
             if order_name.get('is_in_ordering', False):
-                html = u"""<div class="sortoptions">
+                html += u"""<span class="sortoptions">
                                <a class="sortremove" href="?o={0}{1}"></a>
                                <span class="sortpriority">{2}</span>
                                <a class="{3}"
                                   href="?o={4}{1}"></a>
-                           </div>""".format(order_name.get('url_list_removed'),
+                           </span>""".format(order_name.get('url_list_removed'),
                                             params,
                                             order_name.get('priority'),
                                             'descending' if order_name.get('is_asc', False) else 'ascending',
                                             order_name.get('url'))
-            html += u"""<div class="text"><a href="?o={0}{1}">{2}</a></div>
-                        <div class="clear"></div>""".format(order_name.get('url'),
-                                                            params,
-                                                            self.display_name)
         return html
