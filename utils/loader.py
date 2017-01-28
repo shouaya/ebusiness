@@ -12,6 +12,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Max
 
 from eb.models import Member, Degree, HistoryProject, OS, Skill, ProjectStage
+from eb import models
 
 import constants
 import common
@@ -242,3 +243,78 @@ def load_resume(file_content, member_id=None):
     member.save()
 
     return member, None
+
+
+def load_section_attendance(file_content, year, month):
+    """アップロードした出勤情報をDBに書き込む
+
+    :param file_content: 出勤ファイル
+    :param year: 対象年
+    :param month: 対象月
+    :return:
+    """
+    book = xlrd.open_workbook(file_contents=file_content)
+    sheet = book.sheet_by_index(0)
+
+    messages = []
+    for i in range(constants.POS_ATTENDANCE_START_ROW - 1, sheet.nrows):
+        values = sheet.row_values(i)
+        project_member_id = values[constants.POS_ATTENDANCE_COL_PROJECT_MEMBER_ID]
+        # 社員番号
+        member_code = values[constants.POS_ATTENDANCE_COL_MEMBER_CODE]
+        # 氏名
+        member_name = values[constants.POS_ATTENDANCE_COL_MEMBER_NAME]
+        # 勤務時間
+        total_hours = values[constants.POS_ATTENDANCE_COL_TOTAL_HOURS]
+        # 勤務日数
+        total_days = values[constants.POS_ATTENDANCE_COL_TOTAL_DAYS]
+        # 深夜日数
+        night_days = values[constants.POS_ATTENDANCE_COL_NIGHT_DAYS]
+
+        if not project_member_id:
+            messages.append((project_member_id, member_code, member_name, u"ID情報が取れません。"))
+            continue
+        try:
+            project_member = models.ProjectMember.objects.get(pk=project_member_id)
+        except ObjectDoesNotExist:
+            messages.append((project_member_id, member_code, member_name, u"IDによりDBからデータ取得できません。"))
+            continue
+
+        if not total_hours or (not isinstance(total_hours, float) and not isinstance(total_hours, int)):
+            messages.append((project_member_id, member_code, member_name, u"勤務時間のデータ不正。"))
+            continue
+
+        if total_hours > float(project_member.max_hours):
+            # 残業あり
+            extra_hours = total_hours - float(project_member.max_hours)
+            price = float(project_member.price) + extra_hours * float(project_member.plus_per_hour)
+        elif total_hours < float(project_member.min_hours):
+            # 欠勤あり
+            extra_hours = total_hours - float(project_member.min_hours)
+            price = float(project_member.price) + extra_hours * float(project_member.minus_per_hour)
+        else:
+            extra_hours = 0
+            price = project_member.price
+        attendance = project_member.get_attendance(year, month)
+        if attendance:
+            # 既に出勤情報あり、上書きする。
+            attendance.total_hours = total_hours
+            attendance.extra_hours = extra_hours
+            attendance.total_days = total_days if total_days else None
+            attendance.night_days = night_days if night_days else None
+        else:
+            attendance = models.MemberAttendance(project_member=project_member,
+                                                 year=year, month=month,
+                                                 rate=1,
+                                                 basic_price=project_member.price,
+                                                 total_hours=total_hours,
+                                                 extra_hours=extra_hours,
+                                                 total_days=total_days if total_days else None,
+                                                 night_days=night_days if night_days else None,
+                                                 min_hours=project_member.min_hours,
+                                                 max_hours=project_member.max_hours,
+                                                 plus_per_hour=project_member.plus_per_hour,
+                                                 minus_per_hour=project_member.minus_per_hour,
+                                                 price=price)
+            attendance.save()
+    return messages

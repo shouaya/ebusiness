@@ -709,6 +709,7 @@ def section_detail(request, section_id):
 
 
 @login_required(login_url='/eb/login/')
+@csrf_protect
 def section_attendance(request, section_id):
     company = biz.get_company()
     section = get_object_or_404(Section, pk=section_id)
@@ -730,16 +731,35 @@ def section_attendance(request, section_id):
     if order_list:
         project_members = project_members.order_by(*order_list)
 
-    context = RequestContext(request, {
+    # 出勤リストをアップロード時
+    messages = []
+    if request.method == 'POST':
+        input_excel = request.FILES['attendance_file']
+        messages = file_loader.load_section_attendance(input_excel.read(), year, month)
+
+    all_project_members = []
+    for project_member in project_members:
+        msg = ''
+        if messages:
+            for project_member_id, code, name, msg_content in messages:
+                if project_member.id == project_member_id:
+                    msg = msg_content
+                    break
+        all_project_members.append((project_member, project_member.get_attendance(year, month), msg))
+
+    context = {
         'company': company,
-        'title': u'%s | %s年%s月 | 出勤' % (section.name, year, month),
+        'title': u'出勤 | %s年%s月 | %s' % (year, month, section.name),
         'section': section,
-        'project_members': project_members,
+        'project_members': all_project_members,
         'dict_order': dict_order,
         'params': "&" + params if params else "",
         'year': year,
         'month': month,
-    })
+        'has_error': True if messages else False
+    }
+    context.update(csrf(request))
+
     template = loader.get_template('section_attendance.html')
     return HttpResponse(template.render(context))
 
@@ -1367,7 +1387,7 @@ def download_section_attendance(request, section_id, year, month):
     filename = constants.NAME_SECTION_ATTENDANCE % (section.name, int(year), int(month))
     output = file_gen.generate_attendance_format(batch.attachment1.path, project_members, datetime.date(int(year), int(month), 20))
     response = HttpResponse(output, content_type="application/ms-excel")
-    response['Content-Disposition'] = "filename=" + urllib.quote(filename.encode('utf-8'))
+    response['Content-Disposition'] = "filename=" + urllib.quote(filename.encode('utf-8')) + ".xlsx"
     return response
 
 

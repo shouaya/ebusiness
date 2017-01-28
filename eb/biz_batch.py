@@ -255,25 +255,25 @@ def send_attendance_format(batch, date):
         if statistician.count() == 0:
             logger.warning(u"部署「%s」の勤務統計者が設定していません。" % (section.__unicode__(),))
             continue
-        if section.name == u"開発部　4部":
-            project_members = biz.get_project_members_month_section(section, date)
-            output = file_gen.generate_attendance_format(batch.attachment1.path, project_members, date)
+        recipient_list = []
+        name_list = []
+        for member in statistician:
+            recipient_list.extend(member.get_notify_mail_list())
+            name_list.append(member.__unicode__())
+        if not recipient_list:
+            logger.error(u"%s の送信先メールアドレスが設定していません。" % (u",".join(name_list),))
+            continue
 
-            context = {'statistician': statistician,
-                       'section': section,
-                       }
-            recipient_list = []
-            name_list = []
-            attachment = (constants.NAME_SECTION_ATTENDANCE % (section.name, date.year, date.month),
-                          output,
-                          constants.MIME_TYPE_EXCEL)
-            for member in statistician:
-                recipient_list.extend(member.get_notify_mail_list())
-                name_list.append(member.__unicode__())
-            if recipient_list:
-                batch.send_notify_mail(context, recipient_list, [attachment])
-            else:
-                logger.error(u"%s の送信先メールアドレスが設定していません。" % (u",".join(name_list),))
+        project_members = biz.get_project_members_month_section(section, date)
+        output = file_gen.generate_attendance_format(batch.attachment1.path, project_members, date)
+
+        context = {'statistician': statistician,
+                   'section': section,
+                   }
+        attachment = (constants.NAME_SECTION_ATTENDANCE % (section.name, date.year, date.month) + ".xlsx",
+                      output,
+                      constants.MIME_TYPE_EXCEL)
+        batch.send_notify_mail(context, recipient_list, [attachment])
 
 
 def get_salesperson_director():

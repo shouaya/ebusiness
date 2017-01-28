@@ -1630,7 +1630,7 @@ class ProjectMember(models.Model):
         :return: MemberAttendanceのインスタンス、または None
         """
         try:
-            return self.memberattendance_set.get(year=str(year), month="%02d" % (month,), is_deleted=False)
+            return self.memberattendance_set.get(year=str(year), month="%02d" % (int(month),), is_deleted=False)
         except ObjectDoesNotExist:
             return None
 

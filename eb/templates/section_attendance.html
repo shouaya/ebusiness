@@ -2,6 +2,21 @@
 {% load order_by_tag %}
 
 {% block header %}
+<script type="text/javascript">
+    function checkUploadAttendance(form) {
+        var filename = $("#attendance_file").val();
+        if (filename == "") {
+            alert("アップロードするファイルを選択してください！");
+            return false;
+        }
+        ext = filename.substr(filename.length - 5);
+        if (ext.toLowerCase() != ".xlsx") {
+            alert("エクセルファイル(.xlsx)を選択してください！");
+            return false;
+        }
+        return true;
+    }
+</script>
 <style type="text/css">
     table {
         border-top: thin solid black;
@@ -60,16 +75,33 @@
         overflow: hidden;
         white-space: nowrap;
     }
+    td.error {
+        background: red;
+    }
+    div.error {
+        background: red;
+        padding: 4px 6px;
+        margin-bottom: 10px;
+        border: 3px solid white;
+    }
 </style>
 {% endblock %}
 
 {% block content %}
     <div class="dashboard">
         <div class="dashboard-title">{{ title }}</div>
-        <form>
+        <form onsubmit="return checkUploadAttendance(this);" method="post"  enctype="multipart/form-data">
+            <div>{% csrf_token %}</div>
+            <input type="file" id="attendance_file" name="attendance_file"/>
+            <input type="submit" value="勤怠情報アップロード">
             <a href="{% url 'download_section_attendance' section.pk year month %}" target="_blank" class="button">ダウンロード</a>
         </form>
     </div>
+    {% if has_error %}
+        <div class="error">
+            アップロードするデータにエラーが発生している。エラーのないデータは正常にDBに取込みました。
+        </div>
+    {% endif %}
     <div class="scroll_container">
         <table cellspacing="0" cellpadding="0">
             <thead>
@@ -109,7 +141,7 @@
             </thead>
             <tbody>
                 {% if project_members %}
-                    {% for project_member in project_members %}
+                    {% for project_member, attendance, msg in project_members %}
                         <tr>
                             <td style="text-align:center;">{{ forloop.counter }}</td>
                             <td>{{ project_member.member.employee_id }}</td>
@@ -128,8 +160,14 @@
                             </td>
                             <td>{{ project_member.member.get_member_type_display }}</td>
                             <td>{{ project_member.project }}</td>
+                            {% if msg %}
+                            <td colspan="18" class="error">{{ msg }}</td>
+                            {% else %}
                             <td>{{ project_member.project.client }}</td>
                             <td></td>
+                            <td style="text-align: right;">{{ attendance.total_hours }}</td>
+                            <td style="text-align: right;">{{ attendance.total_days|default:'' }}</td>
+                            <td style="text-align: right;">{{ attendance.night_days|default:'' }}</td>
                             <td></td>
                             <td></td>
                             <td></td>
@@ -143,9 +181,7 @@
                             <td></td>
                             <td></td>
                             <td></td>
-                            <td></td>
-                            <td></td>
-                            <td></td>
+                            {% endif %}
                         </tr>
                     {% endfor %}
                 {% else %}
@@ -155,7 +191,7 @@
             <tfoot>
                 <tr>
                     <td colspan="25">
-                        {{ project_members.count }} 件
+                        {{ project_members|length }} 件
                     </td>
                 </tr>
             </tfoot>

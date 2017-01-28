@@ -955,7 +955,7 @@ def generate_attendance_format(template_path, project_members, date):
     book = px.load_workbook(template_path)
     sheet = book.get_sheet_by_name('Sheet1')
 
-    start_row = 5
+    start_row = constants.POS_ATTENDANCE_START_ROW
     set_openpyxl_styles(sheet, 'B5:AA%s' % (start_row - 1 + project_members.count(),), 5)
     for i, project_member in enumerate(project_members):
         # NO
