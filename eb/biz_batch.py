@@ -235,24 +235,25 @@ def notify_member_status_mails(batch, status_list, summary):
                 batch.send_notify_mail(context, recipient_list)
 
 
-def send_attendance_format(batch, date=None):
+def send_attendance_format(batch, date):
     """勤怠フォーマットを各部署の部長に送付する。
 
+    :param date: 対象年月の出勤情報
     :param batch:
     :return:
     """
     logger = logging.getLogger('eb.management.commands.send_attendance_format')
     if not batch.attachment1 or not os.path.exists(batch.attachment1.path):
-        logger.error(u"出勤フォーマットの添付ファイルが設定していません。")
+        logger.warning(u"出勤フォーマットの添付ファイルが設定していません。")
         return
 
     sections = biz.get_on_sales_section()
-    if date is None:
+    if not date:
         date = datetime.datetime.today()
     for section in sections:
         statistician = section.get_attendance_statistician()
         if statistician.count() == 0:
-            logger.error(u"部署「%s」の勤務統計者が設定していません。" % (section.__unicode__(),))
+            logger.warning(u"部署「%s」の勤務統計者が設定していません。" % (section.__unicode__(),))
             continue
         if section.name == u"開発部　4部":
             project_members = biz.get_project_members_month_section(section, date)
@@ -263,7 +264,7 @@ def send_attendance_format(batch, date=None):
                        }
             recipient_list = []
             name_list = []
-            attachment = (u"%s_勤怠情報_%s.xlsx" % (section.name, date.strftime('%y%m%d')),
+            attachment = (constants.NAME_SECTION_ATTENDANCE % (section.name, date.year, date.month),
                           output,
                           constants.MIME_TYPE_EXCEL)
             for member in statistician:

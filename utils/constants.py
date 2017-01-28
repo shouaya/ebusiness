@@ -19,7 +19,7 @@ MIME_TYPE_HTML = 'text/html'
 NAME_BUSINESS_PLAN = u"%02d月営業企画"
 NAME_MEMBER_LIST = u"最新要員一覧"
 NAME_RESUME = u"EB履歴書_%s_%s"
-NAME_SECTION_ATTENDANCE = u"勤怠情報_%s_%s"
+NAME_SECTION_ATTENDANCE = u"勤怠情報_%s_%04d年%02d月"
 
 BATCH_MEMBER_STATUS = 'member_status'
 BATCH_SYNC_MEMBERS = 'sync_members'

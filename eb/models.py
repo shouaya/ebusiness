@@ -9,14 +9,21 @@ import re
 import urllib2
 import xml.etree.ElementTree as ET
 import logging
+import mimetypes
+
+from email import encoders
+from email.header import Header
 
 from django.db import models
 from django.contrib.auth.models import User, Group, Permission
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Max, Min, Q, Sum
 from django.utils import timezone
+from django.utils.encoding import smart_str
 from django.template import Context, Template
-from django.core.mail import EmailMultiAlternatives, get_connection
+from django.core.mail import EmailMultiAlternatives, get_connection, SafeMIMEText
+from django.core.mail.message import MIMEBase
+from django.conf import settings
 
 
 from utils import common, constants
@@ -2133,7 +2140,7 @@ class BatchManage(models.Model):
             return False
         from_email, title, body, html = self.get_formatted_batch(context)
         connection = BatchManage.get_custom_connection()
-        email = EmailMultiAlternatives(
+        email = EmailMultiAlternativesWithEncoding(
             subject=title,
             body=body,
             from_email=from_email,
@@ -2146,7 +2153,7 @@ class BatchManage(models.Model):
         if attachments:
             for filename, content, mimetype in attachments:
                 email.attach(filename, content, mimetype)
-        email.send()
+        # email.send()
         log_format = u"題名: %s; FROM: %s; TO: %s; 送信完了。"
         logger.info(log_format % (title, from_email, ','.join(recipient_list)))
 
@@ -2210,6 +2217,35 @@ class Config(models.Model):
             c.save()
             return default_value
 
+
+class EmailMultiAlternativesWithEncoding(EmailMultiAlternatives):
+    def _create_attachment(self, filename, content, mimetype=None):
+        """
+        Converts the filename, content, mimetype triple into a MIME attachment
+        object. Use self.encoding when handling text attachments.
+        """
+        if mimetype is None:
+            mimetype, _ = mimetypes.guess_type(filename)
+            if mimetype is None:
+                mimetype = constants.MIME_TYPE_EXCEL
+        basetype, subtype = mimetype.split('/', 1)
+        if basetype == 'text':
+            encoding = self.encoding or settings.DEFAULT_CHARSET
+            attachment = SafeMIMEText(smart_str(content,
+                settings.DEFAULT_CHARSET), subtype, encoding)
+        else:
+            # Encode non-text attachments with base64.
+            attachment = MIMEBase(basetype, subtype)
+            attachment.set_payload(content)
+            encoders.encode_base64(attachment)
+        if filename:
+            try:
+                filename = filename.encode('ascii')
+            except UnicodeEncodeError:
+                filename = Header(filename, 'utf-8').encode()
+            attachment.add_header('Content-Disposition', 'attachment',
+                                   filename=filename)
+        return attachment
 
 def create_group_salesperson():
     group_salesperson, created = Group.objects.get_or_create(name="Salesperson")

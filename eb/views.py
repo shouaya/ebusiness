@@ -1364,7 +1364,7 @@ def download_section_attendance(request, section_id, year, month):
     section = get_object_or_404(Section, pk=section_id)
     batch = biz.get_batch_manage(constants.BATCH_SEND_ATTENDANCE_FORMAT)
     project_members = biz.get_project_members_month_section(section, datetime.date(int(year), int(month), 20))
-    filename = constants.NAME_SECTION_ATTENDANCE % (section.name, year + month)
+    filename = constants.NAME_SECTION_ATTENDANCE % (section.name, int(year), int(month))
     output = file_gen.generate_attendance_format(batch.attachment1.path, project_members, datetime.date(int(year), int(month), 20))
     response = HttpResponse(output, content_type="application/ms-excel")
     response['Content-Disposition'] = "filename=" + urllib.quote(filename.encode('utf-8')) + ".xlsx"
