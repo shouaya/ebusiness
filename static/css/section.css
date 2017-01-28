@@ -45,6 +45,7 @@ section table.list th {
 }
 
 section table th .sortoptions {
+    float: right;
 }
 
 section table th .sortoptions a.sortremove {

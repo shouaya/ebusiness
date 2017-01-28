@@ -8,12 +8,8 @@ import os
 import datetime
 import StringIO
 import xlsxwriter
-
-try:
-    import openpyxl as px
-    from openpyxl.writer.excel import save_virtual_workbook
-except:
-    pass
+import openpyxl as px
+from openpyxl.writer.excel import save_virtual_workbook
 
 try:
     import pythoncom
@@ -960,27 +956,32 @@ def generate_attendance_format(template_path, project_members, date):
     sheet = book.get_sheet_by_name('Sheet1')
 
     start_row = 5
-    for project_member in project_members:
-        # 社員番号
+    set_openpyxl_styles(sheet, 'B5:AA%s' % (start_row - 1 + project_members.count(),), 5)
+    for i, project_member in enumerate(project_members):
+        # NO
+        sheet.cell(row=start_row, column=2).value = i + 1
+        # 隠し項目（Project_member ID)
         sheet.cell(row=start_row, column=3).value = project_member.id
+        # 社員番号
+        sheet.cell(row=start_row, column=4).value = project_member.member.employee_id
         # 氏名
-        sheet.cell(row=start_row, column=4).value = project_member.member.__unicode__()
+        sheet.cell(row=start_row, column=5).value = project_member.member.__unicode__()
         # 所在部署
         section = project_member.member.get_section()
         if section:
-            sheet.cell(row=start_row, column=5).value = section.__unicode__()
+            sheet.cell(row=start_row, column=6).value = section.__unicode__()
         # 会社
-        if project_member.member.member_type == 4:
-            # 他者技術者
-            sheet.cell(row=start_row, column=6).value = project_member.member.subcontractor.name
+        if project_member.member.company:
+            sheet.cell(row=start_row, column=7).value = project_member.member.company.name
         else:
-            sheet.cell(row=start_row, column=6).value = project_member.member.company.name
+            # 他者技術者
+            sheet.cell(row=start_row, column=7).value = project_member.member.subcontractor.name
         # 契約形態
-        sheet.cell(row=start_row, column=7).value = project_member.member.get_member_type_display()
+        sheet.cell(row=start_row, column=8).value = project_member.member.get_member_type_display()
         # 案件名
-        sheet.cell(row=start_row, column=8).value = project_member.project.name
+        sheet.cell(row=start_row, column=9).value = project_member.project.name
         # 顧客名
-        sheet.cell(row=start_row, column=9).value = project_member.project.client.name
+        sheet.cell(row=start_row, column=10).value = project_member.project.client.name
 
         # 出勤情報取得
         attendance = project_member.get_attendance(date.year, date.month)
@@ -990,3 +991,20 @@ def generate_attendance_format(template_path, project_members, date):
         start_row += 1
 
     return save_virtual_workbook(book)
+
+
+def set_openpyxl_styles(ws, cell_range, style_row):
+    rows = list(ws.iter_rows(cell_range))
+    style_list = []
+
+    # we convert iterator to list for simplicity, but it's not memory efficient solution
+    rows = list(rows)
+    for row_index, cells in enumerate(rows):
+        for col_index, cell in enumerate(cells):
+            if row_index == 0:
+                style_list.append((cell.border.copy(), cell.font.copy(), cell.fill.copy(), cell.alignment.copy()))
+            else:
+                cell.border = style_list[col_index][0]
+                cell.font = style_list[col_index][1]
+                cell.fill = style_list[col_index][2]
+                cell.alignment = style_list[col_index][3]
