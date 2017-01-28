@@ -2140,12 +2140,13 @@ class BatchManage(models.Model):
             return False
         from_email, title, body, html = self.get_formatted_batch(context)
         connection = BatchManage.get_custom_connection()
+        cc_list = self.get_cc_list()
         email = EmailMultiAlternativesWithEncoding(
             subject=title,
             body=body,
             from_email=from_email,
             to=recipient_list,
-            cc=self.get_cc_list(),
+            cc=cc_list,
             connection=connection
         )
         if html:
@@ -2153,9 +2154,9 @@ class BatchManage(models.Model):
         if attachments:
             for filename, content, mimetype in attachments:
                 email.attach(filename, content, mimetype)
-        # email.send()
-        log_format = u"題名: %s; FROM: %s; TO: %s; 送信完了。"
-        logger.info(log_format % (title, from_email, ','.join(recipient_list)))
+        email.send()
+        log_format = u"題名: %s; FROM: %s; TO: %s; CC: %s; 送信完了。"
+        logger.info(log_format % (title, from_email, ','.join(recipient_list), ','.join(cc_list)))
 
     @staticmethod
     def get_custom_connection():
@@ -2184,6 +2185,14 @@ class BatchCarbonCopy(models.Model):
     class Meta:
         ordering = ['batch']
         verbose_name = verbose_name_plural = u"バッチ送信時のＣＣリスト"
+
+    def __unicode__(self):
+        if self.member:
+            return self.member.__unicode__()
+        elif self.salesperson:
+            return self.salesperson.__unicode__()
+        else:
+            return self.email
 
 
 class Config(models.Model):

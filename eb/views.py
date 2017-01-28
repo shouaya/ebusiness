@@ -1367,7 +1367,7 @@ def download_section_attendance(request, section_id, year, month):
     filename = constants.NAME_SECTION_ATTENDANCE % (section.name, int(year), int(month))
     output = file_gen.generate_attendance_format(batch.attachment1.path, project_members, datetime.date(int(year), int(month), 20))
     response = HttpResponse(output, content_type="application/ms-excel")
-    response['Content-Disposition'] = "filename=" + urllib.quote(filename.encode('utf-8')) + ".xlsx"
+    response['Content-Disposition'] = "filename=" + urllib.quote(filename.encode('utf-8'))
     return response
 
 
