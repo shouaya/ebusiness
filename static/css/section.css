@@ -112,6 +112,7 @@ section table.list th, section table.list tfoot td {
     border-bottom: 1px solid #eee;
 }
 
+section table.list tr.expired,
 section table.list tr.waiting,
 section table.list tr.off_sales {
     background: lightgray;

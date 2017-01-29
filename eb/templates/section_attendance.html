@@ -159,7 +159,11 @@
                                 {% endif %}
                             </td>
                             <td>{{ project_member.member.get_member_type_display }}</td>
-                            <td>{{ project_member.project }}</td>
+                            <td>
+                                <a href="{% url 'project_detail' project_member.project.pk %}">
+                                {{ project_member.project }}
+                                </a>
+                            </td>
                             {% if msg %}
                             <td colspan="18" class="error">{{ msg }}</td>
                             {% else %}

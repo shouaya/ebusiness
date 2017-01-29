@@ -1622,6 +1622,12 @@ class ProjectMember(models.Model):
         else:
             return False
 
+    def is_in_past(self):
+        if self.end_date < datetime.date.today():
+            return True
+        else:
+            return False
+
     def get_attendance(self, year, month):
         """指定された年月によって、該当するメンバーの勤怠情報を取得する。
 

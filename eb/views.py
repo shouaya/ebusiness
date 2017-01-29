@@ -68,7 +68,7 @@ def index(request):
 
     activities = biz.get_activities_incoming()
 
-    context = RequestContext(request, {
+    context = {
         'company': company,
         'title': 'Home',
         'filter_list': filter_list,
@@ -88,7 +88,7 @@ def index(request):
         'subcontractor_release_next_month': subcontractor_release_next_month,
         'subcontractor_release_next_2_month': subcontractor_release_next_2_month,
         'activities': activities,
-    })
+    }
     template = loader.get_template('home.html')
     return HttpResponse(template.render(context))
 
@@ -153,7 +153,7 @@ def employee_list(request):
     except EmptyPage:
         members = paginator.page(paginator.num_pages)
 
-    context = RequestContext(request, {
+    context = {
         'company': company,
         'title': u'要員一覧',
         'members': members,
@@ -163,7 +163,7 @@ def employee_list(request):
         'params': "&" + params if params else "",
         'dict_order': dict_order,
         'page_type': "off_sales" if status == "off_sales" else None,
-    })
+    }
     template = loader.get_template('employee_list.html')
     return HttpResponse(template.render(context))
 
@@ -194,7 +194,7 @@ def members_in_coming(request):
     except EmptyPage:
         members = paginator.page(paginator.num_pages)
 
-    context = RequestContext(request, {
+    context = {
         'company': company,
         'title': u'協力社員一覧',
         'members': members,
@@ -204,7 +204,7 @@ def members_in_coming(request):
         'params': "&" + params if params else "",
         'dict_order': dict_order,
         'page_type': "members_in_coming",
-    })
+    }
     template = loader.get_template('employee_list.html')
     return HttpResponse(template.render(context))
 
@@ -259,7 +259,7 @@ def members_subcontractor(request):
     except EmptyPage:
         members = paginator.page(paginator.num_pages)
 
-    context = RequestContext(request, {
+    context = {
         'company': company,
         'title': u'協力社員一覧',
         'members': members,
@@ -269,7 +269,7 @@ def members_subcontractor(request):
         'params': "&" + params if params else "",
         'dict_order': dict_order,
         'page_type': "off_sales" if status == "off_sales" else None,
-    })
+    }
     template = loader.get_template('employee_list.html')
     return HttpResponse(template.render(context))
 
@@ -294,13 +294,13 @@ def change_list(request):
     except EmptyPage:
         members = paginator.page(paginator.num_pages)
 
-    context = RequestContext(request, {
+    context = {
         'company': company,
         'title': u'リリース状況一覧',
         'members': members,
         'paginator': paginator,
         'dict_order': dict_order,
-    })
+    }
     template = loader.get_template('member_change_list.html')
     return HttpResponse(template.render(context))
 
@@ -344,7 +344,7 @@ def project_list(request):
     except EmptyPage:
         projects = paginator.page(paginator.num_pages)
 
-    context = RequestContext(request, {
+    context = {
         'company': company,
         'title': u'案件一覧',
         'projects': projects,
@@ -353,7 +353,7 @@ def project_list(request):
         'params': "&" + params if params else "",
         'orders': "&o=%s" % (o,) if o else "",
         'dict_order': dict_order,
-    })
+    }
     template = loader.get_template('project_list.html')
     return HttpResponse(template.render(context))
 
@@ -402,7 +402,7 @@ def project_order_list(request):
     except EmptyPage:
         project_orders = paginator.page(paginator.num_pages)
 
-    context = RequestContext(request, {
+    context = {
         'company': company,
         'title': u'%s年%s月の注文情報一覧' % (ym[:4], ym[4:]),
         'project_orders': project_orders,
@@ -414,7 +414,7 @@ def project_order_list(request):
         'current_year': ym[:4],
         'current_month': ym[4:],
         'ym': ym,
-    })
+    }
     template = loader.get_template('project_order_list.html')
     return HttpResponse(template.render(context))
 
@@ -424,14 +424,14 @@ def project_detail(request, project_id):
     company = biz.get_company()
     project = Project.objects.get(pk=project_id)
 
-    context = RequestContext(request, {
+    context = {
         'company': company,
         'title': u'%s - 案件詳細' % (project.name,),
         'project': project,
         'banks': BankInfo.objects.public_all(),
         'order_month_list': project.get_year_month_order_finished(),
         'attendance_month_list': project.get_year_month_attendance_finished(),
-    })
+    }
     context.update(csrf(request))
     template = loader.get_template('project_detail.html')
     return HttpResponse(template.render(context))
@@ -476,11 +476,11 @@ def project_attendance_list(request, project_id):
     project = Project.objects.get(pk=project_id)
     ym = request.GET.get('ym', None)
 
-    context = RequestContext(request, {
+    context = {
         'company': company,
         'title': u'%s - 勤怠入力' % (project.name,),
         'project': project,
-    })
+    }
     context.update(csrf(request))
 
     if ym:
@@ -641,7 +641,7 @@ def project_member_list(request, project_id):
     except EmptyPage:
         project_members = paginator.page(paginator.num_pages)
 
-    context = RequestContext(request, {
+    context = {
         'company': company,
         'title': u'%s - 案件参加者一覧' % (project.name,),
         'project': project,
@@ -649,7 +649,7 @@ def project_member_list(request, project_id):
         'paginator': paginator,
         'params': params,
         'dict_order': dict_order,
-    })
+    }
     template = loader.get_template('project_members.html')
     return HttpResponse(template.render(context))
 
@@ -664,11 +664,11 @@ def section_list(request):
         total_count += count
         section_count_list.append((section, count))
 
-    context = RequestContext(request, {
+    context = {
         'title': u'部署情報一覧',
         'sections': section_count_list,
         'total_count': total_count,
-    })
+    }
     template = loader.get_template('section_list.html')
     return HttpResponse(template.render(context))
 
@@ -695,7 +695,7 @@ def section_detail(request, section_id):
     except EmptyPage:
         members = paginator.page(paginator.num_pages)
 
-    context = RequestContext(request, {
+    context = {
         'company': company,
         'title': u'%s | 部署' % (section.name,),
         'section': section,
@@ -703,7 +703,7 @@ def section_detail(request, section_id):
         'dict_order': dict_order,
         'paginator': paginator,
         'year_list': biz.get_year_list()
-    })
+    }
     template = loader.get_template('section_detail.html')
     return HttpResponse(template.render(context))
 
@@ -781,14 +781,14 @@ def view_project_request(request, request_id):
     if len(request_details) < 20:
         request_details.extend([None] * (20 - len(request_details)))
 
-    context = RequestContext(request, {
+    context = {
         'company': company,
         'title': u'請求書 | %s | %s年%s月' % (project_request.project.name, project_request.year, project_request.month),
         'project_request': project_request,
         'request_heading': request_heading,
         'request_details': request_details,
         'detail_expenses': detail_expenses,
-    })
+    }
     template = loader.get_template('project_request.html')
     return HttpResponse(template.render(context))
 
@@ -799,13 +799,13 @@ def turnover_company_monthly(request):
     company_turnover = biz_turnover.turnover_company_monthly()
     month_list = [str(item['ym']) for item in company_turnover]
     turnover_amount_list = [item['turnover_amount'] for item in company_turnover]
-    context = RequestContext(request, {
+    context = {
         'company': company,
         'title': u'売上情報',
         'company_turnover': company_turnover,
         'month_list': month_list,
         'turnover_amount_list': turnover_amount_list,
-    })
+    }
     template = loader.get_template('turnover_company_monthly.html')
     return HttpResponse(template.render(context))
 
@@ -831,7 +831,7 @@ def turnover_charts_monthly(request, ym):
     clients_expenses_amount_list = [item['expenses_amount'] for item in clients_turnover]
     clients_name_list = ["'" + item['client'].name + "'" for item in clients_turnover]
 
-    context = RequestContext(request, {
+    context = {
         'company': company,
         'title': u'%s - 売上情報' % (ym,),
         'sections_turnover': sections_turnover,
@@ -850,7 +850,7 @@ def turnover_charts_monthly(request, ym):
         'clients_attendance_tex_list': clients_attendance_tex_list,
         'clients_expenses_amount_list': clients_expenses_amount_list,
         'ym': ym,
-    })
+    }
     template = loader.get_template('turnover_charts_monthly.html')
     return HttpResponse(template.render(context))
 
@@ -889,7 +889,7 @@ def turnover_members_monthly(request, ym):
     except EmptyPage:
         turnover_details = paginator.page(paginator.num_pages)
 
-    context = RequestContext(request, {
+    context = {
         'company': company,
         'title': u'%s年%s月の売上詳細情報' % (ym[:4], ym[4:]),
         'sections': sections,
@@ -901,7 +901,7 @@ def turnover_members_monthly(request, ym):
         'orders': "&o=%s" % (o,) if o else "",
         'params': "&" + params if params else "",
         'ym': ym,
-    })
+    }
     template = loader.get_template('turnover_members_monthly.html')
     return HttpResponse(template.render(context))
 
@@ -919,13 +919,13 @@ def turnover_clients_monthly(request, ym):
         summary['expenses_amount'] += item['expenses_amount']
         summary['all_amount'] += item['attendance_amount'] + item['attendance_tex'] + item['expenses_amount']
 
-    context = RequestContext(request, {
+    context = {
         'company': company,
         'title': u'%s年%s月のお客様別売上情報' % (ym[:4], ym[4:]),
         'clients_turnover': clients_turnover,
         'ym': ym,
         'summary': summary,
-    })
+    }
     template = loader.get_template('turnover_clients_monthly.html')
     return HttpResponse(template.render(context))
 
@@ -944,14 +944,14 @@ def turnover_client_monthly(request, client_id, ym):
         summary['expenses_amount'] += item['expenses_amount']
         summary['all_amount'] += item['all_amount']
 
-    context = RequestContext(request, {
+    context = {
         'company': company,
         'title': u'%s年%s月　%sの案件別売上情報' % (ym[:4], ym[4:], client.__unicode__()),
         'client': client,
         'turnover_details': turnover_details,
         'ym': ym,
         'summary': summary,
-    })
+    }
     template = loader.get_template('turnover_projects_monthly.html')
     return HttpResponse(template.render(context))
 
@@ -991,7 +991,7 @@ def release_list(request, ym):
     except EmptyPage:
         project_members = paginator.page(paginator.num_pages)
 
-    context = RequestContext(request, {
+    context = {
         'company': company,
         'title': u'リリース状況一覧',
         'project_members': project_members,
@@ -1001,7 +1001,7 @@ def release_list(request, ym):
         'ym': ym,
         'sections': sections,
         'salesperson': salesperson,
-    })
+    }
     template = loader.get_template('release_list.html')
     return HttpResponse(template.render(context))
 
@@ -1013,14 +1013,14 @@ def member_detail(request, employee_id):
     member.set_coordinate()
 
     project_count = member.projectmember_set.public_all().count()
-    context = RequestContext(request, {
+    context = {
         'company': company,
         'member': member,
         'title': u'%s の履歴' % (member,),
         'project_count': project_count,
         'all_project_count': project_count + member.historyproject_set.public_all().count(),
         'default_project_count': range(1, 14),
-    })
+    }
     template = loader.get_template('member_detail.html')
     return HttpResponse(template.render(context))
 
@@ -1037,12 +1037,12 @@ def member_project_list(request, employee_id):
         project_members = ProjectMember.objects.public_filter(member=member)\
             .order_by('-status', 'end_date')
 
-    context = RequestContext(request, {
+    context = {
         'company': company,
         'member': member,
         'title': u'%s の案件一覧' % (member,),
         'project_members': project_members,
-    })
+    }
     template = loader.get_template('member_project_list.html')
     return HttpResponse(template.render(context))
 
@@ -1053,12 +1053,12 @@ def recommended_member_list(request, project_id):
     company = biz.get_company()
     dict_skills = project.get_recommended_members()
 
-    context = RequestContext(request, {
+    context = {
         'company': company,
         'title': u'%s - 推薦されるメンバーズ' % (project.name,),
         'project': project,
         'dict_skills': dict_skills,
-    })
+    }
     template = loader.get_template('recommended_member.html')
     return HttpResponse(template.render(context))
 
@@ -1071,13 +1071,13 @@ def recommended_project_list(request, employee_id):
     project_id_list = member.get_recommended_projects()
     projects = Project.objects.public_filter(pk__in=project_id_list)
 
-    context = RequestContext(request, {
+    context = {
         'company': company,
         'title': u'%s - 推薦される案件' % (member,),
         'member': member,
         'skills': skills,
         'projects': projects,
-    })
+    }
     template = loader.get_template('recommended_project.html')
     return HttpResponse(template.render(context))
 
@@ -1107,7 +1107,7 @@ def subcontractor_list(request):
     except EmptyPage:
         subcontractors = paginator.page(paginator.num_pages)
 
-    context = RequestContext(request, {
+    context = {
         'company': company,
         'title': u'協力会社一覧',
         'subcontractors': subcontractors,
@@ -1116,7 +1116,7 @@ def subcontractor_list(request):
         'orders': "&o=%s" % (o,) if o else "",
         'dict_order': dict_order,
         'bp_count': Member.objects.public_filter(subcontractor__isnull=False).count(),
-    })
+    }
     template = loader.get_template('subcontractor_list.html')
     return HttpResponse(template.render(context))
 
@@ -1142,7 +1142,7 @@ def subcontractor_detail(request, subcontractor_id):
     except EmptyPage:
         members = paginator.page(paginator.num_pages)
 
-    context = RequestContext(request, {
+    context = {
         'company': company,
         'title': u'%s | 協力会社' % (subcontractor.name,),
         'subcontractor': subcontractor,
@@ -1151,7 +1151,7 @@ def subcontractor_detail(request, subcontractor_id):
         'orders': "&o=%s" % (o,) if o else "",
         'dict_order': dict_order,
         'order_month_list': subcontractor.get_year_month_order_finished(),
-    })
+    }
     template = loader.get_template('subcontractor_detail.html')
     return HttpResponse(template.render(context))
 
@@ -1162,11 +1162,11 @@ def subcontractor_members(request, subcontractor_id):
     subcontractor = Subcontractor.objects.get(pk=subcontractor_id)
     ym = request.GET.get('ym', None)
 
-    context = RequestContext(request, {
+    context = {
         'company': company,
         'title': u'注文情報入力 | %s | 協力会社' % (subcontractor.name,),
         'subcontractor': subcontractor,
-    })
+    }
     context.update(csrf(request))
 
     if ym:
@@ -1395,11 +1395,11 @@ def download_section_attendance(request, section_id, year, month):
 def map_position(request):
     company = biz.get_company()
     members = Member.objects.public_filter(lat__isnull=False, lng__isnull=False).exclude(lat__exact='', lng__exact='')
-    context = RequestContext(request, {
+    context = {
         'company': company,
         'title': u'地図情報',
         'members': members,
-    })
+    }
     template = loader.get_template('map_position.html')
     return HttpResponse(template.render(context))
 
@@ -1409,10 +1409,10 @@ def issues(request):
 
     issue_list = Issue.objects.all()
 
-    context = RequestContext(request, {
+    context = {
         'title': u'課題管理票一覧',
         'issues': issue_list,
-    })
+    }
     template = loader.get_template('issue_list.html')
     return HttpResponse(template.render(context))
 
@@ -1420,10 +1420,10 @@ def issues(request):
 @login_required(login_url='/eb/login/')
 def issue_detail(request, issue_id):
     issue = get_object_or_404(Issue, pk=issue_id)
-    context = RequestContext(request, {
+    context = {
         'title': u'課題管理票 - %s' % (issue.title,),
         'issue': issue,
-    })
+    }
     template = loader.get_template('issue.html')
     return HttpResponse(template.render(context))
 
@@ -1437,12 +1437,12 @@ def history(request):
     for h in histories:
         total_hours += h.get_hours()
 
-    context = RequestContext(request, {
+    context = {
         'company': company,
         'title': u'更新履歴',
         'histories': histories,
         'total_hours': total_hours,
-    })
+    }
     template = loader.get_template('history.html')
     return HttpResponse(template.render(context))
 
