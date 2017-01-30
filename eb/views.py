@@ -90,7 +90,7 @@ def index(request):
         'activities': activities,
     }
     template = loader.get_template('home.html')
-    return HttpResponse(template.render(context))
+    return HttpResponse(template.render(context, request))
 
 
 @login_required(login_url='/eb/login/')
@@ -165,7 +165,7 @@ def employee_list(request):
         'page_type': "off_sales" if status == "off_sales" else None,
     }
     template = loader.get_template('employee_list.html')
-    return HttpResponse(template.render(context))
+    return HttpResponse(template.render(context, request))
 
 
 @login_required(login_url='/eb/login/')
@@ -206,7 +206,7 @@ def members_in_coming(request):
         'page_type': "members_in_coming",
     }
     template = loader.get_template('employee_list.html')
-    return HttpResponse(template.render(context))
+    return HttpResponse(template.render(context, request))
 
 
 @login_required(login_url='/eb/login/')
@@ -271,7 +271,7 @@ def members_subcontractor(request):
         'page_type': "off_sales" if status == "off_sales" else None,
     }
     template = loader.get_template('employee_list.html')
-    return HttpResponse(template.render(context))
+    return HttpResponse(template.render(context, request))
 
 
 @login_required(login_url='/eb/login/')
@@ -302,7 +302,7 @@ def change_list(request):
         'dict_order': dict_order,
     }
     template = loader.get_template('member_change_list.html')
-    return HttpResponse(template.render(context))
+    return HttpResponse(template.render(context, request))
 
 
 @login_required(login_url='/eb/login/')
@@ -355,7 +355,7 @@ def project_list(request):
         'dict_order': dict_order,
     }
     template = loader.get_template('project_list.html')
-    return HttpResponse(template.render(context))
+    return HttpResponse(template.render(context, request))
 
 
 @login_required(login_url='/eb/login/')
@@ -416,7 +416,7 @@ def project_order_list(request):
         'ym': ym,
     }
     template = loader.get_template('project_order_list.html')
-    return HttpResponse(template.render(context))
+    return HttpResponse(template.render(context, request))
 
 
 @login_required(login_url='/eb/login/')
@@ -434,7 +434,7 @@ def project_detail(request, project_id):
     }
     context.update(csrf(request))
     template = loader.get_template('project_detail.html')
-    return HttpResponse(template.render(context))
+    return HttpResponse(template.render(context, request))
 
 
 @login_required(login_url='/eb/login/')
@@ -651,7 +651,7 @@ def project_member_list(request, project_id):
         'dict_order': dict_order,
     }
     template = loader.get_template('project_members.html')
-    return HttpResponse(template.render(context))
+    return HttpResponse(template.render(context, request))
 
 
 @login_required(login_url='/eb/login/')
@@ -670,7 +670,7 @@ def section_list(request):
         'total_count': total_count,
     }
     template = loader.get_template('section_list.html')
-    return HttpResponse(template.render(context))
+    return HttpResponse(template.render(context, request))
 
 
 @login_required(login_url='/eb/login/')
@@ -705,7 +705,7 @@ def section_detail(request, section_id):
         'year_list': biz.get_year_list()
     }
     template = loader.get_template('section_detail.html')
-    return HttpResponse(template.render(context))
+    return HttpResponse(template.render(context, request))
 
 
 @login_required(login_url='/eb/login/')
@@ -761,7 +761,7 @@ def section_attendance(request, section_id):
     context.update(csrf(request))
 
     template = loader.get_template('section_attendance.html')
-    return HttpResponse(template.render(context))
+    return HttpResponse(template.render(context, request))
 
 
 @login_required(login_url='/eb/login/')
@@ -790,7 +790,7 @@ def view_project_request(request, request_id):
         'detail_expenses': detail_expenses,
     }
     template = loader.get_template('project_request.html')
-    return HttpResponse(template.render(context))
+    return HttpResponse(template.render(context, request))
 
 
 @login_required(login_url='/eb/login/')
@@ -807,7 +807,7 @@ def turnover_company_monthly(request):
         'turnover_amount_list': turnover_amount_list,
     }
     template = loader.get_template('turnover_company_monthly.html')
-    return HttpResponse(template.render(context))
+    return HttpResponse(template.render(context, request))
 
 
 @login_required(login_url='/eb/login/')
@@ -852,7 +852,7 @@ def turnover_charts_monthly(request, ym):
         'ym': ym,
     }
     template = loader.get_template('turnover_charts_monthly.html')
-    return HttpResponse(template.render(context))
+    return HttpResponse(template.render(context, request))
 
 
 @login_required(login_url='/eb/login/')
@@ -903,7 +903,7 @@ def turnover_members_monthly(request, ym):
         'ym': ym,
     }
     template = loader.get_template('turnover_members_monthly.html')
-    return HttpResponse(template.render(context))
+    return HttpResponse(template.render(context, request))
 
 
 @login_required(login_url='/eb/login/')
@@ -927,7 +927,7 @@ def turnover_clients_monthly(request, ym):
         'summary': summary,
     }
     template = loader.get_template('turnover_clients_monthly.html')
-    return HttpResponse(template.render(context))
+    return HttpResponse(template.render(context, request))
 
 
 @login_required(login_url='/eb/login/')
@@ -953,7 +953,7 @@ def turnover_client_monthly(request, client_id, ym):
         'summary': summary,
     }
     template = loader.get_template('turnover_projects_monthly.html')
-    return HttpResponse(template.render(context))
+    return HttpResponse(template.render(context, request))
 
 
 @login_required(login_url='/eb/login/')
@@ -1003,7 +1003,7 @@ def release_list(request, ym):
         'salesperson': salesperson,
     }
     template = loader.get_template('release_list.html')
-    return HttpResponse(template.render(context))
+    return HttpResponse(template.render(context, request))
 
 
 @login_required(login_url='/eb/login/')
@@ -1022,7 +1022,7 @@ def member_detail(request, employee_id):
         'default_project_count': range(1, 14),
     }
     template = loader.get_template('member_detail.html')
-    return HttpResponse(template.render(context))
+    return HttpResponse(template.render(context, request))
 
 
 @login_required(login_url='/eb/login/')
@@ -1044,7 +1044,7 @@ def member_project_list(request, employee_id):
         'project_members': project_members,
     }
     template = loader.get_template('member_project_list.html')
-    return HttpResponse(template.render(context))
+    return HttpResponse(template.render(context, request))
 
 
 @login_required(login_url='/eb/login/')
@@ -1060,7 +1060,7 @@ def recommended_member_list(request, project_id):
         'dict_skills': dict_skills,
     }
     template = loader.get_template('recommended_member.html')
-    return HttpResponse(template.render(context))
+    return HttpResponse(template.render(context, request))
 
 
 @login_required(login_url='/eb/login/')
@@ -1079,7 +1079,7 @@ def recommended_project_list(request, employee_id):
         'projects': projects,
     }
     template = loader.get_template('recommended_project.html')
-    return HttpResponse(template.render(context))
+    return HttpResponse(template.render(context, request))
 
 
 @login_required(login_url='/eb/login/')
@@ -1118,7 +1118,7 @@ def subcontractor_list(request):
         'bp_count': Member.objects.public_filter(subcontractor__isnull=False).count(),
     }
     template = loader.get_template('subcontractor_list.html')
-    return HttpResponse(template.render(context))
+    return HttpResponse(template.render(context, request))
 
 
 @login_required(login_url='/eb/login/')
@@ -1153,7 +1153,7 @@ def subcontractor_detail(request, subcontractor_id):
         'order_month_list': subcontractor.get_year_month_order_finished(),
     }
     template = loader.get_template('subcontractor_detail.html')
-    return HttpResponse(template.render(context))
+    return HttpResponse(template.render(context, request))
 
 
 @login_required(login_url='/eb/login/')
@@ -1401,7 +1401,7 @@ def map_position(request):
         'members': members,
     }
     template = loader.get_template('map_position.html')
-    return HttpResponse(template.render(context))
+    return HttpResponse(template.render(context, request))
 
 
 @login_required(login_url='/eb/login/')
@@ -1414,7 +1414,7 @@ def issues(request):
         'issues': issue_list,
     }
     template = loader.get_template('issue_list.html')
-    return HttpResponse(template.render(context))
+    return HttpResponse(template.render(context, request))
 
 
 @login_required(login_url='/eb/login/')
@@ -1425,7 +1425,7 @@ def issue_detail(request, issue_id):
         'issue': issue,
     }
     template = loader.get_template('issue.html')
-    return HttpResponse(template.render(context))
+    return HttpResponse(template.render(context, request))
 
 
 @login_required(login_url='/eb/login/')
@@ -1444,7 +1444,7 @@ def history(request):
         'total_hours': total_hours,
     }
     template = loader.get_template('history.html')
-    return HttpResponse(template.render(context))
+    return HttpResponse(template.render(context, request))
 
 
 @login_required(login_url='/eb/login/')
