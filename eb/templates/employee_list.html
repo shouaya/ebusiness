@@ -10,6 +10,7 @@
             init_select("business_status");
             init_select("salesperson");
             init_select("section");
+            init_select("is_on_sales");
         };
     </script>
 {% endblock %}
@@ -46,6 +47,12 @@
                 {% for sales in salesperson %}
                     <option value="{{ sales.pk }}">{{ sales }}</option>
                 {% endfor %}
+            </select>
+            <span>営業対象:</span>
+            <select id="is_on_sales" name="is_on_sales">
+                <option value="">すべて</option>
+                <option value="1">営業対象</option>
+                <option value="0">営業対象外</option>
             </select>
             <input type="submit" value="Filter" />
             <a href="{{ request.path }}">クリア</a>

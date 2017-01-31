@@ -94,6 +94,17 @@ def get_members_by_salesperson(all_members, salesperson_id):
                               membersalespersonperiod__salesperson__pk=salesperson_id)
 
 
+def get_project_members_by_salesperson(all_members, salesperson_id):
+    if not salesperson_id:
+        return all_members
+    today = datetime.date.today()
+    return all_members.filter((Q(member__membersalespersonperiod__start_date__lte=today) &
+                               Q(member__membersalespersonperiod__end_date__isnull=True)) |
+                              (Q(member__membersalespersonperiod__start_date__lte=today) &
+                               Q(member__membersalespersonperiod__end_date__gte=today)),
+                              member__membersalespersonperiod__salesperson__pk=salesperson_id)
+
+
 def get_sales_members():
     """営業対象メンバーを取得する。
 

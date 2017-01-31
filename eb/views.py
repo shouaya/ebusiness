@@ -132,7 +132,6 @@ def employee_list(request):
 
     if order_list:
         all_members = all_members.order_by(*order_list)
-
     # if business_status:
     #     all_members = [member for member in all_members if member.get_business_status() == business_status]
     #     params += u"&business_status=%s" % (business_status,)

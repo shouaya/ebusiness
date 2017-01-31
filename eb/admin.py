@@ -409,7 +409,7 @@ class MemberAdmin(BaseAdmin):
                      ('address1', 'address2'), 'nearest_station',
                      'country', 'graduate_date', 'phone', 'japanese_description',
                      'certificate', 'skill_description', 'comment')}),
-        (u"勤務情報", {'fields': ['member_type', 'join_date', 'email', 'is_notify', 'notify_type', 'company',
+        (u"勤務情報", {'fields': ['member_type', 'join_date', 'email', 'notify_type', 'company',
                               'subcontractor', 'is_on_sales', 'sales_off_reason', 'is_retired']})
     )
 
@@ -519,7 +519,7 @@ class SalespersonAdmin(BaseAdmin):
                      'post_code',
                      ('address1', 'address2'),
                      'country', 'graduate_date', 'phone', 'japanese_description', 'certificate', 'comment')}),
-        (u"勤務情報", {'fields': ('member_type', 'email', 'is_notify', 'notify_type', 'section', 'company', 'is_retired')})
+        (u"勤務情報", {'fields': ('member_type', 'email', 'notify_type', 'section', 'company', 'is_retired')})
     )
     actions = ['create_users', 'delete_objects', 'active_objects']
 

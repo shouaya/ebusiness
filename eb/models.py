@@ -80,8 +80,8 @@ class AbstractMember(models.Model):
     certificate = models.TextField(blank=True, null=True, verbose_name=u"資格の説明")
     skill_description = models.TextField(blank=True, null=True, verbose_name=u"得意")
     comment = models.TextField(blank=True, null=True, verbose_name=u"備考")
-    is_notify = models.BooleanField(default=False, verbose_name=u"メール通知")
-    notify_type = models.IntegerField(blank=True, null=True, choices=constants.CHOICE_NOTIFY_TYPE, verbose_name=u"通知種類")
+    notify_type = models.IntegerField(default=1, choices=constants.CHOICE_NOTIFY_TYPE, verbose_name=u"通知種類",
+                                      help_text=u"メール通知時に利用する。EBのメールアドレスを設定すると、通知のメールはEBのアドレスに送信する")
     is_retired = models.BooleanField(blank=False, null=False, default=False, verbose_name=u"退職")
     id_from_api = models.CharField(blank=True, null=True, unique=True, max_length=30, editable=False,
                                    verbose_name=u"社員ID", help_text=u"データを導入するために、API側のID")
@@ -91,13 +91,12 @@ class AbstractMember(models.Model):
         abstract = True
 
     def get_notify_mail_list(self):
-        if self.is_notify:
-            if self.notify_type == 1:
-                return [self.email]
-            elif self.notify_type == 2:
-                return [self.private_email]
-            elif self.notify_type == 3:
-                return [self.email, self.private_email]
+        if self.notify_type == 1:
+            return [self.email]
+        elif self.notify_type == 2:
+            return [self.private_email]
+        elif self.notify_type == 3:
+            return [self.email, self.private_email]
 
         return []
 

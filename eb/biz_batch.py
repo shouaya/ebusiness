@@ -184,12 +184,12 @@ def get_members_information():
     for salesperson in models.Salesperson.objects.public_filter(user__isnull=False, member_type=5):
         d = dict()
         d['salesperson'] = salesperson
-        d['all_member_count'] = biz.get_members_by_salesperson(biz.get_sales_members(), salesperson.id).count()
-        d['working_member_count'] = biz.get_members_by_salesperson(all_members, salesperson.id).count()
-        d['waiting_member_count'] = biz.get_members_by_salesperson(all_members, salesperson.id).count()
-        d['current_month_count'] = biz.get_members_by_salesperson(all_members, salesperson.id).count()
-        d['next_month_count'] = biz.get_members_by_salesperson(all_members, salesperson.id).count()
-        d['next_2_month_count'] = biz.get_members_by_salesperson(all_members, salesperson.id).count()
+        d['all_member_count'] = biz.get_members_by_salesperson(all_members, salesperson.id).count()
+        d['working_member_count'] = biz.get_members_by_salesperson(working_members, salesperson.id).count()
+        d['waiting_member_count'] = biz.get_members_by_salesperson(waiting_members, salesperson.id).count()
+        d['current_month_count'] = biz.get_project_members_by_salesperson(current_month_release, salesperson.id).count()
+        d['next_month_count'] = biz.get_project_members_by_salesperson(next_month_release, salesperson.id).count()
+        d['next_2_month_count'] = biz.get_project_members_by_salesperson(next_2_month_release, salesperson.id).count()
         status_list.append(d)
         print salesperson.__unicode__(), d
 
@@ -209,6 +209,11 @@ def notify_member_status_mails(batch, status_list, summary):
                 return [status]
         return []
 
+    today = datetime.date.today()
+    next_month = common.add_months(today, 1)
+    next_2_months = common.add_months(today, 2)
+    next_ym = next_month.strftime('%Y%m')
+    next_2_ym = next_2_months.strftime('%Y%m')
     # 営業部長取得する
     directors = get_salesperson_director()
     if directors:
@@ -216,6 +221,8 @@ def notify_member_status_mails(batch, status_list, summary):
                    'status_list': status_list,
                    'summary': summary,
                    'domain': biz.get_config(constants.CONFIG_DOMAIN_NAME),
+                   'next_ym': next_ym,
+                   'next_2_ym': next_2_ym,
                    }
         recipient_list = []
         for salesperson in directors:
@@ -230,6 +237,8 @@ def notify_member_status_mails(batch, status_list, summary):
                        'status_list': get_status_info(salesperson.pk),
                        'summary': None,
                        'domain': biz.get_config(constants.CONFIG_DOMAIN_NAME),
+                       'next_ym': next_ym,
+                       'next_2_ym': next_2_ym,
                        }
             if recipient_list:
                 batch.send_notify_mail(context, recipient_list)
@@ -279,10 +288,10 @@ def send_attendance_format(batch, date):
 def get_salesperson_director():
     """営業の管理者を取得する。
     """
-    return models.Salesperson.objects.public_filter(member_type=0, is_notify=True)
+    return models.Salesperson.objects.public_filter(member_type=0)
 
 
 def get_salesperson_members():
     """営業のメンバーを取得する。
     """
-    return models.Salesperson.objects.public_filter(member_type=5, is_notify=True)
+    return models.Salesperson.objects.public_filter(member_type=5)
