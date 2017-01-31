@@ -781,6 +781,29 @@ def get_business_days(year, month, exclude=None):
     return business_days
 
 
+def get_form_changed_value(form, field):
+    old_value = form.initial.get(field, 'Unknown')
+    new_value = form.cleaned_data.get(field, 'Unknown')
+    label_name = form.fields.get(field).label
+    if form.instance and hasattr(form.instance, 'get_' + field + '_display'):
+        new_value = getattr(form.instance, 'get_' + field + '_display')()
+        if form.fields.get(field).choices:
+            for value, text in form.fields.get(field).choices:
+                if value == old_value:
+                    old_value = text
+                    break
+    return label_name, old_value, new_value
+
+
+def get_formset_changed_value(formset, changed_object, changed_fields):
+    changed_values = []
+    for form in formset.forms:
+        if form.instance.pk == changed_object.pk:
+            for field in changed_fields:
+                changed_values.append(get_form_changed_value(form, field))
+    return changed_values
+
+
 if __name__ == "__main__":
     for i in range(1, 10):
         print u'2016年%02d月' % (i,), get_business_days(2016, i)

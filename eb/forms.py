@@ -239,7 +239,7 @@ class ProjectMemberForm(forms.ModelForm):
         model = models.ProjectMember
         fields = '__all__'
 
-    member = forms.ModelChoiceField(queryset=models.Member.objects.all(),
+    member = forms.ModelChoiceField(queryset=models.Member.objects.public_all(),
                                     widget=SearchSelect(models.Member),
                                     label=u"名前")
     price = forms.IntegerField(initial=0,
@@ -263,6 +263,31 @@ class ProjectMemberForm(forms.ModelForm):
     minus_per_hour = forms.IntegerField(widget=forms.TextInput(attrs={'style': 'width: 60px;',
                                                                       'type': 'number'}),
                                         label=u"減（円）")
+
+
+class ProjectMemberFormset(forms.BaseInlineFormSet):
+    def clean(self):
+        count = 0
+        project_members = []
+        for form in self.forms:
+            try:
+                if form.cleaned_data:
+                    member = form.cleaned_data.get("member")
+                    start_date = form.cleaned_data.get("start_date")
+                    end_date = form.cleaned_data.get("end_date")
+                    project_members.append((member, start_date, end_date))
+                    count += 1
+            except AttributeError:
+                pass
+        for member, start_date, end_date in project_members:
+            dates = [(s, e) for m, s, e in project_members if m.pk == member.pk]
+            if len(dates) > 1:
+                for i, period in enumerate(dates):
+                    start_date, end_date = period
+                    if is_cross_date(dates, start_date, i):
+                        raise forms.ValidationError(u"メンバー%sの開始日が重複している。" % (member.__unicode__(),))
+                    if end_date and is_cross_date(dates, end_date, i):
+                        raise forms.ValidationError(u"メンバー%sの終了日が重複している。" % (member.__unicode__(),))
 
 
 class MemberAttendanceForm(forms.ModelForm):
@@ -531,6 +556,25 @@ class MemberSalespersonPeriodFormset(forms.BaseInlineFormSet):
                     raise forms.ValidationError(u"営業員期間の開始日が重複している。")
                 if end_date and is_cross_date(dates, end_date, i):
                     raise forms.ValidationError(u"営業員期間の終了日が重複している。")
+
+
+class BatchCarbonCopyForm(forms.ModelForm):
+    class Meta:
+        model = models.BatchCarbonCopy
+        fields = '__all__'
+
+    member = forms.ModelChoiceField(queryset=models.Member.objects.public_all(),
+                                    widget=SearchSelect(models.Member),
+                                    label=u"名前", required=False)
+
+    def clean(self):
+        cleaned_data = super(BatchCarbonCopyForm, self).clean()
+        member = cleaned_data.get("member")
+        salesperson = cleaned_data.get("salesperson")
+        if member and not member.email:
+            self.add_error('member', u"メールアドレスが設定されていません。")
+        if salesperson and not salesperson.email:
+            self.add_error('salesperson', u"メールアドレスが設定されていません。")
 
 
 def is_cross_date(dates, d, index):
