@@ -63,7 +63,9 @@
                         </ul>
                     </li>
                     <li><a href="{% url 'subcontractor_list' %}">協力会社</a></li>
+                    {% if perms.eb.view_turnover %}
                     <li><a href="{% url 'turnover_company_monthly' %}">売上情報</a></li>
+                    {% endif %}
                     <li><a href="{% url 'admin:index' %}">管理サイト</a>
                         <ul>
                             <li><a href="{% url 'eboa_admin:index' %}">EBOAデータ参照</a></li>

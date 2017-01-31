@@ -793,6 +793,7 @@ def view_project_request(request, request_id):
 
 
 @login_required(login_url='/eb/login/')
+@permission_required('eb.view_turnover', raise_exception=True)
 def turnover_company_monthly(request):
     company = biz.get_company()
     company_turnover = biz_turnover.turnover_company_monthly()
@@ -810,6 +811,7 @@ def turnover_company_monthly(request):
 
 
 @login_required(login_url='/eb/login/')
+@permission_required('eb.view_turnover', raise_exception=True)
 def turnover_charts_monthly(request, ym):
     company = biz.get_company()
     sections_turnover = biz_turnover.sections_turnover_monthly(ym)
@@ -855,6 +857,7 @@ def turnover_charts_monthly(request, ym):
 
 
 @login_required(login_url='/eb/login/')
+@permission_required('eb.view_turnover', raise_exception=True)
 def turnover_members_monthly(request, ym):
     company = biz.get_company()
     param_list = common.get_request_params(request.GET)
@@ -906,6 +909,7 @@ def turnover_members_monthly(request, ym):
 
 
 @login_required(login_url='/eb/login/')
+@permission_required('eb.view_turnover', raise_exception=True)
 def turnover_clients_monthly(request, ym):
     company = biz.get_company()
     clients_turnover = biz_turnover.clients_turnover_monthly(ym)
@@ -930,6 +934,7 @@ def turnover_clients_monthly(request, ym):
 
 
 @login_required(login_url='/eb/login/')
+@permission_required('eb.view_turnover', raise_exception=True)
 def turnover_client_monthly(request, client_id, ym):
     company = biz.get_company()
     client = get_object_or_404(Client, pk=client_id)

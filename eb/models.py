@@ -1306,6 +1306,7 @@ class ProjectRequest(models.Model):
         verbose_name = verbose_name_plural = u"案件請求情報"
         permissions = (
             ('generate_request', u"請求書作成"),
+            ('view_turnover', u"売上情報参照")
         )
 
     def __unicode__(self):
