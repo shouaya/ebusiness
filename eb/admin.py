@@ -409,7 +409,7 @@ class MemberAdmin(BaseAdmin):
                      ('address1', 'address2'), 'nearest_station',
                      'country', 'graduate_date', 'phone', 'japanese_description',
                      'certificate', 'skill_description', 'comment')}),
-        (u"勤務情報", {'fields': ['member_type', 'join_date', 'email', 'notify_type', 'company',
+        (u"勤務情報", {'fields': ['member_type', 'join_date', 'email', 'notify_type', 'section', 'company',
                               'subcontractor', 'is_on_sales', 'sales_off_reason', 'is_retired']})
     )
 
@@ -424,6 +424,11 @@ class MemberAdmin(BaseAdmin):
     is_user_created.short_description = u"ユーザ作成"
     is_user_created.admin_order_field = "user"
     is_user_created.boolean = True
+
+    def get_form(self, request, obj=None, **kwargs):
+        form = super(MemberAdmin, self).get_form(request, obj, **kwargs)
+        form.base_fields['section'].queryset = models.Section.objects.public_filter(is_on_sales=False)
+        return form
 
     def change_view(self, request, object_id, form_url='', extra_context=None):
         member = models.Member.objects.get(pk=object_id)

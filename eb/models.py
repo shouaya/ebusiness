@@ -506,7 +506,9 @@ class Salesperson(AbstractMember):
 class Member(AbstractMember):
     user = models.OneToOneField(User, blank=True, null=True)
     member_type = models.IntegerField(default=0, choices=constants.CHOICE_MEMBER_TYPE, verbose_name=u"社員区分")
-    section = models.ForeignKey('Section', blank=False, null=True, verbose_name=u"部署")
+    section = models.ForeignKey('Section', blank=True, null=True, verbose_name=u"部署",
+                                help_text=u"開発メンバーなど営業必要な方はしたの「社員の部署期間」のほうで設定してください、"
+                                          u"ここで設定できるのは管理部、総務部などの営業対象外のかたです。")
     salesperson = models.ForeignKey(Salesperson, blank=True, null=True, verbose_name=u"営業員")
     is_individual_pay = models.BooleanField(default=False, verbose_name=u"個別精算")
     subcontractor = models.ForeignKey(Subcontractor, blank=True, null=True, verbose_name=u"協力会社")
@@ -1323,6 +1325,7 @@ class ProjectRequest(models.Model):
             self.projectrequestdetail_set.all().delete()
             bank = data['EXTRA']['BANK']
             date = datetime.date(int(self.year), int(self.month), 1)
+            date = common.get_last_day_by_month(date)
             heading = ProjectRequestHeading(project_request=self,
                                             is_lump=self.project.is_lump,
                                             lump_amount=self.project.lump_amount,
