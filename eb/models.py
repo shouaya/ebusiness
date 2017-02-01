@@ -86,6 +86,8 @@ class AbstractMember(models.Model):
     id_from_api = models.CharField(blank=True, null=True, unique=True, max_length=30, editable=False,
                                    verbose_name=u"社員ID", help_text=u"データを導入するために、API側のID")
     eboa_user_id = models.BigIntegerField(blank=True, null=True, unique=True)
+    created_date = models.DateTimeField(null=True, auto_now_add=True, editable=False, verbose_name=u"作成日時")
+    updated_date = models.DateTimeField(null=True, auto_now=True, editable=False, verbose_name=u"更新日時")
 
     class Meta:
         abstract = True

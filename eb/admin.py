@@ -387,8 +387,8 @@ class SalesOffReasonAdmin(BaseAdmin):
 class MemberAdmin(BaseAdmin):
 
     form = forms.MemberForm
-    list_display = ['employee_id', get_full_name, 'subcontractor',
-                    'is_user_created', 'is_retired', 'is_deleted']
+    list_display = ['employee_id', get_full_name, 'subcontractor', 'is_user_created',
+                    'created_date', 'updated_date', 'is_retired']
     list_display_links = [get_full_name]
     list_filter = ['member_type', NoUserFilter,
                    'is_retired', 'is_deleted']
