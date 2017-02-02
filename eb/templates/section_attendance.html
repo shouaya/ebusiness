@@ -92,6 +92,7 @@
         <div class="dashboard-title">{{ title }}</div>
         <form onsubmit="return checkUploadAttendance(this);" method="post"  enctype="multipart/form-data">
             <div>{% csrf_token %}</div>
+            <div style="color: gray;">既に記入済みの出勤情報は上書きしません。</div>
             <input type="file" id="attendance_file" name="attendance_file"/>
             <input type="submit" value="勤怠情報アップロード">
             <a href="{% url 'download_section_attendance' section.pk year month %}" target="_blank" class="button">ダウンロード</a>
@@ -152,22 +153,30 @@
                             </td>
                             <td>{{ project_member.member.get_section }}</td>
                             <td>
+                                <div style="width: 150px; overflow: hidden; white-space: nowrap;">
                                 {% if project_member.member.company %}
                                     {{ project_member.member.company }}
                                 {% else %}
                                     {{ project_member.member.subcontractor }}
                                 {% endif %}
+                                </div>
                             </td>
                             <td>{{ project_member.member.get_member_type_display }}</td>
-                            <td>
-                                <a href="{% url 'project_detail' project_member.project.pk %}">
-                                {{ project_member.project }}
-                                </a>
+                            <td title="{{ project_member.project }}">
+                                <div style="width: 200px; overflow: hidden; white-space: nowrap;">
+                                    <a href="{% url 'project_detail' project_member.project.pk %}">
+                                    {{ project_member.project }}
+                                    </a>
+                                </div>
                             </td>
                             {% if msg %}
                             <td colspan="18" class="error">{{ msg }}</td>
                             {% else %}
-                            <td>{{ project_member.project.client }}</td>
+                            <td title="{{ project_member.project.client }}">
+                                <div style="width: 180px; overflow: hidden; white-space: nowrap;">
+                                {{ project_member.project.client }}
+                                </div>
+                            </td>
                             <td></td>
                             <td style="text-align: right;">{{ attendance.total_hours }}</td>
                             <td style="text-align: right;">{{ attendance.total_days|default:'' }}</td>

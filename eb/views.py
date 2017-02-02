@@ -29,10 +29,7 @@ from django.core.management import call_command
 
 from eb import biz, biz_batch, biz_turnover
 from utils import constants, common, errors, loader as file_loader, file_gen
-from . import forms
-from .models import Member, Section, Project, ProjectMember, Salesperson, \
-    MemberAttendance, Subcontractor, BankInfo, ClientOrder, History, BpMemberOrderInfo, Issue, \
-    ProjectRequest, Client, EmployeeExpenses, BatchManage
+from . import forms, models
 
 PAGE_SIZE = 50
 
@@ -47,15 +44,15 @@ def index(request):
                    'next_ym': next_month.strftime('%Y%m'),
                    'next_2_ym': next_2_months.strftime('%Y%m')}
 
-    member_count = biz.get_sales_members().count()
-    working_members = biz.get_working_members()
-    waiting_members = biz.get_waiting_members()
+    member_count = models.get_on_sales_members().count()
+    working_members = models.get_working_members()
+    waiting_members = models.get_waiting_members()
     member_in_coming = biz.get_members_in_coming()
-    off_sales_members_count = biz.get_off_sales_members().count()
+    off_sales_members_count = models.get_off_sales_members().count()
 
-    current_month = biz.get_release_current_month()
-    next_month = biz.get_release_next_month()
-    next_2_month = biz.get_release_next_2_month()
+    current_month = models.get_release_current_month()
+    next_month = models.get_release_next_month()
+    next_2_month = models.get_release_next_2_month()
 
     subcontractor_sales_member_count = biz.get_subcontractor_sales_members().count()
     subcontractor_working_member_count = biz.get_subcontractor_working_members().count()
@@ -100,15 +97,15 @@ def employee_list(request):
     section_id = request.GET.get('section', None)
     salesperson_id = request.GET.get('salesperson', None)
     if status == "sales":
-        all_members = biz.get_sales_members()
+        all_members = models.get_on_sales_members()
     elif status == "working":
-        all_members = biz.get_working_members()
+        all_members = models.get_working_members()
     elif status == "waiting":
-        all_members = biz.get_waiting_members()
+        all_members = models.get_waiting_members()
     elif status == "off_sales":
-        all_members = biz.get_off_sales_members()
+        all_members = models.get_off_sales_members()
     else:
-        all_members = biz.get_all_members()
+        all_members = models.get_sales_members()
 
     param_list = common.get_request_params(request.GET)
     params = "&".join(["%s=%s" % (key, value) for key, value in param_list.items()]) if param_list else ""
@@ -156,8 +153,8 @@ def employee_list(request):
         'company': company,
         'title': u'要員一覧',
         'members': members,
-        'sections': Section.objects.public_filter(is_on_sales=True),
-        'salesperson': Salesperson.objects.public_all(),
+        'sections': models.Section.objects.public_filter(is_on_sales=True),
+        'salesperson': models.Salesperson.objects.public_all(),
         'paginator': paginator,
         'params': "&" + params if params else "",
         'dict_order': dict_order,
@@ -197,8 +194,8 @@ def members_in_coming(request):
         'company': company,
         'title': u'協力社員一覧',
         'members': members,
-        'sections': Section.objects.public_filter(is_on_sales=True),
-        'salesperson': Salesperson.objects.public_all(),
+        'sections': models.Section.objects.public_filter(is_on_sales=True),
+        'salesperson': models.Salesperson.objects.public_all(),
         'paginator': paginator,
         'params': "&" + params if params else "",
         'dict_order': dict_order,
@@ -262,8 +259,8 @@ def members_subcontractor(request):
         'company': company,
         'title': u'協力社員一覧',
         'members': members,
-        'sections': Section.objects.public_filter(is_on_sales=True),
-        'salesperson': Salesperson.objects.public_all(),
+        'sections': models.Section.objects.public_filter(is_on_sales=True),
+        'salesperson': models.Salesperson.objects.public_all(),
         'paginator': paginator,
         'params': "&" + params if params else "",
         'dict_order': dict_order,
@@ -307,11 +304,11 @@ def change_list(request):
 @login_required(login_url='/eb/login/')
 def member_expanses_update(request, member_id, year, month):
     advance_amount = request.POST.get("advance_amount", 0)
-    member = get_object_or_404(Member, pk=member_id)
+    member = get_object_or_404(models.Member, pk=member_id)
     try:
-        member_expanses = EmployeeExpenses.objects.get(member=member, year=year, month=month)
+        member_expanses = models.EmployeeExpenses.objects.get(member=member, year=year, month=month)
     except ObjectDoesNotExist:
-        member_expanses = EmployeeExpenses(member=member, year=year, month=month)
+        member_expanses = models.EmployeeExpenses(member=member, year=year, month=month)
     member_expanses.advance_amount = advance_amount
 
     try:
@@ -348,7 +345,7 @@ def project_list(request):
         'title': u'案件一覧',
         'projects': projects,
         'paginator': paginator,
-        'salesperson': Salesperson.objects.public_all(),
+        'salesperson': models.Salesperson.objects.public_all(),
         'params': "&" + params if params else "",
         'orders': "&o=%s" % (o,) if o else "",
         'dict_order': dict_order,
@@ -365,7 +362,7 @@ def project_end(request, project_id):
     params = params[1:] if params else ""
 
     try:
-        project = Project.objects.get(pk=project_id)
+        project = models.Project.objects.get(pk=project_id)
         project.status = 5
         project.save()
     except ObjectDoesNotExist:
@@ -421,13 +418,13 @@ def project_order_list(request):
 @login_required(login_url='/eb/login/')
 def project_detail(request, project_id):
     company = biz.get_company()
-    project = Project.objects.get(pk=project_id)
+    project = models.Project.objects.get(pk=project_id)
 
     context = {
         'company': company,
         'title': u'%s - 案件詳細' % (project.name,),
         'project': project,
-        'banks': BankInfo.objects.public_all(),
+        'banks': models.BankInfo.objects.public_all(),
         'order_month_list': project.get_year_month_order_finished(),
         'attendance_month_list': project.get_year_month_attendance_finished(),
     }
@@ -443,7 +440,7 @@ def project_order_member_assign(request, project_id):
     d = dict()
     if pm_list and order_id:
         try:
-            client_order = ClientOrder.objects.get(pk=order_id)
+            client_order = models.ClientOrder.objects.get(pk=order_id)
             client_order.member_comma_list = pm_list.strip(",")
             client_order.save()
             d['result'] = True
@@ -461,7 +458,7 @@ def project_order_member_assign(request, project_id):
 def project_members_by_order(request, order_id):
     d = dict()
     try:
-        client_order = ClientOrder.objects.get(pk=order_id)
+        client_order = models.ClientOrder.objects.get(pk=order_id)
         d['pm_list'] = client_order.member_comma_list
     except ObjectDoesNotExist:
         d['pm_list'] = ''
@@ -472,7 +469,7 @@ def project_members_by_order(request, order_id):
 @permission_required('eb.input_attendance', raise_exception=True)
 def project_attendance_list(request, project_id):
     company = biz.get_company()
-    project = Project.objects.get(pk=project_id)
+    project = models.Project.objects.get(pk=project_id)
     ym = request.GET.get('ym', None)
 
     context = {
@@ -564,15 +561,16 @@ def project_attendance_list(request, project_id):
                                  }
                     dict_initials.append(d)
                 if project.is_hourly_pay:
-                    AttendanceFormSet = modelformset_factory(MemberAttendance,
+                    AttendanceFormSet = modelformset_factory(models.MemberAttendance,
                                                              form=forms.MemberAttendanceFormSetHourlyPay,
                                                              extra=len(project_members))
                 else:
-                    AttendanceFormSet = modelformset_factory(MemberAttendance,
+                    AttendanceFormSet = modelformset_factory(models.MemberAttendance,
                                                              form=forms.MemberAttendanceFormSet,
                                                              extra=len(project_members))
                 dict_initials.sort(key=lambda item: item['id'])
-                context['formset'] = AttendanceFormSet(queryset=MemberAttendance.objects.none(), initial=dict_initials)
+                context['formset'] = AttendanceFormSet(queryset=models.MemberAttendance.objects.none(),
+                                                       initial=dict_initials)
             except Exception as e:
                 context['formset'] = None
                 print e.message
@@ -583,10 +581,12 @@ def project_attendance_list(request, project_id):
             return HttpResponse(r)
         else:
             if project.is_hourly_pay:
-                AttendanceFormSet = modelformset_factory(MemberAttendance, form=forms.MemberAttendanceFormSetHourlyPay,
+                AttendanceFormSet = modelformset_factory(models.MemberAttendance,
+                                                         form=forms.MemberAttendanceFormSetHourlyPay,
                                                          extra=0)
             else:
-                AttendanceFormSet = modelformset_factory(MemberAttendance, form=forms.MemberAttendanceFormSet, extra=0)
+                AttendanceFormSet = modelformset_factory(models.MemberAttendance,
+                                                         form=forms.MemberAttendanceFormSet, extra=0)
             formset = AttendanceFormSet(request.POST)
             if formset.is_valid():
                 attendance_list = formset.save(commit=False)
@@ -613,7 +613,7 @@ def project_attendance_list(request, project_id):
 def project_member_list(request, project_id):
     company = biz.get_company()
     status = request.GET.get('status', None)
-    project = Project.objects.get(pk=project_id)
+    project = models.Project.objects.get(pk=project_id)
     params = ""
     o = request.GET.get('o', None)
     dict_order = common.get_ordering_dict(o, ['member__first_name',
@@ -675,7 +675,7 @@ def section_list(request):
 @login_required(login_url='/eb/login/')
 def section_detail(request, section_id):
     company = biz.get_company()
-    section = get_object_or_404(Section, pk=section_id)
+    section = get_object_or_404(models.Section, pk=section_id)
     all_members = biz.get_members_section(section)
 
     o = request.GET.get('o', None)
@@ -711,7 +711,7 @@ def section_detail(request, section_id):
 @csrf_protect
 def section_attendance(request, section_id):
     company = biz.get_company()
-    section = get_object_or_404(Section, pk=section_id)
+    section = get_object_or_404(models.Section, pk=section_id)
     today = datetime.date.today()
     year = request.GET.get('year', today.year)
     month = request.GET.get('month', today.month)
@@ -766,7 +766,7 @@ def section_attendance(request, section_id):
 @login_required(login_url='/eb/login/')
 def view_project_request(request, request_id):
     company = biz.get_company()
-    project_request = get_object_or_404(ProjectRequest, pk=request_id)
+    project_request = get_object_or_404(models.ProjectRequest, pk=request_id)
     if hasattr(project_request, 'projectrequestheading'):
         request_heading = project_request.projectrequestheading
     else:
@@ -895,7 +895,7 @@ def turnover_members_monthly(request, ym):
         'company': company,
         'title': u'%s年%s月の売上詳細情報' % (ym[:4], ym[4:]),
         'sections': sections,
-        'salesperson': Salesperson.objects.public_all(),
+        'salesperson': models.Salesperson.objects.public_all(),
         'turnover_details': turnover_details,
         'summary': summary,
         'paginator': paginator,
@@ -937,7 +937,7 @@ def turnover_clients_monthly(request, ym):
 @permission_required('eb.view_turnover', raise_exception=True)
 def turnover_client_monthly(request, client_id, ym):
     company = biz.get_company()
-    client = get_object_or_404(Client, pk=client_id)
+    client = get_object_or_404(models.Client, pk=client_id)
     turnover_details = biz_turnover.turnover_client_monthly(client_id, ym)
 
     summary = {'attendance_amount': 0, 'expenses_amount': 0,
@@ -978,12 +978,12 @@ def release_list(request, ym):
                                               'project__name', 'start_date', 'member__salesperson'])
     order_list = common.get_ordering_list(o)
 
-    all_project_members = biz.get_release_members_by_month(start_date, param_list)
+    all_project_members = models.get_release_members_by_month(start_date, param_list)
     if order_list:
         all_project_members = all_project_members.order_by(*order_list)
 
-    sections = Section.objects.public_filter(is_on_sales=True)
-    salesperson = Salesperson.objects.public_all()
+    sections = models.Section.objects.public_filter(is_on_sales=True)
+    salesperson = models.Salesperson.objects.public_all()
 
     params = "&".join(["%s=%s" % (key, value) for key, value in param_list.items()]) if param_list else ""
     paginator = Paginator(all_project_members, PAGE_SIZE)
@@ -1013,7 +1013,7 @@ def release_list(request, ym):
 @login_required(login_url='/eb/login/')
 def member_detail(request, employee_id):
     company = biz.get_company()
-    member = Member.objects.get(employee_id=employee_id)
+    member = models.Member.objects.get(employee_id=employee_id)
     member.set_coordinate()
 
     project_count = member.projectmember_set.public_all().count()
@@ -1033,12 +1033,12 @@ def member_detail(request, employee_id):
 def member_project_list(request, employee_id):
     status = request.GET.get('status', None)
     company = biz.get_company()
-    member = Member.objects.get(employee_id=employee_id)
+    member = models.Member.objects.get(employee_id=employee_id)
     if status and status != '0':
-        project_members = ProjectMember.objects.public_filter(member=member, status=status)\
+        project_members = models.ProjectMember.objects.public_filter(member=member, status=status)\
             .order_by('-status', 'end_date')
     else:
-        project_members = ProjectMember.objects.public_filter(member=member)\
+        project_members = models.ProjectMember.objects.public_filter(member=member)\
             .order_by('-status', 'end_date')
 
     context = {
@@ -1053,7 +1053,7 @@ def member_project_list(request, employee_id):
 
 @login_required(login_url='/eb/login/')
 def recommended_member_list(request, project_id):
-    project = Project.objects.get(pk=project_id)
+    project = models.Project.objects.get(pk=project_id)
     company = biz.get_company()
     dict_skills = project.get_recommended_members()
 
@@ -1070,10 +1070,10 @@ def recommended_member_list(request, project_id):
 @login_required(login_url='/eb/login/')
 def recommended_project_list(request, employee_id):
     company = biz.get_company()
-    member = Member.objects.get(employee_id=employee_id)
+    member = models.Member.objects.get(employee_id=employee_id)
     skills = member.get_skill_list()
     project_id_list = member.get_recommended_projects()
-    projects = Project.objects.public_filter(pk__in=project_id_list)
+    projects = models.Project.objects.public_filter(pk__in=project_id_list)
 
     context = {
         'company': company,
@@ -1095,7 +1095,7 @@ def subcontractor_list(request):
     order_list = common.get_ordering_list(o)
     params = ""
 
-    all_subcontractors = Subcontractor.objects.public_all()
+    all_subcontractors = models.Subcontractor.objects.public_all()
     if name:
         all_subcontractors = all_subcontractors.filter(name__contains=name)
         params += "&name=%s" % (name,)
@@ -1119,7 +1119,7 @@ def subcontractor_list(request):
         'params': params,
         'orders': "&o=%s" % (o,) if o else "",
         'dict_order': dict_order,
-        'bp_count': Member.objects.public_filter(subcontractor__isnull=False).count(),
+        'bp_count': models.Member.objects.public_filter(subcontractor__isnull=False).count(),
     }
     template = loader.get_template('subcontractor_list.html')
     return HttpResponse(template.render(context, request))
@@ -1132,7 +1132,7 @@ def subcontractor_detail(request, subcontractor_id):
     dict_order = common.get_ordering_dict(o, ['first_name'])
     order_list = common.get_ordering_list(o)
 
-    subcontractor = Subcontractor.objects.get(pk=subcontractor_id)
+    subcontractor = models.Subcontractor.objects.get(pk=subcontractor_id)
     all_members = subcontractor.member_set.all()
     if order_list:
         all_members = all_members.order_by(*order_list)
@@ -1163,7 +1163,7 @@ def subcontractor_detail(request, subcontractor_id):
 @login_required(login_url='/eb/login/')
 def subcontractor_members(request, subcontractor_id):
     company = biz.get_company()
-    subcontractor = Subcontractor.objects.get(pk=subcontractor_id)
+    subcontractor = models.Subcontractor.objects.get(pk=subcontractor_id)
     ym = request.GET.get('ym', None)
 
     context = {
@@ -1216,17 +1216,17 @@ def subcontractor_members(request, subcontractor_id):
                      'comment': "",
                      }
             dict_initials.append(d)
-        BpOrderInfoFormSet = modelformset_factory(BpMemberOrderInfo, form=forms.BpMemberOrderInfoFormSet,
+        BpOrderInfoFormSet = modelformset_factory(models.BpMemberOrderInfo, form=forms.BpMemberOrderInfoFormSet,
                                                   extra=len(members))
         dict_initials.sort(key=lambda item: item['id'])
-        formset = BpOrderInfoFormSet(queryset=BpMemberOrderInfo.objects.none(), initial=dict_initials)
+        formset = BpOrderInfoFormSet(queryset=models.BpMemberOrderInfo.objects.none(), initial=dict_initials)
 
         context.update({'formset': formset, 'initial_form_count': initial_form_count})
 
         r = render_to_response('subcontractor_members.html', context)
         return HttpResponse(r)
     else:
-        BpOrderInfoFormSet = modelformset_factory(BpMemberOrderInfo, form=forms.BpMemberOrderInfoFormSet, extra=0)
+        BpOrderInfoFormSet = modelformset_factory(models.BpMemberOrderInfo, form=forms.BpMemberOrderInfoFormSet, extra=0)
         formset = BpOrderInfoFormSet(request.POST)
         if formset.is_valid():
             bp_member_list = formset.save(commit=False)
@@ -1277,7 +1277,7 @@ def upload_resume(request):
 @login_required(login_url='/eb/login/')
 def download_project_quotation(request, project_id):
     company = biz.get_company()
-    project = Project.objects.get(pk=project_id)
+    project = models.Project.objects.get(pk=project_id)
     try:
         now = datetime.datetime.now()
         path = file_gen.generate_quotation(project, request.user, company)
@@ -1307,7 +1307,7 @@ def download_client_order(request):
 def download_subcontractor_order(request, subcontractor_id):
     company = biz.get_company()
     ym = request.GET.get('ym', None)
-    subcontractor = Subcontractor.objects.get(pk=subcontractor_id)
+    subcontractor = models.Subcontractor.objects.get(pk=subcontractor_id)
 
     try:
         data = biz.generate_order_data(company, subcontractor, request.user, ym)
@@ -1324,10 +1324,10 @@ def download_subcontractor_order(request, subcontractor_id):
 @permission_required('eb.generate_request', raise_exception=True)
 def download_project_request(request, project_id):
     company = biz.get_company()
-    project = get_object_or_404(Project, pk=project_id)
+    project = get_object_or_404(models.Project, pk=project_id)
     try:
         client_order_id = request.GET.get("client_order_id", None)
-        client_order = ClientOrder.objects.get(pk=client_order_id)
+        client_order = models.ClientOrder.objects.get(pk=client_order_id)
         ym = request.GET.get("ym", None)
         first_day = common.get_first_day_from_ym(ym)
         project_request = project.get_project_request(ym[:4], ym[4:], client_order)
@@ -1345,7 +1345,7 @@ def download_project_request(request, project_id):
             request_name = request.GET.get("request_name", None)
             bank_id = request.GET.get('bank', None)
             try:
-                bank = BankInfo.objects.get(pk=bank_id)
+                bank = models.BankInfo.objects.get(pk=bank_id)
             except ObjectDoesNotExist:
                 bank = None
             project_request.request_name = request_name if request_name else project.name
@@ -1374,7 +1374,7 @@ def download_project_request(request, project_id):
 
 @login_required(login_url='/eb/login/')
 def download_resume(request, member_id):
-    member = get_object_or_404(Member, pk=member_id)
+    member = get_object_or_404(models.Member, pk=member_id)
     date = datetime.date.today().strftime("%Y%m")
     filename = constants.NAME_RESUME % (member.first_name + member.last_name, date)
     output = file_gen.generate_resume(member)
@@ -1385,7 +1385,7 @@ def download_resume(request, member_id):
 
 @login_required(login_url='/eb/login/')
 def download_section_attendance(request, section_id, year, month):
-    section = get_object_or_404(Section, pk=section_id)
+    section = get_object_or_404(models.Section, pk=section_id)
     batch = biz.get_batch_manage(constants.BATCH_SEND_ATTENDANCE_FORMAT)
     project_members = biz.get_project_members_month_section(section, datetime.date(int(year), int(month), 20))
     filename = constants.NAME_SECTION_ATTENDANCE % (section.name, int(year), int(month))
@@ -1398,7 +1398,8 @@ def download_section_attendance(request, section_id, year, month):
 @login_required(login_url='/eb/login/')
 def map_position(request):
     company = biz.get_company()
-    members = Member.objects.public_filter(lat__isnull=False, lng__isnull=False).exclude(lat__exact='', lng__exact='')
+    members = models.Member.objects.public_filter(lat__isnull=False,
+                                                  lng__isnull=False).exclude(lat__exact='', lng__exact='')
     context = {
         'company': company,
         'title': u'地図情報',
@@ -1411,7 +1412,7 @@ def map_position(request):
 @login_required(login_url='/eb/login/')
 def issues(request):
 
-    issue_list = Issue.objects.all()
+    issue_list = models.Issue.objects.all()
 
     context = {
         'title': u'課題管理票一覧',
@@ -1423,7 +1424,7 @@ def issues(request):
 
 @login_required(login_url='/eb/login/')
 def issue_detail(request, issue_id):
-    issue = get_object_or_404(Issue, pk=issue_id)
+    issue = get_object_or_404(models.Issue, pk=issue_id)
     context = {
         'title': u'課題管理票 - %s' % (issue.title,),
         'issue': issue,
@@ -1436,7 +1437,7 @@ def issue_detail(request, issue_id):
 def history(request):
     company = biz.get_company()
 
-    histories = History.objects.all()
+    histories = models.History.objects.all()
     total_hours = 0
     for h in histories:
         total_hours += h.get_hours()
@@ -1475,7 +1476,7 @@ def sync_coordinate(request):
         d = dict()
         if lat and lng and member_id:
             try:
-                member = Member.objects.get(pk=member_id)
+                member = models.Member.objects.get(pk=member_id)
                 member.lat = lat
                 member.lng = lng
                 member.coordinate_update_date = datetime.datetime.now()
@@ -1518,7 +1519,7 @@ def batch_list(request):
         'site_title': admin.site.site_title,
     }
     context.update(csrf(request))
-    batches = BatchManage.objects.public_all()
+    batches = models.BatchManage.objects.public_all()
     context.update({
         'batches': batches,
     })
@@ -1569,16 +1570,16 @@ def sync_db2(request):
                     tel = dict_member['tel']
 
                     try:
-                        subcontractor = Subcontractor.objects.get(name=company_name)
+                        subcontractor = models.Subcontractor.objects.get(name=company_name)
                     except ObjectDoesNotExist:
-                        subcontractor = Subcontractor(name=company_name, post_code=postcode, address1=address, tel=tel)
+                        subcontractor = models.Subcontractor(name=company_name, post_code=postcode, address1=address, tel=tel)
                         subcontractor.save()
 
-                    if Member.objects.filter(member_type=4, first_name=first_name, last_name=last_name,
-                                             subcontractor=subcontractor).count() == 0:
-                        member = Member(first_name=first_name, last_name=last_name, member_type=4,
+                    if models.Member.objects.filter(member_type=4, first_name=first_name, last_name=last_name,
+                                                    subcontractor=subcontractor).count() == 0:
+                        member = models.Member(first_name=first_name, last_name=last_name, member_type=4,
                                         subcontractor=subcontractor, cost=cost)
-                        max_employee_id = Member.objects.filter(employee_id__gte=10000).aggregate(Max('employee_id'))
+                        max_employee_id = models.Member.objects.filter(employee_id__gte=10000).aggregate(Max('employee_id'))
                         member.employee_id = common.get_next_employee_id(max_employee_id.get('employee_id__max'))
                         member.save()
                 context.update({

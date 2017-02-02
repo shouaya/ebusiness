@@ -62,16 +62,6 @@ def get_year_list():
     return range(int(start), int(end))
 
 
-def get_all_members():
-    """営業対象部署のすべてのメンバー、且つ入社済みのメンバーを取得する。
-
-    :return:
-    """
-    today = datetime.date.today()
-    return models.Member.objects.public_filter(Q(join_date__isnull=True) | Q(join_date__lte=today),
-                                               membersectionperiod__section__is_on_sales=True).distinct()
-
-
 def get_members_by_section(all_members, section_id):
     if not section_id:
         return all_members
@@ -94,66 +84,12 @@ def get_members_by_salesperson(all_members, salesperson_id):
                               membersalespersonperiod__salesperson__pk=salesperson_id)
 
 
-def get_project_members_by_salesperson(all_members, salesperson_id):
-    if not salesperson_id:
-        return all_members
-    today = datetime.date.today()
-    return all_members.filter((Q(member__membersalespersonperiod__start_date__lte=today) &
-                               Q(member__membersalespersonperiod__end_date__isnull=True)) |
-                              (Q(member__membersalespersonperiod__start_date__lte=today) &
-                               Q(member__membersalespersonperiod__end_date__gte=today)),
-                              member__membersalespersonperiod__salesperson__pk=salesperson_id)
-
-
-def get_sales_members():
-    """営業対象メンバーを取得する。
-
-    :return:
-    """
-    return get_all_members().filter(is_on_sales=True)
-
-
 def get_on_sales_section():
     """営業対象の部署を取得する。
 
     :return:
     """
     return models.Section.objects.public_filter(is_on_sales=True)
-
-
-def get_working_members(date=None):
-    """稼働中のメンバー
-
-    :param date: 対象年月
-    :return:
-    """
-    if not date:
-        first_day = last_day = datetime.date.today()
-    else:
-        first_day = common.get_first_day_by_month(date)
-        last_day = common.get_last_day_by_month(date)
-    members = get_sales_members().filter(projectmember__start_date__lte=last_day,
-                                         projectmember__end_date__gte=first_day,
-                                         projectmember__is_deleted=False,
-                                         projectmember__status=2).distinct()
-    return members
-
-
-def get_waiting_members():
-    """待機中のメンバー
-
-    :return:
-    """
-    working_members = get_working_members()
-    return get_sales_members().filter(is_on_sales=True).exclude(pk__in=working_members)
-
-
-def get_off_sales_members():
-    """営業対象外のメンバーを取得する。
-
-    :return:
-    """
-    return get_all_members().filter(is_on_sales=False)
 
 
 def get_members_in_coming():
@@ -170,7 +106,7 @@ def get_subcontractor_all_members():
 
     :return:
     """
-    return get_all_members().filter(subcontractor__isnull=False)
+    return models.get_sales_members().filter(subcontractor__isnull=False)
 
 
 def get_subcontractor_sales_members():
@@ -217,25 +153,8 @@ def get_subcontractor_off_sales_members():
     return get_subcontractor_all_members().filter(is_on_sales=False)
 
 
-def get_project_members_month(date):
-    """指定月の案件メンバー全部取得する。
-
-    :param date 指定月
-    :return
-    """
-    first_day = common.get_first_day_by_month(date)
-    today = datetime.date.today()
-    if date.year == today.year and date.month == today.month:
-        first_day = today
-    last_day = common.get_last_day_by_month(date)
-    return models.ProjectMember.objects.public_filter(end_date__gte=first_day,
-                                                      start_date__lte=last_day,
-                                                      project__status=4,
-                                                      status=2)
-
-
 def get_members_section(section):
-    all_members = get_all_members()
+    all_members = models.get_sales_members()
     return get_members_by_section(all_members, section.id)
 
 
@@ -246,7 +165,7 @@ def get_project_members_month_section(section, date):
     :param date: 日付
     :return:
     """
-    project_members = get_project_members_month(date)
+    project_members = models.get_project_members_by_month(date)
     return project_members.filter((Q(member__membersectionperiod__start_date__lte=date) &
                                    Q(member__membersectionperiod__end_date__isnull=date)) |
                                   (Q(member__membersectionperiod__start_date__lte=date) &
@@ -260,7 +179,7 @@ def get_subcontractor_project_members_month(date):
     :param date 指定月
     :return
     """
-    return get_project_members_month(date).filter(member__member_type=4)
+    return models.get_project_members_by_month(date).filter(member__member_type=4)
 
 
 def get_next_change_list():
@@ -283,50 +202,12 @@ def get_next_change_list():
     return members.filter(membersectionperiod__section__is_on_sales=True)
 
 
-def get_release_members_by_month(date, p=None):
-    """指定年月にリリースするメンバーを取得する。
-
-    :param date 指定月
-    :param p: 画面からの絞り込み条件
-    """
-    working_member_next_date = get_working_members(date=common.add_months(date, 1))
-    project_members = get_project_members_month(date).filter(member__membersectionperiod__section__is_on_sales=True,
-                                                             member__is_on_sales=True)\
-        .exclude(member__in=working_member_next_date)
-    if p:
-        project_members = project_members.filter(**p)
-    return project_members
-
-
-def get_release_current_month():
-    """今月にリリースするメンバーを取得する。
-
-    """
-    return get_release_members_by_month(datetime.date.today())
-
-
-def get_release_next_month():
-    """来月にリリースするメンバーを取得する。
-
-    """
-    next_month = common.add_months(datetime.date.today(), 1)
-    return get_release_members_by_month(next_month)
-
-
-def get_release_next_2_month():
-    """再来月にリリースするメンバーを取得する。
-
-    """
-    next_2_month = common.add_months(datetime.date.today(), 2)
-    return get_release_members_by_month(next_2_month)
-
-
 def get_subcontractor_release_members_by_month(date):
     """指定年月にリリースする協力社員を取得する。
 
     :param date 指定月
     """
-    return get_release_members_by_month(date).filter(member__member_type=4)
+    return models.get_release_members_by_month(date).filter(member__member_type=4)
 
 
 def get_subcontractor_release_current_month():

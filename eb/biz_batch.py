@@ -165,12 +165,12 @@ def get_batch_manager(name):
 
 
 def get_members_information():
-    all_members = biz.get_sales_members()
-    working_members = biz.get_working_members()
-    waiting_members = biz.get_waiting_members()
-    current_month_release = biz.get_release_current_month()
-    next_month_release = biz.get_release_next_month()
-    next_2_month_release = biz.get_release_next_2_month()
+    all_members = models.get_on_sales_members()
+    working_members = models.get_working_members()
+    waiting_members = models.get_waiting_members()
+    current_month_release = models.get_release_current_month()
+    next_month_release = models.get_release_next_month()
+    next_2_month_release = models.get_release_next_2_month()
 
     summary = {'all_member_count': all_members.count(),
                'working_member_count': working_members.count(),
@@ -184,12 +184,12 @@ def get_members_information():
     for salesperson in models.Salesperson.objects.public_filter(user__isnull=False, member_type=5):
         d = dict()
         d['salesperson'] = salesperson
-        d['all_member_count'] = biz.get_members_by_salesperson(all_members, salesperson.id).count()
-        d['working_member_count'] = biz.get_members_by_salesperson(working_members, salesperson.id).count()
-        d['waiting_member_count'] = biz.get_members_by_salesperson(waiting_members, salesperson.id).count()
-        d['current_month_count'] = biz.get_project_members_by_salesperson(current_month_release, salesperson.id).count()
-        d['next_month_count'] = biz.get_project_members_by_salesperson(next_month_release, salesperson.id).count()
-        d['next_2_month_count'] = biz.get_project_members_by_salesperson(next_2_month_release, salesperson.id).count()
+        d['all_member_count'] = salesperson.get_on_sales_members().count()
+        d['working_member_count'] = salesperson.get_working_members().count()
+        d['waiting_member_count'] = salesperson.get_waiting_members().count()
+        d['current_month_count'] = salesperson.get_release_current_month().count()
+        d['next_month_count'] = salesperson.get_release_next_month().count()
+        d['next_2_month_count'] = salesperson.get_release_next_2_month().count()
         status_list.append(d)
         print salesperson.__unicode__(), d
 

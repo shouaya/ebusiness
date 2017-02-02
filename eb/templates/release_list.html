@@ -46,8 +46,8 @@
                 <th style="width: 68px;">{% create_order_display "名前" "member__first_name" %}</th>
                 <th>{% create_order_display "部署" "member__section__name" %}</th>
                 <th style="width: 170px;">{% create_order_display "協力会社" "member__subcontractor__name" %}</th>
-                <th style="width: 270px;">{% create_order_display "案件名称" "project__name" %}</th>
-                <th style="width: 82px;">{% create_order_display "開始日" "start_date" %}</th>
+                <th style="width: 260px;">{% create_order_display "案件名称" "project__name" %}</th>
+                <th style="width: 90px;">{% create_order_display "開始日" "start_date" %}</th>
                 <th style="width: 82px;">{% create_order_display "営業員" "member__salesperson" %}</th>
                 <th style="width: 50px;">営業状態</th>
                 <th></th>
@@ -64,7 +64,7 @@
                         <td><div style="width: 170px; white-space: nowrap; overflow: hidden;">
                             {{ project_member.member.subcontractor|default:"" }}</div></td>
                         <td>
-                            <div style="width: 270px; white-space: nowrap; overflow: hidden;">
+                            <div style="width: 260px; white-space: nowrap; overflow: hidden;">
                             <a href="{% url 'project_detail' project_member.project.pk %}">
                                 {{ project_member.project.name }}
                             </a>

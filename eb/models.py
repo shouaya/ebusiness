@@ -15,7 +15,7 @@ from email import encoders
 from email.header import Header
 
 from django.db import models
-from django.contrib.auth.models import User, Group, Permission
+from django.contrib.auth.models import User
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Max, Min, Q, Sum
 from django.utils import timezone
@@ -261,7 +261,7 @@ class BankInfo(models.Model):
     def __unicode__(self):
         return self.bank_name
 
-    def delete(self, using=None):
+    def delete(self, using=None, keep_parents=False):
         self.is_deleted = True
         self.deleted_date = datetime.datetime.now()
         self.save()
@@ -338,7 +338,7 @@ class Subcontractor(AbstractCompany):
             ret_value.append((year, month, subcontractor_order, is_finished))
         return ret_value
 
-    def delete(self, using=None):
+    def delete(self, using=None, keep_parents=False):
         self.is_deleted = True
         self.deleted_date = datetime.datetime.now()
         self.save()
@@ -395,7 +395,7 @@ class Section(models.Model):
                                                  positionship__position=11)
         return query_set
 
-    def delete(self, using=None):
+    def delete(self, using=None, keep_parents=False):
         self.is_deleted = True
         self.deleted_date = datetime.datetime.now()
         self.save()
@@ -415,7 +415,7 @@ class SalesOffReason(models.Model):
     def __unicode__(self):
         return self.name
 
-    def delete(self, using=None):
+    def delete(self, using=None, keep_parents=False):
         self.is_deleted = True
         self.deleted_date = datetime.datetime.now()
         self.save()
@@ -438,41 +438,86 @@ class Salesperson(AbstractMember):
     def __unicode__(self):
         return u"%s %s" % (self.first_name, self.last_name)
 
-    def get_all_members(self):
+    def get_on_sales_members(self):
+        """該当営業員の営業対象のメンバーを取得する
+
+        :return: MemberのQueryset
+        """
         today = datetime.date.today()
-        if self.member_type == 0 and self.section:
-            # 営業部長の場合、部門内すべての社員が見られる
-            return Member.objects.public_filter(Q(join_date__isnull=True) | Q(join_date__lte=today),
-                                                salesperson__in=self.get_under_salesperson())
-        else:
-            # 営業員の場合、担当している社員だけ見られる
-            return Member.objects.public_filter(Q(join_date__isnull=True) | Q(join_date__lte=today),
-                                                salesperson=self)
+        members = get_on_sales_members().filter((Q(membersalespersonperiod__start_date__lte=today) &
+                                                 Q(membersalespersonperiod__end_date__isnull=True)) |
+                                                (Q(membersalespersonperiod__start_date__lte=today) &
+                                                 Q(membersalespersonperiod__end_date__gte=today)),
+                                                membersalespersonperiod__salesperson=self)
+        return members
 
     def get_working_members(self):
-        now = datetime.date.today()
-        if self.member_type == 0 and self.section:
-            # 営業部長の場合、部門内すべての社員が見られる
-            return Member.objects.public_filter(projectmember__start_date__lte=now,
-                                                projectmember__end_date__gte=now,
-                                                projectmember__status=2,
-                                                salesperson__in=self.get_under_salesperson())
-        else:
-            # 営業員の場合、担当している社員だけ見られる
-            return Member.objects.public_filter(projectmember__start_date__lte=now,
-                                                projectmember__end_date__gte=now,
-                                                projectmember__status=2,
-                                                salesperson=self)
+        """現在稼働中のメンバーを取得する
+
+        :return: MemberのQueryset
+        """
+        today = datetime.date.today()
+        members = get_working_members().filter((Q(membersalespersonperiod__start_date__lte=today) &
+                                                Q(membersalespersonperiod__end_date__isnull=True)) |
+                                               (Q(membersalespersonperiod__start_date__lte=today) &
+                                                Q(membersalespersonperiod__end_date__gte=today)),
+                                               membersalespersonperiod__salesperson=self)
+        return members
 
     def get_waiting_members(self):
-        if self.member_type == 0 and self.section:
-            # 営業部長の場合、部門内すべての社員が見られる
-            working_members = self.get_working_members()
-            return self.get_all_members().exclude(pk__in=working_members)
-        else:
-            # 営業員の場合、担当している社員だけ見られる
-            working_members = self.get_working_members()
-            return self.get_all_members().exclude(pk__in=working_members)
+        """現在待機中のメンバーを取得する
+
+        :return: MemberのQueryset
+        """
+        today = datetime.date.today()
+        members = get_waiting_members().filter((Q(membersalespersonperiod__start_date__lte=today) &
+                                                Q(membersalespersonperiod__end_date__isnull=True)) |
+                                               (Q(membersalespersonperiod__start_date__lte=today) &
+                                                Q(membersalespersonperiod__end_date__gte=today)),
+                                               membersalespersonperiod__salesperson=self)
+        return members
+
+    def get_release_current_month(self):
+        """今月にリリースするメンバーを取得する
+
+        :return: ProjectMemberのQueryset
+        """
+        today = datetime.date.today()
+        project_members = get_release_current_month()
+        query_set = project_members.filter((Q(member__membersalespersonperiod__start_date__lte=today) &
+                                            Q(member__membersalespersonperiod__end_date__isnull=True)) |
+                                           (Q(member__membersalespersonperiod__start_date__lte=today) &
+                                            Q(member__membersalespersonperiod__end_date__gte=today)),
+                                           member__membersalespersonperiod__salesperson=self)
+        return query_set
+
+    def get_release_next_month(self):
+        """来月にリリースするメンバーを取得する
+
+        :return: ProjectMemberのQueryset
+        """
+        today = datetime.date.today()
+        project_members = get_release_next_month()
+        query_set = project_members.filter((Q(member__membersalespersonperiod__start_date__lte=today) &
+                                            Q(member__membersalespersonperiod__end_date__isnull=True)) |
+                                           (Q(member__membersalespersonperiod__start_date__lte=today) &
+                                            Q(member__membersalespersonperiod__end_date__gte=today)),
+                                           member__membersalespersonperiod__salesperson=self)
+        return query_set
+
+    def get_release_next_2_month(self):
+        """再来月にリリースするメンバーを取得する
+
+        :return: ProjectMemberのQueryset
+        """
+        today = datetime.date.today()
+        project_members = get_release_next_2_month()
+        query_set = project_members.filter((Q(member__membersalespersonperiod__start_date__lte=today) &
+                                            Q(member__membersalespersonperiod__end_date__isnull=True)) |
+                                           (Q(member__membersalespersonperiod__start_date__lte=today) &
+                                            Q(member__membersalespersonperiod__end_date__gte=today)),
+                                           member__membersalespersonperiod__salesperson=self)
+        return query_set
 
     def get_under_salesperson(self):
         """部下の営業員を取得する、部下がない場合自分を返す。
@@ -499,7 +544,7 @@ class Salesperson(AbstractMember):
             .aggregate(amount=Sum('price'))
         return amount.get('amount', 0) if amount.get('amount', 0) else 0
 
-    def delete(self, using=None):
+    def delete(self, using=None, keep_parents=False):
         self.is_deleted = True
         self.deleted_date = datetime.datetime.now()
         self.save()
@@ -756,7 +801,7 @@ class Member(AbstractMember):
         else:
             return None
 
-    def delete(self, using=None):
+    def delete(self, using=None, keep_parents=False):
         self.is_deleted = True
         self.deleted_date = datetime.datetime.now()
         self.save()
@@ -780,7 +825,7 @@ class MemberSectionPeriod(models.Model):
         return u"%s - %s(%s〜%s)" % (self.member.__unicode__(), self.section.__unicode__(),
                                     self.start_date, self.end_date)
 
-    def delete(self, using=None):
+    def delete(self, using=None, keep_parents=False):
         self.is_deleted = True
         self.deleted_date = datetime.datetime.now()
         self.save()
@@ -804,7 +849,7 @@ class MemberSalespersonPeriod(models.Model):
         return u"%s - %s(%s〜%s)" % (self.member.__unicode__(), self.salesperson.__unicode__(),
                                     self.start_date, self.end_date)
 
-    def delete(self, using=None):
+    def delete(self, using=None, keep_parents=False):
         self.is_deleted = True
         self.deleted_date = datetime.datetime.now()
         self.save()
@@ -827,7 +872,7 @@ class PositionShip(models.Model):
     def __unicode__(self):
         return "%s - %s %s" % (self.get_position_display(), self.member.first_name, self.member.last_name)
 
-    def delete(self, using=None):
+    def delete(self, using=None, keep_parents=False):
         self.is_deleted = True
         self.deleted_date = datetime.datetime.now()
         self.save()
@@ -903,7 +948,7 @@ class Client(AbstractCompany):
             .aggregate(amount=Sum('price'))
         return amount.get('amount', 0) if amount.get('amount', 0) else 0
 
-    def delete(self, using=None):
+    def delete(self, using=None, keep_parents=False):
         self.is_deleted = True
         self.deleted_date = datetime.datetime.now()
         self.save()
@@ -926,7 +971,7 @@ class ClientMember(models.Model):
     def __unicode__(self):
         return "%s - %s" % (self.client.name, self.name)
 
-    def delete(self, using=None):
+    def delete(self, using=None, keep_parents=False):
         self.is_deleted = True
         self.deleted_date = datetime.datetime.now()
         self.save()
@@ -947,7 +992,7 @@ class Skill(models.Model):
     def __unicode__(self):
         return self.name
 
-    def delete(self, using=None):
+    def delete(self, using=None, keep_parents=False):
         self.is_deleted = True
         self.deleted_date = datetime.datetime.now()
         self.save()
@@ -968,7 +1013,7 @@ class OS(models.Model):
     def __unicode__(self):
         return self.name
 
-    def delete(self, using=None):
+    def delete(self, using=None, keep_parents=False):
         self.is_deleted = True
         self.deleted_date = datetime.datetime.now()
         self.save()
@@ -1243,7 +1288,7 @@ class Project(models.Model):
                                                              client_order=client_order)[0]
             return project_request
 
-    def delete(self, using=None):
+    def delete(self, using=None, keep_parents=False):
         self.is_deleted = True
         self.deleted_date = datetime.datetime.now()
         self.save()
@@ -1278,7 +1323,7 @@ class ClientOrder(models.Model):
     def __unicode__(self):
         return self.name
 
-    def delete(self, using=None):
+    def delete(self, using=None, keep_parents=False):
         self.is_deleted = True
         self.deleted_date = datetime.datetime.now()
         self.save()
@@ -1493,7 +1538,7 @@ class ProjectActivity(models.Model):
     def __unicode__(self):
         return "%s - %s" % (self.project.name, self.name)
 
-    def delete(self, using=None):
+    def delete(self, using=None, keep_parents=False):
         self.is_deleted = True
         self.deleted_date = datetime.datetime.now()
         self.save()
@@ -1515,7 +1560,7 @@ class ProjectSkill(models.Model):
     def __unicode__(self):
         return "%s - %s" % (self.project.name, self.skill.name)
 
-    def delete(self, using=None):
+    def delete(self, using=None, keep_parents=False):
         self.is_deleted = True
         self.deleted_date = datetime.datetime.now()
         self.save()
@@ -1535,7 +1580,7 @@ class ProjectStage(models.Model):
     def __unicode__(self):
         return self.name
 
-    def delete(self, using=None):
+    def delete(self, using=None, keep_parents=False):
         self.is_deleted = True
         self.deleted_date = datetime.datetime.now()
         self.save()
@@ -1741,7 +1786,7 @@ class ProjectMember(models.Model):
 
         return d
 
-    def delete(self, using=None):
+    def delete(self, using=None, keep_parents=False):
         self.is_deleted = True
         self.deleted_date = datetime.datetime.now()
         self.save()
@@ -1762,7 +1807,7 @@ class ExpensesCategory(models.Model):
     def __unicode__(self):
         return self.name
 
-    def delete(self, using=None):
+    def delete(self, using=None, keep_parents=False):
         self.is_deleted = True
         self.deleted_date = datetime.datetime.now()
         self.save()
@@ -1786,7 +1831,7 @@ class EmployeeExpenses(models.Model):
     def __unicode__(self):
         return u"%s %s %s" % (self.member, self.get_year_display(), self.get_month_display())
 
-    def delete(self, using=None):
+    def delete(self, using=None, keep_parents=False):
         self.is_deleted = True
         self.deleted_date = datetime.datetime.now()
         self.save()
@@ -1811,7 +1856,7 @@ class MemberExpenses(models.Model):
     def __unicode__(self):
         return u"%s %s %s" % (self.project_member, self.get_year_display(), self.get_month_display())
 
-    def delete(self, using=None):
+    def delete(self, using=None, keep_parents=False):
         self.is_deleted = True
         self.deleted_date = datetime.datetime.now()
         self.save()
@@ -1886,7 +1931,7 @@ class SubcontractorOrder(models.Model):
         unique_together = ('subcontractor', 'year', 'month')
         verbose_name = verbose_name_plural = u"ＢＰ註文書"
 
-    def delete(self, using=None):
+    def delete(self, using=None, keep_parents=False):
         self.is_deleted = True
         self.deleted_date = datetime.datetime.now()
         self.save()
@@ -1912,7 +1957,7 @@ class BpMemberOrderInfo(models.Model):
         unique_together = ('member', 'year', 'month')
         verbose_name = verbose_name_plural = u"協力社員の注文情報"
 
-    def delete(self, using=None):
+    def delete(self, using=None, keep_parents=False):
         self.is_deleted = True
         self.deleted_date = datetime.datetime.now()
         self.save()
@@ -1931,7 +1976,7 @@ class Degree(models.Model):
     class Meta:
         verbose_name = verbose_name_plural = u"学歴"
 
-    def delete(self, using=None):
+    def delete(self, using=None, keep_parents=False):
         self.is_deleted = True
         self.deleted_date = datetime.datetime.now()
         self.save()
@@ -2020,7 +2065,7 @@ class HistoryProject(models.Model):
         else:
             return False
 
-    def delete(self, using=None):
+    def delete(self, using=None, keep_parents=False):
         self.is_deleted = True
         self.deleted_date = datetime.datetime.now()
         self.save()
@@ -2051,7 +2096,7 @@ class Issue(models.Model):
     def __unicode__(self):
         return self.title
 
-    def delete(self, using=None):
+    def delete(self, using=None, keep_parents=False):
         self.is_deleted = True
         self.deleted_date = datetime.datetime.now()
         self.save()
@@ -2076,7 +2121,7 @@ class History(models.Model):
         hours = td.seconds / 3600.0
         return round(hours, 1)
 
-    def delete(self, using=None):
+    def delete(self, using=None, keep_parents=False):
         self.is_deleted = True
         self.deleted_date = datetime.datetime.now()
         self.save()
@@ -2267,25 +2312,129 @@ class EmailMultiAlternativesWithEncoding(EmailMultiAlternatives):
                                    filename=filename)
         return attachment
 
-def create_group_salesperson():
-    group_salesperson, created = Group.objects.get_or_create(name="Salesperson")
-    if created:
-        for codename in ('add_subcontractor', 'change_subcontractor',
-                         'add_section', 'change_section',
-                         'add_member', 'change_member',
-                         'add_positionship', 'change_positionship',
-                         'add_client', 'change_client',
-                         'add_clientmember', 'change_clientmember',
-                         'add_skill', 'change_skill', 'delete_skill',
-                         'add_os', 'change_os', 'delete_os',
-                         'add_project', 'change_project',
-                         'add_projectactivity', 'change_projectactivity', 'delete_projectactivity',
-                         'add_projectskill', 'change_projectskill',
-                         'add_projectstage', 'change_projectstage',
-                         'add_projectmember', 'change_projectmember', 'delete_projectmember',
-                         'add_memberattendance', 'change_memberattendance', 'delete_memberattendance',
-                         'add_historyproject', 'change_historyproject', 'delete_historyproject'):
-            permission = Permission.objects.get(codename=codename)
-            group_salesperson.permissions.add(permission)
 
-    return group_salesperson
+def get_sales_members():
+    """現在の営業対象のメンバーを取得する。
+
+    加入日は現在以前、かつ所属部署は営業対象部署になっている
+
+    :return: MemberのQueryset
+    """
+    today = datetime.date.today()
+    query_set = Member.objects.public_filter(Q(join_date__isnull=True) | Q(join_date__lte=today),
+                                             membersectionperiod__section__is_on_sales=True).distinct()
+    return query_set
+
+
+def get_on_sales_members():
+    """現在の営業対象のメンバーを取得する。
+
+    加入日は現在以前、かつ所属部署は営業対象部署、かつ該当社員は営業対象中になっている
+
+    :return: MemberのQueryset
+    """
+    query_set = get_sales_members().filter(is_on_sales=True)
+    return query_set
+
+
+def get_off_sales_members():
+    """現在の営業対象外のメンバーを取得する。
+
+    加入日は現在以前、かつ所属部署は営業対象部署、かつ該当社員は営業対象外になっている
+
+    :return: MemberのQueryset
+    """
+    query_set = get_sales_members().filter(is_on_sales=False)
+    return query_set
+
+
+def get_working_members(date=None):
+    """指定日付の稼働中のメンバーを取得する
+
+    日付は指定してない場合は本日とする。
+
+    :param date: 対象年月
+    :return: MemberのQueryset
+    """
+    if not date:
+        first_day = last_day = datetime.date.today()
+    else:
+        first_day = common.get_first_day_by_month(date)
+        last_day = common.get_last_day_by_month(date)
+    members = get_sales_members().filter(projectmember__start_date__lte=last_day,
+                                         projectmember__end_date__gte=first_day,
+                                         projectmember__is_deleted=False,
+                                         projectmember__status=2).distinct()
+    return members
+
+
+def get_waiting_members():
+    """現在待機中のメンバーを取得する
+
+    :return: MemberのQueryset
+    """
+    working_members = get_working_members()
+    return get_sales_members().filter(is_on_sales=True).exclude(pk__in=working_members)
+
+
+def get_project_members_by_month(date):
+    """指定月の案件メンバー全部取得する。
+
+    案件メンバーのステータスは「作業確定(2)」、該当する案件のステータスは「実施中(4)」
+
+    :param date 指定月
+    :return: ProjectMemberのQueryset
+    """
+    first_day = common.get_first_day_by_month(date)
+    today = datetime.date.today()
+    if date.year == today.year and date.month == today.month:
+        first_day = today
+    last_day = common.get_last_day_by_month(date)
+    query_set = ProjectMember.objects.public_filter(end_date__gte=first_day,
+                                                    start_date__lte=last_day,
+                                                    project__status=4,
+                                                    status=2)
+    return query_set
+
+
+def get_release_members_by_month(date, p=None):
+    """指定年月にリリースするメンバーを取得する。
+
+    :param date 指定月
+    :param p: 画面からの絞り込み条件
+    :return: ProjectMemberのQueryset
+    """
+    # 次の月はまだ稼働中の案件メンバーは除外する。
+    working_member_next_date = get_working_members(date=common.add_months(date, 1))
+    project_members = get_project_members_by_month(date).filter(member__membersectionperiod__section__is_on_sales=True,
+                                                                member__is_on_sales=True)\
+        .exclude(member__in=working_member_next_date)
+    if p:
+        project_members = project_members.filter(**p)
+    return project_members
+
+
+def get_release_current_month():
+    """今月にリリースするメンバーを取得する
+
+    :return: ProjectMemberのQueryset
+    """
+    return get_release_members_by_month(datetime.date.today())
+
+
+def get_release_next_month():
+    """来月にリリースするメンバーを取得する
+
+    :return: ProjectMemberのQueryset
+    """
+    next_month = common.add_months(datetime.date.today(), 1)
+    return get_release_members_by_month(next_month)
+
+
+def get_release_next_2_month():
+    """再来月にリリースするメンバーを取得する
+
+    :return: ProjectMemberのQueryset
+    """
+    next_2_month = common.add_months(datetime.date.today(), 2)
+    return get_release_members_by_month(next_2_month)

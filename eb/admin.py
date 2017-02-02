@@ -553,8 +553,6 @@ class SalespersonAdmin(BaseAdmin):
                     pwd = common.get_default_password(member)
                     user = User.objects.create_user(name, member.email, pwd)
                     user.is_staff = True
-                    group = models.create_group_salesperson()
-                    user.groups.add(group)
                     user.first_name = member.first_name
                     user.last_name = member.last_name
                     user.save()
