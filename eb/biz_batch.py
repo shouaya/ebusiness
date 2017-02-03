@@ -178,7 +178,7 @@ def get_members_information():
                'current_month_count': current_month_release.count(),
                'next_month_count': next_month_release.count(),
                'next_2_month_count': next_2_month_release.count(),
-              }
+               }
 
     status_list = []
     for salesperson in models.Salesperson.objects.public_filter(user__isnull=False, member_type=5):

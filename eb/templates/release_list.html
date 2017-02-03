@@ -6,10 +6,10 @@
         window.onload = function() {
             init_select("member__first_name__contains");
             init_select("member__last_name__contains");
-            init_select("member__section__pk");
+            init_select("section");
             init_select("member__subcontractor__name__contains");
             init_select("project__name__contains");
-            init_select("member__salesperson__pk");
+            init_select("salesperson");
         };
     </script>
 {% endblock %}
@@ -21,7 +21,7 @@
             <span>姓: </span><input type="text" id="member__first_name__contains" name="member__first_name__contains" style="width: 50px;"/>
             <span>名: </span><input type="text" id="member__last_name__contains" name="member__last_name__contains" style="width: 50px;"/>
             <span>部署：</span>
-            <select id="member__section__pk" name="member__section__pk">
+            <select id="section" name="section">
                 <option value="">すべて</option>
                 {% for section in sections %}
                     <option value="{{ section.pk }}">{{ section.name }}</option>
@@ -30,7 +30,7 @@
             <span>協力会社: </span><input type="text" id="member__subcontractor__name__contains" name="member__subcontractor__name__contains" style="width: 150px;"/>
             <span>案件: </span><input type="text" id="project__name__contains" name="project__name__contains" style="width: 150px;"/>
             <span>営業：</span>
-            <select id="member__salesperson__pk" name="member__salesperson__pk">
+            <select id="salesperson" name="salesperson">
                 <option value="">すべて</option>
                 {% for member in salesperson %}
                     <option value="{{ member.pk }}">{{ member }}</option>
@@ -88,7 +88,7 @@
                     </tr>
                 {% endfor %}
             {% else %}
-                <tr class="row1"><td class="center red" colspan="6">リリース予定がありません。</td></tr>
+                <tr class="row1"><td class="center red" colspan="8">リリース予定がありません。</td></tr>
             {% endif %}
         </tbody>
         <tfoot>

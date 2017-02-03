@@ -41,6 +41,18 @@ def get_batch_manage(name):
         return None
 
 
+def is_salesperson_user(user):
+    """該当するユーザーは営業員なのか
+
+    :param user:
+    :return:
+    """
+    if hasattr(user, 'salesperson'):
+        return True
+    else:
+        return False
+
+
 def get_company():
     company_list = models.Company.objects.all()
     if company_list.count() == 0:
@@ -82,6 +94,22 @@ def get_members_by_salesperson(all_members, salesperson_id):
                               (Q(membersalespersonperiod__start_date__lte=today) &
                                Q(membersalespersonperiod__end_date__gte=today)),
                               membersalespersonperiod__salesperson__pk=salesperson_id)
+
+
+def get_project_members_by_section(project_members, section_id, date):
+    return project_members.filter((Q(member__membersectionperiod__start_date__lte=date) &
+                                   Q(member__membersectionperiod__end_date__isnull=date)) |
+                                  (Q(member__membersectionperiod__start_date__lte=date) &
+                                   Q(member__membersectionperiod__end_date__gte=date)),
+                                  member__membersectionperiod__section__pk=section_id).distinct()
+
+
+def get_project_members_by_salesperson(project_members, salesperson_id, date):
+    return project_members.filter((Q(member__membersectionperiod__start_date__lte=date) &
+                                   Q(member__membersectionperiod__end_date__isnull=date)) |
+                                  (Q(member__membersectionperiod__start_date__lte=date) &
+                                   Q(member__membersectionperiod__end_date__gte=date)),
+                                  member__membersalespersonperiod__salesperson__pk=salesperson_id).distinct()
 
 
 def get_on_sales_section():

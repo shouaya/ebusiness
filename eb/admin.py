@@ -277,7 +277,7 @@ class ReadonlyAdmin(admin.ModelAdmin):
         return False
 
     def has_change_permission(self, request, obj=None):
-        if request.user.username == u"admin":
+        if request.user.is_superuser:
             return True
         else:
             return False

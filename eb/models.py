@@ -134,6 +134,9 @@ class Company(AbstractCompany):
 
     class Meta:
         verbose_name = verbose_name_plural = u"会社"
+        permissions = (
+            ('view_member_status_list', u"社員稼働状況リスト"),
+        )
 
     def get_projects(self, status=0):
         """ステータスによって、該当する全ての案件を取得する。
@@ -449,6 +452,19 @@ class Salesperson(AbstractMember):
                                                 (Q(membersalespersonperiod__start_date__lte=today) &
                                                  Q(membersalespersonperiod__end_date__gte=today)),
                                                 membersalespersonperiod__salesperson=self)
+        return members
+
+    def get_off_sales_members(self):
+        """該当営業員の営業対象のメンバーを取得する
+
+        :return: MemberのQueryset
+        """
+        today = datetime.date.today()
+        members = get_off_sales_members().filter((Q(membersalespersonperiod__start_date__lte=today) &
+                                                  Q(membersalespersonperiod__end_date__isnull=True)) |
+                                                 (Q(membersalespersonperiod__start_date__lte=today) &
+                                                  Q(membersalespersonperiod__end_date__gte=today)),
+                                                 membersalespersonperiod__salesperson=self)
         return members
 
     def get_working_members(self):
@@ -2361,10 +2377,10 @@ def get_working_members(date=None):
     else:
         first_day = common.get_first_day_by_month(date)
         last_day = common.get_last_day_by_month(date)
-    members = get_sales_members().filter(projectmember__start_date__lte=last_day,
-                                         projectmember__end_date__gte=first_day,
-                                         projectmember__is_deleted=False,
-                                         projectmember__status=2).distinct()
+    members = get_on_sales_members().filter(projectmember__start_date__lte=last_day,
+                                            projectmember__end_date__gte=first_day,
+                                            projectmember__is_deleted=False,
+                                            projectmember__status=2).distinct()
     return members
 
 
@@ -2374,7 +2390,7 @@ def get_waiting_members():
     :return: MemberのQueryset
     """
     working_members = get_working_members()
-    return get_sales_members().filter(is_on_sales=True).exclude(pk__in=working_members)
+    return get_on_sales_members().exclude(pk__in=working_members)
 
 
 def get_project_members_by_month(date):

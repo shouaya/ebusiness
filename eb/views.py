@@ -65,6 +65,13 @@ def index(request):
 
     activities = biz.get_activities_incoming()
 
+    show_own_member_status = False
+    if biz.is_salesperson_user(request.user):
+        if request.user.salesperson.member_type == 5:
+            # 営業担当の場合
+            show_own_member_status = True
+    salesperson_list = models.Salesperson.objects.public_filter(member_type=5)
+
     context = {
         'company': company,
         'title': 'Home',
@@ -85,6 +92,8 @@ def index(request):
         'subcontractor_release_next_month': subcontractor_release_next_month,
         'subcontractor_release_next_2_month': subcontractor_release_next_2_month,
         'activities': activities,
+        'show_own_member_status': show_own_member_status,
+        'salesperson_list': salesperson_list,
     }
     template = loader.get_template('home.html')
     return HttpResponse(template.render(context, request))
@@ -970,15 +979,28 @@ def release_list_current(request):
 def release_list(request, ym):
     company = biz.get_company()
     param_list = common.get_request_params(request.GET)
+    section_id = request.GET.get('section', None)
+    salesperson_id = request.GET.get('salesperson', None)
     year = int(ym[0:4])
     month = int(ym[-2:])
     start_date = datetime.datetime(year, month, 1)
-    o = request.GET.get('o', None)
-    dict_order = common.get_ordering_dict(o, ['member__first_name', 'member__subcontractor__name', 'member__section__name',
-                                              'project__name', 'start_date', 'member__salesperson'])
-    order_list = common.get_ordering_list(o)
+
+    if 'section' in param_list:
+        del param_list['section']
+    if 'salesperson' in param_list:
+        del param_list['salesperson']
 
     all_project_members = models.get_release_members_by_month(start_date, param_list)
+
+    if section_id:
+        all_project_members = biz.get_project_members_by_section(all_project_members, section_id, start_date)
+    if salesperson_id:
+        all_project_members = biz.get_project_members_by_salesperson(all_project_members, salesperson_id, start_date)
+
+    o = request.GET.get('o', None)
+    dict_order = common.get_ordering_dict(o, ['member__first_name', 'member__subcontractor__name',
+                                              'project__name', 'start_date'])
+    order_list = common.get_ordering_list(o)
     if order_list:
         all_project_members = all_project_members.order_by(*order_list)
 
