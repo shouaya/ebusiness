@@ -5,6 +5,7 @@ Created on 2015/10/29
 @author: Yang Wanjun
 """
 import os
+import re
 import datetime
 import StringIO
 import xlsxwriter
@@ -986,25 +987,55 @@ def generate_attendance_format(template_path, project_members, date):
         # 出勤情報取得
         attendance = project_member.get_attendance(date.year, date.month)
         if attendance:
-            print u"出勤情報あり。"
-            pass
+            # 勤務時間
+            sheet.cell(row=start_row, column=12).value = attendance.total_hours
+            # 勤務に数
+            sheet.cell(row=start_row, column=13).value = attendance.total_days
+            # 深夜日数
+            sheet.cell(row=start_row, column=14).value = attendance.night_days
+            request_detail = attendance.get_project_request_detail()
+            if request_detail:
+                # 売上
+                sheet.cell(row=start_row, column=18).value = request_detail.get_all_price()
+            # 月給
+            sheet.cell(row=start_row, column=19).value = project_member.member.cost
+
         start_row += 1
 
     return save_virtual_workbook(book)
 
 
-def set_openpyxl_styles(ws, cell_range, style_row):
+def set_openpyxl_styles(ws, cell_range, start_row):
     rows = list(ws.iter_rows(cell_range))
     style_list = []
+    reg = re.compile(r'\b[A-Z]{1,2}([0-9])+\b')
+    dict_formulae = {}
 
     # we convert iterator to list for simplicity, but it's not memory efficient solution
     rows = list(rows)
     for row_index, cells in enumerate(rows):
         for col_index, cell in enumerate(cells):
             if row_index == 0:
-                style_list.append((cell.border.copy(), cell.font.copy(), cell.fill.copy(), cell.alignment.copy()))
+                if col_index == 22:
+                    pass
+                style_list.append((cell.border.copy(),
+                                   cell.font.copy(),
+                                   cell.fill.copy(),
+                                   cell.alignment.copy(),
+                                   cell.number_format))
+                # フォーミュラ
+                if cell.value and cell.value[0] == '=':
+                    lst = reg.findall(cell.value)
+                    if lst and lst.count(lst[0]) == len(lst) and int(lst[0]) == start_row:
+                        dict_formulae[col_index] = cell.value.replace(lst[0], '{0}')
             else:
                 cell.border = style_list[col_index][0]
                 cell.font = style_list[col_index][1]
                 cell.fill = style_list[col_index][2]
                 cell.alignment = style_list[col_index][3]
+                cell.number_format = style_list[col_index][4]
+                if cell.value and cell.value[0] == '=':
+                    pass
+                elif col_index in dict_formulae:
+                    formulae = dict_formulae[col_index].format(start_row + row_index)
+                    cell.value = formulae

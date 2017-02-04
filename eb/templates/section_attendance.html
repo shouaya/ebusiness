@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load humanize %}
 {% load order_by_tag %}
 
 {% block header %}
@@ -184,9 +185,14 @@
                             <td></td>
                             <td></td>
                             <td></td>
-                            <td></td>
-                            <td></td>
-                            <td></td>
+                            <td style="text-align: right;">{{ attendance.get_project_request_detail.get_all_price|intcomma }}</td>
+                            {% if attendance.get_project_request_detail %}
+                                <td style="text-align: right;">{{ project_member.member.cost|intcomma }}</td>
+                                <td style="text-align: right;">{{ project_member.member.get_bonus|intcomma }}</td>
+                            {% else %}
+                                <td></td>
+                                <td></td>
+                            {% endif %}
                             <td></td>
                             <td></td>
                             <td></td>

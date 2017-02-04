@@ -616,6 +616,18 @@ class Member(AbstractMember):
         else:
             return None
 
+    def get_bonus(self):
+        """ボーナスを取得する。
+
+        正社員の場合はボーナスある。
+
+        :return:
+        """
+        if self.cost:
+            if self.member_type == 1:
+                return int(self.cost) / 6
+        return 0
+
     def get_section(self, date=None):
         """部署を取得する。
 
@@ -1508,6 +1520,10 @@ class ProjectRequestDetail(models.Model):
         unique_together = ('project_request', 'no')
         verbose_name = verbose_name_plural = u"案件請求明細"
 
+    def __unicode__(self):
+        return u"%s %s%sの請求明細" % (self.project_member, self.project_request.get_year_display(),
+                                  self.project_request.get_month_display())
+
     def get_tax_price(self):
         """税金を計算する。
         """
@@ -1911,6 +1927,18 @@ class MemberAttendance(models.Model):
 
     def __unicode__(self):
         return u"%s %s %s" % (self.project_member, self.get_year_display(), self.get_month_display())
+
+    def get_project_request_detail(self):
+        """メンバーの出勤情報によて、案件の請求情報を取得する。
+
+        :return: ProjectRequestDetailのQueryset
+        """
+        try:
+            return ProjectRequestDetail.objects.get(project_member=self.project_member,
+                                                    project_request__year=self.year,
+                                                    project_request__month=self.month)
+        except ObjectDoesNotExist:
+            return None
 
     def save(self, force_insert=False, force_update=False, using=None,
              update_fields=None):
