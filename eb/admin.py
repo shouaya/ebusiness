@@ -5,6 +5,7 @@ Created on 2015/08/21
 @author: Yang Wanjun
 """
 import os
+import datetime
 
 from django.http import HttpResponse
 from django.contrib import admin
@@ -18,7 +19,7 @@ from django.utils.encoding import force_text
 from django.utils.text import get_text_list
 
 import forms
-from . import models
+from . import models, biz
 from utils import common
 
 
@@ -428,7 +429,20 @@ class MemberAdmin(BaseAdmin):
     def get_form(self, request, obj=None, **kwargs):
         form = super(MemberAdmin, self).get_form(request, obj, **kwargs)
         form.base_fields['section'].queryset = models.Section.objects.public_filter(is_on_sales=False)
+        if obj is None:
+            form.base_fields['employee_id'].initial = biz.get_bp_next_employee_id()
         return form
+
+    def save_model(self, request, obj, form, change):
+        if not change:
+            obj.employee_id = datetime.datetime.now().strftime('%H%M%S%f')
+        super(MemberAdmin, self).save_model(request, obj, form, change)
+        if not change and obj.pk:
+            try:
+                obj.employee_id = 'BP%05d' % (obj.pk,)
+                obj.save()
+            except:
+                pass
 
     def change_view(self, request, object_id, form_url='', extra_context=None):
         member = models.Member.objects.get(pk=object_id)

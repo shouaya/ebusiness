@@ -53,6 +53,21 @@ def is_salesperson_user(user):
         return False
 
 
+def get_bp_next_employee_id():
+    """自動採番するため、次に使う番号を取得する。
+
+    これは最終的に使う社員番号ではありません。実際の番号は追加後の主キーを使って、設定しなおしてから、もう一回保存する 。
+
+    :return: string
+    """
+    max_id = models.Member.objects.all().aggregate(Max('id'))
+    max_id = max_id.get('id__max', None)
+    if max_id:
+        return 'BP%05d' % (int(max_id) + 1,)
+    else:
+        return ''
+
+
 def get_company():
     company_list = models.Company.objects.all()
     if company_list.count() == 0:
