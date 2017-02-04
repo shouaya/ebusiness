@@ -8,6 +8,7 @@
             init_select("client__name__contains");
             init_select("salesperson__pk");
             init_select("status");
+            init_select("is_lump");
         };
     </script>
 {% endblock %}
@@ -33,6 +34,12 @@
                 <option value="3">予算確定</option>
                 <option value="4">実施中</option>
                 <option value="5">完了</option>
+            </select>
+            <span>一括:</span>
+            <select id="is_lump" name="is_lump">
+                <option value="">すべて</option>
+                <option value="1">一括</option>
+                <option value="0">一括でない</option>
             </select>
             <input type="submit" value="Filter" />
             <a href="{% url 'project_list' %}">クリア</a>

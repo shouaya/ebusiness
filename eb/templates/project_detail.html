@@ -318,6 +318,15 @@
                 {% endifequal %}
             </td>
         </tr>
+        <tr>
+            <th>一括</th>
+            {% if project.is_lump %}
+            <td class="lump_project">一括案件</td>
+            {% else %}
+            <td></td>
+            {% endif %}
+            <td colspan="2"></td>
+        </tr>
     </table>
     <div class="dashboard">
         <div class="dashboard-title">注文履歴</div>

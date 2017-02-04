@@ -132,6 +132,7 @@ section table.list tr:hover {
 section table.detail {
     width: 100%;
     border: 1px solid rgb(198, 246, 204);
+    background-color: #fff;
 }
 
 section table.detail pre {
@@ -147,10 +148,6 @@ section table.detail th, section table.detail td {
 
 section table.detail th {
     background-color: #D1EEEE;
-}
-
-section table.detail td {
-    background-color: #fff;
 }
 
 section .row1 {
@@ -415,4 +412,9 @@ section table.request td.align_right {
 section table.request td.align_left {
     text-align: left;
     padding-left: 3px;
+}
+
+/* 一括案件 */
+section .lump_project {
+    background-color: yellow;
 }

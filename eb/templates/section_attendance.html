@@ -85,6 +85,9 @@
         margin-bottom: 10px;
         border: 3px solid white;
     }
+    tr:hover {
+        background-color: LightGreen;
+    }
 </style>
 {% endblock %}
 
@@ -163,10 +166,11 @@
                                 </div>
                             </td>
                             <td>{{ project_member.member.get_member_type_display }}</td>
-                            <td title="{{ project_member.project }}">
+                            <td title="{{ project_member.project }}"
+                                {% if project_member.project.is_lump %}class="lump_project"{% endif %}>
                                 <div style="width: 200px; overflow: hidden; white-space: nowrap;">
                                     <a href="{% url 'project_detail' project_member.project.pk %}">
-                                    {{ project_member.project }}
+                                    {% if project_member.project.is_lump %}【一括】{% endif %}{{ project_member.project }}
                                     </a>
                                 </div>
                             </td>
