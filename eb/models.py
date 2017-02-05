@@ -535,6 +535,17 @@ class Salesperson(AbstractMember):
                                            member__membersalespersonperiod__salesperson=self)
         return query_set
 
+    def get_warning_projects(self):
+        today = datetime.date.today()
+        query_set = self.project_set.filter(status=4).extra(select={
+            'num_working': "select count(*) "
+                           "  from eb_projectmember pm "
+                           " where pm.project_id = eb_project.id "
+                           "   and pm.start_date <= '%s' "
+                           "   and pm.end_date >= '%s' " % (today, today)
+        })
+        return query_set
+
     def get_under_salesperson(self):
         """部下の営業員を取得する、部下がない場合自分を返す。
         """

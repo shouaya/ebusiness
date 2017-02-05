@@ -55,7 +55,11 @@ PROJECT_STAGE = (u"要件定義", u"調査分析",
 
 CHOICE_PROJECT_MEMBER_STATUS = ((1, u"提案中"),
                                 (2, u"作業確定"))
-CHOICE_PROJECT_STATUS = ((1, u"提案"), (2, u"予算審査"), (3, u"予算確定"), (4, u"実施中"), (5, u"完了"))
+CHOICE_PROJECT_STATUS = ((1, u"提案"),
+                         (2, u"予算審査"),
+                         (3, u"予算確定"),
+                         (4, u"実施中"),
+                         (5, u"完了"))
 CHOICE_SKILL_TIME = ((0, u"未経験者可"),
                      (1, u"１年以上"),
                      (2, u"２年以上"),

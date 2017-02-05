@@ -66,7 +66,9 @@ def index(request):
     activities = biz.get_activities_incoming()
 
     show_own_member_status = False
+    show_warning_projects = False
     if biz.is_salesperson_user(request.user):
+        show_warning_projects = True
         if request.user.salesperson.member_type == 5:
             # 営業担当の場合
             show_own_member_status = True
@@ -93,6 +95,7 @@ def index(request):
         'subcontractor_release_next_2_month': subcontractor_release_next_2_month,
         'activities': activities,
         'show_own_member_status': show_own_member_status,
+        'show_warning_projects': show_warning_projects,
         'salesperson_list': salesperson_list,
     }
     template = loader.get_template('home.html')
@@ -369,6 +372,7 @@ def project_end(request, project_id):
     for p, v in dict(request.GET).items():
         params += "&%s=%s" % (p, v[0])
     params = params[1:] if params else ""
+    src = request.GET.get('from', None)
 
     try:
         project = models.Project.objects.get(pk=project_id)
@@ -377,7 +381,10 @@ def project_end(request, project_id):
     except ObjectDoesNotExist:
         pass
 
-    return redirect(reverse(project_list) + "?" + params)
+    if src == 'home':
+        return redirect(reverse(index) + "?" + params)
+    else:
+        return redirect(reverse(project_list) + "?" + params)
 
 
 @login_required(login_url='/eb/login/')
