@@ -11,9 +11,11 @@ import datetime
 import calendar
 import xlsxwriter
 import StringIO
+import math
 
 import constants
 import jholiday
+
 
 def add_months(source_date, months=1):
     month = source_date.month - 1 + months
@@ -782,6 +784,12 @@ def get_business_days(year, month, exclude=None):
 
 
 def get_form_changed_value(form, field):
+    """フォームに指定した項目と変更前、変更後の値を取得する。
+
+    :param form:
+    :param field:
+    :return: (ラベル名、変更前値、変更後値)
+    """
     old_value = form.initial.get(field, 'Unknown')
     new_value = form.cleaned_data.get(field, 'Unknown')
     label_name = form.fields.get(field).label
@@ -796,12 +804,55 @@ def get_form_changed_value(form, field):
 
 
 def get_formset_changed_value(formset, changed_object, changed_fields):
+    """Formsetに変更した項目と変更前、変更後の値を取得する。
+
+    :param formset:
+    :param changed_object:
+    :param changed_fields:
+    :return: (ラベル名、変更前値、変更後値)のリスト
+    """
     changed_values = []
     for form in formset.forms:
         if form.instance.pk == changed_object.pk:
             for field in changed_fields:
                 changed_values.append(get_form_changed_value(form, field))
     return changed_values
+
+
+def get_attendance_total_hours(total_hours, attendance_type):
+    """出勤の計算区分によって、勤務期間を取得する。
+
+    :param total_hours: 入力した時間
+    :param attendance_type: 出勤の計算区分
+    :return:
+    """
+    if not total_hours:
+        return 0
+    elif isinstance(total_hours, int) or isinstance(total_hours, long):
+        return total_hours
+    elif isinstance(total_hours, float):
+        float_part, int_part = math.modf(total_hours)
+        if attendance_type == '1':
+            # １５分ごと
+            if 0 <= float_part < 0.25:
+                return int_part
+            elif 0.25 <= float_part < 0.5:
+                return int_part + 0.25
+            elif 0.5 <= float_part < 0.75:
+                return int_part + 0.5
+            else:
+                return int_part + 0.75
+        elif attendance_type == '2':
+            # ３０分ごと
+            if 0 <= float_part < 0.5:
+                return int_part
+            else:
+                return int_part + 0.5
+        else:
+            # １時間ごと
+            return int_part
+    else:
+        return 0
 
 
 if __name__ == "__main__":

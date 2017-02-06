@@ -46,6 +46,7 @@ ERROR_TEMPLATE_NOT_EXISTS = u"テンプレートファイルが存在しませ�
 ERROR_REQUEST_FILE_NOT_EXISTS = u"作成された請求書は存在しません、" \
                                 u"サーバーに該当する請求書が存在するのかを確認してください。"
 ERROR_CANNOT_GENERATE_2MONTH_BEFORE = u"２ヶ月前の請求書は作成できない"
+ERROR_INVALID_TOTAL_HOUR = u"勤務時間のデータ不正、空白になっているのか、または０になっているのかご確認ください。"
 
 PROJECT_STAGE = (u"要件定義", u"調査分析",
                  u"基本設計", u"詳細設計",

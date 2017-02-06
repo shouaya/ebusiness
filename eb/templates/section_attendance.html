@@ -78,15 +78,20 @@
     }
     td.error {
         background: red;
+        color: white;
     }
     div.error {
         background: red;
         padding: 4px 6px;
         margin-bottom: 10px;
         border: 3px solid white;
+        color: white;
     }
     tr:hover {
         background-color: LightGreen;
+    }
+    tr:hover td {
+        background-color: transparent;
     }
 </style>
 {% endblock %}
@@ -96,10 +101,17 @@
         <div class="dashboard-title">{{ title }}</div>
         <form onsubmit="return checkUploadAttendance(this);" method="post"  enctype="multipart/form-data">
             <div>{% csrf_token %}</div>
-            <div style="color: gray;">既に記入済みの出勤情報は上書きしません。</div>
+            <div style="color: gray;">既に請求書作成済みの出勤情報は上書きしません。</div>
             <input type="file" id="attendance_file" name="attendance_file"/>
             <input type="submit" value="勤怠情報アップロード">
-            <a href="{% url 'download_section_attendance' section.pk year month %}" target="_blank" class="button">ダウンロード</a>
+            <div class="example">
+                <span>凡例:</span>
+                <div class="lump_project">【一括】一括案件</div>
+                <div class="project_requested">請求書作成済</div>
+                <div class="error" style="padding: 0px 2px;">エラー発生</div>
+            </div>
+            <div class="clear"></div>
+            <a href="{% url 'download_section_attendance' section.pk year month %}" target="_blank" style="margin-top: -40px;" class="button">ダウンロード</a>
         </form>
     </div>
     {% if has_error %}
@@ -157,7 +169,7 @@
                             </td>
                             <td>{{ project_member.member.get_section }}</td>
                             <td>
-                                <div style="width: 150px; overflow: hidden; white-space: nowrap;">
+                                <div style="width: 120px; overflow: hidden; white-space: nowrap;">
                                 {% if project_member.member.company %}
                                     {{ project_member.member.company }}
                                 {% else %}
@@ -168,7 +180,7 @@
                             <td>{{ project_member.member.get_member_type_display }}</td>
                             <td title="{{ project_member.project }}"
                                 {% if project_member.project.is_lump %}class="lump_project"{% endif %}>
-                                <div style="width: 200px; overflow: hidden; white-space: nowrap;">
+                                <div style="width: 160px; overflow: hidden; white-space: nowrap;">
                                     <a href="{% url 'project_detail' project_member.project.pk %}">
                                     {% if project_member.project.is_lump %}【一括】{% endif %}{{ project_member.project }}
                                     </a>
@@ -178,22 +190,31 @@
                             <td colspan="18" class="error">{{ msg }}</td>
                             {% else %}
                             <td title="{{ project_member.project.client }}">
-                                <div style="width: 180px; overflow: hidden; white-space: nowrap;">
+                                <div style="width: 120px; overflow: hidden; white-space: nowrap;">
                                 {{ project_member.project.client }}
                                 </div>
                             </td>
                             <td></td>
-                            <td style="text-align: right;">{{ attendance.total_hours }}</td>
-                            <td style="text-align: right;">{{ attendance.total_days|default:'' }}</td>
-                            <td style="text-align: right;">{{ attendance.night_days|default:'' }}</td>
-                            <td></td>
-                            <td></td>
-                            <td></td>
-                            <td style="text-align: right;">{{ attendance.get_project_request_detail.get_all_price|intcomma }}</td>
                             {% if attendance.get_project_request_detail %}
+                                <!-- 請求書作成済み -->
+                                <td class="project_requested" style="text-align: right;">{{ attendance.total_hours }}</td>
+                                <td class="project_requested" style="text-align: right;">{{ attendance.total_days|default:'' }}</td>
+                                <td class="project_requested" style="text-align: right;">{{ attendance.night_days|default:'' }}</td>
+                                <td class="project_requested"></td>
+                                <td class="project_requested"></td>
+                                <td class="project_requested"></td>
+                                <td class="project_requested" style="text-align: right;">{{ attendance.get_project_request_detail.get_all_price|intcomma }}</td>
                                 <td style="text-align: right;">{{ project_member.member.cost|intcomma }}</td>
                                 <td style="text-align: right;">{{ project_member.member.get_bonus|intcomma }}</td>
                             {% else %}
+                                <!-- 請求書未作成 -->
+                                <td style="text-align: right;">{{ attendance.total_hours }}</td>
+                                <td style="text-align: right;">{{ attendance.total_days|default:'' }}</td>
+                                <td style="text-align: right;">{{ attendance.night_days|default:'' }}</td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
                                 <td></td>
                                 <td></td>
                             {% endif %}

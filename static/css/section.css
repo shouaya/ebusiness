@@ -418,3 +418,24 @@ section table.request td.align_left {
 section .lump_project {
     background-color: yellow;
 }
+
+/* 請求書作成済み */
+section .project_requested {
+    background-color: lightgray;
+}
+
+section div.example {
+    padding-left: 10px;
+    padding-top: 5px;
+}
+
+section div.example span {
+    float: left;
+}
+
+section div.example div {
+    float: left;
+    border: 1px solid black;
+    font-size: 11px;
+    margin-left: 10px;
+}

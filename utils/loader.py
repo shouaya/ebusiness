@@ -281,14 +281,22 @@ def load_section_attendance(file_content, year, month):
             continue
 
         attendance = project_member.get_attendance(year, month)
-        if attendance:
-            # 既に出勤情報あり、スキップする。
+        if attendance and attendance.get_project_request_detail() is not None:
+            # 既に出勤情報あり且つ請求書作成済み、スキップする。
             continue
 
-        if not total_hours or (not isinstance(total_hours, float) and not isinstance(total_hours, int)):
-            messages.append((project_member_id, member_code, member_name, u"勤務時間のデータ不正。"))
+        if not total_hours:
+            # 空白または０の場合
+            messages.append((project_member_id, member_code, member_name, constants.ERROR_INVALID_TOTAL_HOUR))
+            continue
+        if not isinstance(total_hours, float) \
+                and not isinstance(total_hours, int) \
+                and not isinstance(total_hours, long):
+            # 数値ではない場合。
+            messages.append((project_member_id, member_code, member_name, constants.ERROR_INVALID_TOTAL_HOUR))
             continue
 
+        total_hours = common.get_attendance_total_hours(total_hours, project_member.project.attendance_type)
         if total_hours > float(project_member.max_hours):
             # 残業あり
             extra_hours = total_hours - float(project_member.max_hours)
@@ -301,18 +309,25 @@ def load_section_attendance(file_content, year, month):
             extra_hours = 0
             price = project_member.price
 
-        attendance = models.MemberAttendance(project_member=project_member,
-                                             year=year, month=month,
-                                             rate=1,
-                                             basic_price=project_member.price,
-                                             total_hours=total_hours,
-                                             extra_hours=extra_hours,
-                                             total_days=total_days if total_days else None,
-                                             night_days=night_days if night_days else None,
-                                             min_hours=project_member.min_hours,
-                                             max_hours=project_member.max_hours,
-                                             plus_per_hour=project_member.plus_per_hour,
-                                             minus_per_hour=project_member.minus_per_hour,
-                                             price=price)
+        if attendance:
+            attendance.total_hours = total_hours
+            attendance.extra_hours = extra_hours
+            attendance.total_days = total_days if total_days else None
+            attendance.night_days = night_days if night_days else None
+            attendance.price = price
+        else:
+            attendance = models.MemberAttendance(project_member=project_member,
+                                                 year=year, month=month,
+                                                 rate=1,
+                                                 basic_price=project_member.price,
+                                                 total_hours=total_hours,
+                                                 extra_hours=extra_hours,
+                                                 total_days=total_days if total_days else None,
+                                                 night_days=night_days if night_days else None,
+                                                 min_hours=project_member.min_hours,
+                                                 max_hours=project_member.max_hours,
+                                                 plus_per_hour=project_member.plus_per_hour,
+                                                 minus_per_hour=project_member.minus_per_hour,
+                                                 price=price)
         attendance.save()
     return messages
