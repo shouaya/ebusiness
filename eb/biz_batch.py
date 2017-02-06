@@ -181,7 +181,7 @@ def get_members_information():
                }
 
     status_list = []
-    for salesperson in models.Salesperson.objects.public_filter(user__isnull=False, member_type=5):
+    for salesperson in get_salesperson_members():
         d = dict()
         d['salesperson'] = salesperson
         d['all_member_count'] = salesperson.get_on_sales_members().count()
@@ -209,6 +209,7 @@ def notify_member_status_mails(batch, status_list, summary):
                 return [status]
         return []
 
+    logger = logging.getLogger('eb.management.commands.%s' % (batch.name,))
     today = datetime.date.today()
     next_month = common.add_months(today, 1)
     next_2_months = common.add_months(today, 2)
@@ -241,7 +242,9 @@ def notify_member_status_mails(batch, status_list, summary):
                        'next_2_ym': next_2_ym,
                        }
             if recipient_list:
-                batch.send_notify_mail(context, recipient_list)
+                batch.send_notify_mail(context, recipient_list, no_cc=True)
+            else:
+                logger.warning(u"%s の宛先が空白になっている。" % (salesperson.__unicode__(),))
 
 
 def send_attendance_format(batch, date):

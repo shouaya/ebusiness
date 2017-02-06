@@ -94,12 +94,18 @@ class AbstractMember(models.Model):
 
     def get_notify_mail_list(self):
         if self.notify_type == 1:
-            return [self.email]
+            if self.email:
+                return [self.email]
         elif self.notify_type == 2:
-            return [self.private_email]
+            if self.private_email:
+                return [self.private_email]
         elif self.notify_type == 3:
-            return [self.email, self.private_email]
-
+            if self.email and self.private_email:
+                return [self.email, self.private_email]
+            elif self.email:
+                return [self.email]
+            elif self.private_email:
+                return [self.private_email]
         return []
 
 
@@ -2244,14 +2250,14 @@ class BatchManage(models.Model):
                 cc_list.append(cc.email)
         return cc_list
 
-    def send_notify_mail(self, context, recipient_list, attachments=None):
+    def send_notify_mail(self, context, recipient_list, attachments=None, no_cc=False):
         logger = logging.getLogger('eb.management.commands.%s' % (self.name,))
         if not recipient_list:
-            logger.info(u"宛先が空白になっている。")
+            logger.warning(u"宛先が空白になっている。")
             return False
         from_email, title, body, html = self.get_formatted_batch(context)
         connection = BatchManage.get_custom_connection()
-        cc_list = self.get_cc_list()
+        cc_list = [] if no_cc else self.get_cc_list()
         email = EmailMultiAlternativesWithEncoding(
             subject=title,
             body=body,
@@ -2265,7 +2271,7 @@ class BatchManage(models.Model):
         if attachments:
             for filename, content, mimetype in attachments:
                 email.attach(filename, content, mimetype)
-        email.send()
+        # email.send()
         log_format = u"題名: %s; FROM: %s; TO: %s; CC: %s; 送信完了。"
         logger.info(log_format % (title, from_email, ','.join(recipient_list), ','.join(cc_list)))
 
