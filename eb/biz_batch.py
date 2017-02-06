@@ -191,7 +191,6 @@ def get_members_information():
         d['next_month_count'] = salesperson.get_release_next_month().count()
         d['next_2_month_count'] = salesperson.get_release_next_2_month().count()
         status_list.append(d)
-        print salesperson.__unicode__(), d
 
     return status_list, summary
 

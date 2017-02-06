@@ -2271,7 +2271,7 @@ class BatchManage(models.Model):
         if attachments:
             for filename, content, mimetype in attachments:
                 email.attach(filename, content, mimetype)
-        # email.send()
+        email.send()
         log_format = u"題名: %s; FROM: %s; TO: %s; CC: %s; 送信完了。"
         logger.info(log_format % (title, from_email, ','.join(recipient_list), ','.join(cc_list)))
 
