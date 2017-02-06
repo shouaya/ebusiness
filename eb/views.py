@@ -374,12 +374,8 @@ def project_end(request, project_id):
     params = params[1:] if params else ""
     src = request.GET.get('from', None)
 
-    try:
-        project = models.Project.objects.get(pk=project_id)
-        project.status = 5
-        project.save()
-    except ObjectDoesNotExist:
-        pass
+    project = get_object_or_404(models.Project, pk=project_id)
+    project.status = 5
 
     if src == 'home':
         return redirect(reverse(index) + "?" + params)
@@ -434,7 +430,7 @@ def project_order_list(request):
 @login_required(login_url='/eb/login/')
 def project_detail(request, project_id):
     company = biz.get_company()
-    project = models.Project.objects.get(pk=project_id)
+    project = get_object_or_404(models.Project, pk=project_id)
 
     context = {
         'company': company,
@@ -485,7 +481,7 @@ def project_members_by_order(request, order_id):
 @permission_required('eb.input_attendance', raise_exception=True)
 def project_attendance_list(request, project_id):
     company = biz.get_company()
-    project = models.Project.objects.get(pk=project_id)
+    project = get_object_or_404(models.Project, pk=project_id)
     ym = request.GET.get('ym', None)
 
     context = {
@@ -629,7 +625,7 @@ def project_attendance_list(request, project_id):
 def project_member_list(request, project_id):
     company = biz.get_company()
     status = request.GET.get('status', None)
-    project = models.Project.objects.get(pk=project_id)
+    project = get_object_or_404(models.Project, pk=project_id)
     params = ""
     o = request.GET.get('o', None)
     dict_order = common.get_ordering_dict(o, ['member__first_name',
@@ -1042,7 +1038,7 @@ def release_list(request, ym):
 @login_required(login_url='/eb/login/')
 def member_detail(request, employee_id):
     company = biz.get_company()
-    member = models.Member.objects.get(employee_id=employee_id)
+    member = get_object_or_404(models.Member, employee_id=employee_id)
     member.set_coordinate()
 
     project_count = member.projectmember_set.public_all().count()
@@ -1062,7 +1058,7 @@ def member_detail(request, employee_id):
 def member_project_list(request, employee_id):
     status = request.GET.get('status', None)
     company = biz.get_company()
-    member = models.Member.objects.get(employee_id=employee_id)
+    member = get_object_or_404(models.Member, employee_id=employee_id)
     if status and status != '0':
         project_members = models.ProjectMember.objects.public_filter(member=member, status=status)\
             .order_by('-status', 'end_date')
@@ -1082,7 +1078,7 @@ def member_project_list(request, employee_id):
 
 @login_required(login_url='/eb/login/')
 def recommended_member_list(request, project_id):
-    project = models.Project.objects.get(pk=project_id)
+    project = get_object_or_404(models.Project, pk=project_id)
     company = biz.get_company()
     dict_skills = project.get_recommended_members()
 
@@ -1099,7 +1095,7 @@ def recommended_member_list(request, project_id):
 @login_required(login_url='/eb/login/')
 def recommended_project_list(request, employee_id):
     company = biz.get_company()
-    member = models.Member.objects.get(employee_id=employee_id)
+    member = get_object_or_404(models.Member, employee_id=employee_id)
     skills = member.get_skill_list()
     project_id_list = member.get_recommended_projects()
     projects = models.Project.objects.public_filter(pk__in=project_id_list)
@@ -1161,7 +1157,7 @@ def subcontractor_detail(request, subcontractor_id):
     dict_order = common.get_ordering_dict(o, ['first_name'])
     order_list = common.get_ordering_list(o)
 
-    subcontractor = models.Subcontractor.objects.get(pk=subcontractor_id)
+    subcontractor = get_object_or_404(models.Subcontractor, pk=subcontractor_id)
     all_members = subcontractor.member_set.all()
     if order_list:
         all_members = all_members.order_by(*order_list)
@@ -1192,7 +1188,7 @@ def subcontractor_detail(request, subcontractor_id):
 @login_required(login_url='/eb/login/')
 def subcontractor_members(request, subcontractor_id):
     company = biz.get_company()
-    subcontractor = models.Subcontractor.objects.get(pk=subcontractor_id)
+    subcontractor = get_object_or_404(models.Subcontractor, pk=subcontractor_id)
     ym = request.GET.get('ym', None)
 
     context = {
@@ -1306,7 +1302,7 @@ def upload_resume(request):
 @login_required(login_url='/eb/login/')
 def download_project_quotation(request, project_id):
     company = biz.get_company()
-    project = models.Project.objects.get(pk=project_id)
+    project = get_object_or_404(models.Project, pk=project_id)
     try:
         now = datetime.datetime.now()
         path = file_gen.generate_quotation(project, request.user, company)
@@ -1336,7 +1332,7 @@ def download_client_order(request):
 def download_subcontractor_order(request, subcontractor_id):
     company = biz.get_company()
     ym = request.GET.get('ym', None)
-    subcontractor = models.Subcontractor.objects.get(pk=subcontractor_id)
+    subcontractor = get_object_or_404(models.Subcontractor, pk=subcontractor_id)
 
     try:
         data = biz.generate_order_data(company, subcontractor, request.user, ym)
@@ -1638,3 +1634,10 @@ def login_user(request):
 def logout_view(request):
     logout(request)
     return redirect('index')
+
+
+def handler404(request):
+    response = render_to_response('404.html', {},
+                                  context_instance=RequestContext(request))
+    response.status_code = 404
+    return response
