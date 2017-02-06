@@ -10,6 +10,10 @@ import datetime
 
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Max
+from django.contrib.admin.models import LogEntry, ADDITION, CHANGE
+from django.contrib.contenttypes.models import ContentType
+from django.utils.text import get_text_list
+from django.utils.translation import ugettext as _
 
 from eb.models import Member, Degree, HistoryProject, OS, Skill, ProjectStage
 from eb import models
@@ -245,12 +249,13 @@ def load_resume(file_content, member_id=None):
     return member, None
 
 
-def load_section_attendance(file_content, year, month):
+def load_section_attendance(file_content, year, month, use_id):
     """アップロードした出勤情報をDBに書き込む
 
     :param file_content: 出勤ファイル
     :param year: 対象年
     :param month: 対象月
+    :param use_id: ユーザーID
     :return:
     """
     book = xlrd.open_workbook(file_contents=file_content)
@@ -309,7 +314,16 @@ def load_section_attendance(file_content, year, month):
             extra_hours = 0
             price = project_member.price
 
+        changed_list = []
         if attendance:
+            action_flag = CHANGE
+            common.get_object_changed_message(attendance, 'total_hours', total_hours, changed_list)
+            common.get_object_changed_message(attendance, 'extra_hours', extra_hours, changed_list)
+            common.get_object_changed_message(attendance, 'total_days', total_days, changed_list)
+            common.get_object_changed_message(attendance, 'night_days', night_days, changed_list)
+            common.get_object_changed_message(attendance, 'price', price, changed_list)
+            change_message = _('Changed %s.') % get_text_list(changed_list, _('and')) if changed_list else ''
+            change_message += u" 【データ導入】"
             attendance.total_hours = total_hours
             attendance.extra_hours = extra_hours
             attendance.total_days = total_days if total_days else None
@@ -329,5 +343,20 @@ def load_section_attendance(file_content, year, month):
                                                  plus_per_hour=project_member.plus_per_hour,
                                                  minus_per_hour=project_member.minus_per_hour,
                                                  price=price)
+            action_flag = ADDITION
+            common.get_object_changed_message(attendance, 'total_hours', total_hours, changed_list)
+            common.get_object_changed_message(attendance, 'extra_hours', extra_hours, changed_list)
+            common.get_object_changed_message(attendance, 'total_days', total_days, changed_list)
+            common.get_object_changed_message(attendance, 'night_days', night_days, changed_list)
+            common.get_object_changed_message(attendance, 'price', price, changed_list)
+            change_message = (get_text_list(changed_list, _('and')) if changed_list else '') + _('Added.')
+            change_message += u" 【データ導入】"
         attendance.save()
+        if change_message:
+            LogEntry.objects.log_action(user_id=use_id,
+                                        content_type_id=ContentType.objects.get_for_model(attendance).pk,
+                                        object_id=attendance.pk,
+                                        object_repr=unicode(attendance),
+                                        action_flag=action_flag,
+                                        change_message=change_message or _('No fields changed.'))
     return messages

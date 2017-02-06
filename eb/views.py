@@ -746,7 +746,7 @@ def section_attendance(request, section_id):
     messages = []
     if request.method == 'POST':
         input_excel = request.FILES['attendance_file']
-        messages = file_loader.load_section_attendance(input_excel.read(), year, month)
+        messages = file_loader.load_section_attendance(input_excel.read(), year, month, request.user.id)
 
     all_project_members = []
     for project_member in project_members:

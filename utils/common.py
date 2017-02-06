@@ -819,6 +819,37 @@ def get_formset_changed_value(formset, changed_object, changed_fields):
     return changed_values
 
 
+def get_object_changed_message(obj, field, new_value, changed_list=None):
+    """models.Modelのインスタンスから変更メッセージを取得する。
+
+    :param obj: models.Modelのインスタンス
+    :param field:
+    :param new_value:
+    :param changed_list:
+    :return:
+    """
+    verbose_name = obj._meta.get_field_by_name(field)[0].verbose_name
+    if obj.pk:
+        # 更新の場合
+        old_value = getattr(obj, field)
+        if old_value and new_value and old_value != new_value:
+            message = u"%s(%s→%s)" % (verbose_name, old_value, new_value)
+            if isinstance(changed_list, list):
+                changed_list.append(message)
+            return message
+        else:
+            return ''
+    else:
+        # 追加の場合
+        if new_value:
+            message = u"%s(%s)" % (verbose_name, new_value)
+            if isinstance(changed_list, list):
+                changed_list.append(message)
+            return message
+        else:
+            return ''
+
+
 def get_attendance_total_hours(total_hours, attendance_type):
     """出勤の計算区分によって、勤務期間を取得する。
 
