@@ -119,7 +119,7 @@ class ProjectForm(forms.ModelForm):
 
     def clean(self):
         cleaned_data = super(ProjectForm, self).clean()
-        is_lump= cleaned_data.get("is_lump")
+        is_lump = cleaned_data.get("is_lump")
         lump_amount = cleaned_data.get("lump_amount")
         if is_lump:
             if not lump_amount or lump_amount <= 0:

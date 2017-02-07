@@ -194,7 +194,13 @@
                                 {{ project_member.project.client }}
                                 </div>
                             </td>
-                            <td></td>
+                            <td>
+                                {% if project_member.project.is_lump %}
+                                    一括
+                                {% else %}
+                                    SES
+                                {% endif %}
+                            </td>
                             {% if attendance.get_project_request_detail %}
                                 <!-- 請求書作成済み -->
                                 <td class="project_requested" style="text-align: right;">{{ attendance.total_hours }}</td>

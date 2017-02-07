@@ -13,6 +13,7 @@ from django.contrib import messages
 from django.contrib.admin.models import LogEntry, ADDITION, CHANGE
 from django.contrib.auth.models import User
 from django.contrib.auth.admin import UserAdmin
+from django.core.validators import MaxLengthValidator
 from django.utils.translation import ugettext as _
 from django.db.models import Max
 from django.utils.encoding import force_text
@@ -1233,6 +1234,24 @@ class BatchManageAdmin(BaseAdmin):
 class ConfigAdmin(BaseAdmin):
     list_display = ['name', 'value']
 
+
+NEW_USERNAME_LENGTH = 50
+
+
+def reset_username_length():
+    """既存のユーザ名の長さは３０なので、ここ５０に設定する。
+
+    この設定はただフォームの検証時のmax lengthを５０に設定するだけ、DBの項目の長さは変更されません。
+
+    :return:
+    """
+    username = User._meta.get_field("username")
+    username.max_length = NEW_USERNAME_LENGTH
+    for v in username.validators:
+        if isinstance(v, MaxLengthValidator):
+            v.limit_value = NEW_USERNAME_LENGTH
+
+reset_username_length()
 
 # Register your models here.
 admin.site.register(models.Company, CompanyAdmin)

@@ -24,17 +24,8 @@ SECRET_KEY = '@p5sj45=(^$_b=%3^qzs$=tw72j01+6ay076w)6gogwwaj#if7'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-TEMPLATE_DEBUG = True
-
 ALLOWED_HOSTS = []
 NUMBER_GROUPING = 3
-
-EMAIL_HOST = 'smtp.e-business.co.jp'
-EMAIL_HOST_USER = 'yangwanjun@e-business.co.jp'
-EMAIL_HOST_PASSWORD = ''
-EMAIL_PORT = 587
-EMAIL_USE_TLS = True
-DOMAIN_NAME = 'http://sales.e-business.co.jp'
 
 # Application definition
 

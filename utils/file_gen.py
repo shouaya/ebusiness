@@ -983,6 +983,8 @@ def generate_attendance_format(template_path, project_members, date):
         sheet.cell(row=start_row, column=9).value = project_member.project.name
         # 顧客名
         sheet.cell(row=start_row, column=10).value = project_member.project.client.name
+        # 契約種類
+        sheet.cell(row=start_row, column=11).value = u"一括" if project_member.project.is_lump else 'SES'
 
         # 出勤情報取得
         attendance = project_member.get_attendance(date.year, date.month)

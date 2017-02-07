@@ -1070,7 +1070,8 @@ class Project(models.Model):
     skills = models.ManyToManyField(Skill, through='ProjectSkill', blank=True, verbose_name=u"スキル要求")
     os = models.ManyToManyField(OS, blank=True, verbose_name=u"機種／OS")
     start_date = models.DateField(blank=True, null=True, verbose_name=u"開始日")
-    end_date = models.DateField(blank=True, null=True, verbose_name=u"終了日")
+    end_date = models.DateField(blank=True, null=True, verbose_name=u"終了日",
+                                help_text=u"もし設定した終了日は一番最後の案件メンバーの終了日より以前の日付だったら、自動的に最後のメンバーの終了日に設定する。")
     address = models.CharField(blank=True, null=True, max_length=255, verbose_name=u"作業場所")
     status = models.IntegerField(choices=constants.CHOICE_PROJECT_STATUS, verbose_name=u"ステータス")
     attendance_type = models.CharField(max_length=1, default='1', choices=constants.CHOICE_ATTENDANCE_TYPE,
