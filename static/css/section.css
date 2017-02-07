@@ -327,6 +327,7 @@ section .errorlist {
     color: #fff;
 }
 
+section div#change_password,
 section div#login {
     width: 400px;
     margin: 150px auto;
@@ -337,21 +338,25 @@ section div#login {
     padding: 25px 25px 15px 5px;
 }
 
+section div#change_password img ,
 section div#login img {
     width: 80px;
     margin-top: 15px;
 }
 
+section div#change_password input ,
 section div#login input {
     width: 250px;
     border-radius: 5px;
     padding: 3px;
 }
 
+section div#change_password label ,
 section div#login label {
     line-height: 2;
 }
 
+section div#change_password button ,
 section div#login button {
     padding: 5px 10px;
     margin: 5px 0px;

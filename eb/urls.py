@@ -101,4 +101,5 @@ urlpatterns = [
     url(r"^upload_file.html$", views.upload_resume, name="upload_file"),
     url(r'^login/$', views.login_user, name='login'),
     url(r'^logout/$', views.logout_view, name='logout_view'),
+    url(r'^accounts/password/change/$', views.password_change, name='password_change'),
 ]

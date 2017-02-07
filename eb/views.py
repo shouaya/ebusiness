@@ -26,6 +26,12 @@ from django.views.decorators.csrf import csrf_protect
 from django.contrib.admin.models import LogEntry, ADDITION, CHANGE
 from django.contrib.contenttypes.models import ContentType
 from django.core.management import call_command
+from django.contrib.auth.forms import PasswordChangeForm
+from django.shortcuts import resolve_url
+from django.http import HttpResponseRedirect
+from django.template.response import TemplateResponse
+from django.utils.translation import ugettext as _
+from django.contrib.auth import update_session_auth_hash
 
 from eb import biz, biz_batch, biz_turnover
 from utils import constants, common, errors, loader as file_loader, file_gen
@@ -1634,6 +1640,39 @@ def login_user(request):
 def logout_view(request):
     logout(request)
     return redirect('index')
+
+
+@csrf_protect
+@login_required
+def password_change(request,
+                    template_name='password_change_form.html',
+                    post_change_redirect=None,
+                    password_change_form=PasswordChangeForm,
+                    extra_context=None):
+    if post_change_redirect is None:
+        post_change_redirect = reverse('index')
+    else:
+        post_change_redirect = resolve_url(post_change_redirect)
+    if request.method == "POST":
+        form = password_change_form(user=request.user, data=request.POST)
+        if form.is_valid():
+            form.save()
+            # Updating the password logs out all other sessions for the user
+            # except the current one if
+            # django.contrib.auth.middleware.SessionAuthenticationMiddleware
+            # is enabled.
+            update_session_auth_hash(request, form.user)
+            return HttpResponseRedirect(post_change_redirect)
+    else:
+        form = password_change_form(user=request.user)
+    context = {
+        'form': form,
+        'title': _('Password change'),
+    }
+    if extra_context is not None:
+        context.update(extra_context)
+
+    return TemplateResponse(request, template_name, context)
 
 
 def handler404(request):
