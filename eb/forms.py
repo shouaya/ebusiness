@@ -475,6 +475,8 @@ class MemberSectionPeriodForm(forms.ModelForm):
         end_date = cleaned_data.get("end_date")
         if end_date and end_date <= start_date:
             self.add_error('end_date', u"終了日は開始日以降に設定してください。")
+        if 'section' in self.changed_data:
+            self.add_error('section', u"部署を変更できません、変更したい場合は新しい部署とその期間を追加してください。")
 
 
 class MemberSalespersonPeriodForm(forms.ModelForm):
@@ -493,6 +495,8 @@ class MemberSalespersonPeriodForm(forms.ModelForm):
         end_date = cleaned_data.get("end_date")
         if end_date and end_date <= start_date:
             self.add_error('end_date', u"終了日は開始日以降に設定してください。")
+        if 'salesperson' in self.changed_data:
+            self.add_error('salesperson', u"営業員を変更できません、変更したい場合は新しい営業員とその期間を追加してください。")
 
 
 class MemberSectionPeriodFormset(forms.BaseInlineFormSet):
