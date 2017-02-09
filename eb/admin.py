@@ -115,7 +115,7 @@ class ProjectMemberInline(admin.TabularInline):
 
     def get_queryset(self, request):
         queryset = super(ProjectMemberInline, self).get_queryset(request)
-        return queryset.filter(is_deleted=False, member__is_retired=False, member__is_deleted=False)
+        return queryset.filter(member__is_retired=False, member__is_deleted=False).order_by('end_date', 'start_date')
 
 
 class EmployeeExpensesInline(admin.TabularInline):
@@ -615,6 +615,11 @@ class ProjectAdmin(BaseAdmin):
     search_fields = ['name', 'client__name']
     inlines = (ProjectSkillInline, ProjectMemberInline)
     actions = ['delete_objects', 'active_objects']
+
+    class Media:
+        js = ('/static/js/row_finish.js',)
+        css = {'all': ('/static/css/admin_row_finished.css',)
+               }
 
     def _create_formsets(self, request, obj, change):
         formsets, inline_instances = super(ProjectAdmin, self)._create_formsets(request, obj, change)

@@ -630,24 +630,18 @@ def project_attendance_list(request, project_id):
 @login_required(login_url='/eb/login/')
 def project_member_list(request, project_id):
     company = biz.get_company()
-    status = request.GET.get('status', None)
     project = get_object_or_404(models.Project, pk=project_id)
-    params = ""
+    param_list = common.get_request_params(request.GET)
+    params = "&".join(["%s=%s" % (key, value) for key, value in param_list.items()]) if param_list else ""
     o = request.GET.get('o', None)
-    dict_order = common.get_ordering_dict(o, ['member__first_name',
-                                              'member__section', 'start_date', 'end_date', 'price'])
+    dict_order = common.get_ordering_dict(o, ['member__first_name', 'start_date', 'end_date', 'price'])
     order_list = common.get_ordering_list(o)
 
-    all_project_members = project.get_project_members()
+    all_project_members = project.projectmember_set.all()
+    if param_list:
+        all_project_members = all_project_members.filter(**param_list)
     if order_list:
         all_project_members = all_project_members.order_by(*order_list)
-
-    if status == "working":
-        all_project_members = [member for member in all_project_members if member.member.get_project_end_date()]
-        params += u"&status=%s" % (status,)
-    elif status == "waiting":
-        all_project_members = [member for member in all_project_members if not member.member.get_project_end_date()]
-        params += u"&status=%s" % (status,)
 
     paginator = Paginator(all_project_members, PAGE_SIZE)
     page = request.GET.get('page')

@@ -1110,8 +1110,13 @@ class Project(models.Model):
         return self.name
 
     def get_project_members(self):
-        # 案件にアサイン人数を取得する。
-        return self.projectmember_set.public_filter(is_deleted=False)
+        """案件の現在アサイン中のメンバーを取得する。
+
+        :return:
+        """
+        today = datetime.date.today()
+        return self.projectmember_set.public_filter(start_date__lte=today,
+                                                    end_date__gte=today)
 
     def get_recommended_members(self):
         # 如果案件为提案状态则自动推荐待机中的人员及即将待机的人
@@ -1924,6 +1929,9 @@ class MemberAttendance(models.Model):
     extra_hours = models.DecimalField(max_digits=5, decimal_places=2, default=0, verbose_name=u"残業時間")
     total_days = models.IntegerField(blank=True, null=True, editable=False, verbose_name=u"勤務日数")
     night_days = models.IntegerField(blank=True, null=True, editable=False, verbose_name=u"深夜日数")
+    advances_paid = models.IntegerField(blank=True, null=True, editable=False, verbose_name=u"立替金")
+    advances_paid_client = models.IntegerField(blank=True, null=True, editable=False, verbose_name=u"客先立替金")
+    traffic_cost = models.IntegerField(blank=True, null=True, editable=False, verbose_name=u"勤務交通費")
     min_hours = models.DecimalField(max_digits=5, decimal_places=2, default=0, editable=False, verbose_name=u"基準時間")
     max_hours = models.DecimalField(max_digits=5, decimal_places=2, default=0, editable=False, verbose_name=u"最大時間")
     plus_per_hour = models.IntegerField(default=0, editable=False, verbose_name=u"増（円）")

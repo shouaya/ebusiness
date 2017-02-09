@@ -121,6 +121,7 @@ section table.list th, section table.list tfoot td {
 
 section table.list tr.expired,
 section table.list tr.waiting,
+section table.list tr.finished,
 section table.list tr.off_sales {
     background: lightgray;
 }

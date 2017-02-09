@@ -6,6 +6,7 @@ Created on 2015/08/26
 """
 import re
 import models
+import datetime
 
 from django import forms
 from django.forms.utils import flatatt
@@ -225,6 +226,14 @@ class ProjectMemberForm(forms.ModelForm):
     class Meta:
         model = models.ProjectMember
         fields = '__all__'
+
+    def __init__(self, *args, **kwargs):
+        super(ProjectMemberForm, self).__init__(*args, **kwargs)
+        instance = kwargs.get('instance', None)
+        if instance and isinstance(instance, models.ProjectMember):
+            if instance.end_date < datetime.date.today():
+                old_class = self.fields['end_date'].widget.attrs.get('class')
+                self.fields['end_date'].widget.attrs.update({'class': old_class + ' finished'})
 
     member = forms.ModelChoiceField(queryset=models.Member.objects.public_all(),
                                     widget=SearchSelect(models.Member),
@@ -493,7 +502,6 @@ class MemberSalespersonPeriodForm(forms.ModelForm):
         cleaned_data = super(MemberSalespersonPeriodForm, self).clean()
         start_date = cleaned_data.get("start_date")
         end_date = cleaned_data.get("end_date")
-        print dir(self)
         if end_date and end_date <= start_date:
             self.add_error('end_date', u"終了日は開始日以降に設定してください。")
         if 'salesperson' in self.changed_data and self.instance.pk:

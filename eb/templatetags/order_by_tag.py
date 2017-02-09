@@ -37,6 +37,7 @@ class GenerateOrderTag(template.Node):
             dict_order = context['dict_order']
             order_name = dict_order.get(self.dict_name)
             params = context.get('params', '')
+            params = params if params.startswith('&') else ('&' + params)
             html = u""
             if order_name.get('is_in_ordering', False):
                 html += u"""<div class="sortoptions">
@@ -52,6 +53,6 @@ class GenerateOrderTag(template.Node):
             html += u"""<div class="text"><a href="?o={0}{1}">{2}</a></div>
                         <div class="clear"></div>
                     """.format(order_name.get('url'),
-                                                             params,
-                                                             self.display_name)
+                               params,
+                               self.display_name)
         return html
