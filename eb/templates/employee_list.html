@@ -16,6 +16,7 @@
 {% endblock %}
 
 {% block content %}
+{% now 'Y-m-d' as ymd %}
     <div class="dashboard">
         <div class="dashboard-title">なにをしたいのですか？</div>
         <form action="" method="get">
@@ -98,10 +99,14 @@
                                 {{ member.first_name }}&nbsp;{{ member.last_name }}
                             </a>
                         </td>
-                        <td>{{ member.get_section }}</td>
+                        <td>
+                            {% for section_period in member.current_section_period %}
+                                {{ section_period.section }}
+                            {% endfor %}
+                        </td>
                         <td>{{ member.subcontractor|default:"" }}</td>
                         <td class="center">
-                            {% if member.get_project_end_date %}
+                            {% if member.last_end_date|date:"Y-m-d" > ymd %}
                                 <a href="?status=working{{ params }}"><img width="12px" src="/static/img/icon-normal.png"/></a>
                             {% else %}
                                 <a href="?status=waiting{{ params }}"><img width="12px" src="/static/img/icon-warn.png"/></a>
@@ -111,21 +116,17 @@
                             {% if page_type == "members_in_coming" %}
                                 {{ member.join_date }}
                             {% else %}
-                                {{ member.get_project_end_date|date:"Y-m-d" }}
+                                {% if member.last_end_date|date:"Y-m-d" > ymd %}
+                                    {{ member.last_end_date|date:"Y-m-d" }}
+                                {% endif %}
                             {% endif %}
                         </td>
                         <td>
-                            {% if member.get_salesperson %}
-                                <a href="?salesperson={{ member.get_salesperson.pk }}">{{ member.get_salesperson }}</a>
-                            {% endif %}
+                            {% for salesperson_period in member.current_salesperson_period %}
+                                <a href="?salesperson={{ salesperson_period.salesperson.pk }}">
+                                    {{ salesperson_period.salesperson }}</a>
+                            {% endfor %}
                         </td>
-                        <!--<td class="center">-->
-                            <!--{% ifequal member.get_business_status "営業中" %}-->
-                                <!--<a href="{% url 'member_project_list' member.employee_id %}?status=1">営業中</a>-->
-                            <!--{% else %}-->
-                                <!--{{ member.get_business_status }}-->
-                            <!--{% endifequal %}-->
-                        <!--</td>-->
                         <td class="center">
                             {% if page_type == "off_sales" %}
                                 {{ member.sales_off_reason }}

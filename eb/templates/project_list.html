@@ -54,11 +54,11 @@
         <thead>
             <tr>
                 <th style="width: 320px;">{% create_order_display "案件名称" "name" %}</th>
-                <th style="width: 190px;">{% create_order_display "関連会社" "client__name" %}</th>
+                <th style="width: 180px;">{% create_order_display "関連会社" "client__name" %}</th>
                 <th style="width: 80px;">{% create_order_display "営業員" "salesperson__first_name" %}</th>
                 <th style="width: 35px;">総人数</th>
                 <th style="width: 30px;">現在<br/>人数</th>
-                <th style="width: 70px;">メンバー</th>
+                <th style="width: 80px;">メンバー</th>
                 <th style="width: 60px;">状態</th>
                 <th style="width: 125px;">{% create_order_display "更新日" "update_date" %}</th>
                 <th class="noprint" style="width: 65px;"></th>
@@ -86,11 +86,11 @@
                         <td class="center">{{ project.projectmember_set.all.count }}</td>
                         <td class="center">
                             <a href="{% url 'project_members' project.pk %}?start_date__lte={{ today }}&end_date__gte={{ today }}">
-                                {{ project.get_project_members.count }}
+                                {{ project.working_project_members|length }}
                             </a>
                         </td>
                         <td>
-                            {% for project_member in project.get_project_members|slice:'1' %}
+                            {% for project_member in project.working_project_members|slice:'1' %}
                                 <span>{{ project_member }}</span>
                             {% endfor %}
                         </td>

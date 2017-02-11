@@ -17,7 +17,7 @@ from email.header import Header
 from django.db import models
 from django.contrib.auth.models import User
 from django.core.exceptions import ObjectDoesNotExist
-from django.db.models import Max, Min, Q, Sum
+from django.db.models import Max, Min, Q, Sum, Prefetch
 from django.utils import timezone
 from django.utils.encoding import smart_str
 from django.template import Context, Template
@@ -724,14 +724,19 @@ class Member(AbstractMember):
             return None
 
     def get_business_status(self):
+        """営業状態を取得する
+
+        planning_countとlast_end_dateはget_sales_membersにより取得されている
+
+        :return:
+        """
         next_2_month = common.add_months(datetime.date.today(), 2)
-        if self.projectmember_set.public_filter(status=1).count() > 0:
+        if self.planning_count > 0:
             return u"営業中"
-        elif not self.get_project_end_date() \
-                or self.get_project_end_date() < datetime.date(next_2_month.year, next_2_month.month, 1):
-            return u"未提案"
-        else:
+        if self.last_end_date and self.last_end_date >= next_2_month:
             return u"-"
+        else:
+            return u"未提案"
 
     def get_skill_list(self):
         query_set = Member.objects.raw(u"SELECT DISTINCT S.*"
@@ -2393,7 +2398,27 @@ def get_sales_members():
     today = datetime.date.today()
     query_set = Member.objects.public_filter(Q(join_date__isnull=True) | Q(join_date__lte=today),
                                              membersectionperiod__section__is_on_sales=True).distinct()
-    return query_set
+    # 現在所属の部署を取得
+    section_set = MemberSectionPeriod.objects.filter((Q(start_date__lte=today) & Q(end_date__isnull=True)) |
+                                                     (Q(start_date__lte=today) & Q(end_date__gte=today)))
+    # 現在所属の営業員を取得
+    salesperson_set = MemberSalespersonPeriod.objects.filter((Q(start_date__lte=today) & Q(end_date__isnull=True)) |
+                                                             (Q(start_date__lte=today) & Q(end_date__gte=today)))
+    return query_set.prefetch_related(
+        Prefetch('membersectionperiod_set', queryset=section_set, to_attr='current_section_period'),
+        Prefetch('membersalespersonperiod_set', queryset=salesperson_set, to_attr='current_salesperson_period'),
+    ).extra(select={
+        'last_end_date': "select max(end_date) "
+                         "  from eb_projectmember pm "
+                         " where pm.member_id = eb_member.id "
+                         "   and pm.is_deleted = 0 "
+                         "   and pm.status = 2",
+        'planning_count': "select count(*) "
+                          "  from eb_projectmember pm "
+                          " where pm.member_id = eb_member.id "
+                          "   and pm.is_deleted = 0 "
+                          "   and pm.status = 1",
+    })
 
 
 def get_on_sales_members():

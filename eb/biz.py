@@ -6,7 +6,7 @@ Created on 2016/01/12
 """
 import datetime
 
-from django.db.models import Q, Max
+from django.db.models import Q, Max, Prefetch
 from django.contrib.auth.models import User
 from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.humanize.templatetags import humanize
@@ -284,6 +284,13 @@ def get_projects(q=None, o=None):
     :return:
     """
     projects = models.Project.objects.public_all()
+    today = datetime.date.today()
+    working_members = models.ProjectMember.objects.public_filter(start_date__lte=today,
+                                                                 end_date__gte=today)
+    projects = projects.prefetch_related(
+        'projectmember_set',
+        Prefetch('projectmember_set', queryset=working_members, to_attr='working_project_members')
+    )
     if q:
         projects = projects.filter(**q)
     if o:
