@@ -731,21 +731,12 @@ class Member(AbstractMember):
         :return:
         """
         next_2_month = common.add_months(datetime.date.today(), 2)
-        if hasattr(self, 'planning_count'):
-            if self.planning_count > 0:
-                return u"営業中"
-            if self.last_end_date and self.last_end_date >= next_2_month:
-                return u"-"
-            else:
-                return u"未提案"
+        if self.planning_count > 0:
+            return u"営業中"
+        if self.last_end_date and self.last_end_date >= next_2_month:
+            return u"-"
         else:
-            if self.projectmember_set.public_filter(status=1).count() > 0:
-                return u"営業中"
-            elif not self.get_project_end_date() \
-                    or self.get_project_end_date() < datetime.date(next_2_month.year, next_2_month.month, 1):
-                return u"未提案"
-            else:
-                return u"-"
+            return u"未提案"
 
     def get_skill_list(self):
         query_set = Member.objects.raw(u"SELECT DISTINCT S.*"
@@ -2491,6 +2482,7 @@ def get_project_members_by_month(date):
     """
     first_day = common.get_first_day_by_month(date)
     today = datetime.date.today()
+    next_2_month = common.add_months(today, 2)
     if date.year == today.year and date.month == today.month:
         first_day = today
     last_day = common.get_last_day_by_month(date)
@@ -2498,13 +2490,36 @@ def get_project_members_by_month(date):
                                                     start_date__lte=last_day,
                                                     project__status=4,
                                                     status=2)
-    # 現在所属の部署を取得
-    section_set = MemberSectionPeriod.objects.filter((Q(start_date__lte=today) & Q(end_date__isnull=True)) |
-                                                     (Q(start_date__lte=today) & Q(end_date__gte=today)))
-    # 現在所属の営業員を取得
-    salesperson_set = MemberSalespersonPeriod.objects.filter((Q(start_date__lte=today) & Q(end_date__isnull=True)) |
-                                                             (Q(start_date__lte=today) & Q(end_date__gte=today)))
-    return query_set
+    return query_set.extra(select={
+        'section_name': "select name"
+                        "  from eb_section s"
+                        " inner join eb_membersectionperiod msp on s.id = msp.section_id "
+                        " where ((msp.start_date <= '{0}' and msp.end_date is null)"
+                        "     or (msp.start_date <= '{0}' and msp.end_date >= '{0}'))"
+                        "   and msp.member_id = eb_projectmember.member_id ".format(today),
+        'salesperson_name': "select concat(first_name, last_name) "
+                            "  from eb_salesperson s "
+                            " inner join eb_membersalespersonperiod msp on s.id = msp.salesperson_id "
+                            " where ((msp.start_date <= '{0}' and msp.end_date is null) "
+                            "     or (msp.start_date <= '{0}' and msp.end_date >= '{0}')) "
+                            "   and msp.member_id = eb_projectmember.member_id ".format(today),
+        'business_status': "select case"
+                           "           when (select count(*) "
+                           "                   from eb_projectmember pm2 "
+                           "                  where pm2.member_id = eb_projectmember.member_id "
+                           "                    and pm2.is_deleted = 0"
+                           "                    and pm2.status = 1"
+                           "                ) > 0 then '営業中'"
+                           "           when (select count(*) "
+                           "                   from eb_projectmember pm3 "
+                           "                  where pm3.member_id = eb_projectmember.member_id "
+                           "                    and pm3.is_deleted = 0 "
+                           "                    and pm3.status = 2 "
+                           "                    and pm3.end_date >= '%s' "
+                           "                ) > 0 then '-' "
+                           "           else '未提案' "
+                           "       end " % next_2_month,
+    }).distinct()
 
 
 def get_release_members_by_month(date, p=None):
