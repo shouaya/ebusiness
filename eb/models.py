@@ -731,12 +731,21 @@ class Member(AbstractMember):
         :return:
         """
         next_2_month = common.add_months(datetime.date.today(), 2)
-        if self.planning_count > 0:
-            return u"営業中"
-        if self.last_end_date and self.last_end_date >= next_2_month:
-            return u"-"
+        if hasattr(self, 'planning_count'):
+            if self.planning_count > 0:
+                return u"営業中"
+            if self.last_end_date and self.last_end_date >= next_2_month:
+                return u"-"
+            else:
+                return u"未提案"
         else:
-            return u"未提案"
+            if self.projectmember_set.public_filter(status=1).count() > 0:
+                return u"営業中"
+            elif not self.get_project_end_date() \
+                    or self.get_project_end_date() < datetime.date(next_2_month.year, next_2_month.month, 1):
+                return u"未提案"
+            else:
+                return u"-"
 
     def get_skill_list(self):
         query_set = Member.objects.raw(u"SELECT DISTINCT S.*"
@@ -2489,6 +2498,12 @@ def get_project_members_by_month(date):
                                                     start_date__lte=last_day,
                                                     project__status=4,
                                                     status=2)
+    # 現在所属の部署を取得
+    section_set = MemberSectionPeriod.objects.filter((Q(start_date__lte=today) & Q(end_date__isnull=True)) |
+                                                     (Q(start_date__lte=today) & Q(end_date__gte=today)))
+    # 現在所属の営業員を取得
+    salesperson_set = MemberSalespersonPeriod.objects.filter((Q(start_date__lte=today) & Q(end_date__isnull=True)) |
+                                                             (Q(start_date__lte=today) & Q(end_date__gte=today)))
     return query_set
 
 

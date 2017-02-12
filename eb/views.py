@@ -1022,7 +1022,7 @@ def release_list(request, ym):
 
     context = {
         'company': company,
-        'title': u'リリース状況一覧',
+        'title': u'%s年%s月 | リリース状況一覧' % (year, month),
         'project_members': project_members,
         'paginator': paginator,
         'params': "&" + params if params else "",
