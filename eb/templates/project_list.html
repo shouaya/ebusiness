@@ -55,12 +55,12 @@
             <tr>
                 <th style="width: 320px;">{% create_order_display "案件名称" "name" %}</th>
                 <th style="width: 180px;">{% create_order_display "関連会社" "client__name" %}</th>
-                <th style="width: 80px;">{% create_order_display "営業員" "salesperson__first_name" %}</th>
-                <th style="width: 35px;">総人数</th>
-                <th style="width: 30px;">現在<br/>人数</th>
-                <th style="width: 80px;">メンバー</th>
+                <th>{% create_order_display "営業員" "salesperson__first_name" %}</th>
+                <th style="width: 45px;">総人数</th>
+                <th style="width: 55px;">現在人数</th>
+                <th>メンバー</th>
                 <th style="width: 60px;">状態</th>
-                <th style="width: 125px;">{% create_order_display "更新日" "update_date" %}</th>
+                <th style="width: 140px;">{% create_order_display "更新日" "update_date" %}</th>
                 <th class="noprint" style="width: 65px;"></th>
             </tr>
         </thead>
@@ -68,9 +68,12 @@
             {% if projects %}
                 {% for project in projects %}
                     <tr class="{% cycle 'row1' 'row2' %} {% if project.status == 5 %}finished{% endif %}">
-                        <td>
+                        <td {% if project.is_lump %}class="lump_project"{% endif %}>
                             <div style="width: 320px; overflow: hidden; white-space: nowrap;">
-                                <a href="{% url 'project_detail' project.pk %}" title="{{ project.name }}">{{ project.name }}</a>
+                                <a href="{% url 'project_detail' project.pk %}" title="{{ project.name }}">
+                                    {% if project.is_lump %}【一括】{% endif %}
+                                    {{ project.name }}
+                                </a>
                             </div>
                         </td>
                         <td>

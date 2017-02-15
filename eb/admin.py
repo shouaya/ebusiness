@@ -617,8 +617,8 @@ class ProjectAdmin(BaseAdmin):
     actions = ['delete_objects', 'active_objects']
 
     class Media:
-        js = ('/static/js/row_finish.js',)
-        css = {'all': ('/static/css/admin_row_finished.css',)
+        js = ('/static/js/ready.js',)
+        css = {'all': ('/static/css/admin.css',)
                }
 
     def _create_formsets(self, request, obj, change):

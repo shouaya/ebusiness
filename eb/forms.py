@@ -14,6 +14,8 @@ from django.utils.html import format_html, mark_safe
 from django.core.urlresolvers import reverse
 from django.utils.translation import ugettext_lazy as _
 
+from utils import constants
+
 REG_POST_CODE = r"^\d{7}$"
 REG_UPPER_CAMEL = r"^([A-Z][a-z]+)+$"
 
@@ -233,7 +235,12 @@ class ProjectMemberForm(forms.ModelForm):
         if instance and isinstance(instance, models.ProjectMember):
             if instance.end_date < datetime.date.today():
                 old_class = self.fields['end_date'].widget.attrs.get('class')
-                self.fields['end_date'].widget.attrs.update({'class': old_class + ' finished'})
+                new_class = (old_class + ' finished') if old_class else 'finished'
+                self.fields['end_date'].widget.attrs.update({'class': new_class})
+            if instance.status == constants.CHOICE_PROJECT_MEMBER_STATUS[0][0]:
+                old_class = self.fields['status'].widget.attrs.get('class')
+                new_class = (old_class + ' planning') if old_class else 'planning'
+                self.fields['status'].widget.attrs.update({'class': new_class})
 
     member = forms.ModelChoiceField(queryset=models.Member.objects.public_all(),
                                     widget=SearchSelect(models.Member),

@@ -126,9 +126,18 @@ section table.list tr.off_sales {
     background: lightgray;
 }
 
+section table.list tr.planning {
+    background-color: #FFFFAA;
+}
+
 section table.list tr:hover {
     background-color: LightGreen;
 }
+
+section table.list tr:hover td {
+    background-color: transparent;
+}
+
 
 section table.detail {
     width: 100%;

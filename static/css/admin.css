@@ -1,0 +1,24 @@
+@CHARSET "utf-8";
+
+div.inline-group tr.finished {
+    background-color: lightgray;
+}
+
+div.inline-group tr.finished select,
+div.inline-group tr.finished input {
+    background-color: lightgray;
+}
+
+div.inline-group tr.planning {
+    background-color: #FFFFAA;
+}
+
+div.inline-group tr.planning select.planning {
+    background-color: #e600ff;
+    color: white;
+}
+
+div.inline-group tr.planning select,
+div.inline-group tr.planning input {
+    background-color: yellow;
+}
