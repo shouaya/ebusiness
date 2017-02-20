@@ -1344,6 +1344,20 @@ class Project(models.Model):
                                                              client_order=client_order)[0]
             return project_request
 
+    def can_end_project(self):
+        """案件が終了できるかどうかを判断する。
+
+        案件メンバーの一人でも終了日は本日以降でしたら、終了はできません。
+
+        :return:
+        """
+        today = datetime.date.today()
+        project_members = self.projectmember_set.all()
+        for project_member in project_members:
+            if project_member.end_date >= today:
+                return False
+        return True
+
     def delete(self, using=None, keep_parents=False):
         self.is_deleted = True
         self.deleted_date = datetime.datetime.now()

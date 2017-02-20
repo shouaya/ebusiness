@@ -1,1 +1,0 @@
-python "C:\django\ebusiness\manage.py" sync_members

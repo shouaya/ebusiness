@@ -124,9 +124,12 @@ class ProjectForm(forms.ModelForm):
         cleaned_data = super(ProjectForm, self).clean()
         is_lump = cleaned_data.get("is_lump")
         lump_amount = cleaned_data.get("lump_amount")
+        status = cleaned_data.get('status')
         if is_lump:
             if not lump_amount or lump_amount <= 0:
                 self.add_error('lump_amount', u"一括の場合、一括金額を入力してください。")
+        if status == 5 and not self.instance.can_end_project():
+            self.add_error('status', u"案件終了できません、まだ作業中のメンバーがいます。")
 
 
 class MemberForm(forms.ModelForm):
