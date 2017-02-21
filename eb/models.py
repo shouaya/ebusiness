@@ -731,12 +731,15 @@ class Member(AbstractMember):
         :return:
         """
         next_2_month = common.add_months(datetime.date.today(), 2)
-        if self.planning_count > 0:
-            return u"営業中"
-        if self.last_end_date and self.last_end_date >= next_2_month:
-            return u"-"
+        if hasattr(self, 'planning_count'):
+            if self.planning_count > 0:
+                return u"営業中"
+            if self.last_end_date and self.last_end_date >= next_2_month:
+                return u"-"
+            else:
+                return u"未提案"
         else:
-            return u"未提案"
+            return u"-"
 
     def get_skill_list(self):
         query_set = Member.objects.raw(u"SELECT DISTINCT S.*"
