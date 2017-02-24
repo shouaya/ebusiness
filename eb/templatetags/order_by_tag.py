@@ -30,9 +30,9 @@ class GenerateOrderTag(template.Node):
 
     def render(self, context):
         if 'dict_order' not in context:
-            return self.display_name
+            return u'<span class="title">%s</span>' % self.display_name
         elif self.dict_name not in context['dict_order']:
-            return self.display_name
+            return u'<span class="title">%s</span>' % self.display_name
         else:
             dict_order = context['dict_order']
             order_name = dict_order.get(self.dict_name)

@@ -16,7 +16,7 @@
 {% block content %}
 {% now 'Y-m-d' as today %}
     <div class="dashboard">
-        <div class="dashboard-title">なにをしたいのですか？</div>
+        <div class="dashboard-title">{{ title }}</div>
         <form action="{% url 'project_list' %}" method="get">
             <span>名称: </span><input type="text" id="name__contains" name="name__contains" style="width: 200px;"/>
             <span>関連会社: </span><input type="text" id="client__name__contains" name="client__name__contains" style="width: 150px;"/>
@@ -56,10 +56,10 @@
                 <th style="width: 320px;">{% create_order_display "案件名称" "name" %}</th>
                 <th style="width: 180px;">{% create_order_display "関連会社" "client__name" %}</th>
                 <th>{% create_order_display "営業員" "salesperson__first_name" %}</th>
-                <th style="width: 45px;">総人数</th>
-                <th style="width: 55px;">現在人数</th>
-                <th>メンバー</th>
-                <th style="width: 60px;">状態</th>
+                <th style="width: 50px;">{% create_order_display "総人数" "" %}</th>
+                <th style="width: 62px;">{% create_order_display "現在人数" "" %}</th>
+                <th>{% create_order_display "メンバー" "" %}</th>
+                <th style="width: 60px;">{% create_order_display "状態" "" %}</th>
                 <th style="width: 140px;">{% create_order_display "更新日" "update_date" %}</th>
                 <th class="noprint" style="width: 65px;"></th>
             </tr>
@@ -86,7 +86,9 @@
                                 <a href="?salesperson__pk={{ project.salesperson.pk }}">{{ project.salesperson }}</a>
                             {% endif %}
                         </td>
-                        <td class="center">{{ project.projectmember_set.all.count }}</td>
+                        <td class="center">
+                            <a href="{% url 'project_members' project.pk %}">{{ project.projectmember_set.all.count }}</a>
+                        </td>
                         <td class="center">
                             <a href="{% url 'project_members' project.pk %}?start_date__lte={{ today }}&end_date__gte={{ today }}">
                                 {{ project.working_project_members|length }}

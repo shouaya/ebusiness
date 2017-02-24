@@ -33,11 +33,9 @@ from django.template.response import TemplateResponse
 from django.utils.translation import ugettext as _
 from django.contrib.auth import update_session_auth_hash
 
-from eb import biz, biz_batch, biz_turnover
+from eb import biz, biz_batch, biz_turnover, biz_config
 from utils import constants, common, errors, loader as file_loader, file_gen
 from . import forms, models
-
-PAGE_SIZE = 50
 
 
 @login_required(login_url='/eb/login/')
@@ -82,7 +80,7 @@ def index(request):
 
     context = {
         'company': company,
-        'title': 'Home',
+        'title': 'Home | %s' % constants.NAME_SYSTEM,
         'filter_list': filter_list,
         'member_count': member_count,
         'working_member_count': working_members.count(),
@@ -158,7 +156,7 @@ def employee_list(request):
     #     response['Content-Disposition'] = "filename=" + urllib.quote(filename.encode('utf-8')) + ".xlsx"
     #     return response
     # else:
-    paginator = Paginator(all_members, PAGE_SIZE)
+    paginator = Paginator(all_members, biz_config.get_page_size())
     page = request.GET.get('page')
     try:
         members = paginator.page(page)
@@ -169,7 +167,7 @@ def employee_list(request):
 
     context = {
         'company': company,
-        'title': u'要員一覧',
+        'title': u'要員一覧 | %s' % constants.NAME_SYSTEM,
         'members': members,
         'sections': models.Section.objects.public_filter(is_on_sales=True),
         'salesperson': models.Salesperson.objects.public_all(),
@@ -199,7 +197,7 @@ def members_in_coming(request):
     if order_list:
         all_members = all_members.order_by(*order_list)
 
-    paginator = Paginator(all_members, PAGE_SIZE)
+    paginator = Paginator(all_members, biz_config.get_page_size())
     page = request.GET.get('page')
     try:
         members = paginator.page(page)
@@ -210,7 +208,7 @@ def members_in_coming(request):
 
     context = {
         'company': company,
-        'title': u'協力社員一覧',
+        'title': u'入社予定社員一覧 | %s' % constants.NAME_SYSTEM,
         'members': members,
         'sections': models.Section.objects.public_filter(is_on_sales=True),
         'salesperson': models.Salesperson.objects.public_all(),
@@ -264,7 +262,7 @@ def members_subcontractor(request):
     #     response['Content-Disposition'] = "filename=" + urllib.quote(filename.encode('utf-8')) + ".xlsx"
     #     return response
     # else:
-    paginator = Paginator(all_members, PAGE_SIZE)
+    paginator = Paginator(all_members, biz_config.get_page_size())
     page = request.GET.get('page')
     try:
         members = paginator.page(page)
@@ -275,7 +273,7 @@ def members_subcontractor(request):
 
     context = {
         'company': company,
-        'title': u'協力社員一覧',
+        'title': u'協力社員一覧 | %s' % constants.NAME_SYSTEM,
         'members': members,
         'sections': models.Section.objects.public_filter(is_on_sales=True),
         'salesperson': models.Salesperson.objects.public_all(),
@@ -299,7 +297,7 @@ def change_list(request):
     if order_list:
         all_members = all_members.order_by(*order_list)
 
-    paginator = Paginator(all_members, PAGE_SIZE)
+    paginator = Paginator(all_members, biz_config.get_page_size())
     page = request.GET.get('page')
     try:
         members = paginator.page(page)
@@ -310,7 +308,7 @@ def change_list(request):
 
     context = {
         'company': company,
-        'title': u'リリース状況一覧',
+        'title': u'入退場リスト | %s' % constants.NAME_SYSTEM,
         'members': members,
         'paginator': paginator,
         'dict_order': dict_order,
@@ -349,7 +347,7 @@ def project_list(request):
 
     params = "&".join(["%s=%s" % (key, value) for key, value in param_list.items()]) if param_list else ""
 
-    paginator = Paginator(all_projects, PAGE_SIZE)
+    paginator = Paginator(all_projects, biz_config.get_page_size())
     page = request.GET.get('page')
     try:
         projects = paginator.page(page)
@@ -360,7 +358,7 @@ def project_list(request):
 
     context = {
         'company': company,
-        'title': u'案件一覧',
+        'title': u'案件一覧 | %s' % constants.NAME_SYSTEM,
         'projects': projects,
         'paginator': paginator,
         'salesperson': models.Salesperson.objects.public_all(),
@@ -407,7 +405,7 @@ def project_order_list(request):
     params = "&".join(["%s=%s" % (key, value) for key, value in param_list.items()]) if param_list else ""
     params = "%s&ym=%s" % ("&" + params if params else "", ym,)
 
-    paginator = Paginator(all_project_orders, PAGE_SIZE)
+    paginator = Paginator(all_project_orders, biz_config.get_page_size())
     page = request.GET.get('page')
     try:
         project_orders = paginator.page(page)
@@ -418,7 +416,7 @@ def project_order_list(request):
 
     context = {
         'company': company,
-        'title': u'%s年%s月の注文情報一覧' % (ym[:4], ym[4:]),
+        'title': u'%s年%s月の注文情報一覧 | %s' % (ym[:4], ym[4:], constants.NAME_SYSTEM),
         'project_orders': project_orders,
         'paginator': paginator,
         'dict_order': dict_order,
@@ -440,7 +438,7 @@ def project_detail(request, project_id):
 
     context = {
         'company': company,
-        'title': u'%s - 案件詳細' % (project.name,),
+        'title': u'%s - 案件詳細 | %s' % (project.name, constants.NAME_SYSTEM),
         'project': project,
         'banks': models.BankInfo.objects.public_all(),
         'order_month_list': project.get_year_month_order_finished(),
@@ -556,7 +554,7 @@ def project_attendance_list(request, project_id):
                             if total_hours > project_member.max_hours:
                                 extra_hours = total_hours - float(project_member.max_hours)
                                 total_price = project_member.price + (extra_hours * project_member.plus_per_hour)
-                            elif total_hours < project_member.min_hours and total_hours > 0:
+                            elif 0 < total_hours < project_member.min_hours:
                                 extra_hours = total_hours - float(project_member.min_hours)
                                 total_price = project_member.price + (extra_hours * project_member.minus_per_hour)
                             elif total_hours > 0:
@@ -579,16 +577,16 @@ def project_attendance_list(request, project_id):
                                  }
                     dict_initials.append(d)
                 if project.is_hourly_pay:
-                    AttendanceFormSet = modelformset_factory(models.MemberAttendance,
-                                                             form=forms.MemberAttendanceFormSetHourlyPay,
-                                                             extra=len(project_members))
+                    attendance_formset = modelformset_factory(models.MemberAttendance,
+                                                              form=forms.MemberAttendanceFormSetHourlyPay,
+                                                              extra=len(project_members))
                 else:
-                    AttendanceFormSet = modelformset_factory(models.MemberAttendance,
-                                                             form=forms.MemberAttendanceFormSet,
-                                                             extra=len(project_members))
+                    attendance_formset = modelformset_factory(models.MemberAttendance,
+                                                              form=forms.MemberAttendanceFormSet,
+                                                              extra=len(project_members))
                 dict_initials.sort(key=lambda item: item['id'])
-                context['formset'] = AttendanceFormSet(queryset=models.MemberAttendance.objects.none(),
-                                                       initial=dict_initials)
+                context['formset'] = attendance_formset(queryset=models.MemberAttendance.objects.none(),
+                                                        initial=dict_initials)
             except Exception as e:
                 context['formset'] = None
                 print e.message
@@ -599,13 +597,13 @@ def project_attendance_list(request, project_id):
             return HttpResponse(r)
         else:
             if project.is_hourly_pay:
-                AttendanceFormSet = modelformset_factory(models.MemberAttendance,
-                                                         form=forms.MemberAttendanceFormSetHourlyPay,
-                                                         extra=0)
+                attendance_formset = modelformset_factory(models.MemberAttendance,
+                                                          form=forms.MemberAttendanceFormSetHourlyPay,
+                                                          extra=0)
             else:
-                AttendanceFormSet = modelformset_factory(models.MemberAttendance,
-                                                         form=forms.MemberAttendanceFormSet, extra=0)
-            formset = AttendanceFormSet(request.POST)
+                attendance_formset = modelformset_factory(models.MemberAttendance,
+                                                          form=forms.MemberAttendanceFormSet, extra=0)
+            formset = attendance_formset(request.POST)
             if formset.is_valid():
                 attendance_list = formset.save(commit=False)
                 for i, attendance in enumerate(attendance_list):
@@ -643,7 +641,7 @@ def project_member_list(request, project_id):
     if order_list:
         all_project_members = all_project_members.order_by(*order_list)
 
-    paginator = Paginator(all_project_members, PAGE_SIZE)
+    paginator = Paginator(all_project_members, biz_config.get_page_size())
     page = request.GET.get('page')
     try:
         project_members = paginator.page(page)
@@ -654,7 +652,7 @@ def project_member_list(request, project_id):
 
     context = {
         'company': company,
-        'title': u'%s - 案件参加者一覧' % (project.name,),
+        'title': u'案件参加者一覧 | %s' % (project.name,),
         'project': project,
         'project_members': project_members,
         'paginator': paginator,
@@ -676,7 +674,7 @@ def section_list(request):
         section_count_list.append((section, count))
 
     context = {
-        'title': u'部署情報一覧',
+        'title': u'部署情報一覧 | %s' % constants.NAME_SYSTEM,
         'sections': section_count_list,
         'total_count': total_count,
     }
@@ -697,7 +695,7 @@ def section_detail(request, section_id):
     if order_list:
         all_members = all_members.order_by(*order_list)
 
-    paginator = Paginator(all_members, PAGE_SIZE)
+    paginator = Paginator(all_members, biz_config.get_page_size())
     page = request.GET.get('page')
     try:
         members = paginator.page(page)
@@ -708,7 +706,7 @@ def section_detail(request, section_id):
 
     context = {
         'company': company,
-        'title': u'%s | 部署' % (section.name,),
+        'title': u'%s | 部署 | %s' % (section.name, constants.NAME_SYSTEM),
         'section': section,
         'members': members,
         'dict_order': dict_order,
@@ -760,7 +758,7 @@ def section_attendance(request, section_id):
 
     context = {
         'company': company,
-        'title': u'出勤 | %s年%s月 | %s' % (year, month, section.name),
+        'title': u'出勤 | %s年%s月 | %s | %s' % (year, month, section.name, constants.NAME_SYSTEM),
         'section': section,
         'project_members': all_project_members,
         'dict_order': dict_order,
@@ -813,7 +811,7 @@ def turnover_company_monthly(request):
     turnover_amount_list = [item['turnover_amount'] for item in company_turnover]
     context = {
         'company': company,
-        'title': u'売上情報',
+        'title': u'売上情報 | %s' % constants.NAME_SYSTEM,
         'company_turnover': company_turnover,
         'month_list': month_list,
         'turnover_amount_list': turnover_amount_list,
@@ -846,7 +844,7 @@ def turnover_charts_monthly(request, ym):
 
     context = {
         'company': company,
-        'title': u'%s - 売上情報' % (ym,),
+        'title': u'%s - 売上情報 | %s' % (ym, constants.NAME_SYSTEM),
         'sections_turnover': sections_turnover,
         'section_name_list': ",".join(section_name_list),
         'section_attendance_amount_list': section_attendance_amount_list,
@@ -894,7 +892,7 @@ def turnover_members_monthly(request, ym):
         summary['cost_amount'] += item.cost
     summary['attendance_tex'] = int(round(summary['attendance_tex']))
     summary['all_amount'] = int(round(summary['all_amount']))
-    paginator = Paginator(all_turnover_details, PAGE_SIZE)
+    paginator = Paginator(all_turnover_details, biz_config.get_page_size())
     page = request.GET.get('page')
     try:
         turnover_details = paginator.page(page)
@@ -905,7 +903,7 @@ def turnover_members_monthly(request, ym):
 
     context = {
         'company': company,
-        'title': u'%s年%s月の売上詳細情報' % (ym[:4], ym[4:]),
+        'title': u'%s年%s月の売上詳細情報 | %s' % (ym[:4], ym[4:], constants.NAME_SYSTEM),
         'sections': sections,
         'salesperson': models.Salesperson.objects.public_all(),
         'turnover_details': turnover_details,
@@ -936,7 +934,7 @@ def turnover_clients_monthly(request, ym):
 
     context = {
         'company': company,
-        'title': u'%s年%s月のお客様別売上情報' % (ym[:4], ym[4:]),
+        'title': u'%s年%s月のお客様別売上情報 | %s' % (ym[:4], ym[4:], constants.NAME_SYSTEM),
         'clients_turnover': clients_turnover,
         'ym': ym,
         'summary': summary,
@@ -962,7 +960,7 @@ def turnover_client_monthly(request, client_id, ym):
 
     context = {
         'company': company,
-        'title': u'%s年%s月　%sの案件別売上情報' % (ym[:4], ym[4:], client.__unicode__()),
+        'title': u'%s年%s月　%sの案件別売上情報 | %s' % (ym[:4], ym[4:], client.__unicode__(), constants.NAME_SYSTEM),
         'client': client,
         'turnover_details': turnover_details,
         'ym': ym,
@@ -1011,7 +1009,7 @@ def release_list(request, ym):
     salesperson = models.Salesperson.objects.public_all()
 
     params = "&".join(["%s=%s" % (key, value) for key, value in param_list.items()]) if param_list else ""
-    paginator = Paginator(all_project_members, PAGE_SIZE)
+    paginator = Paginator(all_project_members, biz_config.get_page_size())
     page = request.GET.get('page')
     try:
         project_members = paginator.page(page)
@@ -1022,7 +1020,7 @@ def release_list(request, ym):
 
     context = {
         'company': company,
-        'title': u'%s年%s月 | リリース状況一覧' % (year, month),
+        'title': u'%s年%s月 | リリース状況一覧 | %s' % (year, month, constants.NAME_SYSTEM),
         'project_members': project_members,
         'paginator': paginator,
         'params': "&" + params if params else "",
@@ -1045,7 +1043,7 @@ def member_detail(request, employee_id):
     context = {
         'company': company,
         'member': member,
-        'title': u'%s の履歴' % (member,),
+        'title': u'%s の履歴 | %s' % (member, constants.NAME_SYSTEM),
         'project_count': project_count,
         'all_project_count': project_count + member.historyproject_set.public_all().count(),
         'default_project_count': range(1, 14),
@@ -1069,7 +1067,7 @@ def member_project_list(request, employee_id):
     context = {
         'company': company,
         'member': member,
-        'title': u'%s の案件一覧' % (member,),
+        'title': u'%s の案件一覧 | %s' % (member, constants.NAME_SYSTEM),
         'project_members': project_members,
     }
     template = loader.get_template('member_project_list.html')
@@ -1084,7 +1082,7 @@ def recommended_member_list(request, project_id):
 
     context = {
         'company': company,
-        'title': u'%s - 推薦されるメンバーズ' % (project.name,),
+        'title': u'%s - 推薦されるメンバーズ | %s' % (project.name, constants.NAME_SYSTEM),
         'project': project,
         'dict_skills': dict_skills,
     }
@@ -1102,7 +1100,7 @@ def recommended_project_list(request, employee_id):
 
     context = {
         'company': company,
-        'title': u'%s - 推薦される案件' % (member,),
+        'title': u'%s - 推薦される案件 | %s' % (member, constants.NAME_SYSTEM),
         'member': member,
         'skills': skills,
         'projects': projects,
@@ -1127,7 +1125,7 @@ def subcontractor_list(request):
     if order_list:
         all_subcontractors = all_subcontractors.order_by(*order_list)
 
-    paginator = Paginator(all_subcontractors, PAGE_SIZE)
+    paginator = Paginator(all_subcontractors, biz_config.get_page_size())
     page = request.GET.get('page')
     try:
         subcontractors = paginator.page(page)
@@ -1138,7 +1136,7 @@ def subcontractor_list(request):
 
     context = {
         'company': company,
-        'title': u'協力会社一覧',
+        'title': u'協力会社一覧 | %s' % constants.NAME_SYSTEM,
         'subcontractors': subcontractors,
         'paginator': paginator,
         'params': params,
@@ -1162,7 +1160,7 @@ def subcontractor_detail(request, subcontractor_id):
     if order_list:
         all_members = all_members.order_by(*order_list)
 
-    paginator = Paginator(all_members, PAGE_SIZE)
+    paginator = Paginator(all_members, biz_config.get_page_size())
     page = request.GET.get('page')
     try:
         members = paginator.page(page)
@@ -1173,7 +1171,7 @@ def subcontractor_detail(request, subcontractor_id):
 
     context = {
         'company': company,
-        'title': u'%s | 協力会社' % (subcontractor.name,),
+        'title': u'%s | 協力会社 | %s' % (subcontractor.name, constants.NAME_SYSTEM),
         'subcontractor': subcontractor,
         'members': members,
         'paginator': paginator,
@@ -1193,7 +1191,7 @@ def subcontractor_members(request, subcontractor_id):
 
     context = {
         'company': company,
-        'title': u'注文情報入力 | %s | 協力会社' % (subcontractor.name,),
+        'title': u'注文情報入力 | %s | 協力会社 | %s' % (subcontractor.name, constants.NAME_SYSTEM),
         'subcontractor': subcontractor,
     }
     context.update(csrf(request))
@@ -1241,18 +1239,19 @@ def subcontractor_members(request, subcontractor_id):
                      'comment': "",
                      }
             dict_initials.append(d)
-        BpOrderInfoFormSet = modelformset_factory(models.BpMemberOrderInfo, form=forms.BpMemberOrderInfoFormSet,
-                                                  extra=len(members))
+        bp_order_info_formset = modelformset_factory(models.BpMemberOrderInfo,
+                                                     form=forms.BpMemberOrderInfoFormSet, extra=len(members))
         dict_initials.sort(key=lambda item: item['id'])
-        formset = BpOrderInfoFormSet(queryset=models.BpMemberOrderInfo.objects.none(), initial=dict_initials)
+        formset = bp_order_info_formset(queryset=models.BpMemberOrderInfo.objects.none(), initial=dict_initials)
 
         context.update({'formset': formset, 'initial_form_count': initial_form_count})
 
         r = render_to_response('subcontractor_members.html', context)
         return HttpResponse(r)
     else:
-        BpOrderInfoFormSet = modelformset_factory(models.BpMemberOrderInfo, form=forms.BpMemberOrderInfoFormSet, extra=0)
-        formset = BpOrderInfoFormSet(request.POST)
+        bp_order_info_formset = modelformset_factory(models.BpMemberOrderInfo,
+                                                     form=forms.BpMemberOrderInfoFormSet, extra=0)
+        formset = bp_order_info_formset(request.POST)
         if formset.is_valid():
             bp_member_list = formset.save(commit=False)
             for i, bp_member in enumerate(bp_member_list):
@@ -1273,7 +1272,7 @@ def upload_resume(request):
     company = biz.get_company()
     context = {
         'company': company,
-        'title': u'履歴書をアップロード',
+        'title': u'履歴書をアップロード | %s' % constants.NAME_SYSTEM,
         'site_header': admin.site.site_header,
         'site_title': admin.site.site_title,
     }
@@ -1414,7 +1413,8 @@ def download_section_attendance(request, section_id, year, month):
     batch = biz.get_batch_manage(constants.BATCH_SEND_ATTENDANCE_FORMAT)
     project_members = biz.get_project_members_month_section(section, datetime.date(int(year), int(month), 20))
     filename = constants.NAME_SECTION_ATTENDANCE % (section.name, int(year), int(month))
-    output = file_gen.generate_attendance_format(batch.attachment1.path, project_members, datetime.date(int(year), int(month), 20))
+    output = file_gen.generate_attendance_format(batch.attachment1.path,
+                                                 project_members, datetime.date(int(year), int(month), 20))
     response = HttpResponse(output, content_type="application/ms-excel")
     response['Content-Disposition'] = "filename=" + urllib.quote(filename.encode('utf-8')) + ".xlsx"
     return response
@@ -1427,7 +1427,7 @@ def map_position(request):
                                                   lng__isnull=False).exclude(lat__exact='', lng__exact='')
     context = {
         'company': company,
-        'title': u'地図情報',
+        'title': u'地図情報 | %s' % constants.NAME_SYSTEM,
         'members': members,
     }
     template = loader.get_template('map_position.html')
@@ -1440,7 +1440,7 @@ def issues(request):
     issue_list = models.Issue.objects.all()
 
     context = {
-        'title': u'課題管理票一覧',
+        'title': u'課題管理票一覧 | %s' % constants.NAME_SYSTEM,
         'issues': issue_list,
     }
     template = loader.get_template('issue_list.html')
@@ -1451,7 +1451,7 @@ def issues(request):
 def issue_detail(request, issue_id):
     issue = get_object_or_404(models.Issue, pk=issue_id)
     context = {
-        'title': u'課題管理票 - %s' % (issue.title,),
+        'title': u'課題管理票 - %s | %s' % (issue.title, constants.NAME_SYSTEM),
         'issue': issue,
     }
     template = loader.get_template('issue.html')
@@ -1469,7 +1469,7 @@ def history(request):
 
     context = {
         'company': company,
-        'title': u'更新履歴',
+        'title': u'更新履歴 | %s' % constants.NAME_SYSTEM,
         'histories': histories,
         'total_hours': total_hours,
     }
@@ -1479,13 +1479,11 @@ def history(request):
 
 @login_required(login_url='/eb/login/')
 def sync_coordinate(request):
-    company = biz.get_company()
-
     if request.method == 'GET':
-        members = company.get_members_to_set_coordinate()
+        members = biz.get_members_to_set_coordinate()
 
         context = {
-            'title': u'座標を設定',
+            'title': u'座標を設定 | %s' % constants.NAME_SYSTEM,
             'site_header': admin.site.site_header,
             'site_title': admin.site.site_title,
             'members': members,
@@ -1517,7 +1515,7 @@ def sync_coordinate(request):
 @login_required(login_url='/eb/login/')
 def sync_members(request):
     context = {
-        'title': u'社員管理DBのデータを同期する。',
+        'title': u'社員管理DBのデータを同期する | %s' % constants.NAME_SYSTEM,
         'site_header': admin.site.site_header,
         'site_title': admin.site.site_title,
     }
@@ -1539,7 +1537,7 @@ def sync_members(request):
 @login_required(login_url='/eb/login/')
 def batch_list(request):
     context = {
-        'title': u'バッチ一覧',
+        'title': u'バッチ一覧 | %s' % constants.NAME_SYSTEM,
         'site_header': admin.site.site_header,
         'site_title': admin.site.site_title,
     }
@@ -1597,14 +1595,18 @@ def sync_db2(request):
                     try:
                         subcontractor = models.Subcontractor.objects.get(name=company_name)
                     except ObjectDoesNotExist:
-                        subcontractor = models.Subcontractor(name=company_name, post_code=postcode, address1=address, tel=tel)
+                        subcontractor = models.Subcontractor(name=company_name,
+                                                             post_code=postcode,
+                                                             address1=address,
+                                                             tel=tel)
                         subcontractor.save()
 
                     if models.Member.objects.filter(member_type=4, first_name=first_name, last_name=last_name,
                                                     subcontractor=subcontractor).count() == 0:
                         member = models.Member(first_name=first_name, last_name=last_name, member_type=4,
-                                        subcontractor=subcontractor, cost=cost)
-                        max_employee_id = models.Member.objects.filter(employee_id__gte=10000).aggregate(Max('employee_id'))
+                                               subcontractor=subcontractor, cost=cost)
+                        max_employee_id = models.Member.objects.\
+                            filter(employee_id__gte=10000).aggregate(Max('employee_id'))
                         member.employee_id = common.get_next_employee_id(max_employee_id.get('employee_id__max'))
                         member.save()
                 context.update({

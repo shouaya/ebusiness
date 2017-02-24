@@ -21,7 +21,7 @@ from django.utils.text import get_text_list
 
 import forms
 from . import models, biz
-from utils import common
+from utils import common, constants
 
 
 class TextInputListFilter(admin.ListFilter):
@@ -1292,5 +1292,5 @@ admin.site.unregister(User)
 admin.site.register(User, CustomUserAdmin)
 admin.site.register(LogEntry, LogEntryAdmin)
 
-admin.site.site_header = u'社員営業状況管理システム'
+admin.site.site_header = constants.NAME_SYSTEM
 admin.site.site_title = u'管理サイト'

@@ -7,12 +7,13 @@ Created on 2015/08/20
 import datetime
 import re
 import urllib2
-import xml.etree.ElementTree as ET
 import logging
+import traceback
 import mimetypes
 
 from email import encoders
 from email.header import Header
+from xml.etree import ElementTree
 
 from django.db import models
 from django.contrib.auth.models import User
@@ -144,17 +145,12 @@ class Company(AbstractCompany):
             ('view_member_status_list', u"社員稼働状況リスト"),
         )
 
-    def get_projects(self, status=0):
+    @staticmethod
+    def get_projects(status=0):
         """ステータスによって、該当する全ての案件を取得する。
 
-        Arguments：
-          status: 案件の状態
-
-        Returns：
-          案件のリスト
-
-        Raises：
-          なし
+        :param status:
+        :return:
         """
         if status == 0:
             return Project.objects.public_all()
@@ -230,23 +226,6 @@ class Company(AbstractCompany):
           なし
         """
         return self.get_projects(5)
-
-    def get_master(self):
-        # 代表取締役を取得する。
-        members = Salesperson.objects.public_filter(member_type=7)
-        if members.count() == 1:
-            return members[0]
-        else:
-            return None
-
-    def get_members_to_set_coordinate(self):
-        now = datetime.datetime.now()
-        last_week = now + datetime.timedelta(days=-7)
-        # １週間前更新したレコード
-        members = Member.objects.public_filter(Q(coordinate_update_date__lt=last_week) |
-                                               Q(coordinate_update_date__isnull=True))
-        members = members.filter(address1__isnull=False).exclude(address1__exact=u'')
-        return members
 
 
 class BankInfo(models.Model):
@@ -788,16 +767,10 @@ class Member(AbstractMember):
         return role_list
 
     def get_position_ship(self, is_min=False):
-        """該当メンバーの職位を取得する。
+        """該当メンバーの職位を取得する
 
-        Arguments：
-          なし
-
-        Returns：
-          Position のインスタンス
-
-        Raises：
-          なし
+        :param is_min:
+        :return:
         """
         if is_min:
             positions = self.positionship_set.public_filter(is_part_time=False).order_by('-position')
@@ -816,7 +789,7 @@ class Member(AbstractMember):
             try:
                 response = urllib2.urlopen("http://www.geocoding.jp/api/?q={0}".format(address.encode("utf8")))
                 xml = response.read()
-                tree = ET.XML(xml)
+                tree = ElementTree.XML(xml)
                 lat = tree.find(".//coordinate/lat")
                 lng = tree.find(".//coordinate/lng")
                 if lat is not None and lng is not None:
@@ -826,7 +799,10 @@ class Member(AbstractMember):
                     return True
                 else:
                     return False
-            except:
+            except Exception as e:
+                logger = logging.getLogger(constants.LOG_EB_SALES)
+                logger.error(e.message)
+                logger.error(traceback.format_exc())
                 return False
         return False
 
@@ -875,8 +851,8 @@ class MemberSectionPeriod(models.Model):
         verbose_name = verbose_name_plural = u"社員の部署期間"
 
     def __unicode__(self):
-        return u"%s - %s(%s〜%s)" % (self.member.__unicode__(), self.section.__unicode__(),
-                                    self.start_date, self.end_date)
+        f = u"%s - %s(%s〜%s)"
+        return f % (self.member.__unicode__(), self.section.__unicode__(), self.start_date, self.end_date)
 
     def delete(self, using=None, keep_parents=False):
         self.is_deleted = True
@@ -899,8 +875,8 @@ class MemberSalespersonPeriod(models.Model):
         verbose_name = verbose_name_plural = u"社員の営業員期間"
 
     def __unicode__(self):
-        return u"%s - %s(%s〜%s)" % (self.member.__unicode__(), self.salesperson.__unicode__(),
-                                    self.start_date, self.end_date)
+        f = u"%s - %s(%s〜%s)"
+        return f % (self.member.__unicode__(), self.salesperson.__unicode__(), self.start_date, self.end_date)
 
     def delete(self, using=None, keep_parents=False):
         self.is_deleted = True
@@ -964,14 +940,8 @@ class Client(AbstractCompany):
     def get_pay_date(self, date=datetime.date.today()):
         """支払い期限日を取得する。
 
-        Arguments：
-          なし
-
-        Returns：
-          Date
-
-        Raises：
-          なし
+        :param date:
+        :return:
         """
         months = int(self.payment_month) if self.payment_month else 1
         pay_month = common.add_months(date, months)
@@ -1079,7 +1049,8 @@ class Project(models.Model):
     os = models.ManyToManyField(OS, blank=True, verbose_name=u"機種／OS")
     start_date = models.DateField(blank=True, null=True, verbose_name=u"開始日")
     end_date = models.DateField(blank=True, null=True, verbose_name=u"終了日",
-                                help_text=u"もし設定した終了日は一番最後の案件メンバーの終了日より以前の日付だったら、自動的に最後のメンバーの終了日に設定する。")
+                                help_text=u"もし設定した終了日は一番最後の案件メンバーの終了日より以前の日付だったら、"
+                                          u"自動的に最後のメンバーの終了日に設定する。")
     address = models.CharField(blank=True, null=True, max_length=255, verbose_name=u"作業場所")
     status = models.IntegerField(choices=constants.CHOICE_PROJECT_STATUS, verbose_name=u"ステータス")
     attendance_type = models.CharField(max_length=1, default='1', choices=constants.CHOICE_ATTENDANCE_TYPE,
@@ -1159,8 +1130,11 @@ class Project(models.Model):
                                        u"                    WHERE pm2.START_DATE >= %s"
                                        u"                      AND pm2.MEMBER_ID = m.ID"
                                        u"                      AND pm2.PROJECT_ID = %s"
-                                       u"                      AND pm2.STATUS = 1)"
-                                       , [name, last_day_a_month_later, datetime.date.today(), self.pk])
+                                       u"                      AND pm2.STATUS = 1)", [name,
+                                                                                      last_day_a_month_later,
+                                                                                      datetime.date.today(),
+                                                                                      self.pk]
+                                       )
         members = list(query_set)
         return members
 
@@ -1215,15 +1189,10 @@ class Project(models.Model):
     def get_expenses(self, year, month, project_members):
         """指定年月の清算リストを取得する。
 
-        Arguments：
-          year: 指定年
-          month: 指定月
-
-        Returns：
-          MemberExpenses のインスタンス
-
-        Raises：
-          なし
+        :param year:
+        :param month:
+        :param project_members:
+        :return:
         """
         return MemberExpenses.objects.public_filter(project_member__project=self,
                                                     year=str(year),
@@ -1233,15 +1202,9 @@ class Project(models.Model):
     def get_order_by_month(self, year, month):
         """指定年月の注文履歴を取得する。
 
-        Arguments：
-          year: 指定年
-          month: 指定月
-
-        Returns：
-          ClientOrder のインスタンス
-
-        Raises：
-          なし
+        :param year:
+        :param month:
+        :return:
         """
         ym = year + month
         first_day = common.get_first_day_from_ym(ym)
@@ -1318,15 +1281,10 @@ class Project(models.Model):
     def get_project_request(self, str_year, str_month, client_order=None):
         """請求番号を取得する。
 
-        Arguments：
-          str_year: 対象年
-          str_month: 対象月
-
-        Returns：
-          "yymm001"の請求番号
-
-        Raises：
-          なし
+        :param str_year:
+        :param str_month:
+        :param client_order:
+        :return:
         """
         if self.projectrequest_set.filter(year=str_year, month=str_month, client_order=client_order).count() == 0:
             # 指定年月の請求番号がない場合、請求番号を発行する。
@@ -1566,8 +1524,10 @@ class ProjectRequestDetail(models.Model):
         verbose_name = verbose_name_plural = u"案件請求明細"
 
     def __unicode__(self):
-        return u"%s %s%sの請求明細" % (self.project_member, self.project_request.get_year_display(),
-                                  self.project_request.get_month_display())
+        f = u"%s %s%sの請求明細"
+        return f % (self.project_member,
+                    self.project_request.get_year_display(),
+                    self.project_request.get_month_display())
 
     def get_tax_price(self):
         """税金を計算する。
@@ -1879,7 +1839,6 @@ class ExpensesCategory(models.Model):
     class Meta:
         verbose_name = verbose_name_plural = u"精算分類"
         db_table = 'mst_expenses_category'
-
 
     def __unicode__(self):
         return self.name
@@ -2388,8 +2347,7 @@ class EmailMultiAlternativesWithEncoding(EmailMultiAlternatives):
         basetype, subtype = mimetype.split('/', 1)
         if basetype == 'text':
             encoding = self.encoding or settings.DEFAULT_CHARSET
-            attachment = SafeMIMEText(smart_str(content,
-                settings.DEFAULT_CHARSET), subtype, encoding)
+            attachment = SafeMIMEText(smart_str(content, settings.DEFAULT_CHARSET), subtype, encoding)
         else:
             # Encode non-text attachments with base64.
             attachment = MIMEBase(basetype, subtype)
@@ -2400,8 +2358,7 @@ class EmailMultiAlternativesWithEncoding(EmailMultiAlternatives):
                 filename = filename.encode('ascii')
             except UnicodeEncodeError:
                 filename = Header(filename, 'utf-8').encode()
-            attachment.add_header('Content-Disposition', 'attachment',
-                                   filename=filename)
+            attachment.add_header('Content-Disposition', 'attachment', filename=filename)
         return attachment
 
 
@@ -2508,18 +2465,20 @@ def get_project_members_by_month(date):
                                                     project__status=4,
                                                     status=2)
     return query_set.extra(select={
-        'section_name': "select name"
-                        "  from eb_section s"
+        'section_name': "select name "
+                        "  from eb_section s "
                         " inner join eb_membersectionperiod msp on s.id = msp.section_id "
-                        " where ((msp.start_date <= '{0}' and msp.end_date is null)"
-                        "     or (msp.start_date <= '{0}' and msp.end_date >= '{0}'))"
-                        "   and msp.member_id = eb_projectmember.member_id ".format(today),
+                        " where ((msp.start_date <= '{0}' and msp.end_date is null) "
+                        "     or (msp.start_date <= '{0}' and msp.end_date >= '{0}')) "
+                        "   and msp.member_id = eb_projectmember.member_id "
+                        "   and msp.is_deleted = 0".format(today),
         'salesperson_name': "select concat(first_name, last_name) "
                             "  from eb_salesperson s "
                             " inner join eb_membersalespersonperiod msp on s.id = msp.salesperson_id "
                             " where ((msp.start_date <= '{0}' and msp.end_date is null) "
                             "     or (msp.start_date <= '{0}' and msp.end_date >= '{0}')) "
-                            "   and msp.member_id = eb_projectmember.member_id ".format(today),
+                            "   and msp.member_id = eb_projectmember.member_id "
+                            "   and msp.is_deleted = 0".format(today),
         'business_status': "select case"
                            "           when (select count(*) "
                            "                   from eb_projectmember pm2 "

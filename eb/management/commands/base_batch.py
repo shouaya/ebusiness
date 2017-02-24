@@ -7,8 +7,7 @@ Created on 2017/01/20
 import logging
 import traceback
 
-from eb import biz_batch, biz
-from utils import constants
+from eb import biz_batch
 
 from django.core.management.base import BaseCommand
 

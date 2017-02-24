@@ -9,6 +9,8 @@ from decimal import Decimal
 EXCEL_APPLICATION = "Excel.Application"
 EXCEL_FORMAT_EXCEL2003 = 56
 
+LOG_EB_SALES = 'eb_sales'
+
 REG_DATE_STR = ur"\d{4}([-/.年])\d{1,2}([-/.月])\d{1,2}([日]?)"
 REG_DATE_STR2 = ur"\d{4}([-/.年])\d{1,2}([-/.月]?)"
 REG_EXCEL_REPLACEMENT = ur"\{\$([A-Z0-9_]+)\$\}"
@@ -16,6 +18,7 @@ REG_EXCEL_REPLACEMENT = ur"\{\$([A-Z0-9_]+)\$\}"
 MIME_TYPE_EXCEL = 'application/excel'
 MIME_TYPE_HTML = 'text/html'
 
+NAME_SYSTEM = u"営業支援システム"
 NAME_BUSINESS_PLAN = u"%02d月営業企画"
 NAME_MEMBER_LIST = u"最新要員一覧"
 NAME_RESUME = u"EB履歴書_%s_%s"
@@ -32,6 +35,7 @@ CONFIG_ADMIN_EMAIL_PASSWORD = 'admin_email_password'
 CONFIG_DOMAIN_NAME = 'domain_name'
 CONFIG_YEAR_LIST_START = 'year_list_start'
 CONFIG_YEAR_LIST_END = 'year_list_end'
+CONFIG_PAGE_SIZE = 'page_size'
 
 MARK_POST_CODE = u"〒"
 

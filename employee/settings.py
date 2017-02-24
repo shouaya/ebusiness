@@ -119,10 +119,10 @@ DATABASE_ROUTERS = ['employee.db_router.DbRouter']
 # Internationalization
 # https://docs.djangoproject.com/en/1.7/topics/i18n/
 
-#LANGUAGE_CODE = 'en-us'
+# LANGUAGE_CODE = 'en-us'
 LANGUAGE_CODE = 'ja'
 
-#TIME_ZONE = 'UTC'
+# TIME_ZONE = 'UTC'
 TIME_ZONE = 'Asia/Tokyo'
 
 USE_I18N = True
@@ -187,6 +187,12 @@ LOGGING = {
             'formatter': 'standard',
             'filename': os.path.join(BASE_DIR, "log/batch/send_attendance_format.log"),
         },
+        'eb_sales': {
+            'level': 'INFO',
+            'class': 'logging.FileHandler',
+            'formatter': 'standard',
+            'filename': os.path.join(BASE_DIR, "log/eb_sales.log"),
+        },
     },
     'loggers': {
         'eb.management.commands.sync_members': {
@@ -201,6 +207,11 @@ LOGGING = {
         },
         'eb.management.commands.send_attendance_format': {
             'handlers': ['send_attendance_format'],
+            'level': 'INFO',
+            'propagate': True,
+        },
+        'eb_sales': {
+            'handlers': ['eb_sales'],
             'level': 'INFO',
             'propagate': True,
         },

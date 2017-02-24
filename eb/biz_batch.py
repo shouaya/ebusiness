@@ -10,7 +10,7 @@ import json
 import logging
 import os
 
-from . import biz
+from . import biz, biz_config
 from utils import constants, common, file_gen
 from eb import models
 
@@ -220,7 +220,7 @@ def notify_member_status_mails(batch, status_list, summary):
         context = {'salesperson_list': directors,
                    'status_list': status_list,
                    'summary': summary,
-                   'domain': biz.get_config(constants.CONFIG_DOMAIN_NAME),
+                   'domain': biz_config.get_domain_name(),
                    'next_ym': next_ym,
                    'next_2_ym': next_2_ym,
                    }
@@ -236,7 +236,7 @@ def notify_member_status_mails(batch, status_list, summary):
             context = {'salesperson_list': [salesperson],
                        'status_list': get_status_info(salesperson.pk),
                        'summary': None,
-                       'domain': biz.get_config(constants.CONFIG_DOMAIN_NAME),
+                       'domain': biz_config.get_domain_name(),
                        'next_ym': next_ym,
                        'next_2_ym': next_2_ym,
                        }

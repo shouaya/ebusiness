@@ -102,6 +102,10 @@ section table.list th div.text:hover {
     background: linear-gradient(#eee, #fff)
 }
 
+section table.list th span.title {
+    padding: 7px;
+}
+
 section table.list th div.text a {
     display: block;
     padding: 7px;

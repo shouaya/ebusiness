@@ -12,21 +12,10 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.humanize.templatetags import humanize
 from django.utils import timezone
 
-from utils import common, constants
+from utils import common
 from eb import models
+from . import biz_config
 from eboa import models as eboa_models
-
-
-def get_config(name, default_value=None):
-    """システム設定を取得する。
-
-    DBから値を取得する。
-
-    :param name: 設定名
-    :param default_value: デフォルト値
-    :return:
-    """
-    return models.Config.get(name, default_value)
 
 
 def get_batch_manage(name):
@@ -84,8 +73,8 @@ def get_admin_user():
 
 
 def get_year_list():
-    start = get_config(constants.CONFIG_YEAR_LIST_START, 2015)
-    end = get_config(constants.CONFIG_YEAR_LIST_END, 2020)
+    start = biz_config.get_year_start()
+    end = biz_config.get_year_end()
     return range(int(start), int(end))
 
 
@@ -237,8 +226,8 @@ def get_next_change_list():
     members = models.Member.objects.public_filter(Q(projectmember__end_date__gte=first_day,
                                                     projectmember__end_date__lte=last_day,
                                                     projectmember__is_deleted=False,
-                                                    projectmember__status=2)
-                                                  | Q(projectmember__start_date__gte=next_first_day,
+                                                    projectmember__status=2) |
+                                                  Q(projectmember__start_date__gte=next_first_day,
                                                       projectmember__start_date__lte=next_last_day,
                                                       projectmember__is_deleted=False,
                                                       projectmember__status=2)).distinct()
@@ -422,7 +411,7 @@ def generate_order_data(company, subcontractor, user, ym):
     # 本社電話番号
     data['DETAIL']['TEL'] = company.tel
     # 代表取締役
-    member = company.get_master()
+    member = get_master()
     data['DETAIL']['MASTER'] = u"%s %s" % (member.first_name, member.last_name) if member else ""
     # 本社住所
     data['DETAIL']['ADDRESS1'] = company.address1
@@ -514,7 +503,10 @@ def generate_request_data(company, project, client_order, bank_info, ym, project
     # お客様名称
     data['DETAIL']['CLIENT_COMPANY_NAME'] = project.client.name
     # 作業期間
-    data['DETAIL']['WORK_PERIOD'] = first_day.strftime(u'%Y年%m月%d日'.encode('utf-8')).decode('utf-8') + u" ～ " + last_day.strftime(u'%Y年%m月%d日'.encode('utf-8')).decode('utf-8')
+    f = u'%Y年%m月%d日'
+    period_start = first_day.strftime(f.encode('utf-8')).decode('utf-8')
+    period_end = last_day.strftime(f.encode('utf-8')).decode('utf-8')
+    data['DETAIL']['WORK_PERIOD'] = period_start + u" ～ " + period_end
     data['EXTRA']['WORK_PERIOD_START'] = first_day
     data['EXTRA']['WORK_PERIOD_END'] = last_day
     # 注文番号
@@ -538,7 +530,7 @@ def generate_request_data(company, project, client_order, bank_info, ym, project
     # 会社名
     data['DETAIL']['COMPANY_NAME'] = company.name
     # 代表取締役
-    member = company.get_master()
+    member = get_master()
     data['DETAIL']['MASTER'] = u"%s %s" % (member.first_name, member.last_name) if member else ""
     # 本社電話番号
     data['DETAIL']['TEL'] = company.tel
@@ -657,6 +649,7 @@ def get_request_expenses_list(project, year, month, project_members):
 def get_attendance_time_from_eboa(project_member, year, month):
     """EBOAから出勤時間を取得する。
 
+    :param project_member:
     :param year:
     :param month:
     :return:
@@ -671,3 +664,22 @@ def get_attendance_time_from_eboa(project_member, year, month):
         return float(eboa_attendances[0].totaltime)
     else:
         return 0
+
+
+def get_members_to_set_coordinate():
+    now = datetime.datetime.now()
+    last_week = now + datetime.timedelta(days=-7)
+    # １週間前更新したレコード
+    members = models.Member.objects.public_filter(Q(coordinate_update_date__lt=last_week) |
+                                                  Q(coordinate_update_date__isnull=True))
+    members = members.filter(address1__isnull=False).exclude(address1__exact=u'')
+    return members
+
+
+def get_master():
+    # 代表取締役を取得する。
+    members = models.Salesperson.objects.public_filter(member_type=7)
+    if members.count() == 1:
+        return members[0]
+    else:
+        return None
