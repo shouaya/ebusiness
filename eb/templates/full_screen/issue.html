@@ -1,0 +1,49 @@
+{% extends theme|add:"/base.html" %}
+
+{% block header %}
+{% endblock %}
+
+{% block content %}
+    <div class="dashboard">
+        <div class="dashboard-title">課題 - No.{{ issue.pk }}</div>
+        <form>
+            <a href="{% url 'admin:eb_issue_change' issue.pk %}?from=portal&_popup=1" class="button" target="_blank">編集</a>
+        </form>
+    </div>
+    <table class="detail" cellpadding="0" cellspacing="0">
+        <tr>
+            <th style="width: 120px;">タイトル</th>
+            <td>{{ issue.title }}</td>
+            <th style="width: 120px;">レベル</th>
+            <td>{{ issue.get_level_display }}</td>
+        </tr>
+        <tr>
+            <th>不具合内容</th>
+            <td colspan="3">
+                <div><pre>{{ issue.content }}</pre></div>
+            </td>
+        </tr>
+        <tr>
+            <th>提出者</th>
+            <td>{{ issue.user.first_name }}&nbsp;{{ issue.user.last_name }}</td>
+            <th>期限日</th>
+            <td>{{ issue.limit_date }}</td>
+        </tr>
+        <tr>
+            <th>ステータス</th>
+            <td>{{ issue.get_status_display }}</td>
+            <th>対応者</th>
+            <td>{{ issue.resolve_user.first_name }}&nbsp;{{ issue.resolve_user.last_name }}</td>
+        </tr>
+        <tr>
+            <th>予定完了日</th>
+            <td colspan="3">{{ issue.end_date }}</td>
+        </tr>
+        <tr>
+            <th>対応方法</th>
+            <td colspan="3">
+                <div><pre>{{ issue.solution }}</pre></div>
+            </td>
+        </tr>
+    </table>
+{% endblock %}

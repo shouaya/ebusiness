@@ -94,7 +94,7 @@ def get_request_params(params):
     if params:
         d = dict()
         for key, value in dict(params).items():
-            if key in ("o", "page", "ym") or not value:
+            if key in ("o", "page", "ym", "q") or not value:
                 continue
             if isinstance(value, list) and value[0]:
                 val = value[0]

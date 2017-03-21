@@ -726,7 +726,7 @@ class Member(AbstractMember):
                                        u"  JOIN eb_projectmember PM ON M.ID = PM.MEMBER_ID"
                                        u"  JOIN eb_project P ON P.ID = PM.PROJECT_ID"
                                        u"  JOIN eb_projectskill PS ON PS.PROJECT_ID = P.ID"
-                                       u"  JOIN eb_skill S ON S.ID = PS.SKILL_ID"
+                                       u"  JOIN mst_skill S ON S.ID = PS.SKILL_ID"
                                        u" WHERE M.EMPLOYEE_ID = %s"
                                        u"   AND PM.END_DATE <= %s", [self.employee_id, datetime.date.today()])
         return list(query_set)
@@ -741,7 +741,7 @@ class Member(AbstractMember):
                                        u"  JOIN eb_projectmember PM ON M.ID = PM.MEMBER_ID"
                                        u"  JOIN eb_project P ON P.ID = PM.PROJECT_ID"
                                        u"  JOIN eb_projectskill PS ON PS.PROJECT_ID = P.ID"
-                                       u"  JOIN eb_skill S ON S.ID = PS.SKILL_ID"
+                                       u"  JOIN mst_skill S ON S.ID = PS.SKILL_ID"
                                        u" WHERE S.ID IN (%s)"
                                        u"   AND P.STATUS <= 3" % (",".join(skill_id_list),))
         return [project.pk for project in query_set]
@@ -1121,7 +1121,7 @@ class Project(models.Model):
                                        u"  FROM eb_member m "
                                        u"  JOIN eb_projectmember pm ON m.ID = pm.MEMBER_ID "
                                        u"  JOIN eb_projectskill ps ON ps.PROJECT_ID = pm.PROJECT_ID"
-                                       u"  JOIN eb_skill s ON s.ID = ps.SKILL_ID"
+                                       u"  JOIN mst_skill s ON s.ID = ps.SKILL_ID"
                                        u" WHERE s.NAME = %s"
                                        u"   AND pm.END_DATE < %s"
                                        u"   AND pm.STATUS <> 1"

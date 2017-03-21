@@ -1,0 +1,37 @@
+{% extends theme|add:"/base.html" %}
+
+{% block content %}
+    <form action="#" method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div id="content-main">
+            {{ form }}
+        </div>
+        {% if display %}
+            <table class="list" cellpadding="0" cellspacing="0">
+                <thead>
+                    <tr>
+                        <td>選択</td>
+                        <td>名前</td>
+                        <td>生年月日</td>
+                        <td>アドレス</td>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for member in members %}
+                        <tr>
+                            <td><input type="radio" name="select" value="{{ member.pk }}"/></td>
+                            <td>{{ member }}</td>
+                            <td>{{ member.birthday }}</td>
+                            <td>{{ member.address1 }}</td>
+                        </tr>
+                    {% endfor %}
+                    <tr>
+                        <td><input type="radio" name="select" value="0"/></td>
+                        <td colspan="3">新規追加</td>
+                    </tr>
+                </tbody>
+            </table>
+        {% endif %}
+        <input type="submit" value="Upload" />
+    </form>
+{% endblock %}

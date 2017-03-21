@@ -9,8 +9,16 @@ from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
 from . import biz
 from utils import common
+from eb import biz_config
 
 PAGE_SIZE = 50
+
+
+def get_base_context():
+    context = {
+        'theme': biz_config.get_theme(),
+    }
+    return context
 
 
 @login_required(login_url='/eb/login/')
@@ -28,15 +36,16 @@ def attendance_list_monthly(request):
     except EmptyPage:
         attendance_list = paginator.page(paginator.num_pages)
 
-    context = RequestContext(request, {
+    context = get_base_context()
+    context.update({
         'title': u'%s年%s月の出勤情報' % (year, month),
         'attendance_list': attendance_list,
         'paginator': paginator,
         'year': year,
         'month': month,
     })
-    template = loader.get_template('attendance_list.html')
-    return HttpResponse(template.render(context))
+    template = loader.get_template('%s/attendance_list.html' % context.get('theme'))
+    return HttpResponse(template.render(context, request))
 
 
 @login_required(login_url='/eb/login/')

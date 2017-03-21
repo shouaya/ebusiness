@@ -36,6 +36,7 @@ CONFIG_DOMAIN_NAME = 'domain_name'
 CONFIG_YEAR_LIST_START = 'year_list_start'
 CONFIG_YEAR_LIST_END = 'year_list_end'
 CONFIG_PAGE_SIZE = 'page_size'
+CONFIG_THEME = 'theme'
 
 MARK_POST_CODE = u"〒"
 

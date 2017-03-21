@@ -1,0 +1,66 @@
+@CHARSET "utf-8";
+
+html {
+    height: 100%;
+}
+
+body {
+    height: 100%;
+    background: url("../img/bg_section.gif") repeat-x top left;
+    font-family: 'ＭＳ Ｐゴシック';
+    /*font-family: YouYuan, 'Noto Sans CJK JP', 'Noto Sans', 'Source Han Sans J',
+                 SourceHanSansJP, メイリオ, Meiryo, 游ゴシック, YuGothic,
+                 'ヒラギノ角ゴ Pro W3', 'Hiragino Kaku Gothic Pro', sans-serif, msyh;*/
+}
+
+div.container {
+	margin: 0;
+	width: 100%;
+	min-width: 1100px;
+}
+
+h1,h2,h3,h4,h5,h6 {
+    color: #333;
+    overflow: hidden;
+}
+
+li {
+    overflow: hidden;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    line-height: 1.5;
+}
+
+a {
+    text-decoration: none;
+}
+
+.center {
+    text-align: center;
+}
+
+.red {
+    color: red;
+}
+
+.right {
+    float: right;
+}
+
+.clear {
+    clear: both;
+}
+
+.btnOk {
+    border: 2px solid #5b80b2;
+    background: #7CA0C7 url(../admin/img/default-bg.gif) bottom repeat-x;
+    font-weight: bold;
+    color: #fff;
+}
+
+input[type=button] {
+    padding: 1px 5px;
+}

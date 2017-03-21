@@ -1,0 +1,81 @@
+{% extends theme|add:"/base.html" %}
+{% load humanize %}
+{% load order_by_tag %}
+
+{% block header %}
+    <script type="text/javascript">
+        window.onload = function() {
+            init_select("name");
+        };
+    </script>
+{% endblock %}
+
+{% block content %}
+    <div class="dashboard">
+        <div class="dashboard-title">なにをしたいのですか？</div>
+        <form action="" method="get">
+            <span>会社名称: </span><input type="text" id="name" name="name" style="width: 100px;"/>
+            <input type="submit" value="Filter" />
+        </form>
+    </div>
+    <table class="list" cellpadding="0" cellspacing="0">
+        <thead>
+            <tr>
+                <th>{% create_order_display "会社名称" "name" %}</th>
+                <th>うちの派遣社員数</th>
+                <th>契約開始日</th>
+                <th>契約終了日</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% if subcontractors %}
+                {% for subcontractor in subcontractors %}
+                    <tr class="{% cycle 'row1' 'row2' %}">
+                        <td>
+                            <a href="{% url 'subcontractor_detail' subcontractor.pk %}">{{ subcontractor.name }}</a>
+                        </td>
+                        <td style="text-align: center">
+                            {{ subcontractor.member_set.count }}
+                        </td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                {% endfor %}
+            {% else %}
+                <tr class="row1"><td class="center red" colspan="4">協力会社がありません。</td></tr>
+            {% endif %}
+        </tbody>
+        <tfoot>
+            <tr>
+                <td>
+                    <div class="pagination">
+                        <span class="step-links">
+                            {% if projects.has_previous %}
+                                <a href="?page={{ projects.previous_page_number }}{{ params }}">&lt;</a>
+                            {% endif %}
+
+                            {% if paginator.page_range|length > 1 %}
+                                {% for page in paginator.page_range %}
+                                    {% ifequal page projects.number %}
+                                        <span class="current">
+                                            {{ page }}
+                                        </span>
+                                    {% else %}
+                                        <a href="?page={{ page }}{{ params }}{{ orders }}">{{ page }}</a>
+                                    {% endifequal %}
+                                {% endfor %}
+                            {% endif %}
+
+                            {% if projects.has_next %}
+                                <a href="?page={{ projects.next_page_number }}{{ params }}">&gt;</a>
+                            {% endif %}
+                            <span>{{ paginator.count }} 件</span>
+                        </span>
+                    </div>
+                </td>
+                <td style="text-align: center;">{{ bp_count }}</td>
+                <td colspan="2"></td>
+            </tr>
+        </tfoot>
+    </table>
+{% endblock %}

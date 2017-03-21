@@ -8,7 +8,8 @@ from . import models, forms
 class BaseEboaAdmin(admin.ModelAdmin):
 
     class Media:
-        js = ('/static/js/jquery-2.1.4.min.js', '/static/js/readonly.js',)
+        js = ('/static/admin/js/jquery-2.1.4.min.js',
+              '/static/admin/js/readonly.js',)
 
     def save_model(self, request, obj, form, change):
         # Tell Django to save objects to the 'other' database.

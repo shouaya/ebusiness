@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="utf-8"/>
+    <title>{{ title }}</title>
+
+    <link rel="shortcut icon" type="image/png" href="/static/{{ theme }}/img/favicon.ico"/>
+    <link rel="stylesheet" type="text/css" href="/static/{{ theme }}/css/base.css"/>
+    <link rel="stylesheet" type="text/css" href="/static/{{ theme }}/css/header.css"/>
+    <link rel="stylesheet" type="text/css" href="/static/{{ theme }}/css/section.css"/>
+    <link rel="stylesheet" type="text/css" href="/static/{{ theme }}/css/footer.css"/>
+    <link rel="stylesheet" type="text/css" href="/static/{{ theme }}/css/print.css" media="print"/>
+
+    <script type="text/javascript" src="/static/admin/js/jquery-2.1.4.min.js"></script>
+    <script type="text/javascript" src="/static/admin/js/base.js"></script>
+    <script type="text/javascript" src="https://use.fontawesome.com/2938c96a89.js"></script>
+	<!--[if lt IE 9]>
+	<script type="text/javascript" src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+	<![endif]-->
+
+    {% block header %}{% endblock %}
+</head>
+
+<body>
+	<header>
+        <div class="container">
+            <div class="logo"><img class="logo" src="/static/logo.gif" /></div>
+            <div class="inc-name">E-Business Inc.</div>
+            <div class="header-nav">
+                <ul>
+                    <li><a href="{% url 'index' %}"><i class="fa fa-home" aria-hidden="true"></i>&nbsp;HOME</a></li>
+                    <li><a href="{% url 'employee_list' %}"><i class="fa fa-check-square-o" aria-hidden="true"></i>&nbsp;要員一覧</a>
+                        <ul>
+                            <li>
+                                <div>
+                                    <form action="{% url 'employee_list' %}" method="get">
+                                        <!--<label for="first_name__contains">姓:</label>-->
+                                        <!--<input type="text" id="first_name__contains" name="first_name__contains" style="width:30px"/>-->
+                                        <!--<label for="last_name__contains">名:</label>-->
+                                        <!--<input type="text" id="last_name__contains" name="last_name__contains" style="width:50px"/>-->
+                                        <input type="text" name="q"/>
+                                        <input type="submit" value="検索"/>
+                                    </form>
+                                </div>
+                            </li>
+                        </ul>
+                    </li>
+                    <li><a href="{% url 'project_list' %}"><i class="fa fa-check-square-o" aria-hidden="true"></i>&nbsp;案件一覧</a>
+                        <ul>
+                            <li>
+                                <div>
+                                    <form action="{% url 'project_list' %}" method="get">
+                                        <input type="text" name="q"/>
+                                        <input type="submit" value="検索"/>
+                                    </form>
+                                </div>
+                            </li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+            <div class="login-info">
+                {% if not user.is_anonymous %}
+                    <div class="user-name">
+                        <div>
+                            {% now 'H' as hour %}
+                            {% if hour > '17' %}
+                                こんばんは
+                            {% else %}
+                                {% if hour > '11' %}
+                                    こんにちは
+                                {% else %}
+                                    おはよう
+                                {% endif %}
+                            {% endif %}
+                            <b>
+                                {% if user.salesperson %}
+                                    {{ user.salesperson }}
+                                {% else %}
+                                    {% if user.member %}
+                                        {{ user.member }}
+                                    {% else %}
+                                        {{ user }}
+                                    {% endif %}
+                                {% endif %}
+                            </b>&nbsp;様&nbsp;&nbsp;
+                        </div>
+                        <ul class="user-option">
+                            <li class="menu">
+                                <a><i class="fa fa-id-card-o" aria-hidden="true"></i>&nbsp;マイページ</a>
+                            </li>
+                            <li class="menu">
+                                <a href="{% url 'password_change' %}">
+                                    <i class="fa fa-key" aria-hidden="true"></i>&nbsp;パスワードの変更
+                                </a>
+                            </li>
+                            <li class="menu">
+                                <a href="{% url 'admin:index' %}">
+                                    <i class="fa fa-user-circle-o" aria-hidden="true"></i>&nbsp;管理サイト
+                                </a>
+                            </li>
+                            {% if perms.eb.view_turnover %}
+                            <li class="menu">
+                                <a href="{% url 'turnover_company_monthly' %}">
+                                    <i class="fa fa-line-chart" aria-hidden="true"></i>&nbsp;売上情報
+                                </a>
+                            </li>
+                            {% endif %}
+                        </ul>
+                    </div>
+                    <a class="logout" href="{% url 'logout_view' %}">
+                        <i class="fa fa-sign-out" aria-hidden="true"></i>
+                        ログアウト</a>
+                {% else %}
+                    <a href="{% url 'admin:login' %}?next={{ request.get_full_path }}">ログイン</a>
+                {% endif %}
+            </div>
+        </div>
+    </header>
+    <section>
+        <div class="container">
+        {% block content %}{% endblock %}
+        </div>
+    </section>
+	<footer>
+        <div class="container">
+            {% ifequal request.user.username 'admin' %}
+            <a href="{% url 'history' %}">Click here to see history</a>
+            {% endifequal %}
+            <a href="{% url 'issues' %}">課題管理票</a>
+        </div>
+    </footer>
+</body>
+</html>

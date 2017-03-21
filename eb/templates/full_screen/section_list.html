@@ -1,0 +1,49 @@
+{% extends theme|add:"/base.html" %}
+
+{% block header %}
+{% endblock %}
+
+{% block content %}
+    <div class="dashboard">
+        <div class="dashboard-title">部署情報一覧</div>
+        <form>
+            <a href="" target="_blank"></a>
+        </form>
+    </div>
+    <table cellspacing="0" cellpadding="0" class="list">
+        <thead>
+            <tr>
+                <th>名称</th>
+                <th>人数</th>
+                <th>部長</th>
+                <th>勤務統計者</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for section, count in sections %}
+            <tr class="{% cycle 'row1' 'row2' %}">
+                <td><a href="{% url 'section_detail' section.pk %}">{{ section }}</a></td>
+                <td>{{ count }}</td>
+                <td>
+                    {% for member in section.get_chief %}
+                        {{ member}},
+                    {% endfor %}
+                </td>
+                <td>
+                    {% for member in section.get_attendance_statistician %}
+                        {{ member}},
+                    {% endfor %}
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+        <tfoot>
+            <tr>
+                <th>名称</th>
+                <th>{{ total_count }}</th>
+                <th>部長</th>
+                <th>勤務統計者</th>
+            </tr>
+        </tfoot>
+    </table>
+{% endblock %}

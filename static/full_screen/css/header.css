@@ -1,0 +1,171 @@
+@CHARSET "utf-8";
+
+header {
+    background-color: #5B93FF;
+    width: 100%;
+    height: 45px;
+    position: fixed;
+    vertical-align: middle;
+}
+
+header div.logo,
+header div.inc-name {
+    float: left;
+    height: 45px;
+}
+
+header div.inc-name {
+    padding-top: 20px;
+    color: white;
+    font-family: cursive;
+}
+
+header img.logo {
+    width: 80px;
+    margin-top: 7px;
+}
+
+header div.header-nav ul {
+}
+
+header div.header-nav ul li {
+    margin-top: 4px;
+    float: left;
+    display: block;
+    margin-left: 10px;
+    width: 150px;
+    overflow: hidden;
+    cursor: pointer;
+    text-align: center;
+    vertical-align: middle;
+    background-color: rgba(33, 100, 101, 0.84);
+}
+
+header div.header-nav ul li a {
+    display: block;
+    padding-top: 7px;
+    padding-bottom: 7px;
+    border: 0px solid #5b93da;
+    color: white;
+    font-size: 14px;
+}
+
+header div.header-nav ul li a:hover {
+    background-color: blue;
+    border: 0px solid #EDF3FE;
+}
+
+header div.header-nav ul li ul {
+    position: absolute;
+    top: 45px;/*親メニューの高さと同じにする*/
+    width: 200px;
+    z-index: 100;
+    background: #5b93da;/*サブメニューの背景色*/
+    font-size: 12px;
+}
+header div.header-nav ul li ul li {
+    visibility: hidden;
+    overflow: hidden;
+    width: 200px;/*サブメニューの幅*/
+    height: 0;
+    background: #5b93da;/*サブメニューの背景色*/
+    margin-top: -5px;
+    margin-left: 0px;
+}
+header div.header-nav ul li ul li div {
+    margin-top: 8px;
+    margin-left: -10px;
+}
+header div.header-nav ul li ul li:hover, header div.header-nav ul li ul li a:hover {
+    background: #5b93da;/*ホバー時のサブメニューの背景色*/
+}
+header div.header-nav ul li:hover ul li, header div.header-nav ul li a:hover ul li{
+    visibility: visible;
+    overflow: visible;
+    height:40px;/*サブメニューの高さ*/
+    z-index: 10;
+}
+
+header div.header-nav *,
+header div.login-info * {
+    -webkit-transition: 0.5s;
+    -moz-transition: 0.5s;
+    -ms-transition: 0.5s;
+    -o-transition: 0.5s;
+    transition: 0.5s;
+}
+
+header .login-info {
+    float: right;
+    margin-right: 15px;
+    color: white;
+    font-size: 12px;
+    height: 45px;
+}
+
+header .login-info .user-name {
+    float: left;
+    position: relative;
+    height: 45px;
+    padding-top: 13px;
+}
+
+header .login-info .user-name .user-option {
+    position: absolute;
+    top: 45px;/*親メニューの高さと同じにする*/
+    z-index: 100;
+    background: white;/*サブメニューの背景色*/
+    font-size: 12px;
+    visibility: hidden;
+    overflow: hidden;
+    border: 1px solid #5b93da;
+    border-top: 0px;
+    width: 150px;
+    /*height: 0px;*/
+    left: 300px;
+    box-shadow:0px 0px 6px 3px #5b93da;
+    -moz-box-shadow:0px 0px 6px 3px #5b93da;
+    -webkit-box-shadow:0px 0px 6px 3px #5b93da;
+}
+
+header .login-info .user-name .user-option li {
+    border-bottom: 1px dotted gray;
+    padding: 5px 6px;
+}
+
+header .login-info .user-name .user-option li.group {
+    background-color: rgb(61, 62, 121);
+}
+
+header .login-info .user-name .user-option li.menu a {
+    color: #000;
+}
+
+header .login-info .user-name:hover .user-option {
+    visibility: visible;
+    overflow: visible;
+    /*width: 150px;*/
+    /*height: 56px;*/
+    left: 0px;
+}
+
+header .login-info .user-name:hover .user-option li.menu:hover {
+    background-color: lightgreen;
+}
+
+header .login-info .logout {
+    background-color: #ff4b4b;
+    color: white;
+    padding: 3px 6px;
+    font-size: 11px;
+    border: 1px solid #5b93da;
+    box-shadow:0px 0px 6px 3px #5b93da;
+    -moz-box-shadow:0px 0px 6px 3px #5b93da;
+    -webkit-box-shadow:0px 0px 6px 3px #5b93da;
+    margin-top: 10px;
+    display: inline-block;
+}
+
+header .login-info .logout:hover {
+    border: 1px solid lightyellow;
+}

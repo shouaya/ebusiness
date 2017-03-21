@@ -50,3 +50,11 @@ def get_page_size():
     :return:
     """
     return get_config(constants.CONFIG_PAGE_SIZE, 50)
+
+
+def get_theme():
+    """主題を表示する。
+
+    :return:
+    """
+    return get_config(constants.CONFIG_THEME, 'common')

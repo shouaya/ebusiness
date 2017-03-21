@@ -1,0 +1,79 @@
+{% extends theme|add:"/base.html" %}
+
+{% block header %}
+    <script type="text/javascript">
+        window.onload = function() {
+            init_select("status");
+        };
+    </script>
+{% endblock %}
+
+{% block content %}
+    <div class="dashboard">
+        <div class="dashboard-title">なにをしたいのですか？</div>
+        <form action="" method="get">
+            <select id="status" name="status">
+                <option value="0">すべて</option>
+                <option value="1">提案中</option>
+                <option value="2">作業中</option>
+                <option value="3">作業終了</option>
+            </select>
+            <input type="submit" value="Filter" />
+            <a href="/admin/eb/projectmember/add/?employee_id={{ member.employee_id }}"
+               target="_blank" class="button">案件を追加</a>
+        </form>
+    </div>
+    <table class="list" cellpadding="0" cellspacing="0">
+        <thead>
+            <tr>
+                <th>名前</th>
+                <th>案件名称</th>
+                <th>スキル要求</th>
+                <th>稼働開始日</th>
+                <th>稼働終了日</th>
+                <th>ステータス</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% if project_members %}
+                {% for project_member in project_members %}
+                    <tr class="{% cycle 'row1' 'row2' %}">
+                        <td>{{ project_member.member }}</td>
+                        <td><a href="{% url 'project_detail' project_member.project.pk %}">
+                            {{ project_member.project.name }}</a>
+                        </td>
+                        <td>
+                            {% for skill in project_member.project.skills.all %}
+                                {{ skill }},
+                            {% endfor %}
+                        </td>
+                        <td>{{ project_member.start_date|date:"Y-m-d" }}</td>
+                        <td>{{ project_member.end_date|date:"Y-m-d" }}</td>
+                        <td class="center">
+                            <a href="?status={{ project_member.status }}">
+                            {{ project_member.get_status_display }}
+                            </a>
+                        </td>
+                        <td class="center">
+                            <a href="/admin/eb/projectmember/{{ project_member.id }}/" target="_blank">編集</a>
+                        </td>
+                    </tr>
+                {% endfor %}
+            {% else %}
+                <tr class="row2"><td class="center red" colspan="7">まだ何の案件にはいてありません。</td></tr>
+            {% endif %}
+        </tbody>
+        <tfoot>
+            <tr>
+                <th>名前</th>
+                <th>案件名称</th>
+                <th>スキル要求</th>
+                <th>稼働開始日</th>
+                <th>稼働終了日</th>
+                <th>ステータス</th>
+                <th></th>
+            </tr>
+        </tfoot>
+    </table>
+{% endblock %}

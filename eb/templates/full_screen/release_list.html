@@ -1,0 +1,129 @@
+{% extends theme|add:"/base.html" %}
+{% load order_by_tag %}
+
+{% block header %}
+    <script type="text/javascript">
+        window.onload = function() {
+            init_select("member__first_name__contains");
+            init_select("member__last_name__contains");
+            init_select("section");
+            init_select("member__subcontractor__name__contains");
+            init_select("project__name__contains");
+            init_select("salesperson");
+        };
+    </script>
+{% endblock %}
+
+{% block content %}
+    <div class="dashboard">
+        <div class="dashboard-title">{{ title }}</div>
+        <form action="{% url 'release_list' ym %}" method="get">
+            <span>姓: </span><input type="text" id="member__first_name__contains" name="member__first_name__contains" style="width: 50px;"/>
+            <span>名: </span><input type="text" id="member__last_name__contains" name="member__last_name__contains" style="width: 50px;"/>
+            <span>部署：</span>
+            <select id="section" name="section">
+                <option value="">すべて</option>
+                {% for section in sections %}
+                    <option value="{{ section.pk }}">{{ section.name }}</option>
+                {% endfor %}
+            </select>
+            <span>協力会社: </span><input type="text" id="member__subcontractor__name__contains" name="member__subcontractor__name__contains" style="width: 150px;"/>
+            <span>案件: </span><input type="text" id="project__name__contains" name="project__name__contains" style="width: 150px;"/>
+            <span>営業：</span>
+            <select id="salesperson" name="salesperson">
+                <option value="">すべて</option>
+                {% for member in salesperson %}
+                    <option value="{{ member.pk }}">{{ member }}</option>
+                {% endfor %}
+            </select>
+            <input type="submit" value="Filter" />
+            <a href="{% url 'release_list' ym %}">クリア</a>
+        </form>
+    </div>
+    <table class="list" cellpadding="0" cellspacing="0">
+        <thead>
+            <tr>
+                <th style="width: 80px;">{% create_order_display "名前" "member__first_name" %}</th>
+                <th>{% create_order_display "部署" "member__section__name" %}</th>
+                <th style="width: 170px;">{% create_order_display "協力会社" "member__subcontractor__name" %}</th>
+                <th style="width: 260px;">{% create_order_display "案件名称" "project__name" %}</th>
+                <th style="width: 90px;">{% create_order_display "開始日" "start_date" %}</th>
+                <th style="width: 82px;">{% create_order_display "営業員" "member__salesperson" %}</th>
+                <th style="width: 50px;">営業状態</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% if project_members %}
+                {% for project_member in project_members %}
+                    <tr class="{% cycle 'row1' 'row2' %}">
+                        <td><a href="{% url 'member_detail' project_member.member.employee_id %}">
+                            {{ project_member.member }}</a>
+                        </td>
+                        <td>
+                            {{ project_member.section_name }}
+                        </td>
+                        <td><div style="width: 170px; white-space: nowrap; overflow: hidden;">
+                            {{ project_member.member.subcontractor|default:"" }}</div></td>
+                        <td>
+                            <div style="width: 260px; white-space: nowrap; overflow: hidden;">
+                            <a href="{% url 'project_detail' project_member.project.pk %}">
+                                {{ project_member.project.name }}
+                            </a>
+                            </div>
+                        </td>
+                        <td>{{ project_member.start_date|date:"Y-m-d" }}</td>
+                        <td>
+                            {{ project_member.salesperson_name }}
+                        </td>
+                        <td class="center">
+                            {% ifequal project_member.business_status "営業中" %}
+                                <a href="{% url 'member_project_list' project_member.member.employee_id %}?status=1">営業中</a>
+                            {% else %}
+                                {{ project_member.business_status }}
+                            {% endifequal %}
+                        </td>
+                        <td class="center">
+                            {% ifequal project_member.business_status "未提案" %}
+                                <a href="{% url 'recommended_project' project_member.member.employee_id %}">推薦された案件</a>&nbsp;|
+                            {% endifequal %}
+                            <a href="{% url 'admin:eb_member_change' project_member.member.pk %}?from=portal&_popup=1" target="_blank">編集</a>
+                        </td>
+                    </tr>
+                {% endfor %}
+            {% else %}
+                <tr class="row1"><td class="center red" colspan="8">リリース予定がありません。</td></tr>
+            {% endif %}
+        </tbody>
+        <tfoot>
+            <tr>
+                <td colspan="8">
+                    <div class="pagination">
+                        <span class="step-links">
+                            {% if project_members.has_previous %}
+                                <a href="?page={{ project_members.previous_page_number }}{{ params }}">&lt;</a>
+                            {% endif %}
+
+                            {% if paginator.page_range|length > 1 %}
+                                {% for page in paginator.page_range %}
+                                    {% ifequal page project_members.number %}
+                                        <span class="current">
+                                            {{ page }}
+                                        </span>
+                                    {% else %}
+                                        <a href="?page={{ page }}{{ params }}">{{ page }}</a>
+                                    {% endifequal %}
+                                {% endfor %}
+                            {% endif %}
+
+                            {% if project_members.has_next %}
+                                <a href="?page={{ project_members.next_page_number }}{{ params }}">&gt;</a>
+                            {% endif %}
+                            <span>{{ paginator.count }} 件</span>
+                        </span>
+                    </div>
+                </td>
+            </tr>
+        </tfoot>
+    </table>
+{% endblock %}

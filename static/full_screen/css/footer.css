@@ -1,0 +1,12 @@
+@CHARSET "utf-8";
+
+footer {
+    position: relative;
+    clear: both;
+    right: 0;
+    bottom: 0;
+    font-size: 13px;
+    height: 100px;
+    padding-top: 20px;
+}
+

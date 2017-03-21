@@ -1,0 +1,48 @@
+{% extends theme|add:"/base.html" %}
+{% load humanize %}
+
+{% block header %}
+{% endblock %}
+
+{% block content %}
+    <div class="dashboard">
+        <div class="dashboard-title">{{ title }}</div>
+    </div>
+    <table class="list" cellpadding="0" cellspacing="0">
+        <thead>
+            <tr>
+                <th>案件名称</th>
+                <th>売上（税別）</th>
+                <th>税金</th>
+                <th>精算</th>
+                <th>合計</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% if turnover_details %}
+                {% for turnover in turnover_details %}
+                    <tr class="{% cycle 'row1' 'row2' %}">
+                        <td>
+                            <a href="{% url 'turnover_members_monthly' ym %}?project_request__project__name__contains={{ turnover.project.name|urlencode }}">{{ turnover.project }}</a>
+                        </td>
+                        <td style="text-align: right">{{ turnover.attendance_amount|intcomma }}</td>
+                        <td style="text-align: right">{{ turnover.tax_amount|intcomma }}</td>
+                        <td style="text-align: right">{{ turnover.expenses_amount|intcomma }}</td>
+                        <td style="text-align: right">{{ turnover.all_amount|intcomma }}</td>
+                    </tr>
+                {% endfor %}
+            {% else %}
+                <tr class="row1"><td class="center red" colspan="5">売上情報がありません。</td></tr>
+            {% endif %}
+        </tbody>
+        <tfoot>
+            <tr>
+                <td>{{ turnover_details|length }} 件</td>
+                <td style="text-align: right"> {{ summary.attendance_amount|intcomma }}</td>
+                <td style="text-align: right"> {{ summary.tax_amount|intcomma }}</td>
+                <td style="text-align: right"> {{ summary.expenses_amount|intcomma }}</td>
+                <td style="text-align: right"> {{ summary.all_amount|intcomma }}</td>
+            </tr>
+        </tfoot>
+    </table>
+{% endblock %}

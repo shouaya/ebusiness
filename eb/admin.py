@@ -20,53 +20,8 @@ from django.utils.encoding import force_text
 from django.utils.text import get_text_list
 
 import forms
-from . import models, biz
+from . import models, biz, biz_config
 from utils import common, constants
-
-
-class TextInputListFilter(admin.ListFilter):
-    title = None
-    parameter_name = None
-    template = "admin_name_filter.html"
-
-    def __init__(self, request, params, model, model_admin):
-        super(TextInputListFilter, self).__init__(request, params, model, model_admin)
-
-        if self.parameter_name in params:
-            value = params.pop(self.parameter_name)
-            self.used_parameters[self.parameter_name] = value
-
-    def value(self):
-        return self.used_parameters.get(self.parameter_name, None)
-
-    def has_output(self):
-        return True
-
-    def expected_parameters(self):
-        return [self.parameter_name]
-
-    def choices(self, cl):
-        all_choice = {
-            'selected': self.value() is None,
-            'query_string': cl.get_query_string({}, [self.parameter_name]),
-            'display': _('All'),
-        }
-        return ({
-            'get_query': cl.params,
-            'current_value': self.value(),
-            'all_choice': all_choice,
-            'parameter_name': self.parameter_name
-        }, )
-
-
-class ProjectNameListFilter(TextInputListFilter):
-
-    title = u"案件名称"
-    parameter_name = "name"
-
-    def queryset(self, request, queryset):
-        if self.value():
-            return queryset.filter(name__contains=self.value())
 
 
 class NoUserFilter(admin.SimpleListFilter):
@@ -186,10 +141,10 @@ class BaseAdmin(admin.ModelAdmin):
 
     class Media:
         js = ('https://ajaxzip3.github.io/ajaxzip3.js',
-              '/static/js/jquery-2.1.4.min.js',
-              '/static/js/filterlist.js',
-              '/static/js/select_filter.js',
-              '/static/js/base.js')
+              '/static/admin/js/jquery-2.1.4.min.js',
+              '/static/admin/js/filterlist.js',
+              '/static/admin/js/select_filter.js',
+              '/static/admin/js/base.js')
 
     def construct_change_message(self, request, form, formsets, add=False):
         """
@@ -270,7 +225,8 @@ class AdminOnlyAdmin(BaseAdmin):
 class ReadonlyAdmin(admin.ModelAdmin):
 
     class Media:
-        js = ('/static/js/jquery-2.1.4.min.js', '/static/js/readonly.js',)
+        js = ('/static/admin/js/jquery-2.1.4.min.js',
+              '/static/admin/js/readonly.js')
 
     def has_add_permission(self, request):
         return False
@@ -611,14 +567,14 @@ class ProjectAdmin(BaseAdmin):
     form = forms.ProjectForm
     list_display = ['name', 'client', 'start_date', 'end_date', 'status', 'salesperson', 'is_deleted']
     list_display_links = ['name']
-    list_filter = [ProjectNameListFilter, 'status', 'salesperson', 'is_deleted']
+    list_filter = ['status', 'salesperson', 'is_deleted']
     search_fields = ['name', 'client__name']
     inlines = (ProjectSkillInline, ProjectMemberInline)
     actions = ['delete_objects', 'active_objects']
 
     class Media:
-        js = ('/static/js/ready.js',)
-        css = {'all': ('/static/css/admin.css',)
+        js = ('/static/admin/js/ready.js',)
+        css = {'all': ('/static/admin/css/admin.css',)
                }
 
     def _create_formsets(self, request, obj, change):
@@ -818,9 +774,9 @@ class ClientMemberAdmin(BaseAdmin):
     actions = ['delete_objects', 'active_objects']
 
     class Media:
-        js = ('/static/js/jquery-2.1.4.min.js',
-              '/static/js/filterlist.js',
-              '/static/js/select_filter.js')
+        js = ('/static/admin/js/jquery-2.1.4.min.js',
+              '/static/admin/js/filterlist.js',
+              '/static/admin/js/select_filter.js')
 
     def get_actions(self, request):
         actions = super(ClientMemberAdmin, self).get_actions(request)

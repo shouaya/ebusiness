@@ -1,0 +1,250 @@
+{% extends theme|add:"/base.html" %}
+{% load humanize %}
+{% load order_by_tag %}
+
+{% block header %}
+<script type="text/javascript">
+    function checkUploadAttendance(form) {
+        var filename = $("#attendance_file").val();
+        if (filename == "") {
+            alert("アップロードするファイルを選択してください！");
+            return false;
+        }
+        ext = filename.substr(filename.length - 5);
+        if (ext.toLowerCase() != ".xlsx") {
+            alert("エクセルファイル(.xlsx)を選択してください！");
+            return false;
+        }
+        return true;
+    }
+</script>
+<style type="text/css">
+    table {
+        border-top: thin solid black;
+        border-right: thin solid black;
+        font-size: 12px;
+        table-layout: fixed;
+    }
+    table thead th {
+        text-align: center;
+        border-left: thin solid black;
+        border-bottom: thin solid black;
+    }
+    table tbody {
+        background: white;
+    }
+    table tbody td {
+        padding-top: 2px;
+        padding-bottom: 2px;
+        border-left: thin solid black;
+        border-bottom: thin solid black;
+    }
+    table tfoot {
+        font-size: 13px;
+        background: linear-gradient(#fff, #eee);
+    }
+    table tfoot tr {
+        height: 30px;
+    }
+    table tfoot td {
+        padding-top: 4px;
+        padding-left: 5px;
+        border-left: thin solid lightgray;
+        border-bottom: thin solid lightgray;
+        border-right: thin solid lightgray;
+    }
+    th.bk01 {
+        background: rgb(180, 198, 231);
+    }
+    th.bk02 {
+        background: rgb(198, 224, 180);
+    }
+    th.bk03 {
+        background: rgb(255, 230, 153);
+    }
+    th.bk04 {
+        background: rgb(244, 176, 132);
+    }
+    th.bk05 {
+        background: rgb(155, 194, 230);
+    }
+    th.bk06 {
+        background: rgb(255, 255, 0);
+    }
+    th, td {
+        padding: 0 3px;
+        overflow: hidden;
+        white-space: nowrap;
+    }
+    td.error {
+        background: red;
+        color: white;
+    }
+    div.error {
+        background: red;
+        padding: 4px 6px;
+        margin-bottom: 10px;
+        border: 3px solid white;
+        color: white;
+    }
+    tr:hover {
+        background-color: LightGreen;
+    }
+    tr:hover td {
+        background-color: transparent;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+    <div class="dashboard">
+        <div class="dashboard-title">{{ title }}</div>
+        <form onsubmit="return checkUploadAttendance(this);" method="post"  enctype="multipart/form-data">
+            <div>{% csrf_token %}</div>
+            <div style="color: gray;">既に請求書作成済みの出勤情報は上書きしません。</div>
+            <input type="file" id="attendance_file" name="attendance_file"/>
+            <input type="submit" value="勤怠情報アップロード">
+            <div class="example">
+                <span>凡例:</span>
+                <div class="lump_project">【一括】一括案件</div>
+                <div class="project_requested">請求書作成済</div>
+                <div class="error" style="padding: 0px 2px;">エラー発生</div>
+            </div>
+            <div class="clear"></div>
+            <a href="{% url 'download_section_attendance' section.pk year month %}" target="_blank" style="margin-top: -40px;" class="button">ダウンロード</a>
+        </form>
+    </div>
+    {% if has_error %}
+        <div class="error">
+            アップロードするデータにエラーが発生している。エラーのないデータは正常にDBに取込みました。
+        </div>
+    {% endif %}
+    <div class="scroll_container">
+        <table cellspacing="0" cellpadding="0">
+            <thead>
+                <tr>
+                    <th class="bk01" rowspan="2" style="width: 30px;">No</th>
+                    <th class="bk01" colspan="5">基本データ</th>
+                    <th class="bk02" colspan="3">案件情報</th>
+                    <th class="bk03" colspan="6">勤務情報</th>
+                    <th class="bk04" rowspan="2">売上</th>
+                    <th class="bk05" colspan="8">原価</th>
+                    <th class="bk06" rowspan="2">利益</th>
+                </tr>
+                <tr>
+                    <th class="bk01" style="width: 50px;">{% create_order_display "社員番号" "member__employee_id" %}</th>
+                    <th class="bk01" style="width: 50px;">{% create_order_display "名前" "member__first_name" %}</th>
+                    <th class="bk01" style="width: 50px;">所在部署</th>
+                    <th class="bk01" style="width: 50px;">{% create_order_display "所属" "member__subcontractor__name" %}</th>
+                    <th class="bk01" style="width: 50px;">{% create_order_display "契約形態" "member__member_type" %}</th>
+                    <th class="bk02" style="width: 50px;">{% create_order_display "案件名" "project__name" %}</th>
+                    <th class="bk02" style="width: 50px;">{% create_order_display "顧客" "project__client__name" %}</th>
+                    <th class="bk02" style="width: 50px;">契約種類</th>
+                    <th class="bk03" style="width: 50px;">勤務時間</th>
+                    <th class="bk03" style="width: 50px;">勤務日数</th>
+                    <th class="bk03" style="width: 50px;">深夜日数</th>
+                    <th class="bk03" style="width: 50px;">客先立替金</th>
+                    <th class="bk03" style="width: 50px;">立替金</th>
+                    <th class="bk03" style="width: 50px;">勤務交通費</th>
+                    <th class="bk05" style="width: 50px;">月給</th>
+                    <th class="bk05" style="width: 50px;">ボーナス</th>
+                    <th class="bk05" style="width: 50px;">手当</th>
+                    <th class="bk05" style="width: 50px;">残業／控除</th>
+                    <th class="bk05" style="width: 50px;">交通費</th>
+                    <th class="bk05" style="width: 50px;">雇用／労災</th>
+                    <th class="bk05" style="width: 50px;">健康／厚生</th>
+                    <th class="bk05" style="width: 50px;">業績ボーナス</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if project_members %}
+                    {% for project_member, attendance, msg in project_members %}
+                        <tr>
+                            <td style="text-align:center;">{{ forloop.counter }}</td>
+                            <td>{{ project_member.member.employee_id }}</td>
+                            <td>
+                                <a href="{% url 'member_detail' project_member.member.employee_id %}">
+                                    {{ project_member.member }}
+                                </a>
+                            </td>
+                            <td>{{ project_member.section_name }}</td>
+                            <td>
+                                <div style="width: 120px; overflow: hidden; white-space: nowrap;">
+                                {% if project_member.member.company %}
+                                    {{ project_member.member.company }}
+                                {% else %}
+                                    {{ project_member.member.subcontractor }}
+                                {% endif %}
+                                </div>
+                            </td>
+                            <td>{{ project_member.member.get_member_type_display }}</td>
+                            <td title="{{ project_member.project }}"
+                                {% if project_member.project.is_lump %}class="lump_project"{% endif %}>
+                                <div style="width: 160px; overflow: hidden; white-space: nowrap;">
+                                    <a href="{% url 'project_detail' project_member.project.pk %}">
+                                    {% if project_member.project.is_lump %}【一括】{% endif %}{{ project_member.project }}
+                                    </a>
+                                </div>
+                            </td>
+                            {% if msg %}
+                            <td colspan="18" class="error">{{ msg }}</td>
+                            {% else %}
+                            <td title="{{ project_member.project.client }}">
+                                <div style="width: 120px; overflow: hidden; white-space: nowrap;">
+                                {{ project_member.project.client }}
+                                </div>
+                            </td>
+                            <td>
+                                {% if project_member.project.is_lump %}
+                                    一括
+                                {% else %}
+                                    SES
+                                {% endif %}
+                            </td>
+                            {% if attendance.get_project_request_detail %}
+                                <!-- 請求書作成済み -->
+                                <td class="project_requested" style="text-align: right;">{{ attendance.total_hours }}</td>
+                                <td class="project_requested" style="text-align: right;">{{ attendance.total_days|default:'' }}</td>
+                                <td class="project_requested" style="text-align: right;">{{ attendance.night_days|default:'' }}</td>
+                                <td class="project_requested"></td>
+                                <td class="project_requested"></td>
+                                <td class="project_requested"></td>
+                                <td class="project_requested" style="text-align: right;">{{ attendance.get_project_request_detail.get_all_price|intcomma }}</td>
+                                <td style="text-align: right;">{{ project_member.member.cost|intcomma }}</td>
+                                <td style="text-align: right;">{{ project_member.member.get_bonus|intcomma }}</td>
+                            {% else %}
+                                <!-- 請求書未作成 -->
+                                <td style="text-align: right;">{{ attendance.total_hours }}</td>
+                                <td style="text-align: right;">{{ attendance.total_days|default:'' }}</td>
+                                <td style="text-align: right;">{{ attendance.night_days|default:'' }}</td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                            {% endif %}
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            {% endif %}
+                        </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr class="row2"><td class="center red" colspan="8">メンバーがいません。</td></tr>
+                {% endif %}
+            </tbody>
+            <tfoot>
+                <tr>
+                    <td colspan="25">
+                        {{ project_members|length }} 件
+                    </td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+{% endblock %}

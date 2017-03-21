@@ -8,6 +8,7 @@ import datetime
 import json
 import os
 import urllib
+import operator
 
 from django.conf import settings
 from django.contrib import admin
@@ -19,8 +20,8 @@ from django.core.urlresolvers import reverse
 from django.db.models import Max
 from django.forms.models import modelformset_factory
 from django.http import HttpResponse
-from django.shortcuts import redirect, render_to_response, get_object_or_404
-from django.template import RequestContext, loader
+from django.shortcuts import redirect, get_object_or_404
+from django.template import loader
 from django.template.context_processors import csrf
 from django.views.decorators.csrf import csrf_protect
 from django.contrib.admin.models import LogEntry, ADDITION, CHANGE
@@ -33,14 +34,21 @@ from django.template.response import TemplateResponse
 from django.utils.translation import ugettext as _
 from django.contrib.auth import update_session_auth_hash
 
-from eb import biz, biz_batch, biz_turnover, biz_config
+from eb import biz, biz_turnover, biz_config
 from utils import constants, common, errors, loader as file_loader, file_gen
 from . import forms, models
 
 
+def get_base_context():
+    context = {
+        'company': biz.get_company(),
+        'theme': biz_config.get_theme(),
+    }
+    return context
+
+
 @login_required(login_url='/eb/login/')
 def index(request):
-    company = biz.get_company()
     now = datetime.date.today()
     next_month = common.add_months(now, 1)
     next_2_months = common.add_months(now, 2)
@@ -78,8 +86,8 @@ def index(request):
             show_own_member_status = True
     salesperson_list = models.Salesperson.objects.public_filter(member_type=5)
 
-    context = {
-        'company': company,
+    context = get_base_context()
+    context.update({
         'title': 'Home | %s' % constants.NAME_SYSTEM,
         'filter_list': filter_list,
         'member_count': member_count,
@@ -101,17 +109,17 @@ def index(request):
         'show_own_member_status': show_own_member_status,
         'show_warning_projects': show_warning_projects,
         'salesperson_list': salesperson_list,
-    }
-    template = loader.get_template('home.html')
+    })
+    template = loader.get_template('%s/home.html' % context.get('theme'))
     return HttpResponse(template.render(context, request))
 
 
 @login_required(login_url='/eb/login/')
 def employee_list(request):
-    company = biz.get_company()
     status = request.GET.get('status', None)
     section_id = request.GET.get('section', None)
     salesperson_id = request.GET.get('salesperson', None)
+    q = request.GET.get('q', None)
     if status == "sales":
         all_members = models.get_on_sales_members()
     elif status == "working":
@@ -133,6 +141,11 @@ def employee_list(request):
         del param_list['salesperson']
     if param_list:
         all_members = all_members.filter(**param_list)
+    if q:
+        orm_lookups = ['first_name__icontains', 'last_name__icontains']
+        for bit in q.split():
+            or_queries = [models.Q(**{orm_lookup: bit}) for orm_lookup in orm_lookups]
+            all_members = all_members.filter(reduce(operator.or_, or_queries))
 
     if section_id:
         all_members = biz.get_members_by_section(all_members, section_id)
@@ -145,17 +158,7 @@ def employee_list(request):
 
     if order_list:
         all_members = all_members.order_by(*order_list)
-    # if business_status:
-    #     all_members = [member for member in all_members if member.get_business_status() == business_status]
-    #     params += u"&business_status=%s" % (business_status,)
-    #
-    # if download == constants.DOWNLOAD_MEMBER_LIST:
-    #     filename = constants.NAME_MEMBER_LIST
-    #     output = common.generate_member_list(all_members, filename)
-    #     response = HttpResponse(output.read(), content_type="application/ms-excel")
-    #     response['Content-Disposition'] = "filename=" + urllib.quote(filename.encode('utf-8')) + ".xlsx"
-    #     return response
-    # else:
+
     paginator = Paginator(all_members, biz_config.get_page_size())
     page = request.GET.get('page')
     try:
@@ -165,8 +168,8 @@ def employee_list(request):
     except EmptyPage:
         members = paginator.page(paginator.num_pages)
 
-    context = {
-        'company': company,
+    context = get_base_context()
+    context.update({
         'title': u'要員一覧 | %s' % constants.NAME_SYSTEM,
         'members': members,
         'sections': models.Section.objects.public_filter(is_on_sales=True),
@@ -175,14 +178,13 @@ def employee_list(request):
         'params': "&" + params if params else "",
         'dict_order': dict_order,
         'page_type': "off_sales" if status == "off_sales" else None,
-    }
-    template = loader.get_template('employee_list.html')
+    })
+    template = loader.get_template('%s/employee_list.html' % context.get('theme'))
     return HttpResponse(template.render(context, request))
 
 
 @login_required(login_url='/eb/login/')
 def members_in_coming(request):
-    company = biz.get_company()
     param_list = common.get_request_params(request.GET)
     params = "&".join(["%s=%s" % (key, value) for key, value in param_list.items()]) if param_list else ""
 
@@ -206,8 +208,8 @@ def members_in_coming(request):
     except EmptyPage:
         members = paginator.page(paginator.num_pages)
 
-    context = {
-        'company': company,
+    context = get_base_context()
+    context.update({
         'title': u'入社予定社員一覧 | %s' % constants.NAME_SYSTEM,
         'members': members,
         'sections': models.Section.objects.public_filter(is_on_sales=True),
@@ -216,14 +218,13 @@ def members_in_coming(request):
         'params': "&" + params if params else "",
         'dict_order': dict_order,
         'page_type': "members_in_coming",
-    }
-    template = loader.get_template('employee_list.html')
+    })
+    template = loader.get_template('%s/employee_list.html' % context.get('theme'))
     return HttpResponse(template.render(context, request))
 
 
 @login_required(login_url='/eb/login/')
 def members_subcontractor(request):
-    company = biz.get_company()
     status = request.GET.get('status', None)
     if status == "sales":
         all_members = biz.get_subcontractor_sales_members()
@@ -271,8 +272,8 @@ def members_subcontractor(request):
     except EmptyPage:
         members = paginator.page(paginator.num_pages)
 
-    context = {
-        'company': company,
+    context = get_base_context()
+    context.update({
         'title': u'協力社員一覧 | %s' % constants.NAME_SYSTEM,
         'members': members,
         'sections': models.Section.objects.public_filter(is_on_sales=True),
@@ -281,14 +282,13 @@ def members_subcontractor(request):
         'params': "&" + params if params else "",
         'dict_order': dict_order,
         'page_type': "off_sales" if status == "off_sales" else None,
-    }
-    template = loader.get_template('employee_list.html')
+    })
+    template = loader.get_template('%s/employee_list.html' % context.get('theme'))
     return HttpResponse(template.render(context, request))
 
 
 @login_required(login_url='/eb/login/')
 def change_list(request):
-    company = biz.get_company()
     o = request.GET.get('o', None)
     dict_order = common.get_ordering_dict(o, ['first_name', 'section__name', 'salesperson__first_name'])
     order_list = common.get_ordering_list(o)
@@ -306,14 +306,14 @@ def change_list(request):
     except EmptyPage:
         members = paginator.page(paginator.num_pages)
 
-    context = {
-        'company': company,
+    context = get_base_context()
+    context.update({
         'title': u'入退場リスト | %s' % constants.NAME_SYSTEM,
         'members': members,
         'paginator': paginator,
         'dict_order': dict_order,
-    }
-    template = loader.get_template('member_change_list.html')
+    })
+    template = loader.get_template('%s/member_change_list.html' % context.get('theme'))
     return HttpResponse(template.render(context, request))
 
 
@@ -337,13 +337,19 @@ def member_expanses_update(request, member_id, year, month):
 
 @login_required(login_url='/eb/login/')
 def project_list(request):
-    company = biz.get_company()
     param_list = common.get_request_params(request.GET)
     o = request.GET.get('o', None)
+    q = request.GET.get('q', None)
     dict_order = common.get_ordering_dict(o, ['name', 'client__name', 'salesperson__first_name', 'boss__name',
                                               'middleman__name', 'update_date'])
     order_list = common.get_ordering_list(o)
     all_projects = biz.get_projects(q=param_list, o=order_list)
+
+    if q:
+        orm_lookups = ['name__icontains', 'client__name__icontains']
+        for bit in q.split():
+            or_queries = [models.Q(**{orm_lookup: bit}) for orm_lookup in orm_lookups]
+            all_projects = all_projects.filter(reduce(operator.or_, or_queries))
 
     params = "&".join(["%s=%s" % (key, value) for key, value in param_list.items()]) if param_list else ""
 
@@ -356,8 +362,8 @@ def project_list(request):
     except EmptyPage:
         projects = paginator.page(paginator.num_pages)
 
-    context = {
-        'company': company,
+    context = get_base_context()
+    context.update({
         'title': u'案件一覧 | %s' % constants.NAME_SYSTEM,
         'projects': projects,
         'paginator': paginator,
@@ -365,8 +371,8 @@ def project_list(request):
         'params': "&" + params if params else "",
         'orders': "&o=%s" % (o,) if o else "",
         'dict_order': dict_order,
-    }
-    template = loader.get_template('project_list.html')
+    })
+    template = loader.get_template('%s/project_list.html' % context.get('theme'))
     return HttpResponse(template.render(context, request))
 
 
@@ -389,7 +395,6 @@ def project_end(request, project_id):
 
 @login_required(login_url='/eb/login/')
 def project_order_list(request):
-    company = biz.get_company()
     param_list = common.get_request_params(request.GET)
     ym = request.GET.get('ym', None)
     if not ym:
@@ -414,8 +419,8 @@ def project_order_list(request):
     except EmptyPage:
         project_orders = paginator.page(paginator.num_pages)
 
-    context = {
-        'company': company,
+    context = get_base_context()
+    context.update({
         'title': u'%s年%s月の注文情報一覧 | %s' % (ym[:4], ym[4:], constants.NAME_SYSTEM),
         'project_orders': project_orders,
         'paginator': paginator,
@@ -426,26 +431,25 @@ def project_order_list(request):
         'current_year': ym[:4],
         'current_month': ym[4:],
         'ym': ym,
-    }
-    template = loader.get_template('project_order_list.html')
+    })
+    template = loader.get_template('%s/project_order_list.html' % context.get('theme'))
     return HttpResponse(template.render(context, request))
 
 
 @login_required(login_url='/eb/login/')
 def project_detail(request, project_id):
-    company = biz.get_company()
     project = get_object_or_404(models.Project, pk=project_id)
 
-    context = {
-        'company': company,
+    context = get_base_context()
+    context.update({
         'title': u'%s - 案件詳細 | %s' % (project.name, constants.NAME_SYSTEM),
         'project': project,
         'banks': models.BankInfo.objects.public_all(),
         'order_month_list': project.get_year_month_order_finished(),
         'attendance_month_list': project.get_year_month_attendance_finished(),
-    }
+    })
     context.update(csrf(request))
-    template = loader.get_template('project_detail.html')
+    template = loader.get_template('%s/project_detail.html' % context.get('theme'))
     return HttpResponse(template.render(context, request))
 
 
@@ -484,15 +488,14 @@ def project_members_by_order(request, order_id):
 @login_required(login_url='/eb/login/')
 @permission_required('eb.input_attendance', raise_exception=True)
 def project_attendance_list(request, project_id):
-    company = biz.get_company()
     project = get_object_or_404(models.Project, pk=project_id)
     ym = request.GET.get('ym', None)
 
-    context = {
-        'company': company,
+    context = get_base_context()
+    context.update({
         'title': u'%s - 勤怠入力' % (project.name,),
         'project': project,
-    }
+    })
     context.update(csrf(request))
 
     if ym:
@@ -593,8 +596,8 @@ def project_attendance_list(request, project_id):
 
             context['initial_form_count'] = initial_form_count
 
-            r = render_to_response('project_attendance_list.html', context)
-            return HttpResponse(r)
+            template = loader.get_template('%s/project_attendance_list.html' % context.get('theme'))
+            return HttpResponse(template.render(context, request))
         else:
             if project.is_hourly_pay:
                 attendance_formset = modelformset_factory(models.MemberAttendance,
@@ -621,13 +624,12 @@ def project_attendance_list(request, project_id):
                 return redirect(reverse("project_detail", args=(project.pk,)))
             else:
                 context.update({'formset': formset})
-                r = render_to_response('project_attendance_list.html', context)
-                return HttpResponse(r)
+                template = loader.get_template('%s/project_attendance_list.html' % context.get('theme'))
+                return HttpResponse(template.render(context, request))
 
 
 @login_required(login_url='/eb/login/')
 def project_member_list(request, project_id):
-    company = biz.get_company()
     project = get_object_or_404(models.Project, pk=project_id)
     param_list = common.get_request_params(request.GET)
     params = "&".join(["%s=%s" % (key, value) for key, value in param_list.items()]) if param_list else ""
@@ -650,16 +652,16 @@ def project_member_list(request, project_id):
     except EmptyPage:
         project_members = paginator.page(paginator.num_pages)
 
-    context = {
-        'company': company,
+    context = get_base_context()
+    context.update({
         'title': u'案件参加者一覧 | %s' % (project.name,),
         'project': project,
         'project_members': project_members,
         'paginator': paginator,
         'params': params,
         'dict_order': dict_order,
-    }
-    template = loader.get_template('project_members.html')
+    })
+    template = loader.get_template('%s/project_members.html' % context.get('theme'))
     return HttpResponse(template.render(context, request))
 
 
@@ -673,18 +675,18 @@ def section_list(request):
         total_count += count
         section_count_list.append((section, count))
 
-    context = {
+    context = get_base_context()
+    context.update({
         'title': u'部署情報一覧 | %s' % constants.NAME_SYSTEM,
         'sections': section_count_list,
         'total_count': total_count,
-    }
-    template = loader.get_template('section_list.html')
+    })
+    template = loader.get_template('%s/section_list.html' % context.get('theme'))
     return HttpResponse(template.render(context, request))
 
 
 @login_required(login_url='/eb/login/')
 def section_detail(request, section_id):
-    company = biz.get_company()
     section = get_object_or_404(models.Section, pk=section_id)
     all_members = biz.get_members_section(section)
 
@@ -704,23 +706,22 @@ def section_detail(request, section_id):
     except EmptyPage:
         members = paginator.page(paginator.num_pages)
 
-    context = {
-        'company': company,
+    context = get_base_context()
+    context.update({
         'title': u'%s | 部署 | %s' % (section.name, constants.NAME_SYSTEM),
         'section': section,
         'members': members,
         'dict_order': dict_order,
         'paginator': paginator,
         'year_list': biz.get_year_list()
-    }
-    template = loader.get_template('section_detail.html')
+    })
+    template = loader.get_template('%s/section_detail.html' % context.get('theme'))
     return HttpResponse(template.render(context, request))
 
 
 @login_required(login_url='/eb/login/')
 @csrf_protect
 def section_attendance(request, section_id):
-    company = biz.get_company()
     section = get_object_or_404(models.Section, pk=section_id)
     today = datetime.date.today()
     year = request.GET.get('year', today.year)
@@ -756,8 +757,8 @@ def section_attendance(request, section_id):
                     break
         all_project_members.append((project_member, project_member.get_attendance(year, month), msg))
 
-    context = {
-        'company': company,
+    context = get_base_context()
+    context.update({
         'title': u'出勤 | %s年%s月 | %s | %s' % (year, month, section.name, constants.NAME_SYSTEM),
         'section': section,
         'project_members': all_project_members,
@@ -766,16 +767,15 @@ def section_attendance(request, section_id):
         'year': year,
         'month': month,
         'has_error': True if messages else False
-    }
+    })
     context.update(csrf(request))
 
-    template = loader.get_template('section_attendance.html')
+    template = loader.get_template('%s/section_attendance.html' % context.get('theme'))
     return HttpResponse(template.render(context, request))
 
 
 @login_required(login_url='/eb/login/')
 def view_project_request(request, request_id):
-    company = biz.get_company()
     project_request = get_object_or_404(models.ProjectRequest, pk=request_id)
     if hasattr(project_request, 'projectrequestheading'):
         request_heading = project_request.projectrequestheading
@@ -790,40 +790,38 @@ def view_project_request(request, request_id):
     if len(request_details) < 20:
         request_details.extend([None] * (20 - len(request_details)))
 
-    context = {
-        'company': company,
+    context = get_base_context()
+    context.update({
         'title': u'請求書 | %s | %s年%s月' % (project_request.project.name, project_request.year, project_request.month),
         'project_request': project_request,
         'request_heading': request_heading,
         'request_details': request_details,
         'detail_expenses': detail_expenses,
-    }
-    template = loader.get_template('project_request.html')
+    })
+    template = loader.get_template('%s/project_request.html' % context.get('theme'))
     return HttpResponse(template.render(context, request))
 
 
 @login_required(login_url='/eb/login/')
 @permission_required('eb.view_turnover', raise_exception=True)
 def turnover_company_monthly(request):
-    company = biz.get_company()
     company_turnover = biz_turnover.turnover_company_monthly()
     month_list = [str(item['ym']) for item in company_turnover]
     turnover_amount_list = [item['turnover_amount'] for item in company_turnover]
-    context = {
-        'company': company,
+    context = get_base_context()
+    context.update({
         'title': u'売上情報 | %s' % constants.NAME_SYSTEM,
         'company_turnover': company_turnover,
         'month_list': month_list,
         'turnover_amount_list': turnover_amount_list,
-    }
-    template = loader.get_template('turnover_company_monthly.html')
+    })
+    template = loader.get_template('%s/turnover_company_monthly.html' % context.get('theme'))
     return HttpResponse(template.render(context, request))
 
 
 @login_required(login_url='/eb/login/')
 @permission_required('eb.view_turnover', raise_exception=True)
 def turnover_charts_monthly(request, ym):
-    company = biz.get_company()
     sections_turnover = biz_turnover.sections_turnover_monthly(ym)
     section_attendance_amount_list = [item['attendance_amount'] for item in sections_turnover]
     section_attendance_tex_list = [item['attendance_tex'] for item in sections_turnover]
@@ -842,8 +840,8 @@ def turnover_charts_monthly(request, ym):
     clients_expenses_amount_list = [item['expenses_amount'] for item in clients_turnover]
     clients_name_list = ["'" + item['client'].name + "'" for item in clients_turnover]
 
-    context = {
-        'company': company,
+    context = get_base_context()
+    context.update({
         'title': u'%s - 売上情報 | %s' % (ym, constants.NAME_SYSTEM),
         'sections_turnover': sections_turnover,
         'section_name_list': ",".join(section_name_list),
@@ -861,15 +859,14 @@ def turnover_charts_monthly(request, ym):
         'clients_attendance_tex_list': clients_attendance_tex_list,
         'clients_expenses_amount_list': clients_expenses_amount_list,
         'ym': ym,
-    }
-    template = loader.get_template('turnover_charts_monthly.html')
+    })
+    template = loader.get_template('%s/turnover_charts_monthly.html' % context.get('theme'))
     return HttpResponse(template.render(context, request))
 
 
 @login_required(login_url='/eb/login/')
 @permission_required('eb.view_turnover', raise_exception=True)
 def turnover_members_monthly(request, ym):
-    company = biz.get_company()
     param_list = common.get_request_params(request.GET)
     o = request.GET.get('o', None)
     dict_order = common.get_ordering_dict(o, ['project_member__member__first_name',
@@ -901,8 +898,8 @@ def turnover_members_monthly(request, ym):
     except EmptyPage:
         turnover_details = paginator.page(paginator.num_pages)
 
-    context = {
-        'company': company,
+    context = get_base_context()
+    context.update({
         'title': u'%s年%s月の売上詳細情報 | %s' % (ym[:4], ym[4:], constants.NAME_SYSTEM),
         'sections': sections,
         'salesperson': models.Salesperson.objects.public_all(),
@@ -913,15 +910,14 @@ def turnover_members_monthly(request, ym):
         'orders': "&o=%s" % (o,) if o else "",
         'params': "&" + params if params else "",
         'ym': ym,
-    }
-    template = loader.get_template('turnover_members_monthly.html')
+    })
+    template = loader.get_template('%s/turnover_members_monthly.html' % context.get('theme'))
     return HttpResponse(template.render(context, request))
 
 
 @login_required(login_url='/eb/login/')
 @permission_required('eb.view_turnover', raise_exception=True)
 def turnover_clients_monthly(request, ym):
-    company = biz.get_company()
     clients_turnover = biz_turnover.clients_turnover_monthly(ym)
 
     summary = {'attendance_amount': 0, 'expenses_amount': 0,
@@ -932,21 +928,20 @@ def turnover_clients_monthly(request, ym):
         summary['expenses_amount'] += item['expenses_amount']
         summary['all_amount'] += item['attendance_amount'] + item['attendance_tex'] + item['expenses_amount']
 
-    context = {
-        'company': company,
+    context = get_base_context()
+    context.update({
         'title': u'%s年%s月のお客様別売上情報 | %s' % (ym[:4], ym[4:], constants.NAME_SYSTEM),
         'clients_turnover': clients_turnover,
         'ym': ym,
         'summary': summary,
-    }
-    template = loader.get_template('turnover_clients_monthly.html')
+    })
+    template = loader.get_template('%s/turnover_clients_monthly.html' % context.get('theme'))
     return HttpResponse(template.render(context, request))
 
 
 @login_required(login_url='/eb/login/')
 @permission_required('eb.view_turnover', raise_exception=True)
 def turnover_client_monthly(request, client_id, ym):
-    company = biz.get_company()
     client = get_object_or_404(models.Client, pk=client_id)
     turnover_details = biz_turnover.turnover_client_monthly(client_id, ym)
 
@@ -958,15 +953,15 @@ def turnover_client_monthly(request, client_id, ym):
         summary['expenses_amount'] += item['expenses_amount']
         summary['all_amount'] += item['all_amount']
 
-    context = {
-        'company': company,
+    context = get_base_context()
+    context.update({
         'title': u'%s年%s月　%sの案件別売上情報 | %s' % (ym[:4], ym[4:], client.__unicode__(), constants.NAME_SYSTEM),
         'client': client,
         'turnover_details': turnover_details,
         'ym': ym,
         'summary': summary,
-    }
-    template = loader.get_template('turnover_projects_monthly.html')
+    })
+    template = loader.get_template('%s/turnover_projects_monthly.html' % context.get('theme'))
     return HttpResponse(template.render(context, request))
 
 
@@ -978,7 +973,6 @@ def release_list_current(request):
 
 @login_required(login_url='/eb/login/')
 def release_list(request, ym):
-    company = biz.get_company()
     param_list = common.get_request_params(request.GET)
     section_id = request.GET.get('section', None)
     salesperson_id = request.GET.get('salesperson', None)
@@ -1018,8 +1012,8 @@ def release_list(request, ym):
     except EmptyPage:
         project_members = paginator.page(paginator.num_pages)
 
-    context = {
-        'company': company,
+    context = get_base_context()
+    context.update({
         'title': u'%s年%s月 | リリース状況一覧 | %s' % (year, month, constants.NAME_SYSTEM),
         'project_members': project_members,
         'paginator': paginator,
@@ -1028,34 +1022,32 @@ def release_list(request, ym):
         'ym': ym,
         'sections': sections,
         'salesperson': salesperson,
-    }
-    template = loader.get_template('release_list.html')
+    })
+    template = loader.get_template('%s/release_list.html' % context.get('theme'))
     return HttpResponse(template.render(context, request))
 
 
 @login_required(login_url='/eb/login/')
 def member_detail(request, employee_id):
-    company = biz.get_company()
     member = get_object_or_404(models.Member, employee_id=employee_id)
     member.set_coordinate()
 
     project_count = member.projectmember_set.public_all().count()
-    context = {
-        'company': company,
+    context = get_base_context()
+    context.update({
         'member': member,
         'title': u'%s の履歴 | %s' % (member, constants.NAME_SYSTEM),
         'project_count': project_count,
         'all_project_count': project_count + member.historyproject_set.public_all().count(),
         'default_project_count': range(1, 14),
-    }
-    template = loader.get_template('member_detail.html')
+    })
+    template = loader.get_template('%s/member_detail.html' % context.get('theme'))
     return HttpResponse(template.render(context, request))
 
 
 @login_required(login_url='/eb/login/')
 def member_project_list(request, employee_id):
     status = request.GET.get('status', None)
-    company = biz.get_company()
     member = get_object_or_404(models.Member, employee_id=employee_id)
     if status and status != '0':
         project_members = models.ProjectMember.objects.public_filter(member=member, status=status)\
@@ -1064,54 +1056,51 @@ def member_project_list(request, employee_id):
         project_members = models.ProjectMember.objects.public_filter(member=member)\
             .order_by('-status', 'end_date')
 
-    context = {
-        'company': company,
+    context = get_base_context()
+    context.update({
         'member': member,
         'title': u'%s の案件一覧 | %s' % (member, constants.NAME_SYSTEM),
         'project_members': project_members,
-    }
-    template = loader.get_template('member_project_list.html')
+    })
+    template = loader.get_template('%s/member_project_list.html' % context.get('theme'))
     return HttpResponse(template.render(context, request))
 
 
 @login_required(login_url='/eb/login/')
 def recommended_member_list(request, project_id):
     project = get_object_or_404(models.Project, pk=project_id)
-    company = biz.get_company()
     dict_skills = project.get_recommended_members()
 
-    context = {
-        'company': company,
+    context = get_base_context()
+    context.update({
         'title': u'%s - 推薦されるメンバーズ | %s' % (project.name, constants.NAME_SYSTEM),
         'project': project,
         'dict_skills': dict_skills,
-    }
-    template = loader.get_template('recommended_member.html')
+    })
+    template = loader.get_template('%s/recommended_member.html' % context.get('theme'))
     return HttpResponse(template.render(context, request))
 
 
 @login_required(login_url='/eb/login/')
 def recommended_project_list(request, employee_id):
-    company = biz.get_company()
     member = get_object_or_404(models.Member, employee_id=employee_id)
     skills = member.get_skill_list()
     project_id_list = member.get_recommended_projects()
     projects = models.Project.objects.public_filter(pk__in=project_id_list)
 
-    context = {
-        'company': company,
+    context = get_base_context()
+    context.update({
         'title': u'%s - 推薦される案件 | %s' % (member, constants.NAME_SYSTEM),
         'member': member,
         'skills': skills,
         'projects': projects,
-    }
-    template = loader.get_template('recommended_project.html')
+    })
+    template = loader.get_template('%s/recommended_project.html' % context.get('theme'))
     return HttpResponse(template.render(context, request))
 
 
 @login_required(login_url='/eb/login/')
 def subcontractor_list(request):
-    company = biz.get_company()
     name = request.GET.get('name', None)
     o = request.GET.get('o', None)
     dict_order = common.get_ordering_dict(o, ['name'])
@@ -1134,8 +1123,8 @@ def subcontractor_list(request):
     except EmptyPage:
         subcontractors = paginator.page(paginator.num_pages)
 
-    context = {
-        'company': company,
+    context = get_base_context()
+    context.update({
         'title': u'協力会社一覧 | %s' % constants.NAME_SYSTEM,
         'subcontractors': subcontractors,
         'paginator': paginator,
@@ -1143,14 +1132,13 @@ def subcontractor_list(request):
         'orders': "&o=%s" % (o,) if o else "",
         'dict_order': dict_order,
         'bp_count': models.Member.objects.public_filter(subcontractor__isnull=False).count(),
-    }
-    template = loader.get_template('subcontractor_list.html')
+    })
+    template = loader.get_template('%s/subcontractor_list.html' % context.get('theme'))
     return HttpResponse(template.render(context, request))
 
 
 @login_required(login_url='/eb/login/')
 def subcontractor_detail(request, subcontractor_id):
-    company = biz.get_company()
     o = request.GET.get('o', None)
     dict_order = common.get_ordering_dict(o, ['first_name'])
     order_list = common.get_ordering_list(o)
@@ -1169,8 +1157,8 @@ def subcontractor_detail(request, subcontractor_id):
     except EmptyPage:
         members = paginator.page(paginator.num_pages)
 
-    context = {
-        'company': company,
+    context = get_base_context()
+    context.update({
         'title': u'%s | 協力会社 | %s' % (subcontractor.name, constants.NAME_SYSTEM),
         'subcontractor': subcontractor,
         'members': members,
@@ -1178,22 +1166,21 @@ def subcontractor_detail(request, subcontractor_id):
         'orders': "&o=%s" % (o,) if o else "",
         'dict_order': dict_order,
         'order_month_list': subcontractor.get_year_month_order_finished(),
-    }
-    template = loader.get_template('subcontractor_detail.html')
+    })
+    template = loader.get_template('%s/subcontractor_detail.html' % context.get('theme'))
     return HttpResponse(template.render(context, request))
 
 
 @login_required(login_url='/eb/login/')
 def subcontractor_members(request, subcontractor_id):
-    company = biz.get_company()
     subcontractor = get_object_or_404(models.Subcontractor, pk=subcontractor_id)
     ym = request.GET.get('ym', None)
 
-    context = {
-        'company': company,
+    context = get_base_context()
+    context.update({
         'title': u'注文情報入力 | %s | 協力会社 | %s' % (subcontractor.name, constants.NAME_SYSTEM),
         'subcontractor': subcontractor,
-    }
+    })
     context.update(csrf(request))
 
     if ym:
@@ -1246,8 +1233,8 @@ def subcontractor_members(request, subcontractor_id):
 
         context.update({'formset': formset, 'initial_form_count': initial_form_count})
 
-        r = render_to_response('subcontractor_members.html', context)
-        return HttpResponse(r)
+        template = loader.get_template('%s/subcontractor_members.html' % context.get('theme'))
+        return HttpResponse(template.render(context, request))
     else:
         bp_order_info_formset = modelformset_factory(models.BpMemberOrderInfo,
                                                      form=forms.BpMemberOrderInfoFormSet, extra=0)
@@ -1262,20 +1249,19 @@ def subcontractor_members(request, subcontractor_id):
             return redirect("/eb/subcontractor_detail/%s.html" % (subcontractor.pk,))
         else:
             context.update({'formset': formset})
-            r = render_to_response('subcontractor_members.html', context)
-            return HttpResponse(r)
+            template = loader.get_template('%s/subcontractor_members.html' % context.get('theme'))
+            return HttpResponse(template.render(context, request))
 
 
 @login_required(login_url='/eb/login/')
 @csrf_protect
 def upload_resume(request):
-    company = biz.get_company()
-    context = {
-        'company': company,
+    context = get_base_context()
+    context.update({
         'title': u'履歴書をアップロード | %s' % constants.NAME_SYSTEM,
         'site_header': admin.site.site_header,
         'site_title': admin.site.site_title,
-    }
+    })
     context.update(csrf(request))
 
     if request.method == 'POST':
@@ -1294,8 +1280,8 @@ def upload_resume(request):
         form = forms.UploadFileForm()
         context.update({'form': form})
 
-    r = render_to_response('upload_file.html', context)
-    return HttpResponse(r)
+    template = loader.get_template('%s/upload_file.html' % context.get('theme'))
+    return HttpResponse(template.render(context, request))
 
 
 @login_required(login_url='/eb/login/')
@@ -1422,15 +1408,14 @@ def download_section_attendance(request, section_id, year, month):
 
 @login_required(login_url='/eb/login/')
 def map_position(request):
-    company = biz.get_company()
     members = models.Member.objects.public_filter(lat__isnull=False,
                                                   lng__isnull=False).exclude(lat__exact='', lng__exact='')
-    context = {
-        'company': company,
+    context = get_base_context()
+    context.update({
         'title': u'地図情報 | %s' % constants.NAME_SYSTEM,
         'members': members,
-    }
-    template = loader.get_template('map_position.html')
+    })
+    template = loader.get_template('%s/map_position.html' % context.get('theme'))
     return HttpResponse(template.render(context, request))
 
 
@@ -1439,41 +1424,42 @@ def issues(request):
 
     issue_list = models.Issue.objects.all()
 
-    context = {
+    context = get_base_context()
+    context.update({
         'title': u'課題管理票一覧 | %s' % constants.NAME_SYSTEM,
         'issues': issue_list,
-    }
-    template = loader.get_template('issue_list.html')
+    })
+    template = loader.get_template('%s/issue_list.html' % context.get('theme'))
     return HttpResponse(template.render(context, request))
 
 
 @login_required(login_url='/eb/login/')
 def issue_detail(request, issue_id):
     issue = get_object_or_404(models.Issue, pk=issue_id)
-    context = {
+    context = get_base_context()
+    context.update({
         'title': u'課題管理票 - %s | %s' % (issue.title, constants.NAME_SYSTEM),
         'issue': issue,
-    }
-    template = loader.get_template('issue.html')
+    })
+    template = loader.get_template('%s/issue.html' % context.get('theme'))
     return HttpResponse(template.render(context, request))
 
 
 @login_required(login_url='/eb/login/')
 def history(request):
-    company = biz.get_company()
 
     histories = models.History.objects.all()
     total_hours = 0
     for h in histories:
         total_hours += h.get_hours()
 
-    context = {
-        'company': company,
+    context = get_base_context()
+    context.update({
         'title': u'更新履歴 | %s' % constants.NAME_SYSTEM,
         'histories': histories,
         'total_hours': total_hours,
-    }
-    template = loader.get_template('history.html')
+    })
+    template = loader.get_template('%s/history.html' % context.get('theme'))
     return HttpResponse(template.render(context, request))
 
 
@@ -1482,16 +1468,17 @@ def sync_coordinate(request):
     if request.method == 'GET':
         members = biz.get_members_to_set_coordinate()
 
-        context = {
+        context = get_base_context()
+        context.update({
             'title': u'座標を設定 | %s' % constants.NAME_SYSTEM,
             'site_header': admin.site.site_header,
             'site_title': admin.site.site_title,
             'members': members,
             'count': members.count()
-        }
+        })
         context.update(csrf(request))
-        r = render_to_response('sync_coordinate.html', context)
-        return HttpResponse(r)
+        template = loader.get_template('%s/sync_coordinate.html' % context.get('theme'))
+        return HttpResponse(template.render(context, request))
     else:
         lat = request.POST.get('lat', None)
         lng = request.POST.get('lng', None)
@@ -1513,34 +1500,13 @@ def sync_coordinate(request):
 
 
 @login_required(login_url='/eb/login/')
-def sync_members(request):
-    context = {
-        'title': u'社員管理DBのデータを同期する | %s' % constants.NAME_SYSTEM,
-        'site_header': admin.site.site_header,
-        'site_title': admin.site.site_title,
-    }
-    context.update(csrf(request))
-    if request.method == 'GET':
-        pass
-    else:
-        message_list = biz_batch.sync_members()
-        context.update({
-            'messages': [u"完了しました。"],
-            'message_list': message_list,
-            'show_result': True,
-        })
-
-    r = render_to_response('sync_members.html', context)
-    return HttpResponse(r)
-
-
-@login_required(login_url='/eb/login/')
 def batch_list(request):
-    context = {
+    context = get_base_context()
+    context.update({
         'title': u'バッチ一覧 | %s' % constants.NAME_SYSTEM,
         'site_header': admin.site.site_header,
         'site_title': admin.site.site_title,
-    }
+    })
     context.update(csrf(request))
     batches = models.BatchManage.objects.public_all()
     context.update({
@@ -1552,8 +1518,8 @@ def batch_list(request):
         batch_name = request.POST.get('batch_name', None)
         call_command(batch_name)
 
-    r = render_to_response('batch_list.html', context)
-    return HttpResponse(r)
+    template = loader.get_template('%s/batch_list.html' % context.get('theme'))
+    return HttpResponse(template.render(context, request))
 
 
 @login_required(login_url='/eb/login/')
@@ -1570,11 +1536,12 @@ def batch_log(request, name):
 
 @login_required(login_url='/eb/login/')
 def sync_db2(request):
-    context = {
+    context = get_base_context()
+    context.update({
         'title': u'社員管理DBのデータを同期する。',
         'site_header': admin.site.site_header,
         'site_title': admin.site.site_title,
-    }
+    })
     context.update(csrf(request))
     if request.method == 'GET':
         pass
@@ -1613,8 +1580,8 @@ def sync_db2(request):
                     'messages': [u"完了しました。"],
                 })
 
-    r = render_to_response('syncdb2.html', context)
-    return HttpResponse(r)
+    template = loader.get_template('%s/syncdb2.html' % context.get('theme'))
+    return HttpResponse(template.render(context, request))
 
 
 def login_user(request):
@@ -1630,7 +1597,10 @@ def login_user(request):
             login(request, user)
             return redirect('index')
 
-    return render_to_response('login.html', context_instance=RequestContext(request))
+    context = get_base_context()
+
+    template = loader.get_template('%s/login.html' % context.get('theme'))
+    return HttpResponse(template.render(context, request))
 
 
 def logout_view(request):
@@ -1641,7 +1611,7 @@ def logout_view(request):
 @csrf_protect
 @login_required
 def password_change(request,
-                    template_name='password_change_form.html',
+                    template_name='%s/password_change_form.html' % biz_config.get_theme(),
                     post_change_redirect=None,
                     password_change_form=PasswordChangeForm,
                     extra_context=None):
@@ -1661,10 +1631,12 @@ def password_change(request,
             return HttpResponseRedirect(post_change_redirect)
     else:
         form = password_change_form(user=request.user)
-    context = {
+
+    context = get_base_context()
+    context.update({
         'form': form,
         'title': _('Password change'),
-    }
+    })
     if extra_context is not None:
         context.update(extra_context)
 
@@ -1672,7 +1644,8 @@ def password_change(request,
 
 
 def handler404(request):
-    response = render_to_response('404.html', {},
-                                  context_instance=RequestContext(request))
+    context = get_base_context()
+    template = loader.get_template('%s/404.html' % context.get('theme'))
+    response = HttpResponse(template.render(context, request))
     response.status_code = 404
     return response

@@ -1,0 +1,225 @@
+{% extends theme|add:"/base.html" %}
+{% load humanize %}
+
+{% block header %}
+    <script type="text/javascript">
+        window.onload = function() {
+            init_select("year");
+            init_select("month");
+
+            $("#year").val("{{ year }}");
+            $("#month").val("{{ month }}");
+        };
+        
+        function row_update(obj, url) {
+            row_for_update = $(obj).parent().parent();
+            row_show = row_for_update.prev();
+            advance_amount = row_for_update.find("input[type='number']").val();
+            if (advance_amount == "") {
+                alert("値を入力してください！");
+                return false;
+            }
+            member_id = $(obj).attr("member_id");
+            if (member_id == "") {
+                alert("対象の社員が見つかりません！");
+                return false;
+            }
+
+            $.ajax({
+                type: 'post',
+                url: url,
+                data: {'csrfmiddlewaretoken': $("input[name='csrfmiddlewaretoken']").val(),
+                       'advance_amount': advance_amount
+                      },
+                cache: false,
+                async : false, // 默认为true 异步
+                dataType: 'json',
+                success: function(data){
+                    if (data.ret == 0) {
+                        alert("更新しました！");
+                        row_show.find("td[name='advance_amount']").text(advance_amount);
+                        row_update_cancel(obj);
+                    } else {
+                        alert("失敗！");
+                    }
+                },
+                error: function(data) {
+                    alert("Error!");
+                }
+            });
+            return false;
+        }
+    </script>
+{% endblock %}
+
+{% block content %}
+    <div class="dashboard">
+        <div class="dashboard-title">なにをしたいのですか？</div>
+        <form action="" method="get">
+            <span>年</span>
+            <select id="year" name="year">
+                <option value="2015">2015</option>
+                <option value="2016">2016</option>
+                <option value="2017">2017</option>
+                <option value="2018">2018</option>
+                <option value="2019">2019</option>
+            </select>
+            <span>月</span>
+            <select id="month" name="month">
+                <option value="01">01</option>
+                <option value="02">02</option>
+                <option value="03">03</option>
+                <option value="04">04</option>
+                <option value="05">05</option>
+                <option value="06">06</option>
+                <option value="07">07</option>
+                <option value="08">08</option>
+                <option value="09">09</option>
+                <option value="10">10</option>
+                <option value="11">11</option>
+                <option value="12">12</option>
+            </select>
+            <input type="submit" value="Filter" />
+            <a href="{{ request.path }}">クリア</a>
+            <a href="{% url 'download_attendance_list' year month %}" class="button" target="_blank">ダウンロード</a>
+        </form>
+    </div>
+    {% csrf_token %}
+    <table class="list" cellpadding="0" cellspacing="0">
+        <thead>
+            <tr>
+                <th>社員コード</th>
+                <th>姓名</th>
+                <th>部署</th>
+                <th>出勤日数</th>
+                <th>出勤時間</th>
+                <th>立替金額</th>
+                <th style="width: 70px;">管理職立替</th>
+                <th>総立替金額</th>
+                <th>夜残業回数</th>
+                <th>定期券</th>
+                <th style="width: 120px;">定期券区間</th>
+                <th>天引</th>
+                <th style="width: 120px;">現場</th>
+                <th style="width: 65px;"></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% if attendance_list %}
+                {% for attendance in attendance_list %}
+                    <tr class="{% cycle 'row1' 'row2' %}">
+                        <td>{{ attendance.applicant.ebemployee.code }}</td>
+                        <td>
+                            {% if attendance.get_eb_member %}
+                            <a href="{% url 'member_detail' attendance.get_eb_member.employee_id %}">{{ attendance.applicant_name }}</a>
+                            {% else %}
+                            {{ attendance.applicant_name }}
+                            {% endif %}
+                        </td>
+                        <td>{{ attendance.applicant.get_section }}</td>
+                        <td>{{ attendance.totalday }}</td>
+                        <td>{{ attendance.totaltime }}</td>
+                        <td>{{ attendance.get_cost_payment|intcomma }}</td>
+                        <td name="advance_amount">{{ attendance.get_advance_amount }}</td>
+                        <td>{{ attendance.get_cost_payment|add:attendance.get_advance_amount }}</td>
+                        <td>{{ attendance.nightcount|default:'0' }}</td>
+                        <td>
+                            {% if attendance.totalday < 14 %}
+                                <span class="red">{{ attendance.transit|intcomma }}</span>
+                            {% else %}
+                                {{ attendance.transit|intcomma }}
+                            {% endif %}
+                        </td>
+                        <td title="{{ attendance.transit_interval }}">
+                            <div style="width: 120px; white-space: nowrap; overflow: hidden;">
+                                {{ attendance.transit_interval }}
+                            </div>
+                        </td>
+                        <td></td>
+                        <td title="{{ attendance.address }}">
+                            <div style="width: 120px; white-space: nowrap; overflow: hidden;">
+                                {{ attendance.address }}
+                            </div>
+                        </td>
+                        <td class="center">
+                            {% if attendance.get_eb_member %}
+                            <a href="javascript:void(0)" onclick="row_update_show(this)">変更</a>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    <tr class="row_updated">
+                        <td>{{ attendance.applicant.ebemployee.code }}</td>
+                        <td>{{ attendance.applicant_name }}</td>
+                        <td>{{ attendance.applicant.get_section }}</td>
+                        <td>{{ attendance.totalday }}</td>
+                        <td>{{ attendance.totaltime }}</td>
+                        <td>{{ attendance.get_cost_payment|intcomma }}</td>
+                        <td><input type="number" style="width: 62px;" value="{{ attendance.get_advance_amount }}" /></td>
+                        <td>{{ attendance.get_cost_payment|add:attendance.get_advance_amount }}</td>
+                        <td>{{ attendance.nightcount|default:'0' }}</td>
+                        <td>
+                            {% if attendance.totalday < 14 %}
+                                <span class="red">{{ attendance.transit|intcomma }}</span>
+                            {% else %}
+                                {{ attendance.transit|intcomma }}
+                            {% endif %}
+                        </td>
+                        <td title="{{ attendance.transit_interval }}">
+                            <div style="width: 120px; white-space: nowrap; overflow: hidden;">
+                                {{ attendance.transit_interval }}
+                            </div>
+                        </td>
+                        <td></td>
+                        <td title="{{ attendance.address }}">
+                            <div style="width: 120px; white-space: nowrap; overflow: hidden;">
+                                {{ attendance.address }}
+                            </div>
+                        </td>
+                        <td class="center">
+                            <a href="javascript:void(0)"
+                               {% if attendance.get_eb_member %}
+                               onclick="row_update(this, '{% url 'member_expanses_update' attendance.get_eb_member.pk year month %}')"
+                               {% else %}
+                               onclick="alert('該当する社員が見つかりません！')"
+                               {% endif %}
+                               member_id={{ attendance.get_eb_member.pk }}>保存</a>
+                            <a href="javascript:void(0)" onclick="row_update_cancel(this)">取消</a>
+                        </td>
+                    </tr>
+                {% endfor %}
+            {% else %}
+                <tr class="row1"><td class="center red" colspan="14">該当する要員がいません。</td></tr>
+            {% endif %}
+        </tbody>
+        <tfoot>
+            <tr>
+                <td colspan="14">
+                    <div class="pagination">
+                        <span class="step-links">
+                            {% if members.has_previous %}
+                                <a href="?page={{ members.previous_page_number }}{{ params }}">&lt;</a>
+                            {% endif %}
+
+                            {% if paginator.page_range|length > 1 %}
+                                {% for page in paginator.page_range %}
+                                    {% ifequal page members.number %}
+                                        <span class="current">
+                                            {{ page }}
+                                        </span>
+                                    {% else %}
+                                        <a href="?page={{ page }}{{ params }}">{{ page }}</a>
+                                    {% endifequal %}
+                                {% endfor %}
+                            {% endif %}
+
+                            {% if members.has_next %}
+                                <a href="?page={{ members.next_page_number }}{{ params }}">&gt;</a>
+                            {% endif %}
+                            <span>{{ paginator.count }} 件</span>
+                        </span>
+                    </div>
+                </td>
+            </tr>
+        </tfoot>
+    </table>
+{% endblock %}

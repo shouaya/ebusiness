@@ -1,0 +1,65 @@
+{% extends theme|add:"/base.html" %}
+
+{% block header %}
+{% endblock %}
+
+{% block content %}
+    <div class="dashboard">
+        <div class="dashboard-title">課題管理票</div>
+        <form>
+            <a href="{% url 'admin:eb_issue_add' %}?from=portal&_popup=1" class="button" target="_blank">課題追加</a>
+        </form>
+    </div>
+    <table cellspacing="0" cellpadding="0" class="list">
+        <thead>
+            <tr style="height: 35px;">
+                <th colspan="6" style="text-align: center;">提出者記入</th>
+                <th colspan="4" style="text-align: center;">対応者記入</th>
+            </tr>
+            <tr>
+                <th style="width: 30px;">番号</th>
+                <th>タイトル</th>
+                <th style="width: 45px;">優先度</th>
+                <th style="width: 70px;">作成者</th>
+                <th style="width: 135px;">提出日時</th>
+                <th style="width: 100px;">対応期限日</th>
+                <th style="width: 70px;">ステータス</th>
+                <th style="width: 70px;">対応者</th>
+                <th style="width: 100px;">予定完了日</th>
+                <th class="noprint" style="width: 40px;"></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for issue in issues %}
+                <tr class="issue_status{{ issue.status }}">
+                    <td>{{ issue.pk }}</td>
+                    <td>
+                        <a href="{% url 'issue_detail' issue.pk %}">{{ issue.title }}</a>
+                    </td>
+                    <td>{{ issue.get_level_display }}</td>
+                    <td>{{ issue.user.first_name }}&nbsp;{{ issue.user.last_name }}</td>
+                    <td>{{ issue.created_date|date:'Y-m-d H:i' }}</td>
+                    <td>{{ issue.limit_date|date:'Y-m-d' }}</td>
+                    <td>{{ issue.get_status_display }}</td>
+                    <td>{{ issue.resolve_user.first_name }}&nbsp;{{ issue.resolve_user.last_name }}</td>
+                    <td>{{ issue.end_date|date:'Y-m-d' }}</td>
+                    <td class="noprint" style="text-align: center;"><a href="{% url 'admin:eb_issue_change' issue.pk %}?from=portal&_popup=1" target="_blank">編集</a></td>
+                </tr>
+            {% endfor %}
+        </tbody>
+        <tfoot>
+            <tr>
+                <th>番号</th>
+                <th>タイトル</th>
+                <th>優先度</th>
+                <th>作成者</th>
+                <th>提出日時</th>
+                <th>対応期限日</th>
+                <th>ステータス</th>
+                <th>対応者</th>
+                <th>予定完了日</th>
+                <th class="noprint"></th>
+            </tr>
+        </tfoot>
+    </table>
+{% endblock %}

@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="utf-8"/>
+    <title>{{ title }}</title>
+
+    <link rel="shortcut icon" type="image/png" href="/static/{{ theme }}/img/favicon.ico"/>
+    <link rel="stylesheet" type="text/css" href="/static/{{ theme }}/css/base.css">
+    <link rel="stylesheet" type="text/css" href="/static/{{ theme }}/css/header.css">
+    <link rel="stylesheet" type="text/css" href="/static/{{ theme }}/css/section.css">
+    <link rel="stylesheet" type="text/css" href="/static/{{ theme }}/css/footer.css">
+</head>
+<body>
+    <section>
+        <div id="login">
+            <table>
+                <tr>
+                    <td valign="top">
+                        <img class="logo" src="/static/logo.gif" />
+                    </td>
+                    <td>
+                        <form class="form-horizontal" name="LoginForm" action="/eb/login/" method="post">
+                        {% csrf_token %}
+                        {% if next %}
+                            <input type="hidden" name="next" value="{{ next }}" />
+                        {% endif %}
+                        <div class="control-group">
+                            <label class="control-label" for="username">ユーザー名：</label>
+                            <div class="controls">
+                                <input type="text" id="username" name="username"  placeholder="Username">
+                            </div>
+                        </div>
+                        <div class="control-group">
+                            <label class="control-label" for="password">パスワード：</label>
+                            <div class="controls">
+                                <input type="password" name="password" id="password" placeholder="Password">
+                            </div>
+                        </div>
+                        <div class="control-group">
+                            <div class="controls">
+                                <button type="submit" class="btn">Login</button>
+                            </div>
+                        </div>
+                        </form>
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </section>
+</body>
+</html>

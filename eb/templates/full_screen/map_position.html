@@ -1,0 +1,31 @@
+{% extends theme|add:"/base.html" %}
+
+{% block header %}
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBjzwjBMykNJikl12HQOuWsYxMmozvkhVU&signed_in=true" type="text/javascript"></script>
+
+<script type="text/javascript">
+    window.onload = function() {
+        var map = new google.maps.Map(document.getElementById('map'), {
+            zoom: 10,
+            center: {lat: 35.397, lng: 139.644}
+        });
+
+        var bounds = new google.maps.LatLngBounds();
+        {% for member in members %}
+            var myLatLng = new google.maps.LatLng({{ member.lat }}, {{ member.lng }});
+            var marker = new google.maps.Marker({
+                position: {lat: {{ member.lat }}, lng: {{ member.lng }} },
+                map: map,
+                title: '{{ member }}'
+            });
+            bounds.extend(myLatLng);
+        {% endfor %}
+        map.fitBounds(bounds);
+    }
+</script>
+
+{% endblock %}
+
+{% block content %}
+    <div id="map" style="width: 1000px; height: 600px;"></div>
+{% endblock %}
