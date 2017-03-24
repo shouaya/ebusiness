@@ -114,43 +114,42 @@ header .login-info .user-name .user-option {
     position: absolute;
     top: 45px;/*親メニューの高さと同じにする*/
     z-index: 100;
-    background: white;/*サブメニューの背景色*/
     font-size: 12px;
     visibility: hidden;
     overflow: hidden;
     border: 1px solid #5b93da;
     border-top: 0px;
     width: 150px;
-    /*height: 0px;*/
-    left: 300px;
+    left: 500px;
     box-shadow:0px 0px 6px 3px #5b93da;
     -moz-box-shadow:0px 0px 6px 3px #5b93da;
     -webkit-box-shadow:0px 0px 6px 3px #5b93da;
 }
 
 header .login-info .user-name .user-option li {
-    border-bottom: 1px dotted gray;
-    padding: 5px 6px;
+    border-bottom: 1px solid white;
+    background: rgba(31, 78, 120, .8);
 }
 
 header .login-info .user-name .user-option li.group {
-    background-color: rgb(61, 62, 121);
 }
 
 header .login-info .user-name .user-option li.menu a {
-    color: #000;
+    color: #fff;
+    text-decoration: none;
+    padding: 5px 6px;
+    display: block;
+    width: 100%;
 }
 
 header .login-info .user-name:hover .user-option {
     visibility: visible;
     overflow: visible;
-    /*width: 150px;*/
-    /*height: 56px;*/
     left: 0px;
 }
 
 header .login-info .user-name:hover .user-option li.menu:hover {
-    background-color: lightgreen;
+    background: rgb(78, 150, 222);
 }
 
 header .login-info .logout {
