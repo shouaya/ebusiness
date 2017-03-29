@@ -86,7 +86,8 @@ def get_members_by_section(all_members, section_id):
                                Q(membersectionperiod__end_date__isnull=True)) |
                               (Q(membersectionperiod__start_date__lte=today) &
                                Q(membersectionperiod__end_date__gte=today)),
-                              membersectionperiod__section__pk=section_id)
+                              membersectionperiod__section__pk=section_id,
+                              membersectionperiod__is_deleted=False)
 
 
 def get_members_by_salesperson(all_members, salesperson_id):
@@ -97,7 +98,8 @@ def get_members_by_salesperson(all_members, salesperson_id):
                                Q(membersalespersonperiod__end_date__isnull=True)) |
                               (Q(membersalespersonperiod__start_date__lte=today) &
                                Q(membersalespersonperiod__end_date__gte=today)),
-                              membersalespersonperiod__salesperson__pk=salesperson_id)
+                              membersalespersonperiod__salesperson__pk=salesperson_id,
+                              membersalespersonperiod__is_deleted=False)
 
 
 def get_project_members_by_section(project_members, section_id, date):
@@ -105,15 +107,17 @@ def get_project_members_by_section(project_members, section_id, date):
                                    Q(member__membersectionperiod__end_date__isnull=date)) |
                                   (Q(member__membersectionperiod__start_date__lte=date) &
                                    Q(member__membersectionperiod__end_date__gte=date)),
-                                  member__membersectionperiod__section__pk=section_id).distinct()
+                                  member__membersectionperiod__section__pk=section_id,
+                                  member__membersectionperiod__is_deleted=False).distinct()
 
 
 def get_project_members_by_salesperson(project_members, salesperson_id, date):
-    return project_members.filter((Q(member__membersectionperiod__start_date__lte=date) &
-                                   Q(member__membersectionperiod__end_date__isnull=date)) |
-                                  (Q(member__membersectionperiod__start_date__lte=date) &
-                                   Q(member__membersectionperiod__end_date__gte=date)),
-                                  member__membersalespersonperiod__salesperson__pk=salesperson_id).distinct()
+    return project_members.filter((Q(member__membersalespersonperiod__start_date__lte=date) &
+                                   Q(member__membersalespersonperiod__end_date__isnull=date)) |
+                                  (Q(member__membersalespersonperiod__start_date__lte=date) &
+                                   Q(member__membersalespersonperiod__end_date__gte=date)),
+                                  member__membersalespersonperiod__salesperson__pk=salesperson_id,
+                                  member__membersalespersonperiod__is_deleted=False).distinct()
 
 
 def get_on_sales_section():

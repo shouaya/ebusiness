@@ -193,6 +193,8 @@ CHOICE_ISSUE_LEVEL = ((1, u"低"),
                       (3, u"高"),
                       (4, u"至急"),
                       (5, u"大至急"))
+CHOICE_THEME = (('default', u'デフォルト'),
+                ('full_screen', u'フルスクリーン'))
 
 xlPart = 2
 xlByRows = 1

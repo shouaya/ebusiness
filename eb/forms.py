@@ -595,6 +595,19 @@ class BatchCarbonCopyForm(forms.ModelForm):
             self.add_error('salesperson', u"メールアドレスが設定されていません。")
 
 
+class ConfigForm(forms.ModelForm):
+    class Meta:
+        model = models.Config
+        fields = '__all__'
+
+    def __init__(self, *args, **kwargs):
+        super(ConfigForm, self).__init__(*args, **kwargs)
+        instance = kwargs.get('instance', None)
+        if instance and isinstance(instance, models.Config):
+            if instance.name == 'theme':
+                self.fields['value'] = forms.ChoiceField(constants.CHOICE_THEME, required=True, label=u"設定値")
+
+
 def is_cross_date(dates, d, index):
     for j, p in enumerate(dates):
         d1, d2 = p

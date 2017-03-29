@@ -1193,6 +1193,7 @@ class BatchManageAdmin(BaseAdmin):
 
 
 class ConfigAdmin(BaseAdmin):
+    form = forms.ConfigForm
     list_display = ['name', 'value']
 
 
