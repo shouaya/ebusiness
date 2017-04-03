@@ -275,6 +275,10 @@ def load_section_attendance(file_content, year, month, use_id):
         total_days = values[constants.POS_ATTENDANCE_COL_TOTAL_DAYS]
         # 深夜日数
         night_days = values[constants.POS_ATTENDANCE_COL_NIGHT_DAYS]
+        # 客先立替金
+        advances_paid_client = values[constants.POS_ATTENDANCE_COL_ADVANCES_PAID_CLIENT]
+        # 立替金
+        advances_paid = values[constants.POS_ATTENDANCE_COL_ADVANCES_PAID]
 
         if not project_member_id:
             messages.append((project_member_id, member_code, member_name, u"ID情報が取れません。"))
@@ -290,8 +294,8 @@ def load_section_attendance(file_content, year, month, use_id):
             # 既に出勤情報あり且つ請求書作成済み、スキップする。
             continue
 
-        if not total_hours:
-            # 空白または０の場合
+        if total_hours is None or total_hours == "":
+            # 空白の場合
             messages.append((project_member_id, member_code, member_name, constants.ERROR_INVALID_TOTAL_HOUR))
             continue
         if not isinstance(total_hours, float) \
@@ -323,12 +327,13 @@ def load_section_attendance(file_content, year, month, use_id):
             common.get_object_changed_message(attendance, 'night_days', night_days, changed_list)
             common.get_object_changed_message(attendance, 'price', price, changed_list)
             change_message = _('Changed %s.') % get_text_list(changed_list, _('and')) if changed_list else ''
-            change_message += u" 【データ導入】"
             attendance.total_hours = total_hours
             attendance.extra_hours = extra_hours
             attendance.total_days = total_days if total_days else None
             attendance.night_days = night_days if night_days else None
             attendance.price = price
+            attendance.advances_paid = advances_paid
+            attendance.advances_paid_client = advances_paid_client
         else:
             attendance = models.MemberAttendance(project_member=project_member,
                                                  year=year, month=month,
@@ -342,7 +347,9 @@ def load_section_attendance(file_content, year, month, use_id):
                                                  max_hours=project_member.max_hours,
                                                  plus_per_hour=project_member.plus_per_hour,
                                                  minus_per_hour=project_member.minus_per_hour,
-                                                 price=price)
+                                                 price=price,
+                                                 advances_paid=advances_paid,
+                                                 advances_paid_client=advances_paid_client)
             action_flag = ADDITION
             common.get_object_changed_message(attendance, 'total_hours', total_hours, changed_list)
             common.get_object_changed_message(attendance, 'extra_hours', extra_hours, changed_list)
@@ -350,7 +357,6 @@ def load_section_attendance(file_content, year, month, use_id):
             common.get_object_changed_message(attendance, 'night_days', night_days, changed_list)
             common.get_object_changed_message(attendance, 'price', price, changed_list)
             change_message = (get_text_list(changed_list, _('and')) if changed_list else '') + _('Added.')
-            change_message += u" 【データ導入】"
         attendance.save()
         if change_message:
             LogEntry.objects.log_action(user_id=use_id,
@@ -358,5 +364,5 @@ def load_section_attendance(file_content, year, month, use_id):
                                         object_id=attendance.pk,
                                         object_repr=unicode(attendance),
                                         action_flag=action_flag,
-                                        change_message=change_message or _('No fields changed.'))
+                                        change_message=(u" 【データ導入】" + change_message) or _('No fields changed.'))
     return messages

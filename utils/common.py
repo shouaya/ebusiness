@@ -16,6 +16,8 @@ import math
 import constants
 import jholiday
 
+from decimal import Decimal
+
 
 def add_months(source_date, months=1):
     month = source_date.month - 1 + months
@@ -832,6 +834,9 @@ def get_object_changed_message(obj, field, new_value, changed_list=None):
     if obj.pk:
         # 更新の場合
         old_value = getattr(obj, field)
+        if isinstance(old_value, Decimal):
+            old_value = "%.2f" % old_value
+            new_value = "%.2f" % new_value
         if old_value and new_value and old_value != new_value:
             message = u"%s(%s→%s)" % (verbose_name, old_value, new_value)
             if isinstance(changed_list, list):

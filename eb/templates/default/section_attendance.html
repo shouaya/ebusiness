@@ -203,22 +203,22 @@
                             </td>
                             {% if attendance.get_project_request_detail %}
                                 <!-- 請求書作成済み -->
-                                <td class="project_requested" style="text-align: right;">{{ attendance.total_hours }}</td>
-                                <td class="project_requested" style="text-align: right;">{{ attendance.total_days|default:'' }}</td>
-                                <td class="project_requested" style="text-align: right;">{{ attendance.night_days|default:'' }}</td>
+                                <td class="project_requested num">{{ attendance.total_hours }}</td>
+                                <td class="project_requested num">{{ attendance.total_days|default:'' }}</td>
+                                <td class="project_requested num">{{ attendance.night_days|default:'' }}</td>
+                                <td class="project_requested num">{{ attendance.advances_paid_client }}</td>
+                                <td class="project_requested num">{{ attendance.advances_paid }}</td>
                                 <td class="project_requested"></td>
-                                <td class="project_requested"></td>
-                                <td class="project_requested"></td>
-                                <td class="project_requested" style="text-align: right;">{{ attendance.get_project_request_detail.get_all_price|intcomma }}</td>
-                                <td style="text-align: right;">{{ project_member.member.cost|intcomma }}</td>
-                                <td style="text-align: right;">{{ project_member.member.get_bonus|intcomma }}</td>
+                                <td class="project_requested num">{{ attendance.get_project_request_detail.get_all_price|intcomma }}</td>
+                                <td class="num">{{ project_member.member.cost|intcomma }}</td>
+                                <td class="num">{{ project_member.member.get_bonus|intcomma }}</td>
                             {% else %}
                                 <!-- 請求書未作成 -->
-                                <td style="text-align: right;">{{ attendance.total_hours }}</td>
-                                <td style="text-align: right;">{{ attendance.total_days|default:'' }}</td>
-                                <td style="text-align: right;">{{ attendance.night_days|default:'' }}</td>
-                                <td></td>
-                                <td></td>
+                                <td class="num">{{ attendance.total_hours }}</td>
+                                <td class="num">{{ attendance.total_days|default:'' }}</td>
+                                <td class="num">{{ attendance.night_days|default:'' }}</td>
+                                <td class="num">{{ attendance.advances_paid_client|intcomma }}</td>
+                                <td class="num">{{ attendance.advances_paid|intcomma }}</td>
                                 <td></td>
                                 <td></td>
                                 <td></td>

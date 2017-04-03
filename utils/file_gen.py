@@ -995,6 +995,11 @@ def generate_attendance_format(template_path, project_members, date):
             sheet.cell(row=start_row, column=13).value = attendance.total_days
             # 深夜日数
             sheet.cell(row=start_row, column=14).value = attendance.night_days
+            # 客先立替金
+            sheet.cell(row=start_row, column=15).value = attendance.advances_paid_client
+            # 立替金
+            sheet.cell(row=start_row, column=16).value = attendance.advances_paid
+
             request_detail = attendance.get_project_request_detail()
             if request_detail:
                 # 売上
