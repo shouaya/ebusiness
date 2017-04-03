@@ -82,7 +82,8 @@ class AbstractMember(models.Model):
     skill_description = models.TextField(blank=True, null=True, verbose_name=u"得意")
     comment = models.TextField(blank=True, null=True, verbose_name=u"備考")
     notify_type = models.IntegerField(default=1, choices=constants.CHOICE_NOTIFY_TYPE, verbose_name=u"通知種類",
-                                      help_text=u"メール通知時に利用する。EBのメールアドレスを設定すると、通知のメールはEBのアドレスに送信する")
+                                      help_text=u"メール通知時に利用する。EBのメールアドレスを設定すると、"
+                                                u"通知のメールはEBのアドレスに送信する")
     is_retired = models.BooleanField(blank=False, null=False, default=False, verbose_name=u"退職")
     id_from_api = models.CharField(blank=True, null=True, unique=True, max_length=30, editable=False,
                                    verbose_name=u"社員ID", help_text=u"データを導入するために、API側のID")
@@ -2126,11 +2127,12 @@ class Issue(models.Model):
     title = models.CharField(max_length=30, verbose_name=u"タイトル")
     level = models.PositiveSmallIntegerField(choices=constants.CHOICE_ISSUE_LEVEL, default=1, verbose_name=u"優先度")
     content = models.TextField(verbose_name=u"内容")
-    user = models.ForeignKey(User, related_name='created_issue_set', editable=False, verbose_name=u"作成者")
+    created_user = models.ForeignKey(User, related_name='created_issue_set', editable=False, verbose_name=u"作成者")
     status = models.CharField(max_length=1, default=1, choices=constants.CHOICE_ISSUE_STATUS,
                               verbose_name=u"ステータス")
     limit_date = models.DateField(blank=True, null=True, verbose_name=u"期限日")
-    resolve_user = models.ForeignKey(User, related_name='resolve_issue_set', blank=True, null=True, verbose_name=u"対応者")
+    resolve_user = models.ForeignKey(User, related_name='resolve_issue_set', blank=True, null=True,
+                                     verbose_name=u"対応者")
     end_date = models.DateField(blank=True, null=True, verbose_name=u"予定完了日")
     solution = models.TextField(blank=True, null=True, verbose_name=u"対応方法")
     created_date = models.DateTimeField(auto_now_add=True, verbose_name=u"作成日時")
@@ -2146,6 +2148,62 @@ class Issue(models.Model):
 
     def __unicode__(self):
         return self.title
+
+    def get_mail_title(self):
+        return u"【営業支援システム】【課題管理】#%d: %s - %s" % (self.pk, self.title, self.get_status_display())
+
+    def get_mail_body(self, updated_user):
+        """課題のメール本文を取得する。
+
+        :param updated_user:
+        :return:
+        """
+        mail_body = Config.get(constants.CONFIG_ISSUE_MAIL_BODY)
+        if mail_body:
+            t = Template(mail_body)
+            context = {'issue': self, 'updated_user': updated_user}
+            ctx = Context(context)
+            return t.render(ctx)
+        else:
+            return None
+
+    def get_cc_list(self):
+        # システム管理者を取得する
+        users = User.objects.filter(is_superuser=True, is_active=True)
+        mail_list = [user.email for user in users if user.email]
+        # 担当者をメールリストに追加
+        if self.resolve_user and self.resolve_user.email not in mail_list:
+            mail_list.append(self.resolve_user.email)
+        return mail_list
+
+    def save(self, force_insert=False, force_update=False, using=None,
+             update_fields=None, updated_user=None):
+        super(Issue, self).save(force_insert, force_update, using, update_fields)
+
+        # メール送信
+        html = self.get_mail_body(updated_user)
+        if not html:
+            # メール本文が設定されてないなら、送信を行わずに処理を終了する。
+            return
+        attachments = []
+        from_email = Config.get(constants.CONFIG_ADMIN_EMAIL_ADDRESS)
+        recipient_list = [updated_user.email]
+        cc_list = self.get_cc_list()
+        connection = BatchManage.get_custom_connection()
+        email = EmailMultiAlternativesWithEncoding(
+            subject=self.get_mail_title(),
+            body="",
+            from_email=from_email,
+            to=recipient_list,
+            cc=cc_list,
+            connection=connection
+        )
+        if html:
+            email.attach_alternative(html, constants.MIME_TYPE_HTML)
+        if attachments:
+            for filename, content, mimetype in attachments:
+                email.attach(filename, content, mimetype)
+        email.send()
 
     def delete(self, using=None, keep_parents=False):
         self.is_deleted = True
@@ -2304,7 +2362,7 @@ class BatchCarbonCopy(models.Model):
 
 class Config(models.Model):
     name = models.CharField(max_length=50, unique=True, verbose_name=u"設定名")
-    value = models.CharField(max_length=255, verbose_name=u"設定値")
+    value = models.CharField(max_length=500, verbose_name=u"設定値")
     description = models.TextField(blank=True, null=True, verbose_name=u"説明")
 
     class Meta:

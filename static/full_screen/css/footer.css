@@ -3,10 +3,16 @@
 footer {
     position: relative;
     clear: both;
+    margin-top: 20px;
     right: 0;
     bottom: 0;
     font-size: 13px;
-    height: 100px;
-    padding-top: 20px;
+    padding: 20px 0px;
+    background-color: lightsteelblue;
 }
 
+footer div.container {
+    width: 1100px;
+    text-align: center;
+    margin: 5px auto;
+}

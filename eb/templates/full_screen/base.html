@@ -33,7 +33,7 @@
                         <ul>
                             <li>
                                 <div>
-                                    <form action="{% url 'employee_list' %}" method="get">
+                                    <form action="{% url 'employee_list' %}" method="get" class="search">
                                         <!--<label for="first_name__contains">姓:</label>-->
                                         <!--<input type="text" id="first_name__contains" name="first_name__contains" style="width:30px"/>-->
                                         <!--<label for="last_name__contains">名:</label>-->
@@ -49,11 +49,14 @@
                         <ul>
                             <li>
                                 <div>
-                                    <form action="{% url 'project_list' %}" method="get">
+                                    <form action="{% url 'project_list' %}" method="get" class="search">
                                         <input type="text" name="q"/>
                                         <input type="submit" value="検索"/>
                                     </form>
                                 </div>
+                            </li>
+                            <li>
+                                <a href="{% url 'project_order_list' %}">案件の注文情報</a>
                             </li>
                         </ul>
                     </li>
@@ -94,11 +97,6 @@
                                     <i class="fa fa-key" aria-hidden="true"></i>&nbsp;パスワードの変更
                                 </a>
                             </li>
-                            <li class="menu">
-                                <a href="{% url 'admin:index' %}">
-                                    <i class="fa fa-user-circle-o" aria-hidden="true"></i>&nbsp;管理サイト
-                                </a>
-                            </li>
                             {% if perms.eb.view_turnover %}
                             <li class="menu">
                                 <a href="{% url 'turnover_company_monthly' %}">
@@ -106,6 +104,26 @@
                                 </a>
                             </li>
                             {% endif %}
+                            <li class="menu">
+                                <a href="{% url 'section_list' %}">
+                                    <i class="fa fa-users" aria-hidden="true"></i> 部署情報一覧
+                                </a>
+                            </li>
+                            <li class="menu">
+                                <a href="{% url 'admin:index' %}">
+                                    <i class="fa fa-user-circle-o" aria-hidden="true"></i>&nbsp;管理サイト
+                                </a>
+                            </li>
+                            <li class="menu">
+                                <a href="{% url 'del_data_admin:index' %}">
+                                    <i class="fa fa-recycle" aria-hidden="true"></i> 削除したデータ
+                                </a>
+                            </li>
+                            <li class="menu">
+                                <a href="{% url 'batch_list' %}">
+                                    <i class="fa fa-code" aria-hidden="true"></i> バッチ一覧
+                                </a>
+                            </li>
                         </ul>
                     </div>
                     <a class="logout" href="{% url 'logout_view' %}">
@@ -125,7 +143,7 @@
 	<footer>
         <div class="container">
             {% ifequal request.user.username 'admin' %}
-            <a href="{% url 'history' %}">Click here to see history</a>
+            <a href="{% url 'history' %}">Click here to see history</a>&nbsp;|
             {% endifequal %}
             <a href="{% url 'issues' %}">課題管理票</a>
         </div>

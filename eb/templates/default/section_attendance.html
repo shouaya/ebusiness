@@ -19,64 +19,64 @@
     }
 </script>
 <style type="text/css">
-    table {
+    table#attendance {
         border-top: thin solid black;
         border-right: thin solid black;
         font-size: 12px;
         table-layout: fixed;
     }
-    table thead th {
+    table#attendance thead th {
         text-align: center;
         border-left: thin solid black;
         border-bottom: thin solid black;
     }
-    table tbody {
+    table#attendance tbody {
         background: white;
     }
-    table tbody td {
+    table#attendance tbody td {
         padding-top: 2px;
         padding-bottom: 2px;
         border-left: thin solid black;
         border-bottom: thin solid black;
     }
-    table tfoot {
+    table#attendance tfoot {
         font-size: 13px;
         background: linear-gradient(#fff, #eee);
     }
-    table tfoot tr {
+    table#attendance tfoot tr {
         height: 30px;
     }
-    table tfoot td {
+    table#attendance tfoot td {
         padding-top: 4px;
         padding-left: 5px;
         border-left: thin solid lightgray;
         border-bottom: thin solid lightgray;
         border-right: thin solid lightgray;
     }
-    th.bk01 {
+    table#attendance th.bk01 {
         background: rgb(180, 198, 231);
     }
-    th.bk02 {
+    table#attendance th.bk02 {
         background: rgb(198, 224, 180);
     }
-    th.bk03 {
+    table#attendance th.bk03 {
         background: rgb(255, 230, 153);
     }
-    th.bk04 {
+    table#attendance th.bk04 {
         background: rgb(244, 176, 132);
     }
-    th.bk05 {
+    table#attendance th.bk05 {
         background: rgb(155, 194, 230);
     }
-    th.bk06 {
+    table#attendance th.bk06 {
         background: rgb(255, 255, 0);
     }
-    th, td {
+    table#attendance th, td {
         padding: 0 3px;
         overflow: hidden;
         white-space: nowrap;
     }
-    td.error {
+    table#attendance td.error {
         background: red;
         color: white;
     }
@@ -87,10 +87,10 @@
         border: 3px solid white;
         color: white;
     }
-    tr:hover {
+    table#attendance tr:hover {
         background-color: LightGreen;
     }
-    tr:hover td {
+    table#attendance tr:hover td {
         background-color: transparent;
     }
 </style>
@@ -120,7 +120,7 @@
         </div>
     {% endif %}
     <div class="scroll_container">
-        <table cellspacing="0" cellpadding="0">
+        <table id="attendance" cellspacing="0" cellpadding="0">
             <thead>
                 <tr>
                     <th class="bk01" rowspan="2" style="width: 30px;">No</th>

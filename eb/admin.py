@@ -1104,12 +1104,13 @@ class HistoryProjectAdmin(BaseAdmin):
 
 
 class IssueAdmin(BaseAdmin):
-    list_display = ['title', 'user', 'status', 'created_date']
+    list_display = ['title', 'created_user', 'status', 'created_date']
     list_filter = ['status']
 
     def save_model(self, request, obj, form, change):
-        obj.user = request.user
-        obj.save()
+        if not change:
+            obj.created_user = request.user
+        obj.save(updated_user=request.user)
 
 
 class HistoryAdmin(BaseAdmin):

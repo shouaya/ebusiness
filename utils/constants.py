@@ -37,6 +37,7 @@ CONFIG_YEAR_LIST_START = 'year_list_start'
 CONFIG_YEAR_LIST_END = 'year_list_end'
 CONFIG_PAGE_SIZE = 'page_size'
 CONFIG_THEME = 'theme'
+CONFIG_ISSUE_MAIL_BODY = 'issue_mail_body'
 
 MARK_POST_CODE = u"〒"
 

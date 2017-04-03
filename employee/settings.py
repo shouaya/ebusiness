@@ -57,6 +57,7 @@ ROOT_URLCONF = 'employee.urls'
 
 WSGI_APPLICATION = 'employee.wsgi.application'
 
+SESSION_COOKIE_AGE = 60 * 60 * 24
 
 # Database
 # https://docs.djangoproject.com/en/1.7/ref/settings/#databases
