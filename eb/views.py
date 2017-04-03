@@ -110,7 +110,7 @@ def index(request):
         'show_warning_projects': show_warning_projects,
         'salesperson_list': salesperson_list,
     })
-    template = loader.get_template('%s/home.html' % context.get('theme'))
+    template = loader.get_template('default/home.html')
     return HttpResponse(template.render(context, request))
 
 
@@ -179,7 +179,7 @@ def employee_list(request):
         'dict_order': dict_order,
         'page_type': "off_sales" if status == "off_sales" else None,
     })
-    template = loader.get_template('%s/employee_list.html' % context.get('theme'))
+    template = loader.get_template('default/employee_list.html')
     return HttpResponse(template.render(context, request))
 
 
@@ -219,7 +219,7 @@ def members_in_coming(request):
         'dict_order': dict_order,
         'page_type': "members_in_coming",
     })
-    template = loader.get_template('%s/employee_list.html' % context.get('theme'))
+    template = loader.get_template('default/employee_list.html')
     return HttpResponse(template.render(context, request))
 
 
@@ -283,7 +283,7 @@ def members_subcontractor(request):
         'dict_order': dict_order,
         'page_type': "off_sales" if status == "off_sales" else None,
     })
-    template = loader.get_template('%s/employee_list.html' % context.get('theme'))
+    template = loader.get_template('default/employee_list.html')
     return HttpResponse(template.render(context, request))
 
 
@@ -313,7 +313,7 @@ def change_list(request):
         'paginator': paginator,
         'dict_order': dict_order,
     })
-    template = loader.get_template('%s/member_change_list.html' % context.get('theme'))
+    template = loader.get_template('default/member_change_list.html')
     return HttpResponse(template.render(context, request))
 
 
@@ -372,7 +372,7 @@ def project_list(request):
         'orders': "&o=%s" % (o,) if o else "",
         'dict_order': dict_order,
     })
-    template = loader.get_template('%s/project_list.html' % context.get('theme'))
+    template = loader.get_template('default/project_list.html')
     return HttpResponse(template.render(context, request))
 
 
@@ -432,7 +432,7 @@ def project_order_list(request):
         'current_month': ym[4:],
         'ym': ym,
     })
-    template = loader.get_template('%s/project_order_list.html' % context.get('theme'))
+    template = loader.get_template('default/project_order_list.html')
     return HttpResponse(template.render(context, request))
 
 
@@ -449,7 +449,7 @@ def project_detail(request, project_id):
         'attendance_month_list': project.get_year_month_attendance_finished(),
     })
     context.update(csrf(request))
-    template = loader.get_template('%s/project_detail.html' % context.get('theme'))
+    template = loader.get_template('default/project_detail.html')
     return HttpResponse(template.render(context, request))
 
 
@@ -596,7 +596,7 @@ def project_attendance_list(request, project_id):
 
             context['initial_form_count'] = initial_form_count
 
-            template = loader.get_template('%s/project_attendance_list.html' % context.get('theme'))
+            template = loader.get_template('default/project_attendance_list.html')
             return HttpResponse(template.render(context, request))
         else:
             if project.is_hourly_pay:
@@ -624,7 +624,7 @@ def project_attendance_list(request, project_id):
                 return redirect(reverse("project_detail", args=(project.pk,)))
             else:
                 context.update({'formset': formset})
-                template = loader.get_template('%s/project_attendance_list.html' % context.get('theme'))
+                template = loader.get_template('default/project_attendance_list.html')
                 return HttpResponse(template.render(context, request))
 
 
@@ -661,7 +661,7 @@ def project_member_list(request, project_id):
         'params': params,
         'dict_order': dict_order,
     })
-    template = loader.get_template('%s/project_members.html' % context.get('theme'))
+    template = loader.get_template('default/project_members.html')
     return HttpResponse(template.render(context, request))
 
 
@@ -681,7 +681,7 @@ def section_list(request):
         'sections': section_count_list,
         'total_count': total_count,
     })
-    template = loader.get_template('%s/section_list.html' % context.get('theme'))
+    template = loader.get_template('default/section_list.html')
     return HttpResponse(template.render(context, request))
 
 
@@ -715,7 +715,7 @@ def section_detail(request, section_id):
         'paginator': paginator,
         'year_list': biz.get_year_list()
     })
-    template = loader.get_template('%s/section_detail.html' % context.get('theme'))
+    template = loader.get_template('default/section_detail.html')
     return HttpResponse(template.render(context, request))
 
 
@@ -770,7 +770,7 @@ def section_attendance(request, section_id):
     })
     context.update(csrf(request))
 
-    template = loader.get_template('%s/section_attendance.html' % context.get('theme'))
+    template = loader.get_template('default/section_attendance.html')
     return HttpResponse(template.render(context, request))
 
 
@@ -798,7 +798,7 @@ def view_project_request(request, request_id):
         'request_details': request_details,
         'detail_expenses': detail_expenses,
     })
-    template = loader.get_template('%s/project_request.html' % context.get('theme'))
+    template = loader.get_template('default/project_request.html')
     return HttpResponse(template.render(context, request))
 
 
@@ -815,7 +815,7 @@ def turnover_company_monthly(request):
         'month_list': month_list,
         'turnover_amount_list': turnover_amount_list,
     })
-    template = loader.get_template('%s/turnover_company_monthly.html' % context.get('theme'))
+    template = loader.get_template('default/turnover_company_monthly.html')
     return HttpResponse(template.render(context, request))
 
 
@@ -860,7 +860,7 @@ def turnover_charts_monthly(request, ym):
         'clients_expenses_amount_list': clients_expenses_amount_list,
         'ym': ym,
     })
-    template = loader.get_template('%s/turnover_charts_monthly.html' % context.get('theme'))
+    template = loader.get_template('default/turnover_charts_monthly.html')
     return HttpResponse(template.render(context, request))
 
 
@@ -911,7 +911,7 @@ def turnover_members_monthly(request, ym):
         'params': "&" + params if params else "",
         'ym': ym,
     })
-    template = loader.get_template('%s/turnover_members_monthly.html' % context.get('theme'))
+    template = loader.get_template('default/turnover_members_monthly.html')
     return HttpResponse(template.render(context, request))
 
 
@@ -935,7 +935,7 @@ def turnover_clients_monthly(request, ym):
         'ym': ym,
         'summary': summary,
     })
-    template = loader.get_template('%s/turnover_clients_monthly.html' % context.get('theme'))
+    template = loader.get_template('default/turnover_clients_monthly.html')
     return HttpResponse(template.render(context, request))
 
 
@@ -961,7 +961,7 @@ def turnover_client_monthly(request, client_id, ym):
         'ym': ym,
         'summary': summary,
     })
-    template = loader.get_template('%s/turnover_projects_monthly.html' % context.get('theme'))
+    template = loader.get_template('default/turnover_projects_monthly.html')
     return HttpResponse(template.render(context, request))
 
 
@@ -1023,7 +1023,7 @@ def release_list(request, ym):
         'sections': sections,
         'salesperson': salesperson,
     })
-    template = loader.get_template('%s/release_list.html' % context.get('theme'))
+    template = loader.get_template('default/release_list.html')
     return HttpResponse(template.render(context, request))
 
 
@@ -1041,7 +1041,7 @@ def member_detail(request, employee_id):
         'all_project_count': project_count + member.historyproject_set.public_all().count(),
         'default_project_count': range(1, 14),
     })
-    template = loader.get_template('%s/member_detail.html' % context.get('theme'))
+    template = loader.get_template('default/member_detail.html')
     return HttpResponse(template.render(context, request))
 
 
@@ -1062,7 +1062,7 @@ def member_project_list(request, employee_id):
         'title': u'%s の案件一覧 | %s' % (member, constants.NAME_SYSTEM),
         'project_members': project_members,
     })
-    template = loader.get_template('%s/member_project_list.html' % context.get('theme'))
+    template = loader.get_template('default/member_project_list.html')
     return HttpResponse(template.render(context, request))
 
 
@@ -1077,7 +1077,7 @@ def recommended_member_list(request, project_id):
         'project': project,
         'dict_skills': dict_skills,
     })
-    template = loader.get_template('%s/recommended_member.html' % context.get('theme'))
+    template = loader.get_template('default/recommended_member.html')
     return HttpResponse(template.render(context, request))
 
 
@@ -1095,7 +1095,7 @@ def recommended_project_list(request, employee_id):
         'skills': skills,
         'projects': projects,
     })
-    template = loader.get_template('%s/recommended_project.html' % context.get('theme'))
+    template = loader.get_template('default/recommended_project.html')
     return HttpResponse(template.render(context, request))
 
 
@@ -1133,7 +1133,7 @@ def subcontractor_list(request):
         'dict_order': dict_order,
         'bp_count': models.Member.objects.public_filter(subcontractor__isnull=False).count(),
     })
-    template = loader.get_template('%s/subcontractor_list.html' % context.get('theme'))
+    template = loader.get_template('default/subcontractor_list.html')
     return HttpResponse(template.render(context, request))
 
 
@@ -1167,7 +1167,7 @@ def subcontractor_detail(request, subcontractor_id):
         'dict_order': dict_order,
         'order_month_list': subcontractor.get_year_month_order_finished(),
     })
-    template = loader.get_template('%s/subcontractor_detail.html' % context.get('theme'))
+    template = loader.get_template('default/subcontractor_detail.html')
     return HttpResponse(template.render(context, request))
 
 
@@ -1233,7 +1233,7 @@ def subcontractor_members(request, subcontractor_id):
 
         context.update({'formset': formset, 'initial_form_count': initial_form_count})
 
-        template = loader.get_template('%s/subcontractor_members.html' % context.get('theme'))
+        template = loader.get_template('default/subcontractor_members.html')
         return HttpResponse(template.render(context, request))
     else:
         bp_order_info_formset = modelformset_factory(models.BpMemberOrderInfo,
@@ -1249,7 +1249,7 @@ def subcontractor_members(request, subcontractor_id):
             return redirect("/eb/subcontractor_detail/%s.html" % (subcontractor.pk,))
         else:
             context.update({'formset': formset})
-            template = loader.get_template('%s/subcontractor_members.html' % context.get('theme'))
+            template = loader.get_template('default/subcontractor_members.html')
             return HttpResponse(template.render(context, request))
 
 
@@ -1280,7 +1280,7 @@ def upload_resume(request):
         form = forms.UploadFileForm()
         context.update({'form': form})
 
-    template = loader.get_template('%s/upload_file.html' % context.get('theme'))
+    template = loader.get_template('default/upload_file.html')
     return HttpResponse(template.render(context, request))
 
 
@@ -1415,7 +1415,7 @@ def map_position(request):
         'title': u'地図情報 | %s' % constants.NAME_SYSTEM,
         'members': members,
     })
-    template = loader.get_template('%s/map_position.html' % context.get('theme'))
+    template = loader.get_template('default/map_position.html')
     return HttpResponse(template.render(context, request))
 
 
@@ -1429,7 +1429,7 @@ def issues(request):
         'title': u'課題管理票一覧 | %s' % constants.NAME_SYSTEM,
         'issues': issue_list,
     })
-    template = loader.get_template('%s/issue_list.html' % context.get('theme'))
+    template = loader.get_template('default/issue_list.html')
     return HttpResponse(template.render(context, request))
 
 
@@ -1441,7 +1441,7 @@ def issue_detail(request, issue_id):
         'title': u'課題管理票 - %s | %s' % (issue.title, constants.NAME_SYSTEM),
         'issue': issue,
     })
-    template = loader.get_template('%s/issue.html' % context.get('theme'))
+    template = loader.get_template('default/issue.html')
     return HttpResponse(template.render(context, request))
 
 
@@ -1459,7 +1459,7 @@ def history(request):
         'histories': histories,
         'total_hours': total_hours,
     })
-    template = loader.get_template('%s/history.html' % context.get('theme'))
+    template = loader.get_template('default/history.html')
     return HttpResponse(template.render(context, request))
 
 
@@ -1477,7 +1477,7 @@ def sync_coordinate(request):
             'count': members.count()
         })
         context.update(csrf(request))
-        template = loader.get_template('%s/sync_coordinate.html' % context.get('theme'))
+        template = loader.get_template('default/sync_coordinate.html')
         return HttpResponse(template.render(context, request))
     else:
         lat = request.POST.get('lat', None)
@@ -1518,7 +1518,7 @@ def batch_list(request):
         batch_name = request.POST.get('batch_name', None)
         call_command(batch_name)
 
-    template = loader.get_template('%s/batch_list.html' % context.get('theme'))
+    template = loader.get_template('default/batch_list.html')
     return HttpResponse(template.render(context, request))
 
 
@@ -1580,7 +1580,7 @@ def sync_db2(request):
                     'messages': [u"完了しました。"],
                 })
 
-    template = loader.get_template('%s/syncdb2.html' % context.get('theme'))
+    template = loader.get_template('default/syncdb2.html')
     return HttpResponse(template.render(context, request))
 
 
@@ -1599,7 +1599,7 @@ def login_user(request):
 
     context = get_base_context()
 
-    template = loader.get_template('%s/login.html' % context.get('theme'))
+    template = loader.get_template('default/login.html')
     return HttpResponse(template.render(context, request))
 
 
@@ -1611,7 +1611,7 @@ def logout_view(request):
 @csrf_protect
 @login_required
 def password_change(request,
-                    template_name='%s/password_change_form.html' % biz_config.get_theme(),
+                    template_name='default/password_change_form.html',
                     post_change_redirect=None,
                     password_change_form=PasswordChangeForm,
                     extra_context=None):
@@ -1645,7 +1645,7 @@ def password_change(request,
 
 def handler404(request):
     context = get_base_context()
-    template = loader.get_template('%s/404.html' % context.get('theme'))
+    template = loader.get_template('default/404.html')
     response = HttpResponse(template.render(context, request))
     response.status_code = 404
     return response
