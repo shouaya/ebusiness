@@ -321,3 +321,11 @@ function row_update_cancel(obj) {
     row_show = row_for_update.prev();
     row_show.css("display", "");
 }
+
+function musk() {
+    $("body").append("<div class='musk'></div>")
+}
+
+function unmask() {
+
+}
