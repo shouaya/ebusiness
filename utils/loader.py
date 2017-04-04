@@ -331,6 +331,9 @@ def load_section_attendance(file_content, year, month, use_id):
             common.get_object_changed_message(attendance, 'total_days', total_days, changed_list)
             common.get_object_changed_message(attendance, 'night_days', night_days, changed_list)
             common.get_object_changed_message(attendance, 'price', price, changed_list)
+            common.get_object_changed_message(attendance, 'advances_paid', advances_paid, changed_list)
+            common.get_object_changed_message(attendance, 'advances_paid_client', advances_paid_client, changed_list)
+            common.get_object_changed_message(attendance, 'traffic_cost', traffic_cost, changed_list)
             change_message = _('Changed %s.') % get_text_list(changed_list, _('and')) if changed_list else ''
             attendance.total_hours = total_hours
             attendance.extra_hours = extra_hours
@@ -363,6 +366,9 @@ def load_section_attendance(file_content, year, month, use_id):
             common.get_object_changed_message(attendance, 'total_days', total_days, changed_list)
             common.get_object_changed_message(attendance, 'night_days', night_days, changed_list)
             common.get_object_changed_message(attendance, 'price', price, changed_list)
+            common.get_object_changed_message(attendance, 'advances_paid', advances_paid, changed_list)
+            common.get_object_changed_message(attendance, 'advances_paid_client', advances_paid_client, changed_list)
+            common.get_object_changed_message(attendance, 'traffic_cost', traffic_cost, changed_list)
             change_message = (get_text_list(changed_list, _('and')) if changed_list else '') + _('Added.')
         attendance.save()
         if change_message:

@@ -755,7 +755,7 @@ def section_attendance(request, section_id):
                 if project_member.id == project_member_id:
                     msg = msg_content
                     break
-        all_project_members.append((project_member, project_member.get_attendance(year, month), msg))
+        all_project_members.append((project_member, msg))
 
     context = get_base_context()
     context.update({

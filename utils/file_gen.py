@@ -555,22 +555,22 @@ def generate_request_linux(project, data, request_no, ym):
                                      'x_offset': 4,
                                      'y_offset': 6,
                                      'align': {'vertical': 'middle', 'horizontal': 'center'}
-    }
-    )
+                                     }
+                         )
     sheet.insert_textbox('O15', '', {'width': 90,
                                      'height': 90,
                                      'x_offset': 6,
                                      'y_offset': 6,
                                      'align': {'vertical': 'middle', 'horizontal': 'center'}
-    }
-    )
+                                     }
+                         )
     sheet.insert_textbox('P15', '', {'width': 90,
                                      'height': 90,
                                      'x_offset': -2,
                                      'y_offset': 6,
                                      'align': {'vertical': 'middle', 'horizontal': 'center'}
-    }
-    )
+                                     }
+                         )
     title_format = book.add_format({'font_size': 11,
                                     'border': 1,
                                     'align': 'center',
@@ -686,7 +686,7 @@ def generate_request_linux(project, data, request_no, ym):
             border_row(start_row, project.is_lump)
             if i == 0:
                 sheet.write_string(start_row, 1, u"追加", cell_format)
-            #sheet.write_string(start_row, 3, item['ITEM_EXPENSES_CATEGORY_SUMMARY'], range2_format)
+            # sheet.write_string(start_row, 3, item['ITEM_EXPENSES_CATEGORY_SUMMARY'], range2_format)
             sheet.merge_range(start_row, 3, start_row, 13, item['ITEM_EXPENSES_CATEGORY_SUMMARY'], range3_format)
             sheet.write_number(start_row, 14, item['ITEM_EXPENSES_CATEGORY_AMOUNT'], num_format)
             start_row += 1
@@ -767,8 +767,10 @@ def generate_request(company, project, data, request_no, ym):
 
         replace_excel_dict(sheet, data['DETAIL'])
         replace_excel_dict(sheet, data['detail_all'])
-        replace_excel_list(sheet, data['MEMBERS'])
-        replace_excel_list(sheet, data['EXPENSES'], range_start="EXPENSES_START", range_end="EXPENSES_END")
+        if not project.is_lump:
+            # 一括案件の場合はアサインしたメンバーは表示しないように
+            replace_excel_list(sheet, data['MEMBERS'])
+            replace_excel_list(sheet, data['EXPENSES'], range_start="EXPENSES_START", range_end="EXPENSES_END")
 
         for i in range(cnt, 0, -1):
             book.Worksheets(i).Delete()
@@ -987,7 +989,10 @@ def generate_attendance_format(template_path, project_members, date):
         sheet.cell(row=start_row, column=11).value = u"一括" if project_member.project.is_lump else 'SES'
 
         # 出勤情報取得
-        attendance = project_member.get_attendance(date.year, date.month)
+        if len(project_member.current_attendance_set) == 1:
+            attendance = project_member.current_attendance_set[0]
+        else:
+            attendance = None
         if attendance:
             # 勤務時間
             sheet.cell(row=start_row, column=12).value = attendance.total_hours
@@ -999,13 +1004,21 @@ def generate_attendance_format(template_path, project_members, date):
             sheet.cell(row=start_row, column=15).value = attendance.advances_paid_client
             # 立替金
             sheet.cell(row=start_row, column=16).value = attendance.advances_paid
+            # 勤務交通費
+            sheet.cell(row=start_row, column=17).value = attendance.traffic_cost
 
             request_detail = attendance.get_project_request_detail()
             if request_detail:
                 # 売上
                 sheet.cell(row=start_row, column=18).value = request_detail.get_all_price()
-            # 月給
-            sheet.cell(row=start_row, column=19).value = project_member.member.cost
+                # 月給
+                sheet.cell(row=start_row, column=19).value = project_member.member.cost
+        else:
+            if len(project_member.prev_attendance_set) == 1:
+                prev_attendance = project_member.prev_attendance_set[0]
+                if prev_attendance.traffic_cost:
+                    # 勤務交通費
+                    sheet.cell(row=start_row, column=17).value = prev_attendance.traffic_cost
 
         start_row += 1
 

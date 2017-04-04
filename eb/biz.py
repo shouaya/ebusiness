@@ -202,11 +202,23 @@ def get_project_members_month_section(section, date):
     :return:
     """
     project_members = models.get_project_members_by_month(date)
+    # 出勤情報を取得する
+    current_attendance_set = models.MemberAttendance.objects.filter(year="%04d" % date.year,
+                                                                    month="%02d" % date.month,
+                                                                    is_deleted=False)
+    prev_month = common.add_months(date, months=-1)
+    prev_attendance_set = models.MemberAttendance.objects.filter(year="%04d" % prev_month.year,
+                                                                 month="%02d" % prev_month.month,
+                                                                 is_deleted=False)
+
     return project_members.filter((Q(member__membersectionperiod__start_date__lte=date) &
                                    Q(member__membersectionperiod__end_date__isnull=date)) |
                                   (Q(member__membersectionperiod__start_date__lte=date) &
                                    Q(member__membersectionperiod__end_date__gte=date)),
-                                  member__membersectionperiod__section=section).distinct()
+                                  member__membersectionperiod__section=section).distinct().prefetch_related(
+        Prefetch('memberattendance_set', queryset=current_attendance_set, to_attr='current_attendance_set'),
+        Prefetch('memberattendance_set', queryset=prev_attendance_set, to_attr='prev_attendance_set'),
+    )
 
 
 def get_subcontractor_project_members_month(date):

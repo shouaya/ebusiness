@@ -162,7 +162,7 @@
             </thead>
             <tbody>
                 {% if project_members %}
-                    {% for project_member, attendance, msg in project_members %}
+                    {% for project_member, msg in project_members %}
                         <tr>
                             <td style="text-align:center;">{{ forloop.counter }}</td>
                             <td>{{ project_member.member.employee_id }}</td>
@@ -205,45 +205,35 @@
                                     SES
                                 {% endif %}
                             </td>
-                            {% if attendance.get_project_request_detail %}
-                                <!-- 請求書作成済み -->
-                                <td class="project_requested num">{{ attendance.total_hours }}</td>
-                                <td class="project_requested num">{{ attendance.total_days|default:'' }}</td>
-                                <td class="project_requested num">{{ attendance.night_days|default:'' }}</td>
-                                <td class="project_requested num">{{ attendance.advances_paid_client|default:''|intcomma }}</td>
-                                <td class="project_requested num">{{ attendance.advances_paid|default:''|intcomma }}</td>
-                                {% if attendance.traffic_cost %}
-                                    <td class="project_requested num">{{ attendance.traffic_cost|default:''|intcomma }}</td>
-                                {% else %}
-                                    {% if attendance.get_prev_traffic_cost %}
-                                        <td class="project_requested num prev_month_data">{{ attendance.get_prev_traffic_cost|default:''|intcomma }}</td>
+                            {% with attendance=project_member.current_attendance_set|first prev_attendance=project_member.prev_attendance_set|first %}
+                            {% with project_request_detail=attendance.get_project_request_detail %}
+                                    <td class="num {% if project_request_detail %}project_requested{% endif %}">{{ attendance.total_hours }}</td>
+                                    <td class="num {% if project_request_detail %}project_requested{% endif %}">{{ attendance.total_days|default:'' }}</td>
+                                    <td class="num {% if project_request_detail %}project_requested{% endif %}">{{ attendance.night_days|default:'' }}</td>
+                                    <td class="num {% if project_request_detail %}project_requested{% endif %}">{{ attendance.advances_paid_client|default:''|intcomma }}</td>
+                                    <td class="num {% if project_request_detail %}project_requested{% endif %}">{{ attendance.advances_paid|default:''|intcomma }}</td>
+                                    {% if attendance.traffic_cost %}
+                                        <td class="num {% if project_request_detail %}project_requested{% endif %}">{{ attendance.traffic_cost|default:''|intcomma }}</td>
                                     {% else %}
-                                        <td class="project_requested"></td>
+                                        {% if prev_attendance and prev_attendance.traffic_cost %}
+                                            <td class="num prev_month_data {% if project_request_detail %}project_requested{% endif %}">
+                                                {{ prev_attendance.traffic_cost|default:''|intcomma }}
+                                            </td>
+                                        {% else %}
+                                            <td class=" {% if project_request_detail %}project_requested{% endif %}"></td>
+                                        {% endif %}
                                     {% endif %}
-                                {% endif %}
-                                <td class="project_requested num">{{ attendance.get_project_request_detail.get_all_price|intcomma }}</td>
-                                <td class="num">{{ project_member.member.cost|intcomma }}</td>
-                                <td class="num">{{ project_member.member.get_bonus|intcomma }}</td>
-                            {% else %}
-                                <!-- 請求書未作成 -->
-                                <td class="num">{{ attendance.total_hours }}</td>
-                                <td class="num">{{ attendance.total_days|default:'' }}</td>
-                                <td class="num">{{ attendance.night_days|default:'' }}</td>
-                                <td class="num">{{ attendance.advances_paid_client|default:''|intcomma }}</td>
-                                <td class="num">{{ attendance.advances_paid|default:''|intcomma }}</td>
-                                {% if attendance.traffic_cost %}
-                                    <td class="num">{{ attendance.traffic_cost|default:''|intcomma }}</td>
-                                {% else %}
-                                    {% if attendance.get_prev_traffic_cost %}
-                                        <td class="num prev_month_data">{{ attendance.get_prev_traffic_cost|default:''|intcomma }}</td>
+                                    {% if project_request_detail %}
+                                        <td class="num project_requested">{{ project_request_detail.get_all_price|intcomma }}</td>
+                                        <td class="num">{{ project_member.member.cost|intcomma }}</td>
+                                        <td class="num">{{ project_member.member.get_bonus|intcomma }}</td>
                                     {% else %}
-                                        <td></td>
+                                        <td class="num"></td>
+                                        <td class="num"></td>
+                                        <td class="num"></td>
                                     {% endif %}
-                                {% endif %}
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                            {% endif %}
+                            {% endwith %}
+                            {% endwith %}
                             <td></td>
                             <td></td>
                             <td></td>
