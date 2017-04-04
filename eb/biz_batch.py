@@ -19,7 +19,8 @@ from django.core.exceptions import ObjectDoesNotExist
 
 def sync_members():
     company = biz.get_company()
-    response = urllib2.urlopen(constants.URL_SYNC_MEMBERS)
+    url = biz_config.get_config(constants.CONFIG_SERVICE_MEMBERS)
+    response = urllib2.urlopen(url)
     html = response.read()
     dict_data = json.loads(html.replace("\r", "").replace("\n", ""))
     message_list = []
@@ -136,7 +137,7 @@ def sync_members():
 
 def get_cost(code):
     if code:
-        url = constants.URL_CONTRACT % (code,)
+        url = biz_config.get_config(constants.CONFIG_SERVICE_CONTRACT) % (code,)
         response = urllib2.urlopen(url)
         html = response.read()
         data = json.loads(html.replace("\r", "").replace("\n", ""))

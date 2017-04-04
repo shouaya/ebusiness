@@ -38,6 +38,8 @@ CONFIG_YEAR_LIST_END = 'year_list_end'
 CONFIG_PAGE_SIZE = 'page_size'
 CONFIG_THEME = 'theme'
 CONFIG_ISSUE_MAIL_BODY = 'issue_mail_body'
+CONFIG_SERVICE_MEMBERS = 'service_members'
+CONFIG_SERVICE_CONTRACT = 'service_contract'
 
 MARK_POST_CODE = u"〒"
 
@@ -203,9 +205,6 @@ xlFormulas = -4123
 xlNext = 1
 xlDown = -4121
 
-URL_SYNC_MEMBERS = u"http://service.e-business.co.jp:8080/EmployeeManagement/api/employeelist?type=json"
-URL_CONTRACT = u"http://service.e-business.co.jp:8080/ContractManagement/api/newContract?uid=%s"
-
 DATABASE_BPM_EBOA = "bpm_eboa"
 DATABASE_EB = "default"
 
@@ -218,3 +217,4 @@ POS_ATTENDANCE_COL_TOTAL_DAYS = 12
 POS_ATTENDANCE_COL_NIGHT_DAYS = 13
 POS_ATTENDANCE_COL_ADVANCES_PAID_CLIENT = 14
 POS_ATTENDANCE_COL_ADVANCES_PAID = 15
+POS_ATTENDANCE_COL_TRAFFIC_COST = 16

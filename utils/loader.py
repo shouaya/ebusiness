@@ -279,6 +279,8 @@ def load_section_attendance(file_content, year, month, use_id):
         advances_paid_client = values[constants.POS_ATTENDANCE_COL_ADVANCES_PAID_CLIENT]
         # 立替金
         advances_paid = values[constants.POS_ATTENDANCE_COL_ADVANCES_PAID]
+        # 勤務交通費
+        traffic_cost = values[constants.POS_ATTENDANCE_COL_TRAFFIC_COST]
 
         if not project_member_id:
             messages.append((project_member_id, member_code, member_name, u"ID情報が取れません。"))
@@ -320,6 +322,9 @@ def load_section_attendance(file_content, year, month, use_id):
 
         changed_list = []
         if attendance:
+            # 勤務交通費を取得する、空白の場合は先月のを使用する。
+            if not traffic_cost:
+                traffic_cost = attendance.get_prev_traffic_cost()
             action_flag = CHANGE
             common.get_object_changed_message(attendance, 'total_hours', total_hours, changed_list)
             common.get_object_changed_message(attendance, 'extra_hours', extra_hours, changed_list)
@@ -334,6 +339,7 @@ def load_section_attendance(file_content, year, month, use_id):
             attendance.price = price
             attendance.advances_paid = advances_paid
             attendance.advances_paid_client = advances_paid_client
+            attendance.traffic_cost = traffic_cost
         else:
             attendance = models.MemberAttendance(project_member=project_member,
                                                  year=year, month=month,
@@ -349,7 +355,8 @@ def load_section_attendance(file_content, year, month, use_id):
                                                  minus_per_hour=project_member.minus_per_hour,
                                                  price=price,
                                                  advances_paid=advances_paid,
-                                                 advances_paid_client=advances_paid_client)
+                                                 advances_paid_client=advances_paid_client,
+                                                 traffic_cost=traffic_cost)
             action_flag = ADDITION
             common.get_object_changed_message(attendance, 'total_hours', total_hours, changed_list)
             common.get_object_changed_message(attendance, 'extra_hours', extra_hours, changed_list)

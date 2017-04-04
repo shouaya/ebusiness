@@ -1421,13 +1421,18 @@ def map_position(request):
 
 @login_required(login_url='/eb/login/')
 def issues(request):
+    param_list = common.get_request_params(request.GET)
+    params = "&".join(["%s=%s" % (key, value) for key, value in param_list.items()]) if param_list else ""
 
     issue_list = models.Issue.objects.all()
+    if param_list:
+        issue_list = issue_list.filter(**param_list)
 
     context = get_base_context()
     context.update({
         'title': u'課題管理票一覧 | %s' % constants.NAME_SYSTEM,
         'issues': issue_list,
+        'params': "&" + params if params else "",
     })
     template = loader.get_template('default/issue_list.html')
     return HttpResponse(template.render(context, request))

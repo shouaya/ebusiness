@@ -1,12 +1,27 @@
 {% extends theme|add:"/base.html" %}
 
 {% block header %}
+    <script type="text/javascript">
+        window.onload = function() {
+            init_select("status");
+        };
+    </script>
 {% endblock %}
 
 {% block content %}
     <div class="dashboard">
         <div class="dashboard-title">課題管理票</div>
         <form>
+            <span>ステータス:</span>
+            <select name="status" id="status">
+                <option value="">すべて</option>
+                <option value="1">提出中</option>
+                <option value="2">対応中</option>
+                <option value="3">対応完了</option>
+                <option value="4">クローズ</option>
+            </select>
+            <input type="submit" value="Filter" />
+            <a href="{{ request.path }}">クリア</a>
             <a href="{% url 'admin:eb_issue_add' %}?from=portal&_popup=1" class="button" target="_blank">課題追加</a>
         </form>
     </div>
@@ -37,7 +52,7 @@
                         <a href="{% url 'issue_detail' issue.pk %}">{{ issue.title }}</a>
                     </td>
                     <td>{{ issue.get_level_display }}</td>
-                    <td>{{ issue.user.first_name }}&nbsp;{{ issue.user.last_name }}</td>
+                    <td>{{ issue.created_user.first_name }}&nbsp;{{ issue.created_user.last_name }}</td>
                     <td>{{ issue.created_date|date:'Y-m-d H:i' }}</td>
                     <td>{{ issue.limit_date|date:'Y-m-d' }}</td>
                     <td>{{ issue.get_status_display }}</td>

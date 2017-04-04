@@ -17,7 +17,7 @@ from xml.etree import ElementTree
 
 from django.db import models
 from django.contrib.auth.models import User
-from django.core.exceptions import ObjectDoesNotExist
+from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
 from django.db.models import Max, Min, Q, Sum, Prefetch
 from django.utils import timezone
 from django.utils.encoding import smart_str
@@ -63,7 +63,7 @@ class AbstractMember(models.Model):
     birthday = models.DateField(blank=True, null=True, verbose_name=u"生年月日")
     graduate_date = models.DateField(blank=True, null=True, verbose_name=u"卒業年月日")
     join_date = models.DateField(blank=True, null=True, default=timezone.now, verbose_name=u"入社年月日")
-    email = models.EmailField(blank=True, null=True, verbose_name=u"メールアドレス")
+    email = models.EmailField(blank=True, null=True, verbose_name=u"会社メールアドレス")
     private_email = models.EmailField(blank=True, null=True, verbose_name=u"個人メールアドレス")
     post_code = models.CharField(blank=True, null=True, max_length=7, verbose_name=u"郵便番号")
     address1 = models.CharField(blank=True, null=True, max_length=200, verbose_name=u"住所１")
@@ -1913,7 +1913,8 @@ class MemberAttendance(models.Model):
     night_days = models.IntegerField(blank=True, null=True, editable=False, verbose_name=u"深夜日数")
     advances_paid = models.IntegerField(blank=True, null=True, editable=False, verbose_name=u"立替金")
     advances_paid_client = models.IntegerField(blank=True, null=True, editable=False, verbose_name=u"客先立替金")
-    traffic_cost = models.IntegerField(blank=True, null=True, editable=False, verbose_name=u"勤務交通費")
+    traffic_cost = models.IntegerField(blank=True, null=True, editable=False, verbose_name=u"勤務交通費",
+                                       help_text=u"今月に勤務交通費がない場合、先月のを使用する。")
     min_hours = models.DecimalField(max_digits=5, decimal_places=2, default=0, editable=False, verbose_name=u"基準時間")
     max_hours = models.DecimalField(max_digits=5, decimal_places=2, default=0, editable=False, verbose_name=u"最大時間")
     plus_per_hour = models.IntegerField(default=0, editable=False, verbose_name=u"増（円）")
@@ -1935,6 +1936,22 @@ class MemberAttendance(models.Model):
 
     def __unicode__(self):
         return u"%s %s %s" % (self.project_member, self.get_year_display(), self.get_month_display())
+
+    def get_prev_traffic_cost(self):
+        """先月の勤務交通費を取得する。
+
+        :return:
+        """
+        prev_month = common.add_months(datetime.date(int(self.year), int(self.month), 1), -1)
+        try:
+            member_attendance = MemberAttendance.objects.get(project_member=self.project_member,
+                                                             year="%04d" % prev_month.year,
+                                                             month="%02d" % prev_month.month)
+            return member_attendance.traffic_cost
+        except ObjectDoesNotExist:
+            return None
+        except MultipleObjectsReturned:
+            return None
 
     def get_project_request_detail(self):
         """メンバーの出勤情報によて、案件の請求情報を取得する。
@@ -2161,7 +2178,10 @@ class Issue(models.Model):
         mail_body = Config.get(constants.CONFIG_ISSUE_MAIL_BODY)
         if mail_body:
             t = Template(mail_body)
-            context = {'issue': self, 'updated_user': updated_user}
+            context = {'issue': self,
+                       'updated_user': updated_user,
+                       'domain': Config.get(constants.CONFIG_DOMAIN_NAME),
+                       }
             ctx = Context(context)
             return t.render(ctx)
         else:
