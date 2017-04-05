@@ -128,6 +128,11 @@
             アップロードするデータにエラーが発生している。エラーのないデータは正常にDBに取込みました。
         </div>
     {% endif %}
+    {% if format_error %}
+        <div class="error">
+            フォーマット不正でエラーになりました、最新のテンプレートでアップロードしてください。
+        </div>
+    {% endif %}
     <div class="scroll_container">
         <table id="attendance" cellspacing="0" cellpadding="0">
             <thead>

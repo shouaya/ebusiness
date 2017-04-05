@@ -261,7 +261,20 @@ def load_section_attendance(file_content, year, month, use_id):
     book = xlrd.open_workbook(file_contents=file_content)
     sheet = book.sheet_by_index(0)
 
+    # フォーマットをチェックする。
+    format_error = False
+    title1_list = tuple(sheet.row_values(2)[:len(constants.FORMAT_ATTENDANCE_TITLE1)])
+    title2_list = tuple(sheet.row_values(3)[:len(constants.FORMAT_ATTENDANCE_TITLE2)])
+    if len(title1_list) < len(constants.FORMAT_ATTENDANCE_TITLE1) \
+            or len(title2_list) < len(constants.FORMAT_ATTENDANCE_TITLE2):
+        format_error = True
+    elif title1_list != constants.FORMAT_ATTENDANCE_TITLE1 or title2_list != constants.FORMAT_ATTENDANCE_TITLE2:
+        format_error = True
+
     messages = []
+    if format_error:
+        return format_error, messages
+
     for i in range(constants.POS_ATTENDANCE_START_ROW - 1, sheet.nrows):
         values = sheet.row_values(i)
         project_member_id = values[constants.POS_ATTENDANCE_COL_PROJECT_MEMBER_ID]
@@ -399,4 +412,4 @@ def load_section_attendance(file_content, year, month, use_id):
                                         object_repr=unicode(attendance),
                                         action_flag=action_flag,
                                         change_message=(u" 【データ導入】" + change_message) or _('No fields changed.'))
-    return messages
+    return format_error, messages

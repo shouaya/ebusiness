@@ -20,12 +20,12 @@
         <tr>
             <th>不具合内容</th>
             <td colspan="3">
-                <div><pre>{{ issue.content }}</pre></div>
+                <div style="min-height: 150px;"><pre>{{ issue.content }}</pre></div>
             </td>
         </tr>
         <tr>
             <th>提出者</th>
-            <td>{{ issue.user.first_name }}&nbsp;{{ issue.user.last_name }}</td>
+            <td>{{ issue.created_user.first_name }}&nbsp;{{ issue.created_user.last_name }}</td>
             <th>期限日</th>
             <td>{{ issue.limit_date }}</td>
         </tr>
@@ -42,7 +42,7 @@
         <tr>
             <th>対応方法</th>
             <td colspan="3">
-                <div><pre>{{ issue.solution }}</pre></div>
+                <div style="min-height: 150px;"><pre>{{ issue.solution }}</pre></div>
             </td>
         </tr>
     </table>

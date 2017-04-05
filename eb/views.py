@@ -745,9 +745,10 @@ def section_attendance(request, section_id):
 
     # 出勤リストをアップロード時
     messages = []
+    format_error = False
     if request.method == 'POST':
         input_excel = request.FILES['attendance_file']
-        messages = file_loader.load_section_attendance(input_excel.read(), year, month, request.user.id)
+        format_error, messages = file_loader.load_section_attendance(input_excel.read(), year, month, request.user.id)
 
     all_project_members = []
     for project_member in project_members:
@@ -771,6 +772,7 @@ def section_attendance(request, section_id):
         'prev_month': prev_month,
         'next_month': next_month,
         'has_error': True if messages else False,
+        'format_error': format_error,
     })
     context.update(csrf(request))
 
