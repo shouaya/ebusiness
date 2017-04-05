@@ -27,7 +27,6 @@ from django.core.mail.message import MIMEBase
 from django.conf import settings
 
 
-from eboa import models as oa_models
 from utils import common, constants
 
 
@@ -110,9 +109,6 @@ class AbstractMember(models.Model):
             elif self.private_email:
                 return [self.private_email]
         return []
-
-    def get_contract(self):
-        oa_user = oa_models.Salaryidmst.objects.filter(salaryid=self.employee_id)
 
 
 class PublicManager(models.Manager):
@@ -617,18 +613,6 @@ class Member(AbstractMember):
         else:
             return None
 
-    def get_bonus(self):
-        """ボーナスを取得する。
-
-        正社員の場合はボーナスある。
-
-        :return:
-        """
-        if self.cost:
-            if self.member_type == 1:
-                return int(self.cost) / 6
-        return 0
-
     def get_section(self, date=None):
         """部署を取得する。
 
@@ -835,10 +819,92 @@ class Member(AbstractMember):
         else:
             return None
 
+    def get_cost(self, date):
+        """コストを取得する
+
+        :return:
+        """
+        if self.member_type == 4:
+            # 他者技術者の場合
+            return int(self.cost) if self.cost else 0
+        contract = self.get_latest_contract(date)
+        if contract:
+            return int(contract.cost) if contract.cost else 0
+        else:
+            return 0
+
+    def get_latest_contract(self, date):
+        """最新の契約情報を取得する。
+
+        :param date 対象年月
+        :return:
+        """
+        if re.match(r"^[0-9]+$", str(self.employee_id)):
+            contract_list = self.contract_set.filter(employment_date__lte=date).order_by('-employment_date')
+            if contract_list.count() > 0:
+                return contract_list[0]
+            else:
+                return None
+        else:
+            return None
+
     def delete(self, using=None, keep_parents=False):
         self.is_deleted = True
         self.deleted_date = datetime.datetime.now()
         self.save()
+
+
+class Contract(models.Model):
+    member = models.ForeignKey(Member, db_column='member_id', verbose_name=u"社員テーブル主キー")
+    employee_id = models.CharField(max_length=30, verbose_name=u"給料王ＩＤ")
+    id = models.BigIntegerField(db_column='ID', primary_key=True)
+    code = models.CharField(max_length=2000, blank=True, null=True)
+    codeid = models.CharField(db_column='codeID', max_length=2000, blank=True, null=True)
+    contract_date = models.DateTimeField(db_column='CONTRACT_DATE')
+    contract_no = models.CharField(db_column='CONTRACT_NO', max_length=100, blank=True, null=True)
+    employer_type = models.CharField(db_column='EMPLOYER_TYPE', max_length=100, blank=True, null=True)
+    employment_date = models.DateTimeField(db_column='EMPLOYMENT_DATE')
+    employment_period_en = models.DateTimeField(db_column='EMPLOYMENT_PERIOD_EN')
+    employment_period = models.CharField(db_column='EMPLOYMENT_PERIOD', max_length=1000, blank=True, null=True)
+    business_addr = models.CharField(db_column='BUSINESS_ADDR', max_length=100, blank=True, null=True)
+    business_type = models.CharField(db_column='BUSINESS_TYPE', max_length=100, blank=True, null=True)
+    business_other = models.CharField(db_column='BUSINESS_OTHER', max_length=1000, blank=True, null=True)
+    business_time = models.CharField(db_column='BUSINESS_TIME', max_length=1000, blank=True, null=True)
+    allowance_base = models.DecimalField(db_column='ALLOWANCE_BASE', max_digits=13, decimal_places=0,
+                                         blank=True, null=True)
+    allowance_base_memo = models.CharField(db_column='ALLOWANCE_BASE_MEMO', max_length=1000, blank=True, null=True)
+    pay_site = models.DecimalField(db_column='PAY_SITE', max_digits=13, decimal_places=0, blank=True, null=True)
+    pay_site_memo = models.CharField(db_column='PAY_SITE_MEMO', max_length=1000, blank=True, null=True)
+    pay_position = models.DecimalField(db_column='PAY_POSITION', max_digits=13, decimal_places=0, blank=True, null=True)
+    pay_position_memo = models.CharField(db_column='PAY_POSITION_MEMO', max_length=1000, blank=True, null=True)
+    pay_duties = models.DecimalField(db_column='PAY_DUTIES', max_digits=13, decimal_places=0, blank=True, null=True)
+    pay_duties_memo = models.CharField(db_column='PAY_DUTIES_MEMO', max_length=1000, blank=True, null=True)
+    pay_diligence = models.DecimalField(db_column='PAY_DILIGENCE', max_digits=13, decimal_places=0,
+                                        blank=True, null=True)
+    pay_safety = models.DecimalField(db_column='PAY_SAFETY', max_digits=13, decimal_places=0, blank=True, null=True)
+    pay_qual = models.DecimalField(db_column='PAY_QUAL', max_digits=13, decimal_places=0, blank=True, null=True)
+    pay_qual_memo = models.CharField(db_column='PAY_QUAL_MEMO', max_length=1000, blank=True, null=True)
+    pay_commute = models.DecimalField(db_column='PAY_COMMUTE', max_digits=13, decimal_places=0, blank=True, null=True)
+    pay_commute_memo = models.CharField(db_column='PAY_COMMUTE_MEMO', max_length=1000, blank=True, null=True)
+    pay_overtime = models.CharField(db_column='PAY_OVERTIME', max_length=100, blank=True, null=True)
+    pay_absence = models.CharField(db_column='PAY_ABSENCE', max_length=100, blank=True, null=True)
+    endowment_insurance = models.CharField(db_column='ENDOWMENT_INSURANCE', max_length=100, blank=True, null=True,
+                                           verbose_name=u"社会保険加入有無",
+                                           help_text=u"1:加入しない、2:加入する")
+    allowance_date = models.CharField(db_column='ALLOWANCE_DATE', max_length=1000, blank=True, null=True)
+    allowance_change = models.CharField(db_column='ALLOWANCE_CHANGE', max_length=1000, blank=True, null=True)
+    bonus = models.CharField(db_column='BONUS', max_length=1000, blank=True, null=True)
+    holiday = models.CharField(db_column='HOLIDAY', max_length=1000, blank=True, null=True)
+    paid_vacation = models.CharField(db_column='PAID_VACATION', max_length=1000, blank=True, null=True)
+    not_paid_vacation = models.CharField(db_column='NOT_PAID_VACATION', max_length=1000, blank=True, null=True)
+    about_discharge = models.CharField(db_column='ABOUT_DISCHARGE', max_length=1000, blank=True, null=True)
+    memo = models.CharField(db_column='MEMO', max_length=1000, blank=True, null=True)
+    cost = models.DecimalField(max_digits=13, decimal_places=0, blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'eb_contract'
+        verbose_name = verbose_name_plural = u"社員契約情報"
 
 
 class MemberSectionPeriod(models.Model):
@@ -1441,13 +1507,14 @@ class ProjectRequest(models.Model):
             for i, item in enumerate(data['MEMBERS']):
                 project_member = item["EXTRA_PROJECT_MEMBER"]
                 ym = data['EXTRA']['YM']
+                cost = project_member.member.get_cost(date)
                 detail = ProjectRequestDetail(project_request=self,
                                               project_member=project_member,
                                               member_section=project_member.member.get_section(date),
                                               member_type=project_member.member.member_type,
                                               salesperson=project_member.member.get_salesperson(date),
                                               subcontractor=project_member.member.subcontractor,
-                                              cost=project_member.member.cost,
+                                              cost=cost,
                                               no=str(i + 1),
                                               hourly_pay=project_member.hourly_pay if project_member.hourly_pay else 0,
                                               basic_price=project_member.price,
@@ -1919,6 +1986,8 @@ class MemberAttendance(models.Model):
     advances_paid_client = models.IntegerField(blank=True, null=True, editable=False, verbose_name=u"客先立替金")
     traffic_cost = models.IntegerField(blank=True, null=True, editable=False, verbose_name=u"勤務交通費",
                                        help_text=u"今月に勤務交通費がない場合、先月のを使用する。")
+    allowance = models.IntegerField(blank=True, null=True, editable=False, verbose_name=u"手当",
+                                    help_text=u"今月に手当がない場合、先月のを使用する。")
     min_hours = models.DecimalField(max_digits=5, decimal_places=2, default=0, editable=False, verbose_name=u"基準時間")
     max_hours = models.DecimalField(max_digits=5, decimal_places=2, default=0, editable=False, verbose_name=u"最大時間")
     plus_per_hour = models.IntegerField(default=0, editable=False, verbose_name=u"増（円）")
@@ -1941,8 +2010,82 @@ class MemberAttendance(models.Model):
     def __unicode__(self):
         return u"%s %s %s" % (self.project_member, self.get_year_display(), self.get_month_display())
 
-    def get_prev_traffic_cost(self):
-        """先月の勤務交通費を取得する。
+    def get_contract(self):
+        date = timezone.datetime(int(self.year), int(self.month), 1)
+        return self.project_member.member.get_latest_contract(date)
+
+    def get_cost(self):
+        """コストを取得する
+
+        :return:
+        """
+        date = timezone.datetime(int(self.year), int(self.month), 1)
+        return self.project_member.member.get_cost(date)
+
+    def get_bonus(self):
+        """ボーナスを取得する。
+
+        正社員の場合はボーナスある。
+
+        :return:
+        """
+        cost = self.get_cost()
+        if cost:
+            if self.project_member.member.member_type == 1:
+                return int(cost) / 6
+        return 0
+
+    def get_employment_insurance(self):
+        """雇用保険を取得する
+
+        :return:
+        """
+        if self.project_member.member.member_type in (1, 2):
+            # 正社員、契約社員の場合
+            cost = float(self.get_cost())
+            bonus = float(self.get_bonus())
+            allowance = float(self.allowance) if self.allowance else 0
+            return (cost + bonus + allowance) * 0.02
+        else:
+            return 0
+
+    def get_health_insurance(self):
+        """健康保険を取得する
+
+        :return:
+        """
+        contract = self.get_contract()
+        if contract and contract.endowment_insurance == "2":
+            # 契約情報保険加入した場合
+            cost = float(self.get_cost())
+            bonus = float(self.get_bonus())
+            allowance = float(self.allowance) if self.allowance else 0
+            return (cost + bonus + allowance) * 0.14
+        else:
+            return 0
+
+    def get_profits(self):
+        """利益を取得する
+
+        税込の売上 - 月給 - ボーナス - 手当 - 残業／控除 - 交通費 - 雇用／労災 - 健康／厚生 - 業績ボーナス
+
+        :return:
+        """
+        request_detail = self.get_project_request_detail()
+        allowance = int(self.allowance) if self.allowance else 0
+        if request_detail:
+            all_price = request_detail.get_all_price()
+            minus = sum((self.get_cost(),
+                         self.get_bonus(),
+                         allowance,
+                         self.get_employment_insurance(),
+                         self.get_health_insurance()))
+            return all_price - minus
+        else:
+            return None
+
+    def get_prev_attendance(self):
+        """先月の出勤情報を取得する。
 
         :return:
         """
@@ -1951,11 +2094,27 @@ class MemberAttendance(models.Model):
             member_attendance = MemberAttendance.objects.get(project_member=self.project_member,
                                                              year="%04d" % prev_month.year,
                                                              month="%02d" % prev_month.month)
-            return member_attendance.traffic_cost
+            return member_attendance
         except ObjectDoesNotExist:
             return None
         except MultipleObjectsReturned:
             return None
+
+    def get_prev_traffic_cost(self):
+        """先月の勤務交通費を取得する。
+
+        :return:
+        """
+        attendance = self.get_prev_attendance()
+        return attendance.traffic_cost if attendance else None
+
+    def get_prev_allowance(self):
+        """先月の手当を取得する。
+
+        :return:
+        """
+        attendance = self.get_prev_attendance()
+        return attendance.allowance if attendance else None
 
     def get_project_request_detail(self):
         """メンバーの出勤情報によて、案件の請求情報を取得する。
@@ -1967,6 +2126,8 @@ class MemberAttendance(models.Model):
                                                     project_request__year=self.year,
                                                     project_request__month=self.month)
         except ObjectDoesNotExist:
+            return None
+        except MultipleObjectsReturned:
             return None
 
     def save(self, force_insert=False, force_update=False, using=None,

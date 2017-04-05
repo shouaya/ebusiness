@@ -267,19 +267,18 @@ def load_section_attendance(file_content, year, month, use_id):
         project_member_id = values[constants.POS_ATTENDANCE_COL_PROJECT_MEMBER_ID]
         # 社員番号
         member_code = values[constants.POS_ATTENDANCE_COL_MEMBER_CODE]
-        member_code = member_code if member_code else  None
+        member_code = member_code if member_code else None
         # 氏名
         member_name = values[constants.POS_ATTENDANCE_COL_MEMBER_NAME]
-        member_name = member_name if member_name else  None
+        member_name = member_name if member_name else None
         # 勤務時間
         total_hours = values[constants.POS_ATTENDANCE_COL_TOTAL_HOURS]
-        total_hours = total_hours if total_hours else  None
         # 勤務日数
         total_days = values[constants.POS_ATTENDANCE_COL_TOTAL_DAYS]
-        total_days = total_days if total_days else  None
+        total_days = total_days if total_days else None
         # 深夜日数
         night_days = values[constants.POS_ATTENDANCE_COL_NIGHT_DAYS]
-        night_days = night_days if night_days else  None
+        night_days = night_days if night_days else None
         # 客先立替金
         advances_paid_client = values[constants.POS_ATTENDANCE_COL_ADVANCES_PAID_CLIENT]
         advances_paid_client = advances_paid_client if advances_paid_client else None
@@ -289,6 +288,9 @@ def load_section_attendance(file_content, year, month, use_id):
         # 勤務交通費
         traffic_cost = values[constants.POS_ATTENDANCE_COL_TRAFFIC_COST]
         traffic_cost = traffic_cost if traffic_cost else None
+        # 手当
+        allowance = values[constants.POS_ATTENDANCE_COL_ALLOWANCE]
+        allowance = allowance if allowance else None
 
         if not project_member_id:
             messages.append((project_member_id, member_code, member_name, u"ID情報が取れません。"))
@@ -297,11 +299,6 @@ def load_section_attendance(file_content, year, month, use_id):
             project_member = models.ProjectMember.objects.get(pk=project_member_id)
         except ObjectDoesNotExist:
             messages.append((project_member_id, member_code, member_name, u"IDによりDBからデータ取得できません。"))
-            continue
-
-        attendance = project_member.get_attendance(year, month)
-        if attendance and attendance.get_project_request_detail() is not None:
-            # 既に出勤情報あり且つ請求書作成済み、スキップする。
             continue
 
         if total_hours is None or total_hours == "":
@@ -328,11 +325,20 @@ def load_section_attendance(file_content, year, month, use_id):
             extra_hours = 0
             price = project_member.price
 
+        attendance = project_member.get_attendance(year, month)
+        has_requested = False
+        if attendance and attendance.get_project_request_detail() is not None:
+            # 既に出勤情報あり且つ請求書作成済み。
+            has_requested = True
+
         changed_list = []
         if attendance:
-            # 勤務交通費を取得する、空白の場合は先月のを使用する。
+            # 勤務交通費が空白の場合は先月のを使用する。
             if not traffic_cost:
                 traffic_cost = attendance.get_prev_traffic_cost()
+            # 手当が空白の場合は先月のを使用する。
+            if not allowance:
+                allowance = attendance.get_prev_allowance()
             action_flag = CHANGE
             common.get_object_changed_message(attendance, 'total_hours', total_hours, changed_list)
             common.get_object_changed_message(attendance, 'extra_hours', extra_hours, changed_list)
@@ -342,15 +348,19 @@ def load_section_attendance(file_content, year, month, use_id):
             common.get_object_changed_message(attendance, 'advances_paid', advances_paid, changed_list)
             common.get_object_changed_message(attendance, 'advances_paid_client', advances_paid_client, changed_list)
             common.get_object_changed_message(attendance, 'traffic_cost', traffic_cost, changed_list)
+            common.get_object_changed_message(attendance, 'allowance', allowance, changed_list)
             change_message = _('Changed %s.') % get_text_list(changed_list, _('and')) if changed_list else ''
-            attendance.total_hours = total_hours
-            attendance.extra_hours = extra_hours
+            if not has_requested:
+                # 請求書作成済みの場合は上書きしない。
+                attendance.total_hours = total_hours
+                attendance.extra_hours = extra_hours
             attendance.total_days = total_days if total_days else None
             attendance.night_days = night_days if night_days else None
             attendance.price = price
             attendance.advances_paid = advances_paid
             attendance.advances_paid_client = advances_paid_client
             attendance.traffic_cost = traffic_cost
+            attendance.allowance = allowance
         else:
             attendance = models.MemberAttendance(project_member=project_member,
                                                  year=year, month=month,
@@ -367,7 +377,8 @@ def load_section_attendance(file_content, year, month, use_id):
                                                  price=price,
                                                  advances_paid=advances_paid,
                                                  advances_paid_client=advances_paid_client,
-                                                 traffic_cost=traffic_cost)
+                                                 traffic_cost=traffic_cost,
+                                                 allowance=allowance)
             action_flag = ADDITION
             common.get_object_changed_message(attendance, 'total_hours', total_hours, changed_list)
             common.get_object_changed_message(attendance, 'extra_hours', extra_hours, changed_list)
@@ -377,6 +388,7 @@ def load_section_attendance(file_content, year, month, use_id):
             common.get_object_changed_message(attendance, 'advances_paid', advances_paid, changed_list)
             common.get_object_changed_message(attendance, 'advances_paid_client', advances_paid_client, changed_list)
             common.get_object_changed_message(attendance, 'traffic_cost', traffic_cost, changed_list)
+            common.get_object_changed_message(attendance, 'allowance', allowance, changed_list)
             change_message = (get_text_list(changed_list, _('and')) if changed_list else '') + _('Added.')
 
         attendance.save()

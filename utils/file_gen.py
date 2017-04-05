@@ -959,7 +959,7 @@ def generate_attendance_format(template_path, project_members, date):
     sheet = book.get_sheet_by_name('Sheet1')
 
     start_row = constants.POS_ATTENDANCE_START_ROW
-    set_openpyxl_styles(sheet, 'B5:AA%s' % (start_row - 1 + project_members.count(),), 5)
+    set_openpyxl_styles(sheet, 'B5:AD%s' % (start_row - 1 + project_members.count(),), 5)
     for i, project_member in enumerate(project_members):
         # NO
         sheet.cell(row=start_row, column=2).value = i + 1
@@ -980,13 +980,13 @@ def generate_attendance_format(template_path, project_members, date):
             # 他者技術者
             sheet.cell(row=start_row, column=7).value = project_member.member.subcontractor.name
         # 契約形態
-        sheet.cell(row=start_row, column=8).value = project_member.member.get_member_type_display()
+        sheet.cell(row=start_row, column=9).value = project_member.member.get_member_type_display()
         # 案件名
-        sheet.cell(row=start_row, column=9).value = project_member.project.name
+        sheet.cell(row=start_row, column=10).value = project_member.project.name
         # 顧客名
-        sheet.cell(row=start_row, column=10).value = project_member.project.client.name
+        sheet.cell(row=start_row, column=11).value = project_member.project.client.name
         # 契約種類
-        sheet.cell(row=start_row, column=11).value = u"一括" if project_member.project.is_lump else 'SES'
+        sheet.cell(row=start_row, column=12).value = u"一括" if project_member.project.is_lump else 'SES'
 
         # 出勤情報取得
         if len(project_member.current_attendance_set) == 1:
@@ -994,31 +994,44 @@ def generate_attendance_format(template_path, project_members, date):
         else:
             attendance = None
         if attendance:
+            # 社会保険加入有無
+            contract = attendance.get_contract()
+            if contract and contract.endowment_insurance == "2":
+                sheet.cell(row=start_row, column=8).value = u"○"
             # 勤務時間
-            sheet.cell(row=start_row, column=12).value = attendance.total_hours
+            sheet.cell(row=start_row, column=13).value = attendance.total_hours
             # 勤務に数
-            sheet.cell(row=start_row, column=13).value = attendance.total_days
+            sheet.cell(row=start_row, column=14).value = attendance.total_days
             # 深夜日数
-            sheet.cell(row=start_row, column=14).value = attendance.night_days
+            sheet.cell(row=start_row, column=15).value = attendance.night_days
             # 客先立替金
-            sheet.cell(row=start_row, column=15).value = attendance.advances_paid_client
+            sheet.cell(row=start_row, column=16).value = attendance.advances_paid_client
             # 立替金
-            sheet.cell(row=start_row, column=16).value = attendance.advances_paid
+            sheet.cell(row=start_row, column=17).value = attendance.advances_paid
             # 勤務交通費
-            sheet.cell(row=start_row, column=17).value = attendance.traffic_cost
+            sheet.cell(row=start_row, column=18).value = attendance.traffic_cost
 
             request_detail = attendance.get_project_request_detail()
             if request_detail:
-                # 売上
-                sheet.cell(row=start_row, column=18).value = request_detail.get_all_price()
+                # 売上（税込）
+                sheet.cell(row=start_row, column=19).value = request_detail.get_all_price()
+                # 売上（税抜）
+                sheet.cell(row=start_row, column=20).value = request_detail.total_price
+                # 売上（経費）
+                sheet.cell(row=start_row, column=21).value = request_detail.expenses_price
                 # 月給
-                sheet.cell(row=start_row, column=19).value = project_member.member.cost
+                sheet.cell(row=start_row, column=22).value = attendance.get_cost()
+                # 手当
+                sheet.cell(row=start_row, column=24).value = attendance.allowance
         else:
             if len(project_member.prev_attendance_set) == 1:
                 prev_attendance = project_member.prev_attendance_set[0]
                 if prev_attendance.traffic_cost:
                     # 勤務交通費
-                    sheet.cell(row=start_row, column=17).value = prev_attendance.traffic_cost
+                    sheet.cell(row=start_row, column=18).value = prev_attendance.traffic_cost
+                if prev_attendance.allowance:
+                    # 手当
+                    sheet.cell(row=start_row, column=24).value = prev_attendance.allowance
 
         start_row += 1
 
@@ -1036,8 +1049,6 @@ def set_openpyxl_styles(ws, cell_range, start_row):
     for row_index, cells in enumerate(rows):
         for col_index, cell in enumerate(cells):
             if row_index == 0:
-                if col_index == 22:
-                    pass
                 style_list.append((cell.border.copy(),
                                    cell.font.copy(),
                                    cell.fill.copy(),

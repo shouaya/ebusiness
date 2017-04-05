@@ -195,34 +195,38 @@
                                 {% endif %}
                                 </div>
                             </td>
-                            <td></td>
-                            <td>{{ project_member.member.get_member_type_display }}</td>
-                            <!--案件情報-->
-                            <td title="{{ project_member.project }}"
-                                {% if project_member.project.is_lump %}class="lump_project"{% endif %}>
-                                <div style="width: 160px; overflow: hidden; white-space: nowrap;">
-                                    <a href="{% url 'project_detail' project_member.project.pk %}">
-                                    {% if project_member.project.is_lump %}【一括】{% endif %}{{ project_member.project }}
-                                    </a>
-                                </div>
-                            </td>
                             {% if msg %}
-                            <td colspan="18" class="error">{{ msg }}</td>
+                                <td colspan="23" class="error">{{ msg }}</td>
                             {% else %}
-                            <td title="{{ project_member.project.client }}">
-                                <div style="width: 120px; overflow: hidden; white-space: nowrap;">
-                                {{ project_member.project.client }}
-                                </div>
-                            </td>
-                            <td>
-                                {% if project_member.project.is_lump %}
-                                    一括
-                                {% else %}
-                                    SES
-                                {% endif %}
-                            </td>
-                            {% with attendance=project_member.current_attendance_set|first prev_attendance=project_member.prev_attendance_set|first %}
-                            {% with project_request_detail=attendance.get_project_request_detail %}
+                                {% with attendance=project_member.current_attendance_set|first prev_attendance=project_member.prev_attendance_set|first %}
+                                {% with project_request_detail=attendance.get_project_request_detail %}
+                                    <td class="center">
+                                        {% if attendance.get_contract.endowment_insurance == "2" %}
+                                            ○
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ project_member.member.get_member_type_display }}</td>
+                                    <!--案件情報-->
+                                    <td title="{{ project_member.project }}"
+                                        {% if project_member.project.is_lump %}class="lump_project"{% endif %}>
+                                        <div style="width: 160px; overflow: hidden; white-space: nowrap;">
+                                            <a href="{% url 'project_detail' project_member.project.pk %}">
+                                            {% if project_member.project.is_lump %}【一括】{% endif %}{{ project_member.project }}
+                                            </a>
+                                        </div>
+                                    </td>
+                                    <td title="{{ project_member.project.client }}">
+                                        <div style="width: 120px; overflow: hidden; white-space: nowrap;">
+                                        {{ project_member.project.client }}
+                                        </div>
+                                    </td>
+                                    <td>
+                                        {% if project_member.project.is_lump %}
+                                            一括
+                                        {% else %}
+                                            SES
+                                        {% endif %}
+                                    </td>
                                     <td class="num {% if project_request_detail %}project_requested{% endif %}">{{ attendance.total_hours }}</td>
                                     <td class="num {% if project_request_detail %}project_requested{% endif %}">{{ attendance.total_days|default:'' }}</td>
                                     <td class="num {% if project_request_detail %}project_requested{% endif %}">{{ attendance.night_days|default:'' }}</td>
@@ -243,9 +247,24 @@
                                         <!--売上-->
                                         <td class="num project_requested">{{ project_request_detail.get_all_price|intcomma }}</td>
                                         <td class="num project_requested">{{ project_request_detail.total_price|intcomma }}</td>
-                                        <td class="num project_requested"></td>
-                                        <td class="num">{{ project_member.member.cost|intcomma }}</td>
-                                        <td class="num">{{ project_member.member.get_bonus|intcomma }}</td>
+                                        <td class="num project_requested">{{ project_request_detail.expenses_price|intcomma }}</td>
+                                        <td class="num">{{ attendance.get_cost|intcomma }}</td>
+                                        <td class="num">{{ attendance.get_bonus|intcomma }}</td>
+                                        {% if attendance.allowance %}
+                                            <td class="num">{{ attendance.allowance|default:''|intcomma }}</td>
+                                        {% else %}
+                                            {% if prev_attendance and prev_attendance.allowance %}
+                                                <td class="num prev_month_data">{{ prev_attendance.allowance|default:''|intcomma }}</td>
+                                            {% else %}
+                                                <td class="num"></td>
+                                            {% endif %}
+                                        {% endif %}
+                                        <td></td>
+                                        <td></td>
+                                        <td class="num">{{ attendance.get_employment_insurance|floatformat:2|intcomma }}</td>
+                                        <td class="num">{{ attendance.get_health_insurance|floatformat:2|intcomma }}</td>
+                                        <td></td>
+                                        <td class="num">{{ attendance.get_profits|intcomma }}</td>
                                     {% else %}
                                         <!--売上-->
                                         <td class="num"></td>
@@ -253,16 +272,16 @@
                                         <td class="num"></td>
                                         <td class="num"></td>
                                         <td class="num"></td>
+                                        <td class="num"></td>
+                                        <td class="num"></td>
+                                        <td class="num"></td>
+                                        <td class="num"></td>
+                                        <td class="num"></td>
+                                        <td class="num"></td>
+                                        <td class="num"></td>
                                     {% endif %}
-                            {% endwith %}
-                            {% endwith %}
-                            <td></td>
-                            <td></td>
-                            <td></td>
-                            <td></td>
-                            <td></td>
-                            <td></td>
-                            <td></td>
+                                {% endwith %}
+                                {% endwith %}
                             {% endif %}
                         </tr>
                     {% endfor %}
