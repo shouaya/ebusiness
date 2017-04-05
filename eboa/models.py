@@ -1,11 +1,17 @@
 # coding: UTF-8
-
+# This is an auto-generated Django model module.
+# You'll have to do the following manually to clean this up:
+#   * Rearrange models' order
+#   * Make sure each model has one field with primary_key=True
+#   * Make sure each ForeignKey has `on_delete` set to the desidered behavior.
+#   * Remove `managed = False` lines if you wish to allow Django to create, modify, and delete the table
+# Feel free to rename the models, but don't rename db_table values or field names.
+from __future__ import unicode_literals
 import datetime
 
 from django.db import models
 from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
 
-from eb import models as eb_models
 from utils import common
 
 
@@ -15,18 +21,18 @@ class EboaManager(models.Manager):
 
 
 class ActEvtLog(models.Model):
-    log_nr_field = models.BigIntegerField(db_column='LOG_NR_', primary_key=True)  
-    type_field = models.CharField(db_column='TYPE_', max_length=64, blank=True, null=True)  
-    proc_def_id_field = models.CharField(db_column='PROC_DEF_ID_', max_length=64, blank=True, null=True)  
-    proc_inst_id_field = models.CharField(db_column='PROC_INST_ID_', max_length=64, blank=True, null=True)  
-    execution_id_field = models.CharField(db_column='EXECUTION_ID_', max_length=64, blank=True, null=True)  
-    task_id_field = models.CharField(db_column='TASK_ID_', max_length=64, blank=True, null=True)  
-    time_stamp_field = models.DateTimeField(db_column='TIME_STAMP_')  
-    user_id_field = models.CharField(db_column='USER_ID_', max_length=255, blank=True, null=True)  
-    data_field = models.TextField(db_column='DATA_', blank=True, null=True)  
-    lock_owner_field = models.CharField(db_column='LOCK_OWNER_', max_length=255, blank=True, null=True)  
-    lock_time_field = models.DateTimeField(db_column='LOCK_TIME_', blank=True, null=True)  
-    is_processed_field = models.IntegerField(db_column='IS_PROCESSED_', blank=True, null=True)  
+    log_nr_field = models.BigIntegerField(db_column='LOG_NR_', primary_key=True)  # Field name made lowercase. Field renamed because it ended with '_'.
+    type_field = models.CharField(db_column='TYPE_', max_length=64, blank=True, null=True)  # Field name made lowercase. Field renamed because it ended with '_'.
+    proc_def_id_field = models.CharField(db_column='PROC_DEF_ID_', max_length=64, blank=True, null=True)  # Field name made lowercase. Field renamed because it ended with '_'.
+    proc_inst_id_field = models.CharField(db_column='PROC_INST_ID_', max_length=64, blank=True, null=True)  # Field name made lowercase. Field renamed because it ended with '_'.
+    execution_id_field = models.CharField(db_column='EXECUTION_ID_', max_length=64, blank=True, null=True)  # Field name made lowercase. Field renamed because it ended with '_'.
+    task_id_field = models.CharField(db_column='TASK_ID_', max_length=64, blank=True, null=True)  # Field name made lowercase. Field renamed because it ended with '_'.
+    time_stamp_field = models.DateTimeField(db_column='TIME_STAMP_')  # Field name made lowercase. Field renamed because it ended with '_'.
+    user_id_field = models.CharField(db_column='USER_ID_', max_length=255, blank=True, null=True)  # Field name made lowercase. Field renamed because it ended with '_'.
+    data_field = models.TextField(db_column='DATA_', blank=True, null=True)  # Field name made lowercase. Field renamed because it ended with '_'.
+    lock_owner_field = models.CharField(db_column='LOCK_OWNER_', max_length=255, blank=True, null=True)  # Field name made lowercase. Field renamed because it ended with '_'.
+    lock_time_field = models.DateTimeField(db_column='LOCK_TIME_', blank=True, null=True)  # Field name made lowercase. Field renamed because it ended with '_'.
+    is_processed_field = models.IntegerField(db_column='IS_PROCESSED_', blank=True, null=True)  # Field name made lowercase. Field renamed because it ended with '_'.
 
     class Meta:
         managed = False
@@ -34,12 +40,12 @@ class ActEvtLog(models.Model):
 
 
 class ActGeBytearray(models.Model):
-    id_field = models.BigIntegerField(db_column='ID_', primary_key=True)  
-    rev_field = models.IntegerField(db_column='REV_', blank=True, null=True)  
-    name_field = models.CharField(db_column='NAME_', max_length=255, blank=True, null=True)  
-    deployment_id_field = models.ForeignKey('ActReDeployment', db_column='DEPLOYMENT_ID_', blank=True, null=True)  
-    bytes_field = models.TextField(db_column='BYTES_', blank=True, null=True)  
-    generated_field = models.IntegerField(db_column='GENERATED_', blank=True, null=True)  
+    id_field = models.BigIntegerField(db_column='ID_', primary_key=True)  # Field name made lowercase. Field renamed because it ended with '_'.
+    rev_field = models.IntegerField(db_column='REV_', blank=True, null=True)  # Field name made lowercase. Field renamed because it ended with '_'.
+    name_field = models.CharField(db_column='NAME_', max_length=255, blank=True, null=True)  # Field name made lowercase. Field renamed because it ended with '_'.
+    deployment_id_field = models.ForeignKey('ActReDeployment', models.DO_NOTHING, db_column='DEPLOYMENT_ID_', blank=True, null=True)  # Field name made lowercase. Field renamed because it ended with '_'.
+    bytes_field = models.TextField(db_column='BYTES_', blank=True, null=True)  # Field name made lowercase. Field renamed because it ended with '_'.
+    generated_field = models.IntegerField(db_column='GENERATED_', blank=True, null=True)  # Field name made lowercase. Field renamed because it ended with '_'.
 
     class Meta:
         managed = False
@@ -47,9 +53,9 @@ class ActGeBytearray(models.Model):
 
 
 class ActGeProperty(models.Model):
-    name_field = models.CharField(db_column='NAME_', primary_key=True, max_length=64)  
-    value_field = models.CharField(db_column='VALUE_', max_length=300, blank=True, null=True)  
-    rev_field = models.IntegerField(db_column='REV_', blank=True, null=True)  
+    name_field = models.CharField(db_column='NAME_', primary_key=True, max_length=64)  # Field name made lowercase. Field renamed because it ended with '_'.
+    value_field = models.CharField(db_column='VALUE_', max_length=300, blank=True, null=True)  # Field name made lowercase. Field renamed because it ended with '_'.
+    rev_field = models.IntegerField(db_column='REV_', blank=True, null=True)  # Field name made lowercase. Field renamed because it ended with '_'.
 
     class Meta:
         managed = False
@@ -57,21 +63,21 @@ class ActGeProperty(models.Model):
 
 
 class ActHiActinst(models.Model):
-    id_field = models.BigIntegerField(db_column='ID_', primary_key=True)  
-    proc_def_id_field = models.CharField(db_column='PROC_DEF_ID_', max_length=64)  
-    proc_inst_id_field = models.BigIntegerField(db_column='PROC_INST_ID_', blank=True, null=True)  
-    execution_id_field = models.BigIntegerField(db_column='EXECUTION_ID_', blank=True, null=True)  
-    act_id_field = models.CharField(db_column='ACT_ID_', max_length=255)  
-    task_id_field = models.CharField(db_column='TASK_ID_', max_length=64, blank=True, null=True)  
-    call_proc_inst_id_field = models.CharField(db_column='CALL_PROC_INST_ID_', max_length=64, blank=True, null=True)  
-    act_name_field = models.CharField(db_column='ACT_NAME_', max_length=255, blank=True, null=True)  
-    act_type_field = models.CharField(db_column='ACT_TYPE_', max_length=255)  
-    assignee_field = models.BigIntegerField(db_column='ASSIGNEE_', blank=True, null=True)  
-    start_time_field = models.DateTimeField(db_column='START_TIME_')  
-    end_time_field = models.DateTimeField(db_column='END_TIME_', blank=True, null=True)  
-    isstart = models.IntegerField(db_column='ISSTART', blank=True, null=True)  
-    duration_field = models.BigIntegerField(db_column='DURATION_', blank=True, null=True)  
-    tenant_id_field = models.CharField(db_column='TENANT_ID_', max_length=255, blank=True, null=True)  
+    id_field = models.BigIntegerField(db_column='ID_', primary_key=True)  # Field name made lowercase. Field renamed because it ended with '_'.
+    proc_def_id_field = models.CharField(db_column='PROC_DEF_ID_', max_length=64)  # Field name made lowercase. Field renamed because it ended with '_'.
+    proc_inst_id_field = models.BigIntegerField(db_column='PROC_INST_ID_', blank=True, null=True)  # Field name made lowercase. Field renamed because it ended with '_'.
+    execution_id_field = models.BigIntegerField(db_column='EXECUTION_ID_', blank=True, null=True)  # Field name made lowercase. Field renamed because it ended with '_'.
+    act_id_field = models.CharField(db_column='ACT_ID_', max_length=255)  # Field name made lowercase. Field renamed because it ended with '_'.
+    task_id_field = models.CharField(db_column='TASK_ID_', max_length=64, blank=True, null=True)  # Field name made lowercase. Field renamed because it ended with '_'.
+    call_proc_inst_id_field = models.CharField(db_column='CALL_PROC_INST_ID_', max_length=64, blank=True, null=True)  # Field name made lowercase. Field renamed because it ended with '_'.
+    act_name_field = models.CharField(db_column='ACT_NAME_', max_length=255, blank=True, null=True)  # Field name made lowercase. Field renamed because it ended with '_'.
+    act_type_field = models.CharField(db_column='ACT_TYPE_', max_length=255)  # Field name made lowercase. Field renamed because it ended with '_'.
+    assignee_field = models.BigIntegerField(db_column='ASSIGNEE_', blank=True, null=True)  # Field name made lowercase. Field renamed because it ended with '_'.
+    start_time_field = models.DateTimeField(db_column='START_TIME_')  # Field name made lowercase. Field renamed because it ended with '_'.
+    end_time_field = models.DateTimeField(db_column='END_TIME_', blank=True, null=True)  # Field name made lowercase. Field renamed because it ended with '_'.
+    isstart = models.IntegerField(db_column='ISSTART', blank=True, null=True)  # Field name made lowercase.
+    duration_field = models.BigIntegerField(db_column='DURATION_', blank=True, null=True)  # Field name made lowercase. Field renamed because it ended with '_'.
+    tenant_id_field = models.CharField(db_column='TENANT_ID_', max_length=255, blank=True, null=True)  # Field name made lowercase. Field renamed because it ended with '_'.
 
     class Meta:
         managed = False
@@ -79,16 +85,16 @@ class ActHiActinst(models.Model):
 
 
 class ActHiAttachment(models.Model):
-    id_field = models.CharField(db_column='ID_', primary_key=True, max_length=64)  
-    rev_field = models.IntegerField(db_column='REV_', blank=True, null=True)  
-    user_id_field = models.CharField(db_column='USER_ID_', max_length=255, blank=True, null=True)  
-    name_field = models.CharField(db_column='NAME_', max_length=255, blank=True, null=True)  
-    description_field = models.CharField(db_column='DESCRIPTION_', max_length=4000, blank=True, null=True)  
-    type_field = models.CharField(db_column='TYPE_', max_length=255, blank=True, null=True)  
-    task_id_field = models.CharField(db_column='TASK_ID_', max_length=64, blank=True, null=True)  
-    proc_inst_id_field = models.CharField(db_column='PROC_INST_ID_', max_length=64, blank=True, null=True)  
-    url_field = models.CharField(db_column='URL_', max_length=4000, blank=True, null=True)  
-    content_id_field = models.CharField(db_column='CONTENT_ID_', max_length=64, blank=True, null=True)  
+    id_field = models.CharField(db_column='ID_', primary_key=True, max_length=64)  # Field name made lowercase. Field renamed because it ended with '_'.
+    rev_field = models.IntegerField(db_column='REV_', blank=True, null=True)  # Field name made lowercase. Field renamed because it ended with '_'.
+    user_id_field = models.CharField(db_column='USER_ID_', max_length=255, blank=True, null=True)  # Field name made lowercase. Field renamed because it ended with '_'.
+    name_field = models.CharField(db_column='NAME_', max_length=255, blank=True, null=True)  # Field name made lowercase. Field renamed because it ended with '_'.
+    description_field = models.CharField(db_column='DESCRIPTION_', max_length=4000, blank=True, null=True)  # Field name made lowercase. Field renamed because it ended with '_'.
+    type_field = models.CharField(db_column='TYPE_', max_length=255, blank=True, null=True)  # Field name made lowercase. Field renamed because it ended with '_'.
+    task_id_field = models.CharField(db_column='TASK_ID_', max_length=64, blank=True, null=True)  # Field name made lowercase. Field renamed because it ended with '_'.
+    proc_inst_id_field = models.CharField(db_column='PROC_INST_ID_', max_length=64, blank=True, null=True)  # Field name made lowercase. Field renamed because it ended with '_'.
+    url_field = models.CharField(db_column='URL_', max_length=4000, blank=True, null=True)  # Field name made lowercase. Field renamed because it ended with '_'.
+    content_id_field = models.CharField(db_column='CONTENT_ID_', max_length=64, blank=True, null=True)  # Field name made lowercase. Field renamed because it ended with '_'.
 
     class Meta:
         managed = False
@@ -96,15 +102,15 @@ class ActHiAttachment(models.Model):
 
 
 class ActHiComment(models.Model):
-    id_field = models.CharField(db_column='ID_', primary_key=True, max_length=64)  
-    type_field = models.CharField(db_column='TYPE_', max_length=255, blank=True, null=True)  
-    time_field = models.DateTimeField(db_column='TIME_')  
-    user_id_field = models.CharField(db_column='USER_ID_', max_length=255, blank=True, null=True)  
-    task_id_field = models.CharField(db_column='TASK_ID_', max_length=64, blank=True, null=True)  
-    proc_inst_id_field = models.CharField(db_column='PROC_INST_ID_', max_length=64, blank=True, null=True)  
-    action_field = models.CharField(db_column='ACTION_', max_length=255, blank=True, null=True)  
-    message_field = models.CharField(db_column='MESSAGE_', max_length=4000, blank=True, null=True)  
-    full_msg_field = models.TextField(db_column='FULL_MSG_', blank=True, null=True)  
+    id_field = models.CharField(db_column='ID_', primary_key=True, max_length=64)  # Field name made lowercase. Field renamed because it ended with '_'.
+    type_field = models.CharField(db_column='TYPE_', max_length=255, blank=True, null=True)  # Field name made lowercase. Field renamed because it ended with '_'.
+    time_field = models.DateTimeField(db_column='TIME_')  # Field name made lowercase. Field renamed because it ended with '_'.
+    user_id_field = models.CharField(db_column='USER_ID_', max_length=255, blank=True, null=True)  # Field name made lowercase. Field renamed because it ended with '_'.
+    task_id_field = models.CharField(db_column='TASK_ID_', max_length=64, blank=True, null=True)  # Field name made lowercase. Field renamed because it ended with '_'.
+    proc_inst_id_field = models.CharField(db_column='PROC_INST_ID_', max_length=64, blank=True, null=True)  # Field name made lowercase. Field renamed because it ended with '_'.
+    action_field = models.CharField(db_column='ACTION_', max_length=255, blank=True, null=True)  # Field name made lowercase. Field renamed because it ended with '_'.
+    message_field = models.CharField(db_column='MESSAGE_', max_length=4000, blank=True, null=True)  # Field name made lowercase. Field renamed because it ended with '_'.
+    full_msg_field = models.TextField(db_column='FULL_MSG_', blank=True, null=True)  # Field name made lowercase. Field renamed because it ended with '_'.
 
     class Meta:
         managed = False
@@ -112,21 +118,21 @@ class ActHiComment(models.Model):
 
 
 class ActHiDetail(models.Model):
-    id_field = models.CharField(db_column='ID_', primary_key=True, max_length=64)  
-    type_field = models.CharField(db_column='TYPE_', max_length=255)  
-    proc_inst_id_field = models.CharField(db_column='PROC_INST_ID_', max_length=64, blank=True, null=True)  
-    execution_id_field = models.CharField(db_column='EXECUTION_ID_', max_length=64, blank=True, null=True)  
-    task_id_field = models.CharField(db_column='TASK_ID_', max_length=64, blank=True, null=True)  
-    act_inst_id_field = models.CharField(db_column='ACT_INST_ID_', max_length=64, blank=True, null=True)  
-    name_field = models.CharField(db_column='NAME_', max_length=255)  
-    var_type_field = models.CharField(db_column='VAR_TYPE_', max_length=255, blank=True, null=True)  
-    rev_field = models.IntegerField(db_column='REV_', blank=True, null=True)  
-    time_field = models.DateTimeField(db_column='TIME_')  
-    bytearray_id_field = models.CharField(db_column='BYTEARRAY_ID_', max_length=64, blank=True, null=True)  
-    double_field = models.FloatField(db_column='DOUBLE_', blank=True, null=True)  
-    long_field = models.BigIntegerField(db_column='LONG_', blank=True, null=True)  
-    text_field = models.CharField(db_column='TEXT_', max_length=4000, blank=True, null=True)  
-    text2_field = models.CharField(db_column='TEXT2_', max_length=4000, blank=True, null=True)  
+    id_field = models.CharField(db_column='ID_', primary_key=True, max_length=64)  # Field name made lowercase. Field renamed because it ended with '_'.
+    type_field = models.CharField(db_column='TYPE_', max_length=255)  # Field name made lowercase. Field renamed because it ended with '_'.
+    proc_inst_id_field = models.CharField(db_column='PROC_INST_ID_', max_length=64, blank=True, null=True)  # Field name made lowercase. Field renamed because it ended with '_'.
+    execution_id_field = models.CharField(db_column='EXECUTION_ID_', max_length=64, blank=True, null=True)  # Field name made lowercase. Field renamed because it ended with '_'.
+    task_id_field = models.CharField(db_column='TASK_ID_', max_length=64, blank=True, null=True)  # Field name made lowercase. Field renamed because it ended with '_'.
+    act_inst_id_field = models.CharField(db_column='ACT_INST_ID_', max_length=64, blank=True, null=True)  # Field name made lowercase. Field renamed because it ended with '_'.
+    name_field = models.CharField(db_column='NAME_', max_length=255)  # Field name made lowercase. Field renamed because it ended with '_'.
+    var_type_field = models.CharField(db_column='VAR_TYPE_', max_length=255, blank=True, null=True)  # Field name made lowercase. Field renamed because it ended with '_'.
+    rev_field = models.IntegerField(db_column='REV_', blank=True, null=True)  # Field name made lowercase. Field renamed because it ended with '_'.
+    time_field = models.DateTimeField(db_column='TIME_')  # Field name made lowercase. Field renamed because it ended with '_'.
+    bytearray_id_field = models.CharField(db_column='BYTEARRAY_ID_', max_length=64, blank=True, null=True)  # Field name made lowercase. Field renamed because it ended with '_'.
+    double_field = models.FloatField(db_column='DOUBLE_', blank=True, null=True)  # Field name made lowercase. Field renamed because it ended with '_'.
+    long_field = models.BigIntegerField(db_column='LONG_', blank=True, null=True)  # Field name made lowercase. Field renamed because it ended with '_'.
+    text_field = models.CharField(db_column='TEXT_', max_length=4000, blank=True, null=True)  # Field name made lowercase. Field renamed because it ended with '_'.
+    text2_field = models.CharField(db_column='TEXT2_', max_length=4000, blank=True, null=True)  # Field name made lowercase. Field renamed because it ended with '_'.
 
     class Meta:
         managed = False
@@ -134,12 +140,12 @@ class ActHiDetail(models.Model):
 
 
 class ActHiIdentitylink(models.Model):
-    id_field = models.CharField(db_column='ID_', primary_key=True, max_length=64)  
-    group_id_field = models.CharField(db_column='GROUP_ID_', max_length=255, blank=True, null=True)  
-    type_field = models.CharField(db_column='TYPE_', max_length=255, blank=True, null=True)  
-    user_id_field = models.CharField(db_column='USER_ID_', max_length=255, blank=True, null=True)  
-    task_id_field = models.CharField(db_column='TASK_ID_', max_length=64, blank=True, null=True)  
-    proc_inst_id_field = models.CharField(db_column='PROC_INST_ID_', max_length=64, blank=True, null=True)  
+    id_field = models.CharField(db_column='ID_', primary_key=True, max_length=64)  # Field name made lowercase. Field renamed because it ended with '_'.
+    group_id_field = models.CharField(db_column='GROUP_ID_', max_length=255, blank=True, null=True)  # Field name made lowercase. Field renamed because it ended with '_'.
+    type_field = models.CharField(db_column='TYPE_', max_length=255, blank=True, null=True)  # Field name made lowercase. Field renamed because it ended with '_'.
+    user_id_field = models.CharField(db_column='USER_ID_', max_length=255, blank=True, null=True)  # Field name made lowercase. Field renamed because it ended with '_'.
+    task_id_field = models.CharField(db_column='TASK_ID_', max_length=64, blank=True, null=True)  # Field name made lowercase. Field renamed because it ended with '_'.
+    proc_inst_id_field = models.CharField(db_column='PROC_INST_ID_', max_length=64, blank=True, null=True)  # Field name made lowercase. Field renamed because it ended with '_'.
 
     class Meta:
         managed = False
@@ -147,19 +153,19 @@ class ActHiIdentitylink(models.Model):
 
 
 class ActHiProcinst(models.Model):
-    id_field = models.BigIntegerField(db_column='ID_', primary_key=True)  
-    proc_inst_id_field = models.BigIntegerField(db_column='PROC_INST_ID_', unique=True, blank=True, null=True)  
-    business_key_field = models.CharField(db_column='BUSINESS_KEY_', max_length=255, blank=True, null=True)  
-    proc_def_id_field = models.CharField(db_column='PROC_DEF_ID_', max_length=64)  
-    start_time_field = models.DateTimeField(db_column='START_TIME_')  
-    end_time_field = models.DateTimeField(db_column='END_TIME_', blank=True, null=True)  
-    duration_field = models.BigIntegerField(db_column='DURATION_', blank=True, null=True)  
-    start_user_id_field = models.BigIntegerField(db_column='START_USER_ID_', blank=True, null=True)  
-    start_act_id_field = models.CharField(db_column='START_ACT_ID_', max_length=255, blank=True, null=True)  
-    end_act_id_field = models.CharField(db_column='END_ACT_ID_', max_length=255, blank=True, null=True)  
-    super_process_instance_id_field = models.BigIntegerField(db_column='SUPER_PROCESS_INSTANCE_ID_', blank=True, null=True)  
-    delete_reason_field = models.CharField(db_column='DELETE_REASON_', max_length=4000, blank=True, null=True)  
-    tenant_id_field = models.CharField(db_column='TENANT_ID_', max_length=255, blank=True, null=True)  
+    id_field = models.BigIntegerField(db_column='ID_', primary_key=True)  # Field name made lowercase. Field renamed because it ended with '_'.
+    proc_inst_id_field = models.BigIntegerField(db_column='PROC_INST_ID_', unique=True, blank=True, null=True)  # Field name made lowercase. Field renamed because it ended with '_'.
+    business_key_field = models.CharField(db_column='BUSINESS_KEY_', max_length=255, blank=True, null=True)  # Field name made lowercase. Field renamed because it ended with '_'.
+    proc_def_id_field = models.CharField(db_column='PROC_DEF_ID_', max_length=64)  # Field name made lowercase. Field renamed because it ended with '_'.
+    start_time_field = models.DateTimeField(db_column='START_TIME_')  # Field name made lowercase. Field renamed because it ended with '_'.
+    end_time_field = models.DateTimeField(db_column='END_TIME_', blank=True, null=True)  # Field name made lowercase. Field renamed because it ended with '_'.
+    duration_field = models.BigIntegerField(db_column='DURATION_', blank=True, null=True)  # Field name made lowercase. Field renamed because it ended with '_'.
+    start_user_id_field = models.BigIntegerField(db_column='START_USER_ID_', blank=True, null=True)  # Field name made lowercase. Field renamed because it ended with '_'.
+    start_act_id_field = models.CharField(db_column='START_ACT_ID_', max_length=255, blank=True, null=True)  # Field name made lowercase. Field renamed because it ended with '_'.
+    end_act_id_field = models.CharField(db_column='END_ACT_ID_', max_length=255, blank=True, null=True)  # Field name made lowercase. Field renamed because it ended with '_'.
+    super_process_instance_id_field = models.BigIntegerField(db_column='SUPER_PROCESS_INSTANCE_ID_', blank=True, null=True)  # Field name made lowercase. Field renamed because it ended with '_'.
+    delete_reason_field = models.CharField(db_column='DELETE_REASON_', max_length=4000, blank=True, null=True)  # Field name made lowercase. Field renamed because it ended with '_'.
+    tenant_id_field = models.CharField(db_column='TENANT_ID_', max_length=255, blank=True, null=True)  # Field name made lowercase. Field renamed because it ended with '_'.
 
     class Meta:
         managed = False
@@ -167,26 +173,26 @@ class ActHiProcinst(models.Model):
 
 
 class ActHiTaskinst(models.Model):
-    id_field = models.BigIntegerField(db_column='ID_', primary_key=True)  
-    proc_def_id_field = models.CharField(db_column='PROC_DEF_ID_', max_length=64, blank=True, null=True)  
-    task_def_key_field = models.CharField(db_column='TASK_DEF_KEY_', max_length=255, blank=True, null=True)  
-    proc_inst_id_field = models.BigIntegerField(db_column='PROC_INST_ID_', blank=True, null=True)  
-    execution_id_field = models.BigIntegerField(db_column='EXECUTION_ID_', blank=True, null=True)  
-    name_field = models.CharField(db_column='NAME_', max_length=255, blank=True, null=True)  
-    parent_task_id_field = models.BigIntegerField(db_column='PARENT_TASK_ID_', blank=True, null=True)  
-    description_field = models.CharField(db_column='DESCRIPTION_', max_length=4000, blank=True, null=True)  
-    owner_field = models.BigIntegerField(db_column='OWNER_', blank=True, null=True)  
-    assignee_field = models.BigIntegerField(db_column='ASSIGNEE_', blank=True, null=True)  
-    start_time_field = models.DateTimeField(db_column='START_TIME_')  
-    claim_time_field = models.DateTimeField(db_column='CLAIM_TIME_', blank=True, null=True)  
-    end_time_field = models.DateTimeField(db_column='END_TIME_', blank=True, null=True)  
-    duration_field = models.BigIntegerField(db_column='DURATION_', blank=True, null=True)  
-    delete_reason_field = models.CharField(db_column='DELETE_REASON_', max_length=4000, blank=True, null=True)  
-    priority_field = models.IntegerField(db_column='PRIORITY_', blank=True, null=True)  
-    due_date_field = models.DateTimeField(db_column='DUE_DATE_', blank=True, null=True)  
-    form_key_field = models.CharField(db_column='FORM_KEY_', max_length=255, blank=True, null=True)  
-    category_field = models.CharField(db_column='CATEGORY_', max_length=255, blank=True, null=True)  
-    tenant_id_field = models.CharField(db_column='TENANT_ID_', max_length=255, blank=True, null=True)  
+    id_field = models.BigIntegerField(db_column='ID_', primary_key=True)  # Field name made lowercase. Field renamed because it ended with '_'.
+    proc_def_id_field = models.CharField(db_column='PROC_DEF_ID_', max_length=64, blank=True, null=True)  # Field name made lowercase. Field renamed because it ended with '_'.
+    task_def_key_field = models.CharField(db_column='TASK_DEF_KEY_', max_length=255, blank=True, null=True)  # Field name made lowercase. Field renamed because it ended with '_'.
+    proc_inst_id_field = models.BigIntegerField(db_column='PROC_INST_ID_', blank=True, null=True)  # Field name made lowercase. Field renamed because it ended with '_'.
+    execution_id_field = models.BigIntegerField(db_column='EXECUTION_ID_', blank=True, null=True)  # Field name made lowercase. Field renamed because it ended with '_'.
+    name_field = models.CharField(db_column='NAME_', max_length=255, blank=True, null=True)  # Field name made lowercase. Field renamed because it ended with '_'.
+    parent_task_id_field = models.BigIntegerField(db_column='PARENT_TASK_ID_', blank=True, null=True)  # Field name made lowercase. Field renamed because it ended with '_'.
+    description_field = models.CharField(db_column='DESCRIPTION_', max_length=4000, blank=True, null=True)  # Field name made lowercase. Field renamed because it ended with '_'.
+    owner_field = models.BigIntegerField(db_column='OWNER_', blank=True, null=True)  # Field name made lowercase. Field renamed because it ended with '_'.
+    assignee_field = models.BigIntegerField(db_column='ASSIGNEE_', blank=True, null=True)  # Field name made lowercase. Field renamed because it ended with '_'.
+    start_time_field = models.DateTimeField(db_column='START_TIME_')  # Field name made lowercase. Field renamed because it ended with '_'.
+    claim_time_field = models.DateTimeField(db_column='CLAIM_TIME_', blank=True, null=True)  # Field name made lowercase. Field renamed because it ended with '_'.
+    end_time_field = models.DateTimeField(db_column='END_TIME_', blank=True, null=True)  # Field name made lowercase. Field renamed because it ended with '_'.
+    duration_field = models.BigIntegerField(db_column='DURATION_', blank=True, null=True)  # Field name made lowercase. Field renamed because it ended with '_'.
+    delete_reason_field = models.CharField(db_column='DELETE_REASON_', max_length=4000, blank=True, null=True)  # Field name made lowercase. Field renamed because it ended with '_'.
+    priority_field = models.IntegerField(db_column='PRIORITY_', blank=True, null=True)  # Field name made lowercase. Field renamed because it ended with '_'.
+    due_date_field = models.DateTimeField(db_column='DUE_DATE_', blank=True, null=True)  # Field name made lowercase. Field renamed because it ended with '_'.
+    form_key_field = models.CharField(db_column='FORM_KEY_', max_length=255, blank=True, null=True)  # Field name made lowercase. Field renamed because it ended with '_'.
+    category_field = models.CharField(db_column='CATEGORY_', max_length=255, blank=True, null=True)  # Field name made lowercase. Field renamed because it ended with '_'.
+    tenant_id_field = models.CharField(db_column='TENANT_ID_', max_length=255, blank=True, null=True)  # Field name made lowercase. Field renamed because it ended with '_'.
 
     class Meta:
         managed = False
@@ -194,20 +200,20 @@ class ActHiTaskinst(models.Model):
 
 
 class ActHiVarinst(models.Model):
-    id_field = models.CharField(db_column='ID_', primary_key=True, max_length=64)  
-    proc_inst_id_field = models.CharField(db_column='PROC_INST_ID_', max_length=64, blank=True, null=True)  
-    execution_id_field = models.CharField(db_column='EXECUTION_ID_', max_length=64, blank=True, null=True)  
-    task_id_field = models.CharField(db_column='TASK_ID_', max_length=64, blank=True, null=True)  
-    name_field = models.CharField(db_column='NAME_', max_length=255)  
-    var_type_field = models.CharField(db_column='VAR_TYPE_', max_length=100, blank=True, null=True)  
-    rev_field = models.IntegerField(db_column='REV_', blank=True, null=True)  
-    bytearray_id_field = models.CharField(db_column='BYTEARRAY_ID_', max_length=64, blank=True, null=True)  
-    double_field = models.FloatField(db_column='DOUBLE_', blank=True, null=True)  
-    long_field = models.BigIntegerField(db_column='LONG_', blank=True, null=True)  
-    text_field = models.CharField(db_column='TEXT_', max_length=4000, blank=True, null=True)  
-    text2_field = models.CharField(db_column='TEXT2_', max_length=4000, blank=True, null=True)  
-    create_time_field = models.DateTimeField(db_column='CREATE_TIME_', blank=True, null=True)  
-    last_updated_time_field = models.DateTimeField(db_column='LAST_UPDATED_TIME_', blank=True, null=True)  
+    id_field = models.CharField(db_column='ID_', primary_key=True, max_length=64)  # Field name made lowercase. Field renamed because it ended with '_'.
+    proc_inst_id_field = models.CharField(db_column='PROC_INST_ID_', max_length=64, blank=True, null=True)  # Field name made lowercase. Field renamed because it ended with '_'.
+    execution_id_field = models.CharField(db_column='EXECUTION_ID_', max_length=64, blank=True, null=True)  # Field name made lowercase. Field renamed because it ended with '_'.
+    task_id_field = models.CharField(db_column='TASK_ID_', max_length=64, blank=True, null=True)  # Field name made lowercase. Field renamed because it ended with '_'.
+    name_field = models.CharField(db_column='NAME_', max_length=255)  # Field name made lowercase. Field renamed because it ended with '_'.
+    var_type_field = models.CharField(db_column='VAR_TYPE_', max_length=100, blank=True, null=True)  # Field name made lowercase. Field renamed because it ended with '_'.
+    rev_field = models.IntegerField(db_column='REV_', blank=True, null=True)  # Field name made lowercase. Field renamed because it ended with '_'.
+    bytearray_id_field = models.CharField(db_column='BYTEARRAY_ID_', max_length=64, blank=True, null=True)  # Field name made lowercase. Field renamed because it ended with '_'.
+    double_field = models.FloatField(db_column='DOUBLE_', blank=True, null=True)  # Field name made lowercase. Field renamed because it ended with '_'.
+    long_field = models.BigIntegerField(db_column='LONG_', blank=True, null=True)  # Field name made lowercase. Field renamed because it ended with '_'.
+    text_field = models.CharField(db_column='TEXT_', max_length=4000, blank=True, null=True)  # Field name made lowercase. Field renamed because it ended with '_'.
+    text2_field = models.CharField(db_column='TEXT2_', max_length=4000, blank=True, null=True)  # Field name made lowercase. Field renamed because it ended with '_'.
+    create_time_field = models.DateTimeField(db_column='CREATE_TIME_', blank=True, null=True)  # Field name made lowercase. Field renamed because it ended with '_'.
+    last_updated_time_field = models.DateTimeField(db_column='LAST_UPDATED_TIME_', blank=True, null=True)  # Field name made lowercase. Field renamed because it ended with '_'.
 
     class Meta:
         managed = False
@@ -215,10 +221,10 @@ class ActHiVarinst(models.Model):
 
 
 class ActIdGroup(models.Model):
-    id_field = models.CharField(db_column='ID_', primary_key=True, max_length=64)  
-    rev_field = models.IntegerField(db_column='REV_', blank=True, null=True)  
-    name_field = models.CharField(db_column='NAME_', max_length=255, blank=True, null=True)  
-    type_field = models.CharField(db_column='TYPE_', max_length=255, blank=True, null=True)  
+    id_field = models.CharField(db_column='ID_', primary_key=True, max_length=64)  # Field name made lowercase. Field renamed because it ended with '_'.
+    rev_field = models.IntegerField(db_column='REV_', blank=True, null=True)  # Field name made lowercase. Field renamed because it ended with '_'.
+    name_field = models.CharField(db_column='NAME_', max_length=255, blank=True, null=True)  # Field name made lowercase. Field renamed because it ended with '_'.
+    type_field = models.CharField(db_column='TYPE_', max_length=255, blank=True, null=True)  # Field name made lowercase. Field renamed because it ended with '_'.
 
     class Meta:
         managed = False
@@ -226,14 +232,14 @@ class ActIdGroup(models.Model):
 
 
 class ActIdInfo(models.Model):
-    id_field = models.CharField(db_column='ID_', primary_key=True, max_length=64)  
-    rev_field = models.IntegerField(db_column='REV_', blank=True, null=True)  
-    user_id_field = models.CharField(db_column='USER_ID_', max_length=64, blank=True, null=True)  
-    type_field = models.CharField(db_column='TYPE_', max_length=64, blank=True, null=True)  
-    key_field = models.CharField(db_column='KEY_', max_length=255, blank=True, null=True)  
-    value_field = models.CharField(db_column='VALUE_', max_length=255, blank=True, null=True)  
-    password_field = models.TextField(db_column='PASSWORD_', blank=True, null=True)  
-    parent_id_field = models.CharField(db_column='PARENT_ID_', max_length=255, blank=True, null=True)  
+    id_field = models.CharField(db_column='ID_', primary_key=True, max_length=64)  # Field name made lowercase. Field renamed because it ended with '_'.
+    rev_field = models.IntegerField(db_column='REV_', blank=True, null=True)  # Field name made lowercase. Field renamed because it ended with '_'.
+    user_id_field = models.CharField(db_column='USER_ID_', max_length=64, blank=True, null=True)  # Field name made lowercase. Field renamed because it ended with '_'.
+    type_field = models.CharField(db_column='TYPE_', max_length=64, blank=True, null=True)  # Field name made lowercase. Field renamed because it ended with '_'.
+    key_field = models.CharField(db_column='KEY_', max_length=255, blank=True, null=True)  # Field name made lowercase. Field renamed because it ended with '_'.
+    value_field = models.CharField(db_column='VALUE_', max_length=255, blank=True, null=True)  # Field name made lowercase. Field renamed because it ended with '_'.
+    password_field = models.TextField(db_column='PASSWORD_', blank=True, null=True)  # Field name made lowercase. Field renamed because it ended with '_'.
+    parent_id_field = models.CharField(db_column='PARENT_ID_', max_length=255, blank=True, null=True)  # Field name made lowercase. Field renamed because it ended with '_'.
 
     class Meta:
         managed = False
@@ -241,8 +247,8 @@ class ActIdInfo(models.Model):
 
 
 class ActIdMembership(models.Model):
-    user_id_field = models.ForeignKey('ActIdUser', db_column='USER_ID_')  
-    group_id_field = models.ForeignKey(ActIdGroup, db_column='GROUP_ID_')  
+    user_id_field = models.ForeignKey('ActIdUser', models.DO_NOTHING, db_column='USER_ID_')  # Field name made lowercase. Field renamed because it ended with '_'.
+    group_id_field = models.ForeignKey(ActIdGroup, models.DO_NOTHING, db_column='GROUP_ID_')  # Field name made lowercase. Field renamed because it ended with '_'.
 
     class Meta:
         managed = False
@@ -251,13 +257,13 @@ class ActIdMembership(models.Model):
 
 
 class ActIdUser(models.Model):
-    id_field = models.CharField(db_column='ID_', primary_key=True, max_length=64)  
-    rev_field = models.IntegerField(db_column='REV_', blank=True, null=True)  
-    first_field = models.CharField(db_column='FIRST_', max_length=255, blank=True, null=True)  
-    last_field = models.CharField(db_column='LAST_', max_length=255, blank=True, null=True)  
-    email_field = models.CharField(db_column='EMAIL_', max_length=255, blank=True, null=True)  
-    pwd_field = models.CharField(db_column='PWD_', max_length=255, blank=True, null=True)  
-    picture_id_field = models.CharField(db_column='PICTURE_ID_', max_length=64, blank=True, null=True)  
+    id_field = models.CharField(db_column='ID_', primary_key=True, max_length=64)  # Field name made lowercase. Field renamed because it ended with '_'.
+    rev_field = models.IntegerField(db_column='REV_', blank=True, null=True)  # Field name made lowercase. Field renamed because it ended with '_'.
+    first_field = models.CharField(db_column='FIRST_', max_length=255, blank=True, null=True)  # Field name made lowercase. Field renamed because it ended with '_'.
+    last_field = models.CharField(db_column='LAST_', max_length=255, blank=True, null=True)  # Field name made lowercase. Field renamed because it ended with '_'.
+    email_field = models.CharField(db_column='EMAIL_', max_length=255, blank=True, null=True)  # Field name made lowercase. Field renamed because it ended with '_'.
+    pwd_field = models.CharField(db_column='PWD_', max_length=255, blank=True, null=True)  # Field name made lowercase. Field renamed because it ended with '_'.
+    picture_id_field = models.CharField(db_column='PICTURE_ID_', max_length=64, blank=True, null=True)  # Field name made lowercase. Field renamed because it ended with '_'.
 
     class Meta:
         managed = False
@@ -265,11 +271,11 @@ class ActIdUser(models.Model):
 
 
 class ActReDeployment(models.Model):
-    id_field = models.CharField(db_column='ID_', primary_key=True, max_length=64)  
-    name_field = models.CharField(db_column='NAME_', max_length=255, blank=True, null=True)  
-    category_field = models.CharField(db_column='CATEGORY_', max_length=255, blank=True, null=True)  
-    tenant_id_field = models.CharField(db_column='TENANT_ID_', max_length=255, blank=True, null=True)  
-    deploy_time_field = models.DateTimeField(db_column='DEPLOY_TIME_')  
+    id_field = models.CharField(db_column='ID_', primary_key=True, max_length=64)  # Field name made lowercase. Field renamed because it ended with '_'.
+    name_field = models.CharField(db_column='NAME_', max_length=255, blank=True, null=True)  # Field name made lowercase. Field renamed because it ended with '_'.
+    category_field = models.CharField(db_column='CATEGORY_', max_length=255, blank=True, null=True)  # Field name made lowercase. Field renamed because it ended with '_'.
+    tenant_id_field = models.CharField(db_column='TENANT_ID_', max_length=255, blank=True, null=True)  # Field name made lowercase. Field renamed because it ended with '_'.
+    deploy_time_field = models.DateTimeField(db_column='DEPLOY_TIME_')  # Field name made lowercase. Field renamed because it ended with '_'.
 
     class Meta:
         managed = False
@@ -277,19 +283,19 @@ class ActReDeployment(models.Model):
 
 
 class ActReModel(models.Model):
-    id_field = models.CharField(db_column='ID_', primary_key=True, max_length=64)  
-    rev_field = models.IntegerField(db_column='REV_', blank=True, null=True)  
-    name_field = models.CharField(db_column='NAME_', max_length=255, blank=True, null=True)  
-    key_field = models.CharField(db_column='KEY_', max_length=255, blank=True, null=True)  
-    category_field = models.CharField(db_column='CATEGORY_', max_length=255, blank=True, null=True)  
-    create_time_field = models.DateTimeField(db_column='CREATE_TIME_', blank=True, null=True)  
-    last_update_time_field = models.DateTimeField(db_column='LAST_UPDATE_TIME_', blank=True, null=True)  
-    version_field = models.IntegerField(db_column='VERSION_', blank=True, null=True)  
-    meta_info_field = models.CharField(db_column='META_INFO_', max_length=4000, blank=True, null=True)  
-    deployment_id_field = models.ForeignKey(ActReDeployment, db_column='DEPLOYMENT_ID_', blank=True, null=True)  
-    editor_source_value_id_field = models.CharField(db_column='EDITOR_SOURCE_VALUE_ID_', max_length=64, blank=True, null=True)  
-    editor_source_extra_value_id_field = models.CharField(db_column='EDITOR_SOURCE_EXTRA_VALUE_ID_', max_length=64, blank=True, null=True)  
-    tenant_id_field = models.CharField(db_column='TENANT_ID_', max_length=255, blank=True, null=True)  
+    id_field = models.CharField(db_column='ID_', primary_key=True, max_length=64)  # Field name made lowercase. Field renamed because it ended with '_'.
+    rev_field = models.IntegerField(db_column='REV_', blank=True, null=True)  # Field name made lowercase. Field renamed because it ended with '_'.
+    name_field = models.CharField(db_column='NAME_', max_length=255, blank=True, null=True)  # Field name made lowercase. Field renamed because it ended with '_'.
+    key_field = models.CharField(db_column='KEY_', max_length=255, blank=True, null=True)  # Field name made lowercase. Field renamed because it ended with '_'.
+    category_field = models.CharField(db_column='CATEGORY_', max_length=255, blank=True, null=True)  # Field name made lowercase. Field renamed because it ended with '_'.
+    create_time_field = models.DateTimeField(db_column='CREATE_TIME_', blank=True, null=True)  # Field name made lowercase. Field renamed because it ended with '_'.
+    last_update_time_field = models.DateTimeField(db_column='LAST_UPDATE_TIME_', blank=True, null=True)  # Field name made lowercase. Field renamed because it ended with '_'.
+    version_field = models.IntegerField(db_column='VERSION_', blank=True, null=True)  # Field name made lowercase. Field renamed because it ended with '_'.
+    meta_info_field = models.CharField(db_column='META_INFO_', max_length=4000, blank=True, null=True)  # Field name made lowercase. Field renamed because it ended with '_'.
+    deployment_id_field = models.ForeignKey(ActReDeployment, models.DO_NOTHING, db_column='DEPLOYMENT_ID_', blank=True, null=True)  # Field name made lowercase. Field renamed because it ended with '_'.
+    editor_source_value_id_field = models.CharField(db_column='EDITOR_SOURCE_VALUE_ID_', max_length=64, blank=True, null=True)  # Field name made lowercase. Field renamed because it ended with '_'.
+    editor_source_extra_value_id_field = models.CharField(db_column='EDITOR_SOURCE_EXTRA_VALUE_ID_', max_length=64, blank=True, null=True)  # Field name made lowercase. Field renamed because it ended with '_'.
+    tenant_id_field = models.CharField(db_column='TENANT_ID_', max_length=255, blank=True, null=True)  # Field name made lowercase. Field renamed because it ended with '_'.
 
     class Meta:
         managed = False
@@ -297,19 +303,19 @@ class ActReModel(models.Model):
 
 
 class ActReProcdef(models.Model):
-    id_field = models.CharField(db_column='ID_', primary_key=True, max_length=64)  
-    rev_field = models.IntegerField(db_column='REV_', blank=True, null=True)  
-    category_field = models.CharField(db_column='CATEGORY_', max_length=255, blank=True, null=True)  
-    name_field = models.CharField(db_column='NAME_', max_length=255, blank=True, null=True)  
-    key_field = models.CharField(db_column='KEY_', max_length=255)  
-    version_field = models.IntegerField(db_column='VERSION_')  
-    deployment_id_field = models.BigIntegerField(db_column='DEPLOYMENT_ID_', blank=True, null=True)  
-    resource_name_field = models.CharField(db_column='RESOURCE_NAME_', max_length=4000, blank=True, null=True)  
-    dgrm_resource_name_field = models.CharField(db_column='DGRM_RESOURCE_NAME_', max_length=4000, blank=True, null=True)  
-    description_field = models.CharField(db_column='DESCRIPTION_', max_length=4000, blank=True, null=True)  
-    has_start_form_key_field = models.IntegerField(db_column='HAS_START_FORM_KEY_', blank=True, null=True)  
-    suspension_state_field = models.IntegerField(db_column='SUSPENSION_STATE_', blank=True, null=True)  
-    tenant_id_field = models.CharField(db_column='TENANT_ID_', max_length=255, blank=True, null=True)  
+    id_field = models.CharField(db_column='ID_', primary_key=True, max_length=64)  # Field name made lowercase. Field renamed because it ended with '_'.
+    rev_field = models.IntegerField(db_column='REV_', blank=True, null=True)  # Field name made lowercase. Field renamed because it ended with '_'.
+    category_field = models.CharField(db_column='CATEGORY_', max_length=255, blank=True, null=True)  # Field name made lowercase. Field renamed because it ended with '_'.
+    name_field = models.CharField(db_column='NAME_', max_length=255, blank=True, null=True)  # Field name made lowercase. Field renamed because it ended with '_'.
+    key_field = models.CharField(db_column='KEY_', max_length=255)  # Field name made lowercase. Field renamed because it ended with '_'.
+    version_field = models.IntegerField(db_column='VERSION_')  # Field name made lowercase. Field renamed because it ended with '_'.
+    deployment_id_field = models.BigIntegerField(db_column='DEPLOYMENT_ID_', blank=True, null=True)  # Field name made lowercase. Field renamed because it ended with '_'.
+    resource_name_field = models.CharField(db_column='RESOURCE_NAME_', max_length=4000, blank=True, null=True)  # Field name made lowercase. Field renamed because it ended with '_'.
+    dgrm_resource_name_field = models.CharField(db_column='DGRM_RESOURCE_NAME_', max_length=4000, blank=True, null=True)  # Field name made lowercase. Field renamed because it ended with '_'.
+    description_field = models.CharField(db_column='DESCRIPTION_', max_length=4000, blank=True, null=True)  # Field name made lowercase. Field renamed because it ended with '_'.
+    has_start_form_key_field = models.IntegerField(db_column='HAS_START_FORM_KEY_', blank=True, null=True)  # Field name made lowercase. Field renamed because it ended with '_'.
+    suspension_state_field = models.IntegerField(db_column='SUSPENSION_STATE_', blank=True, null=True)  # Field name made lowercase. Field renamed because it ended with '_'.
+    tenant_id_field = models.CharField(db_column='TENANT_ID_', max_length=255, blank=True, null=True)  # Field name made lowercase. Field renamed because it ended with '_'.
 
     class Meta:
         managed = False
@@ -318,17 +324,17 @@ class ActReProcdef(models.Model):
 
 
 class ActRuEventSubscr(models.Model):
-    id_field = models.CharField(db_column='ID_', primary_key=True, max_length=64)  
-    rev_field = models.IntegerField(db_column='REV_', blank=True, null=True)  
-    event_type_field = models.CharField(db_column='EVENT_TYPE_', max_length=255)  
-    event_name_field = models.CharField(db_column='EVENT_NAME_', max_length=255, blank=True, null=True)  
-    execution_id_field = models.ForeignKey('ActRuExecution', db_column='EXECUTION_ID_', blank=True, null=True)  
-    proc_inst_id_field = models.CharField(db_column='PROC_INST_ID_', max_length=64, blank=True, null=True)  
-    activity_id_field = models.CharField(db_column='ACTIVITY_ID_', max_length=64, blank=True, null=True)  
-    configuration_field = models.CharField(db_column='CONFIGURATION_', max_length=255, blank=True, null=True)  
-    created_field = models.DateTimeField(db_column='CREATED_')  
-    proc_def_id_field = models.CharField(db_column='PROC_DEF_ID_', max_length=64, blank=True, null=True)  
-    tenant_id_field = models.CharField(db_column='TENANT_ID_', max_length=255, blank=True, null=True)  
+    id_field = models.CharField(db_column='ID_', primary_key=True, max_length=64)  # Field name made lowercase. Field renamed because it ended with '_'.
+    rev_field = models.IntegerField(db_column='REV_', blank=True, null=True)  # Field name made lowercase. Field renamed because it ended with '_'.
+    event_type_field = models.CharField(db_column='EVENT_TYPE_', max_length=255)  # Field name made lowercase. Field renamed because it ended with '_'.
+    event_name_field = models.CharField(db_column='EVENT_NAME_', max_length=255, blank=True, null=True)  # Field name made lowercase. Field renamed because it ended with '_'.
+    execution_id_field = models.ForeignKey('ActRuExecution', models.DO_NOTHING, db_column='EXECUTION_ID_', blank=True, null=True)  # Field name made lowercase. Field renamed because it ended with '_'.
+    proc_inst_id_field = models.CharField(db_column='PROC_INST_ID_', max_length=64, blank=True, null=True)  # Field name made lowercase. Field renamed because it ended with '_'.
+    activity_id_field = models.CharField(db_column='ACTIVITY_ID_', max_length=64, blank=True, null=True)  # Field name made lowercase. Field renamed because it ended with '_'.
+    configuration_field = models.CharField(db_column='CONFIGURATION_', max_length=255, blank=True, null=True)  # Field name made lowercase. Field renamed because it ended with '_'.
+    created_field = models.DateTimeField(db_column='CREATED_')  # Field name made lowercase. Field renamed because it ended with '_'.
+    proc_def_id_field = models.CharField(db_column='PROC_DEF_ID_', max_length=64, blank=True, null=True)  # Field name made lowercase. Field renamed because it ended with '_'.
+    tenant_id_field = models.CharField(db_column='TENANT_ID_', max_length=255, blank=True, null=True)  # Field name made lowercase. Field renamed because it ended with '_'.
 
     class Meta:
         managed = False
@@ -358,14 +364,14 @@ class ActRuExecution(models.Model):
 
 
 class ActRuIdentitylink(models.Model):
-    id_field = models.BigIntegerField(db_column='ID_', primary_key=True)  
-    rev_field = models.IntegerField(db_column='REV_', blank=True, null=True)  
-    group_id_field = models.BigIntegerField(db_column='GROUP_ID_', blank=True, null=True)  
-    type_field = models.CharField(db_column='TYPE_', max_length=255, blank=True, null=True)  
-    user_id_field = models.BigIntegerField(db_column='USER_ID_', blank=True, null=True)  
-    task_id_field = models.ForeignKey('ActRuTask', db_column='TASK_ID_', blank=True, null=True)  
-    proc_inst_id_field = models.CharField(db_column='PROC_INST_ID_', max_length=64, blank=True, null=True)  
-    proc_def_id_field = models.ForeignKey(ActReProcdef, db_column='PROC_DEF_ID_', blank=True, null=True)  
+    id_field = models.BigIntegerField(db_column='ID_', primary_key=True)  # Field name made lowercase. Field renamed because it ended with '_'.
+    rev_field = models.IntegerField(db_column='REV_', blank=True, null=True)  # Field name made lowercase. Field renamed because it ended with '_'.
+    group_id_field = models.BigIntegerField(db_column='GROUP_ID_', blank=True, null=True)  # Field name made lowercase. Field renamed because it ended with '_'.
+    type_field = models.CharField(db_column='TYPE_', max_length=255, blank=True, null=True)  # Field name made lowercase. Field renamed because it ended with '_'.
+    user_id_field = models.BigIntegerField(db_column='USER_ID_', blank=True, null=True)  # Field name made lowercase. Field renamed because it ended with '_'.
+    task_id_field = models.ForeignKey('ActRuTask', models.DO_NOTHING, db_column='TASK_ID_', blank=True, null=True)  # Field name made lowercase. Field renamed because it ended with '_'.
+    proc_inst_id_field = models.CharField(db_column='PROC_INST_ID_', max_length=64, blank=True, null=True)  # Field name made lowercase. Field renamed because it ended with '_'.
+    proc_def_id_field = models.ForeignKey(ActReProcdef, models.DO_NOTHING, db_column='PROC_DEF_ID_', blank=True, null=True)  # Field name made lowercase. Field renamed because it ended with '_'.
 
     class Meta:
         managed = False
@@ -373,23 +379,23 @@ class ActRuIdentitylink(models.Model):
 
 
 class ActRuJob(models.Model):
-    id_field = models.CharField(db_column='ID_', primary_key=True, max_length=64)  
-    rev_field = models.IntegerField(db_column='REV_', blank=True, null=True)  
-    type_field = models.CharField(db_column='TYPE_', max_length=255)  
-    lock_exp_time_field = models.DateTimeField(db_column='LOCK_EXP_TIME_', blank=True, null=True)  
-    lock_owner_field = models.CharField(db_column='LOCK_OWNER_', max_length=255, blank=True, null=True)  
-    exclusive_field = models.IntegerField(db_column='EXCLUSIVE_', blank=True, null=True)  
-    execution_id_field = models.CharField(db_column='EXECUTION_ID_', max_length=64, blank=True, null=True)  
-    process_instance_id_field = models.CharField(db_column='PROCESS_INSTANCE_ID_', max_length=64, blank=True, null=True)  
-    proc_def_id_field = models.CharField(db_column='PROC_DEF_ID_', max_length=64, blank=True, null=True)  
-    retries_field = models.IntegerField(db_column='RETRIES_', blank=True, null=True)  
-    exception_stack_id_field = models.ForeignKey(ActGeBytearray, db_column='EXCEPTION_STACK_ID_', blank=True, null=True)  
-    exception_msg_field = models.CharField(db_column='EXCEPTION_MSG_', max_length=4000, blank=True, null=True)  
-    duedate_field = models.DateTimeField(db_column='DUEDATE_', blank=True, null=True)  
-    repeat_field = models.CharField(db_column='REPEAT_', max_length=255, blank=True, null=True)  
-    handler_type_field = models.CharField(db_column='HANDLER_TYPE_', max_length=255, blank=True, null=True)  
-    handler_cfg_field = models.CharField(db_column='HANDLER_CFG_', max_length=4000, blank=True, null=True)  
-    tenant_id_field = models.CharField(db_column='TENANT_ID_', max_length=255, blank=True, null=True)  
+    id_field = models.CharField(db_column='ID_', primary_key=True, max_length=64)  # Field name made lowercase. Field renamed because it ended with '_'.
+    rev_field = models.IntegerField(db_column='REV_', blank=True, null=True)  # Field name made lowercase. Field renamed because it ended with '_'.
+    type_field = models.CharField(db_column='TYPE_', max_length=255)  # Field name made lowercase. Field renamed because it ended with '_'.
+    lock_exp_time_field = models.DateTimeField(db_column='LOCK_EXP_TIME_', blank=True, null=True)  # Field name made lowercase. Field renamed because it ended with '_'.
+    lock_owner_field = models.CharField(db_column='LOCK_OWNER_', max_length=255, blank=True, null=True)  # Field name made lowercase. Field renamed because it ended with '_'.
+    exclusive_field = models.IntegerField(db_column='EXCLUSIVE_', blank=True, null=True)  # Field name made lowercase. Field renamed because it ended with '_'.
+    execution_id_field = models.CharField(db_column='EXECUTION_ID_', max_length=64, blank=True, null=True)  # Field name made lowercase. Field renamed because it ended with '_'.
+    process_instance_id_field = models.CharField(db_column='PROCESS_INSTANCE_ID_', max_length=64, blank=True, null=True)  # Field name made lowercase. Field renamed because it ended with '_'.
+    proc_def_id_field = models.CharField(db_column='PROC_DEF_ID_', max_length=64, blank=True, null=True)  # Field name made lowercase. Field renamed because it ended with '_'.
+    retries_field = models.IntegerField(db_column='RETRIES_', blank=True, null=True)  # Field name made lowercase. Field renamed because it ended with '_'.
+    exception_stack_id_field = models.ForeignKey(ActGeBytearray, models.DO_NOTHING, db_column='EXCEPTION_STACK_ID_', blank=True, null=True)  # Field name made lowercase. Field renamed because it ended with '_'.
+    exception_msg_field = models.CharField(db_column='EXCEPTION_MSG_', max_length=4000, blank=True, null=True)  # Field name made lowercase. Field renamed because it ended with '_'.
+    duedate_field = models.DateTimeField(db_column='DUEDATE_', blank=True, null=True)  # Field name made lowercase. Field renamed because it ended with '_'.
+    repeat_field = models.CharField(db_column='REPEAT_', max_length=255, blank=True, null=True)  # Field name made lowercase. Field renamed because it ended with '_'.
+    handler_type_field = models.CharField(db_column='HANDLER_TYPE_', max_length=255, blank=True, null=True)  # Field name made lowercase. Field renamed because it ended with '_'.
+    handler_cfg_field = models.CharField(db_column='HANDLER_CFG_', max_length=4000, blank=True, null=True)  # Field name made lowercase. Field renamed because it ended with '_'.
+    tenant_id_field = models.CharField(db_column='TENANT_ID_', max_length=255, blank=True, null=True)  # Field name made lowercase. Field renamed because it ended with '_'.
 
     class Meta:
         managed = False
@@ -440,13 +446,115 @@ class ActRuVariable(models.Model):
         db_table = 'ACT_RU_VARIABLE'
 
 
+class AdoptionInfo(models.Model):
+    id = models.BigIntegerField(db_column='ID', primary_key=True)  # Field name made lowercase.
+    present_location = models.CharField(max_length=10, blank=True, null=True)
+    objection = models.CharField(max_length=10, blank=True, null=True)
+    objection_memo = models.CharField(max_length=500, blank=True, null=True)
+    upload_file = models.CharField(max_length=1000, blank=True, null=True)
+    attach_file = models.CharField(max_length=1000, blank=True, null=True)
+    post_date = models.DateTimeField()
+    contract_date = models.DateTimeField()
+    employer_type = models.CharField(max_length=100, blank=True, null=True)
+    employment_date = models.DateTimeField()
+    employment_period_en = models.DateTimeField()
+    employment_period = models.CharField(max_length=500, blank=True, null=True)
+    business_addr = models.CharField(max_length=100, blank=True, null=True)
+    refid = models.ForeignKey('JobSeeker', models.DO_NOTHING, db_column='REFID', blank=True, null=True)  # Field name made lowercase.
+    business_other = models.CharField(max_length=100, blank=True, null=True)
+    business_type = models.CharField(max_length=100, blank=True, null=True)
+    business_time = models.DateTimeField()
+    allowance_base = models.DecimalField(max_digits=13, decimal_places=0, blank=True, null=True)
+    allowance_base_memo = models.CharField(max_length=500, blank=True, null=True)
+    pay_site = models.DecimalField(max_digits=13, decimal_places=0, blank=True, null=True)
+    pay_site_memo = models.CharField(max_length=500, blank=True, null=True)
+    pay_position = models.DecimalField(max_digits=13, decimal_places=0, blank=True, null=True)
+    pay_position_memo = models.CharField(max_length=500, blank=True, null=True)
+    pay_duties = models.DecimalField(max_digits=13, decimal_places=0, blank=True, null=True)
+    pay_duties_memo = models.CharField(max_length=500, blank=True, null=True)
+    pay_diligence = models.DecimalField(max_digits=13, decimal_places=0, blank=True, null=True)
+    pay_safety = models.DecimalField(max_digits=13, decimal_places=0, blank=True, null=True)
+    pay_qual = models.DecimalField(max_digits=13, decimal_places=0, blank=True, null=True)
+    pay_qual_memo = models.CharField(max_length=500, blank=True, null=True)
+    pay_commute = models.DecimalField(max_digits=13, decimal_places=0, blank=True, null=True)
+    pay_commute_memo = models.CharField(max_length=500, blank=True, null=True)
+    pay_overtime = models.DecimalField(max_digits=13, decimal_places=0, blank=True, null=True)
+    pay_absence = models.CharField(max_length=100, blank=True, null=True)
+    endowment_insurance = models.CharField(max_length=50, blank=True, null=True)
+    allowance_date = models.CharField(max_length=500, blank=True, null=True)
+    allowance_change = models.CharField(max_length=500, blank=True, null=True)
+    bonus = models.CharField(max_length=500, blank=True, null=True)
+    holiday = models.CharField(max_length=500, blank=True, null=True)
+    paid_vacation = models.CharField(max_length=500, blank=True, null=True)
+    not_paid_vacation = models.CharField(max_length=500, blank=True, null=True)
+    about_discharge = models.CharField(max_length=500, blank=True, null=True)
+    memo = models.CharField(max_length=500, blank=True, null=True)
+    cost = models.DecimalField(max_digits=13, decimal_places=0, blank=True, null=True)
+    visa_upload_date = models.DateTimeField()
+    position = models.CharField(max_length=50, blank=True, null=True)
+    annualincome = models.DecimalField(db_column='annualIncome', max_digits=15, decimal_places=2, blank=True, null=True)  # Field name made lowercase.
+    join_date = models.DateTimeField()
+    checklist = models.CharField(max_length=2000, blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'adoption_info'
+
+
+class ApplyCompaign(models.Model):
+    id = models.BigIntegerField(db_column='ID', primary_key=True)  # Field name made lowercase.
+    apply_no = models.CharField(max_length=50, blank=True, null=True)
+    apply_person = models.CharField(max_length=2000, blank=True, null=True)
+    apply_personid = models.CharField(db_column='apply_personID', max_length=2000, blank=True, null=True)  # Field name made lowercase.
+    apply_date = models.DateTimeField()
+    mobile = models.CharField(max_length=50, blank=True, null=True)
+    email = models.CharField(max_length=100, blank=True, null=True)
+    zbbm = models.CharField(max_length=100, blank=True, null=True)
+    bmz = models.CharField(max_length=100, blank=True, null=True)
+    hdzt = models.CharField(max_length=200, blank=True, null=True)
+    hdmd = models.CharField(max_length=2000, blank=True, null=True)
+    hdfw = models.CharField(max_length=2000, blank=True, null=True)
+    sysh = models.CharField(max_length=2000, blank=True, null=True)
+    start_date = models.DateTimeField()
+    end_date = models.DateTimeField()
+    hdxg = models.CharField(max_length=2000, blank=True, null=True)
+    total_amount = models.DecimalField(max_digits=15, decimal_places=2, blank=True, null=True)
+    hdnr = models.CharField(max_length=2000, blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'apply_compaign'
+
+
+class ApplyForm(models.Model):
+    id = models.BigIntegerField(db_column='ID', primary_key=True)  # Field name made lowercase.
+    yxj = models.CharField(max_length=200, blank=True, null=True)
+    zmszl = models.CharField(max_length=200, blank=True, null=True)
+    zdss = models.CharField(max_length=200, blank=True, null=True)
+    dxnd = models.CharField(max_length=200, blank=True, null=True)
+    byms = models.DecimalField(max_digits=13, decimal_places=0, blank=True, null=True)
+    fxxwsq = models.DateTimeField()
+    zmstcx = models.CharField(max_length=200, blank=True, null=True)
+    symd = models.CharField(max_length=200, blank=True, null=True)
+    sfff = models.CharField(max_length=200, blank=True, null=True)
+    zdsstf = models.CharField(max_length=200, blank=True, null=True)
+    bk = models.CharField(max_length=200, blank=True, null=True)
+    sqz = models.CharField(max_length=200, blank=True, null=True)
+    sqzid = models.CharField(db_column='sqzID', max_length=20, blank=True, null=True)  # Field name made lowercase.
+    zdssexcel = models.CharField(db_column='zdssExcel', max_length=200, blank=True, null=True)  # Field name made lowercase.
+
+    class Meta:
+        managed = False
+        db_table = 'apply_form'
+
+
 class BpmAgentCondition(models.Model):
-    id = models.BigIntegerField(db_column='ID', primary_key=True)  
-    settingid = models.BigIntegerField(db_column='SETTINGID', blank=True, null=True)  
-    con = models.CharField(db_column='CON', max_length=1000, blank=True, null=True)  
-    memo = models.CharField(db_column='MEMO', max_length=200, blank=True, null=True)  
-    agentid = models.BigIntegerField(db_column='AGENTID', blank=True, null=True)  
-    agent = models.CharField(db_column='AGENT', max_length=100, blank=True, null=True)  
+    id = models.BigIntegerField(db_column='ID', primary_key=True)  # Field name made lowercase.
+    settingid = models.BigIntegerField(db_column='SETTINGID', blank=True, null=True)  # Field name made lowercase.
+    con = models.CharField(db_column='CON', max_length=1000, blank=True, null=True)  # Field name made lowercase.
+    memo = models.CharField(db_column='MEMO', max_length=200, blank=True, null=True)  # Field name made lowercase.
+    agentid = models.BigIntegerField(db_column='AGENTID', blank=True, null=True)  # Field name made lowercase.
+    agent = models.CharField(db_column='AGENT', max_length=100, blank=True, null=True)  # Field name made lowercase.
 
     class Meta:
         managed = False
@@ -454,10 +562,10 @@ class BpmAgentCondition(models.Model):
 
 
 class BpmAgentDef(models.Model):
-    id = models.BigIntegerField(db_column='ID', primary_key=True)  
-    settingid = models.BigIntegerField(db_column='SETTINGID', blank=True, null=True)  
-    flowkey = models.CharField(db_column='FLOWKEY', max_length=50, blank=True, null=True)  
-    flowname = models.CharField(db_column='FLOWNAME', max_length=200, blank=True, null=True)  
+    id = models.BigIntegerField(db_column='ID', primary_key=True)  # Field name made lowercase.
+    settingid = models.BigIntegerField(db_column='SETTINGID', blank=True, null=True)  # Field name made lowercase.
+    flowkey = models.CharField(db_column='FLOWKEY', max_length=50, blank=True, null=True)  # Field name made lowercase.
+    flowname = models.CharField(db_column='FLOWNAME', max_length=200, blank=True, null=True)  # Field name made lowercase.
 
     class Meta:
         managed = False
@@ -465,18 +573,18 @@ class BpmAgentDef(models.Model):
 
 
 class BpmAgentSetting(models.Model):
-    id = models.BigIntegerField(db_column='ID', primary_key=True)  
-    authid = models.BigIntegerField(db_column='AUTHID', blank=True, null=True)  
-    authname = models.CharField(db_column='AUTHNAME', max_length=100, blank=True, null=True)  
-    createtime = models.DateTimeField(db_column='CREATETIME')  
-    startdate = models.DateTimeField(db_column='STARTDATE')  
-    enddate = models.DateTimeField(db_column='ENDDATE', blank=True, null=True)  
-    enabled = models.SmallIntegerField(db_column='ENABLED', blank=True, null=True)  
-    authtype = models.SmallIntegerField(db_column='AUTHTYPE', blank=True, null=True)  
-    agentid = models.BigIntegerField(db_column='AGENTID', blank=True, null=True)  
-    agent = models.CharField(db_column='AGENT', max_length=100, blank=True, null=True)  
-    flowkey = models.CharField(db_column='FLOWKEY', max_length=100, blank=True, null=True)  
-    flowname = models.CharField(db_column='FLOWNAME', max_length=100, blank=True, null=True)  
+    id = models.BigIntegerField(db_column='ID', primary_key=True)  # Field name made lowercase.
+    authid = models.BigIntegerField(db_column='AUTHID', blank=True, null=True)  # Field name made lowercase.
+    authname = models.CharField(db_column='AUTHNAME', max_length=100, blank=True, null=True)  # Field name made lowercase.
+    createtime = models.DateTimeField(db_column='CREATETIME')  # Field name made lowercase.
+    startdate = models.DateTimeField(db_column='STARTDATE')  # Field name made lowercase.
+    enddate = models.DateTimeField(db_column='ENDDATE', blank=True, null=True)  # Field name made lowercase.
+    enabled = models.SmallIntegerField(db_column='ENABLED', blank=True, null=True)  # Field name made lowercase.
+    authtype = models.SmallIntegerField(db_column='AUTHTYPE', blank=True, null=True)  # Field name made lowercase.
+    agentid = models.BigIntegerField(db_column='AGENTID', blank=True, null=True)  # Field name made lowercase.
+    agent = models.CharField(db_column='AGENT', max_length=100, blank=True, null=True)  # Field name made lowercase.
+    flowkey = models.CharField(db_column='FLOWKEY', max_length=100, blank=True, null=True)  # Field name made lowercase.
+    flowname = models.CharField(db_column='FLOWNAME', max_length=100, blank=True, null=True)  # Field name made lowercase.
 
     class Meta:
         managed = False
@@ -484,12 +592,12 @@ class BpmAgentSetting(models.Model):
 
 
 class BpmApprovalItem(models.Model):
-    itemid = models.BigIntegerField(db_column='ITEMID', primary_key=True)  
-    userid = models.BigIntegerField(db_column='USERID', blank=True, null=True)  
-    defkey = models.CharField(db_column='DEFKEY', max_length=128, blank=True, null=True)  
-    typeid = models.BigIntegerField(db_column='TYPEID', blank=True, null=True)  
-    type = models.SmallIntegerField(db_column='TYPE', blank=True, null=True)  
-    expression = models.CharField(db_column='EXPRESSION', max_length=3000, blank=True, null=True)  
+    itemid = models.BigIntegerField(db_column='ITEMID', primary_key=True)  # Field name made lowercase.
+    userid = models.BigIntegerField(db_column='USERID', blank=True, null=True)  # Field name made lowercase.
+    defkey = models.CharField(db_column='DEFKEY', max_length=128, blank=True, null=True)  # Field name made lowercase.
+    typeid = models.BigIntegerField(db_column='TYPEID', blank=True, null=True)  # Field name made lowercase.
+    type = models.SmallIntegerField(db_column='TYPE', blank=True, null=True)  # Field name made lowercase.
+    expression = models.CharField(db_column='EXPRESSION', max_length=3000, blank=True, null=True)  # Field name made lowercase.
 
     class Meta:
         managed = False
@@ -497,20 +605,20 @@ class BpmApprovalItem(models.Model):
 
 
 class BpmBusLink(models.Model):
-    bus_id = models.BigIntegerField(db_column='BUS_ID')  
-    bus_form_table = models.CharField(db_column='BUS_FORM_TABLE', max_length=255)  
-    bus_pk = models.BigIntegerField(db_column='BUS_PK', blank=True, null=True)  
-    bus_pkstr = models.CharField(db_column='BUS_PKSTR', max_length=50, blank=True, null=True)  
-    bus_def_id = models.BigIntegerField(db_column='BUS_DEF_ID', blank=True, null=True)  
-    bus_flow_runid = models.BigIntegerField(db_column='BUS_FLOW_RUNID', blank=True, null=True)  
-    bus_creator_id = models.BigIntegerField(db_column='BUS_CREATOR_ID', blank=True, null=True)  
-    bus_creator = models.CharField(db_column='BUS_CREATOR', max_length=50, blank=True, null=True)  
-    bus_org_id = models.BigIntegerField(db_column='BUS_ORG_ID', blank=True, null=True)  
-    bus_org_name = models.CharField(db_column='BUS_ORG_NAME', max_length=200, blank=True, null=True)  
-    bus_createtime = models.DateTimeField(db_column='BUS_CREATETIME')  
-    bus_updid = models.BigIntegerField(db_column='BUS_UPDID', blank=True, null=True)  
-    bus_upd = models.CharField(db_column='BUS_UPD', max_length=50, blank=True, null=True)  
-    bus_updtime = models.DateTimeField(db_column='BUS_UPDTIME')  
+    bus_id = models.BigIntegerField(db_column='BUS_ID')  # Field name made lowercase.
+    bus_form_table = models.CharField(db_column='BUS_FORM_TABLE', max_length=255)  # Field name made lowercase.
+    bus_pk = models.BigIntegerField(db_column='BUS_PK', blank=True, null=True)  # Field name made lowercase.
+    bus_pkstr = models.CharField(db_column='BUS_PKSTR', max_length=50, blank=True, null=True)  # Field name made lowercase.
+    bus_def_id = models.BigIntegerField(db_column='BUS_DEF_ID', blank=True, null=True)  # Field name made lowercase.
+    bus_flow_runid = models.BigIntegerField(db_column='BUS_FLOW_RUNID', blank=True, null=True)  # Field name made lowercase.
+    bus_creator_id = models.BigIntegerField(db_column='BUS_CREATOR_ID', blank=True, null=True)  # Field name made lowercase.
+    bus_creator = models.CharField(db_column='BUS_CREATOR', max_length=50, blank=True, null=True)  # Field name made lowercase.
+    bus_org_id = models.BigIntegerField(db_column='BUS_ORG_ID', blank=True, null=True)  # Field name made lowercase.
+    bus_org_name = models.CharField(db_column='BUS_ORG_NAME', max_length=200, blank=True, null=True)  # Field name made lowercase.
+    bus_createtime = models.DateTimeField(db_column='BUS_CREATETIME')  # Field name made lowercase.
+    bus_updid = models.BigIntegerField(db_column='BUS_UPDID', blank=True, null=True)  # Field name made lowercase.
+    bus_upd = models.CharField(db_column='BUS_UPD', max_length=50, blank=True, null=True)  # Field name made lowercase.
+    bus_updtime = models.DateTimeField(db_column='BUS_UPDTIME')  # Field name made lowercase.
 
     class Meta:
         managed = False
@@ -519,11 +627,11 @@ class BpmBusLink(models.Model):
 
 
 class BpmCommonWsParams(models.Model):
-    id = models.BigIntegerField(db_column='ID', primary_key=True)  
-    setid = models.BigIntegerField(db_column='SETID')  
-    name = models.CharField(db_column='NAME', max_length=200, blank=True, null=True)  
-    param_type = models.IntegerField(db_column='PARAM_TYPE', blank=True, null=True)  
-    description = models.CharField(db_column='DESCRIPTION', max_length=400, blank=True, null=True)  
+    id = models.BigIntegerField(db_column='ID', primary_key=True)  # Field name made lowercase.
+    setid = models.BigIntegerField(db_column='SETID')  # Field name made lowercase.
+    name = models.CharField(db_column='NAME', max_length=200, blank=True, null=True)  # Field name made lowercase.
+    param_type = models.IntegerField(db_column='PARAM_TYPE', blank=True, null=True)  # Field name made lowercase.
+    description = models.CharField(db_column='DESCRIPTION', max_length=400, blank=True, null=True)  # Field name made lowercase.
 
     class Meta:
         managed = False
@@ -531,10 +639,10 @@ class BpmCommonWsParams(models.Model):
 
 
 class BpmCommonWsSet(models.Model):
-    id = models.BigIntegerField(db_column='ID', primary_key=True)  
-    alias = models.CharField(db_column='ALIAS', max_length=200)  
-    wsdl_url = models.CharField(db_column='WSDL_URL', max_length=400, blank=True, null=True)  
-    document = models.TextField(db_column='DOCUMENT', blank=True, null=True)  
+    id = models.BigIntegerField(db_column='ID', primary_key=True)  # Field name made lowercase.
+    alias = models.CharField(db_column='ALIAS', max_length=200)  # Field name made lowercase.
+    wsdl_url = models.CharField(db_column='WSDL_URL', max_length=400, blank=True, null=True)  # Field name made lowercase.
+    document = models.TextField(db_column='DOCUMENT', blank=True, null=True)  # Field name made lowercase.
 
     class Meta:
         managed = False
@@ -542,15 +650,15 @@ class BpmCommonWsSet(models.Model):
 
 
 class BpmCommuReceiver(models.Model):
-    id = models.BigIntegerField(db_column='ID', primary_key=True)  
-    opinionid = models.BigIntegerField(db_column='OPINIONID', blank=True, null=True)
-    recevierid = models.BigIntegerField(db_column='RECEVIERID', blank=True, null=True)
-    receivername = models.CharField(db_column='RECEIVERNAME', max_length=100, blank=True, null=True)
-    status = models.SmallIntegerField(db_column='STATUS', blank=True, null=True)
-    receivetime = models.DateTimeField(db_column='RECEIVETIME')
-    createtime = models.DateTimeField(db_column='CREATETIME')
-    feedbacktime = models.DateTimeField(db_column='FEEDBACKTIME')
-    taskid = models.BigIntegerField(db_column='TASKID', blank=True, null=True)
+    id = models.BigIntegerField(db_column='ID', primary_key=True)  # Field name made lowercase.
+    opinionid = models.BigIntegerField(db_column='OPINIONID', blank=True, null=True)  # Field name made lowercase.
+    recevierid = models.BigIntegerField(db_column='RECEVIERID', blank=True, null=True)  # Field name made lowercase.
+    receivername = models.CharField(db_column='RECEIVERNAME', max_length=100, blank=True, null=True)  # Field name made lowercase.
+    status = models.SmallIntegerField(db_column='STATUS', blank=True, null=True)  # Field name made lowercase.
+    receivetime = models.DateTimeField(db_column='RECEIVETIME')  # Field name made lowercase.
+    createtime = models.DateTimeField(db_column='CREATETIME')  # Field name made lowercase.
+    feedbacktime = models.DateTimeField(db_column='FEEDBACKTIME')  # Field name made lowercase.
+    taskid = models.BigIntegerField(db_column='TASKID', blank=True, null=True)  # Field name made lowercase.
 
     class Meta:
         managed = False
@@ -558,33 +666,45 @@ class BpmCommuReceiver(models.Model):
 
 
 class BpmDataTemplate(models.Model):
-    id = models.BigIntegerField(db_column='ID', primary_key=True)
-    tableid = models.BigIntegerField(db_column='TABLEID', blank=True, null=True)
-    formkey = models.BigIntegerField(db_column='FORMKEY', blank=True, null=True)
-    name = models.CharField(db_column='NAME', max_length=300, blank=True, null=True)
-    alias = models.CharField(db_column='ALIAS', max_length=50, blank=True, null=True)
-    style = models.SmallIntegerField(db_column='STYLE', blank=True, null=True)
-    needpage = models.SmallIntegerField(db_column='NEEDPAGE', blank=True, null=True)
-    pagesize = models.SmallIntegerField(db_column='PAGESIZE', blank=True, null=True)
-    templatealias = models.CharField(db_column='TEMPLATEALIAS', max_length=50, blank=True, null=True)
-    templatehtml = models.TextField(db_column='TEMPLATEHTML', blank=True, null=True)
-    displayfield = models.TextField(db_column='DISPLAYFIELD', blank=True, null=True)
-    sortfield = models.CharField(db_column='SORTFIELD', max_length=200, blank=True, null=True)
-    conditionfield = models.TextField(db_column='CONDITIONFIELD', blank=True, null=True)
-    managefield = models.CharField(db_column='MANAGEFIELD', max_length=2000, blank=True, null=True)
-    filterfield = models.TextField(db_column='FILTERFIELD', blank=True, null=True)
-    varfield = models.CharField(db_column='VARFIELD', max_length=200, blank=True, null=True)
-    filtertype = models.SmallIntegerField(db_column='FILTERTYPE', blank=True, null=True)
-    source = models.SmallIntegerField(db_column='SOURCE', blank=True, null=True)
-    defid = models.BigIntegerField(db_column='DEFID', blank=True, null=True)
-    isquery = models.SmallIntegerField(db_column='ISQUERY', blank=True, null=True)
-    isfilter = models.IntegerField(db_column='ISFILTER', blank=True, null=True)
-    printfield = models.TextField(db_column='PRINTFIELD', blank=True, null=True)
-    exportfield = models.TextField(db_column='EXPORTFIELD', blank=True, null=True)
+    id = models.BigIntegerField(db_column='ID', primary_key=True)  # Field name made lowercase.
+    tableid = models.BigIntegerField(db_column='TABLEID', blank=True, null=True)  # Field name made lowercase.
+    formkey = models.BigIntegerField(db_column='FORMKEY', blank=True, null=True)  # Field name made lowercase.
+    name = models.CharField(db_column='NAME', max_length=300, blank=True, null=True)  # Field name made lowercase.
+    alias = models.CharField(db_column='ALIAS', max_length=50, blank=True, null=True)  # Field name made lowercase.
+    style = models.SmallIntegerField(db_column='STYLE', blank=True, null=True)  # Field name made lowercase.
+    needpage = models.SmallIntegerField(db_column='NEEDPAGE', blank=True, null=True)  # Field name made lowercase.
+    pagesize = models.SmallIntegerField(db_column='PAGESIZE', blank=True, null=True)  # Field name made lowercase.
+    templatealias = models.CharField(db_column='TEMPLATEALIAS', max_length=50, blank=True, null=True)  # Field name made lowercase.
+    templatehtml = models.TextField(db_column='TEMPLATEHTML', blank=True, null=True)  # Field name made lowercase.
+    displayfield = models.TextField(db_column='DISPLAYFIELD', blank=True, null=True)  # Field name made lowercase.
+    sortfield = models.CharField(db_column='SORTFIELD', max_length=200, blank=True, null=True)  # Field name made lowercase.
+    conditionfield = models.TextField(db_column='CONDITIONFIELD', blank=True, null=True)  # Field name made lowercase.
+    managefield = models.CharField(db_column='MANAGEFIELD', max_length=2000, blank=True, null=True)  # Field name made lowercase.
+    filterfield = models.TextField(db_column='FILTERFIELD', blank=True, null=True)  # Field name made lowercase.
+    varfield = models.CharField(db_column='VARFIELD', max_length=200, blank=True, null=True)  # Field name made lowercase.
+    filtertype = models.SmallIntegerField(db_column='FILTERTYPE', blank=True, null=True)  # Field name made lowercase.
+    source = models.SmallIntegerField(db_column='SOURCE', blank=True, null=True)  # Field name made lowercase.
+    defid = models.BigIntegerField(db_column='DEFID', blank=True, null=True)  # Field name made lowercase.
+    isquery = models.SmallIntegerField(db_column='ISQUERY', blank=True, null=True)  # Field name made lowercase.
+    isfilter = models.IntegerField(db_column='ISFILTER', blank=True, null=True)  # Field name made lowercase.
+    printfield = models.TextField(db_column='PRINTFIELD', blank=True, null=True)  # Field name made lowercase.
+    exportfield = models.TextField(db_column='EXPORTFIELD', blank=True, null=True)  # Field name made lowercase.
 
     class Meta:
         managed = False
         db_table = 'BPM_DATA_TEMPLATE'
+
+
+class BpmDefAct(models.Model):
+    id = models.BigIntegerField(db_column='ID', primary_key=True)  # Field name made lowercase.
+    authorize_id = models.BigIntegerField(db_column='AUTHORIZE_ID')  # Field name made lowercase.
+    def_key = models.CharField(db_column='DEF_KEY', max_length=100)  # Field name made lowercase.
+    def_name = models.CharField(db_column='DEF_NAME', max_length=200, blank=True, null=True)  # Field name made lowercase.
+    right_content = models.CharField(db_column='RIGHT_CONTENT', max_length=400, blank=True, null=True)  # Field name made lowercase.
+
+    class Meta:
+        managed = False
+        db_table = 'BPM_DEF_ACT'
 
 
 class BpmDefinition(models.Model):
@@ -632,18 +752,6 @@ class BpmDefinition(models.Model):
     class Meta:
         managed = False
         db_table = 'BPM_DEFINITION'
-
-
-class BpmDefAct(models.Model):
-    id = models.BigIntegerField(db_column='ID', primary_key=True)  
-    authorize_id = models.BigIntegerField(db_column='AUTHORIZE_ID')  
-    def_key = models.CharField(db_column='DEF_KEY', max_length=100)  
-    def_name = models.CharField(db_column='DEF_NAME', max_length=200, blank=True, null=True)  
-    right_content = models.CharField(db_column='RIGHT_CONTENT', max_length=400, blank=True, null=True)  
-
-    class Meta:
-        managed = False
-        db_table = 'BPM_DEF_ACT'
 
 
 class BpmDefAuthorize(models.Model):
@@ -1591,6 +1699,24 @@ class BusQueryShare(models.Model):
         db_table = 'BUS_QUERY_SHARE'
 
 
+class JobSeeker(models.Model):
+    id = models.BigIntegerField(db_column='ID', primary_key=True)  # Field name made lowercase.
+    job_seeker_code = models.CharField(max_length=50, blank=True, null=True)
+    name = models.CharField(max_length=100, blank=True, null=True)
+    sex = models.CharField(max_length=2000, blank=True, null=True)
+    birthday = models.DateTimeField()
+    private_mail_address = models.CharField(max_length=100, blank=True, null=True)
+    resume = models.CharField(max_length=2000, blank=True, null=True)
+    private_tel_number = models.CharField(max_length=100, blank=True, null=True)
+    source_of_info = models.CharField(max_length=100, blank=True, null=True)
+    introducer_name = models.CharField(max_length=100, blank=True, null=True)
+    introducer_nameid = models.CharField(db_column='introducer_nameID', max_length=100, blank=True, null=True)  # Field name made lowercase.
+
+    class Meta:
+        managed = False
+        db_table = 'job_seeker'
+
+
 class MailCodeMap(models.Model):
     mail = models.CharField(max_length=2000)
     code = models.IntegerField()
@@ -1910,6 +2036,23 @@ class RepMsgLocale(models.Model):
     class Meta:
         managed = False
         db_table = 'REP_MSG_LOCALE'
+
+
+class Salaryidmst(models.Model):
+    id = models.BigIntegerField(db_column='ID', primary_key=True)  # Field name made lowercase.
+    emcode = models.CharField(max_length=100, blank=True, null=True)
+    salaryid = models.DecimalField(max_digits=13, decimal_places=0, blank=True, null=True, verbose_name=u"給料王ＩＤ")
+    employee_name = models.CharField(db_column='employee', max_length=2000, verbose_name=u"社員名前")
+    employeeid = models.CharField(db_column='employeeID', max_length=2000, verbose_name=u"ユーザＩＤ",
+                                  help_text=u"SYS_USERテーブルの主キー")  # Field name made lowercase.
+
+    class Meta:
+        managed = False
+        db_table = 'salaryidmst'
+        verbose_name = verbose_name_plural = u"給料王ＩＤ紐付き"
+
+    def __unicode__(self):
+        return u"%s(%s)" % (self.employee_name, self.salaryid)
 
 
 class SysAcceptIp(models.Model):
@@ -3008,65 +3151,6 @@ class SysWorktimeSetting(models.Model):
         db_table = 'SYS_WORKTIME_SETTING'
 
 
-class SysWsDataTemplate(models.Model):
-    id = models.BigIntegerField(db_column='ID', primary_key=True)  
-    name = models.CharField(db_column='NAME', max_length=500, blank=True, null=True)  
-    serviceid = models.BigIntegerField(db_column='SERVICEID', blank=True, null=True)  
-    template = models.TextField(db_column='TEMPLATE', blank=True, null=True)  
-    script = models.TextField(db_column='SCRIPT', blank=True, null=True)  
-
-    class Meta:
-        managed = False
-        db_table = 'SYS_WS_DATA_TEMPLATE'
-
-
-class ApplyCompaign(models.Model):
-    id = models.BigIntegerField(db_column='ID', primary_key=True)  
-    apply_no = models.CharField(max_length=50, blank=True, null=True)
-    apply_person = models.CharField(max_length=2000, blank=True, null=True)
-    apply_personid = models.CharField(db_column='apply_personID', max_length=2000, blank=True, null=True)  
-    apply_date = models.DateTimeField()
-    mobile = models.CharField(max_length=50, blank=True, null=True)
-    email = models.CharField(max_length=100, blank=True, null=True)
-    zbbm = models.CharField(max_length=100, blank=True, null=True)
-    bmz = models.CharField(max_length=100, blank=True, null=True)
-    hdzt = models.CharField(max_length=200, blank=True, null=True)
-    hdmd = models.CharField(max_length=2000, blank=True, null=True)
-    hdfw = models.CharField(max_length=2000, blank=True, null=True)
-    sysh = models.CharField(max_length=2000, blank=True, null=True)
-    start_date = models.DateTimeField()
-    end_date = models.DateTimeField()
-    hdxg = models.CharField(max_length=2000, blank=True, null=True)
-    total_amount = models.DecimalField(max_digits=15, decimal_places=2, blank=True, null=True)
-    hdnr = models.CharField(max_length=2000, blank=True, null=True)
-
-    class Meta:
-        managed = False
-        db_table = 'apply_compaign'
-
-
-class ApplyForm(models.Model):
-    id = models.BigIntegerField(db_column='ID', primary_key=True)  
-    yxj = models.CharField(max_length=200, blank=True, null=True)
-    zmszl = models.CharField(max_length=200, blank=True, null=True)
-    zdss = models.CharField(max_length=200, blank=True, null=True)
-    dxnd = models.CharField(max_length=200, blank=True, null=True)
-    byms = models.DecimalField(max_digits=13, decimal_places=0, blank=True, null=True)
-    fxxwsq = models.DateTimeField()
-    zmstcx = models.CharField(max_length=200, blank=True, null=True)
-    symd = models.CharField(max_length=200, blank=True, null=True)
-    sfff = models.CharField(max_length=200, blank=True, null=True)
-    zdsstf = models.CharField(max_length=200, blank=True, null=True)
-    bk = models.CharField(max_length=200, blank=True, null=True)
-    sqz = models.CharField(max_length=200, blank=True, null=True)
-    sqzid = models.CharField(db_column='sqzID', max_length=20, blank=True, null=True)  
-    zdssexcel = models.CharField(db_column='zdssExcel', max_length=200, blank=True, null=True)  
-
-    class Meta:
-        managed = False
-        db_table = 'apply_form'
-
-
 class CompaignDepts(models.Model):
     id = models.BigIntegerField(db_column='ID', primary_key=True)  
     dept = models.CharField(max_length=2000, blank=True, null=True)
@@ -3208,7 +3292,7 @@ class EbAttendance(models.Model):
             return None
         user_id = self.applicant.userid
         try:
-            return eb_models.Member.objects.get(eboa_user_id=user_id)
+            return None # eb_models.Member.objects.get(eboa_user_id=user_id)
         except ObjectDoesNotExist:
             return None
         except MultipleObjectsReturned:
@@ -3398,7 +3482,7 @@ class EbEmpAddrUpdate(models.Model):
 class EbEmpContract(models.Model):
     id = models.BigIntegerField(db_column='ID', primary_key=True)  
     code = models.CharField(max_length=2000, blank=True, null=True)
-    codeid = models.CharField(db_column='codeID', max_length=2000, blank=True, null=True)  
+    codeid = models.CharField(db_column='codeID', max_length=2000, blank=True, null=True)
     contract_date = models.DateTimeField(db_column='CONTRACT_DATE')  
     contract_no = models.CharField(db_column='CONTRACT_NO', max_length=100, blank=True, null=True)  
     employer_type = models.CharField(db_column='EMPLOYER_TYPE', max_length=100, blank=True, null=True)  
@@ -3425,7 +3509,9 @@ class EbEmpContract(models.Model):
     pay_commute_memo = models.CharField(db_column='PAY_COMMUTE_MEMO', max_length=1000, blank=True, null=True)  
     pay_overtime = models.CharField(db_column='PAY_OVERTIME', max_length=100, blank=True, null=True)  
     pay_absence = models.CharField(db_column='PAY_ABSENCE', max_length=100, blank=True, null=True)  
-    endowment_insurance = models.CharField(db_column='ENDOWMENT_INSURANCE', max_length=100, blank=True, null=True)  
+    endowment_insurance = models.CharField(db_column='ENDOWMENT_INSURANCE', max_length=100, blank=True, null=True,
+                                           verbose_name=u"社会保険加入有無",
+                                           help_text=u"1:加入しない、2:加入する")
     allowance_date = models.CharField(db_column='ALLOWANCE_DATE', max_length=1000, blank=True, null=True)  
     allowance_change = models.CharField(db_column='ALLOWANCE_CHANGE', max_length=1000, blank=True, null=True)  
     bonus = models.CharField(db_column='BONUS', max_length=1000, blank=True, null=True)  
@@ -3439,6 +3525,8 @@ class EbEmpContract(models.Model):
     class Meta:
         managed = False
         db_table = 'eb_emp_contract'
+        ordering = ['code', 'employment_date']
+        verbose_name = verbose_name_plural = u"社員契約情報"
 
 
 class EbEmpEducation(models.Model):
@@ -3517,13 +3605,13 @@ class EbEmpQulification(models.Model):
 
 
 class EbEmployee(models.Model):
-    id = models.BigIntegerField(db_column='ID', primary_key=True)  
+    id = models.BigIntegerField(db_column='ID', primary_key=True)  # Field name made lowercase.
     code = models.CharField(max_length=50, blank=True, null=True)
     name = models.CharField(max_length=100, blank=True, null=True)
     residence_name = models.CharField(max_length=50, blank=True, null=True)
     residence_name_kana = models.CharField(max_length=100, blank=True, null=True)
     passport_name = models.CharField(max_length=100, blank=True, null=True)
-    birthday = models.DateTimeField()
+    birthday = models.CharField(max_length=50, blank=True, null=True)
     sex = models.CharField(max_length=200, blank=True, null=True)
     marriage = models.CharField(max_length=200, blank=True, null=True)
     address_flag = models.CharField(max_length=1, blank=True, null=True)
@@ -3547,7 +3635,7 @@ class EbEmployee(models.Model):
     business_mail_addr = models.CharField(max_length=100, blank=True, null=True)
     employment_type = models.CharField(max_length=100, blank=True, null=True)
     id_number = models.CharField(max_length=50, blank=True, null=True)
-    id_card_expired_date = models.DateTimeField()
+    id_card_expired_date = models.DateTimeField(blank=True, null=True)
     residence_type = models.CharField(max_length=100, blank=True, null=True)
     account_id = models.CharField(max_length=50)
     contract_file = models.CharField(max_length=2000, blank=True, null=True)
@@ -3560,21 +3648,26 @@ class EbEmployee(models.Model):
     blood_type = models.CharField(max_length=2, blank=True, null=True)
     business_tel_number = models.CharField(max_length=13, blank=True, null=True)
     pay_bank = models.CharField(max_length=10, blank=True, null=True)
-    pay_branch = models.CharField(max_length=10, blank=True, null=True)
+    pay_branch = models.CharField(max_length=50, blank=True, null=True)
     pay_account = models.CharField(max_length=100, blank=True, null=True)
     pay_owner = models.CharField(max_length=50, blank=True, null=True)
     pay_owner_kana = models.CharField(max_length=50, blank=True, null=True)
     retire_date = models.DateTimeField(blank=True, null=True)
     emergency_contact = models.CharField(max_length=50, blank=True, null=True)
     status = models.CharField(max_length=2000, blank=True, null=True)
-    emp_insurance_no = models.CharField(max_length=20, blank=True, null=True)
+    emp_insurance_no = models.CharField(max_length=50, blank=True, null=True)
     emp_welfare_num = models.CharField(max_length=20, blank=True, null=True)
     retire_pref_date = models.CharField(max_length=50, blank=True, null=True)
     retire_reason = models.CharField(max_length=1000, blank=True, null=True)
     eb_motherland = models.CharField(max_length=10, blank=True, null=True)
     eb_motherland_addr = models.CharField(max_length=100, blank=True, null=True)
     eb_motherland_ctct = models.CharField(max_length=20, blank=True, null=True)
-    contractid = models.CharField(db_column='contractID', max_length=50, blank=True, null=True)  
+    contractid = models.CharField(db_column='contractID', max_length=50, blank=True, null=True)  # Field name made lowercase.
+    visa_start_date = models.DateTimeField(blank=True, null=True)
+    visa_expire_date = models.DateTimeField(blank=True, null=True)
+    pay_branch_code = models.CharField(max_length=50, blank=True, null=True)
+    pay_bank_code = models.CharField(max_length=50, blank=True, null=True)
+    employee_status = models.CharField(max_length=200)
 
     objects = EboaManager()
 
@@ -4020,14 +4113,41 @@ class SchemaVersion(models.Model):
         db_table = 'schema_version'
 
 
+class SysWsDataTemplate(models.Model):
+    id = models.BigIntegerField(db_column='ID', primary_key=True)  # Field name made lowercase.
+    name = models.CharField(db_column='NAME', max_length=500, blank=True, null=True)  # Field name made lowercase.
+    serviceid = models.BigIntegerField(db_column='SERVICEID', blank=True, null=True)  # Field name made lowercase.
+    template = models.TextField(db_column='TEMPLATE', blank=True, null=True)  # Field name made lowercase.
+    script = models.TextField(db_column='SCRIPT', blank=True, null=True)  # Field name made lowercase.
+
+    class Meta:
+        managed = False
+        db_table = 'SYS_WS_DATA_TEMPLATE'
+
+
 class Test001(models.Model):
-    id = models.BigIntegerField(db_column='ID', primary_key=True)  
+    id = models.BigIntegerField(db_column='ID', primary_key=True)  # Field name made lowercase.
     test = models.CharField(max_length=50, blank=True, null=True)
     file1 = models.CharField(max_length=200, blank=True, null=True)
     file2 = models.CharField(max_length=200, blank=True, null=True)
     remarks = models.CharField(max_length=100, blank=True, null=True)
     xxxx = models.CharField(max_length=2000, blank=True, null=True)
+    test111 = models.CharField(max_length=50, blank=True, null=True)
 
     class Meta:
         managed = False
         db_table = 'test001'
+
+
+class VisaApplicaton(models.Model):
+    id = models.BigIntegerField(db_column='ID', primary_key=True)  # Field name made lowercase.
+    employee = models.CharField(max_length=2000, blank=True, null=True)
+    employeeid = models.CharField(db_column='employeeID', max_length=2000, blank=True, null=True)  # Field name made lowercase.
+    publisher = models.CharField(max_length=50, blank=True, null=True)
+    visa_type = models.CharField(max_length=2000, blank=True, null=True)
+    work_years = models.DecimalField(max_digits=3, decimal_places=1, blank=True, null=True)
+    reason = models.CharField(max_length=200, blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'visa_applicaton'

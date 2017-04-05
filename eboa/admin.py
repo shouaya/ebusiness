@@ -65,6 +65,12 @@ class EbEmployeeAdmin(BaseEboaAdmin):
     get_sections_name.short_description = u"所属"
 
 
+class EbEmpContractAdmin(BaseEboaAdmin):
+    list_display = ['id', 'code', 'codeid', 'employer_type', 'employment_date', 'employment_period_en']
+    list_display_links = ['code']
+    search_fields = ['code']
+
+
 class EbHolidayAdmin(BaseEboaAdmin):
     list_display = ['id', 'holiday', 'memo', 'maker', 'maker_id']
 
@@ -76,6 +82,12 @@ class HolidaysApplicationAdmin(BaseEboaAdmin):
 class PaidHolidaysAdmin(BaseEboaAdmin):
     list_display = ['id', 'employee_name', 'years', 'days', 'used']
     search_fields = ['employee__userid', 'employee_name', 'year']
+
+
+class SalaryidmstAdmin(BaseEboaAdmin):
+    list_display = ['id', 'salaryid', 'employee_name', 'employeeid']
+    list_display_links = ['employee_name']
+    search_fields = ['employee_name', 'salaryid']
 
 
 class SysOrgAdmin(BaseEboaAdmin):
@@ -105,8 +117,10 @@ class EboaAdminSite(admin.AdminSite):
 eboa_admin_site = EboaAdminSite(name='eboa_admin')
 eboa_admin_site.register(models.EbAttendance, EbAttendanceAdmin)
 eboa_admin_site.register(models.EbEmployee, EbEmployeeAdmin)
+eboa_admin_site.register(models.EbEmpContract, EbEmpContractAdmin)
 eboa_admin_site.register(models.EbHoliday, EbHolidayAdmin)
 eboa_admin_site.register(models.HolidaysApplication, HolidaysApplicationAdmin)
 eboa_admin_site.register(models.PaidHolidays, PaidHolidaysAdmin)
+eboa_admin_site.register(models.Salaryidmst, SalaryidmstAdmin)
 eboa_admin_site.register(models.SysOrg, SysOrgAdmin)
 eboa_admin_site.register(models.SysUser, SysUserAdmin)

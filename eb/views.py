@@ -726,6 +726,8 @@ def section_attendance(request, section_id):
     today = datetime.date.today()
     year = request.GET.get('year', today.year)
     month = request.GET.get('month', today.month)
+    prev_month = common.add_months(datetime.date(int(year), int(month), 1), -1)
+    next_month = common.add_months(datetime.date(int(year), int(month), 1), 1)
 
     param_list = common.get_request_params(request.GET)
     params = "&".join(["%s=%s" % (key, value) for key, value in param_list.items()]) if param_list else ""
@@ -766,7 +768,9 @@ def section_attendance(request, section_id):
         'params': "&" + params if params else "",
         'year': year,
         'month': month,
-        'has_error': True if messages else False
+        'prev_month': prev_month,
+        'next_month': next_month,
+        'has_error': True if messages else False,
     })
     context.update(csrf(request))
 

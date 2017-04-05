@@ -108,7 +108,7 @@
             <div style="color: gray;">既に請求書作成済みの出勤情報は上書きしません。</div>
             <input type="file" id="attendance_file" name="attendance_file"/>
             <input type="submit" value="勤怠情報アップロード">
-            <div class="example">
+            <div class="example" style="float: right;">
                 <span>凡例:</span>
                 <div class="lump_project">【一括】一括案件</div>
                 <div class="project_requested">請求書作成済</div>
@@ -116,8 +116,12 @@
                 <div class="prev_month_data" style="padding: 0px 2px;">先月のデータ</div>
             </div>
             <div class="clear"></div>
-            <a href="{% url 'download_section_attendance' section.pk year month %}" target="_blank" style="margin-top: -40px;" class="button">ダウンロード</a>
         </form>
+        <div class="dashboard-tail">
+            <a href="?year={{ prev_month|date:'Y' }}&month={{ prev_month|date:'m' }}"><i class="fa fa-angle-double-left" aria-hidden="true"></i> 先月</a>
+            <a href="?year={{ next_month|date:'Y' }}&month={{ next_month|date:'m' }}">来月 <i class="fa fa-angle-double-right" aria-hidden="true"></i></a>
+            <a href="{% url 'download_section_attendance' section.pk year month %}" target="_blank"><i class="fa fa-download" aria-hidden="true"></i> ダウンロード</a>
+        </div>
     </div>
     {% if has_error %}
         <div class="error">
@@ -129,28 +133,36 @@
             <thead>
                 <tr>
                     <th class="bk01" rowspan="2" style="width: 30px;">No</th>
-                    <th class="bk01" colspan="5">基本データ</th>
+                    <th class="bk01" colspan="6">基本データ</th>
                     <th class="bk02" colspan="3">案件情報</th>
                     <th class="bk03" colspan="6">勤務情報</th>
-                    <th class="bk04" rowspan="2">売上</th>
+                    <th class="bk04" colspan="3">売上</th>
                     <th class="bk05" colspan="8">原価</th>
                     <th class="bk06" rowspan="2">利益</th>
                 </tr>
                 <tr>
+                    <!--基本データ-->
                     <th class="bk01" style="width: 50px;">{% create_order_display "社員番号" "member__employee_id" %}</th>
                     <th class="bk01" style="width: 50px;">{% create_order_display "名前" "member__first_name" %}</th>
                     <th class="bk01" style="width: 50px;">所在部署</th>
                     <th class="bk01" style="width: 50px;">{% create_order_display "所属" "member__subcontractor__name" %}</th>
+                    <th class="bk01">社会保険<br/>加入有無</th>
                     <th class="bk01" style="width: 50px;">{% create_order_display "契約形態" "member__member_type" %}</th>
+                    <!--案件情報-->
                     <th class="bk02" style="width: 50px;">{% create_order_display "案件名" "project__name" %}</th>
                     <th class="bk02" style="width: 50px;">{% create_order_display "顧客" "project__client__name" %}</th>
                     <th class="bk02" style="width: 50px;">契約種類</th>
+                    <!--勤務情報-->
                     <th class="bk03" style="width: 50px;">勤務時間</th>
                     <th class="bk03" style="width: 50px;">勤務日数</th>
                     <th class="bk03" style="width: 50px;">深夜日数</th>
                     <th class="bk03" style="width: 50px;">客先立替金</th>
                     <th class="bk03" style="width: 50px;">立替金</th>
                     <th class="bk03" style="width: 50px;">勤務交通費</th>
+                    <!--売上-->
+                    <th class="bk04">税込</th>
+                    <th class="bk04">税別</th>
+                    <th class="bk04">経費</th>
                     <th class="bk05" style="width: 50px;">月給</th>
                     <th class="bk05" style="width: 50px;">ボーナス</th>
                     <th class="bk05" style="width: 50px;">手当</th>
@@ -166,6 +178,7 @@
                     {% for project_member, msg in project_members %}
                         <tr>
                             <td style="text-align:center;">{{ forloop.counter }}</td>
+                            <!--基本データ-->
                             <td>{{ project_member.member.employee_id }}</td>
                             <td>
                                 <a href="{% url 'member_detail' project_member.member.employee_id %}">
@@ -182,7 +195,9 @@
                                 {% endif %}
                                 </div>
                             </td>
+                            <td></td>
                             <td>{{ project_member.member.get_member_type_display }}</td>
+                            <!--案件情報-->
                             <td title="{{ project_member.project }}"
                                 {% if project_member.project.is_lump %}class="lump_project"{% endif %}>
                                 <div style="width: 160px; overflow: hidden; white-space: nowrap;">
@@ -225,10 +240,16 @@
                                         {% endif %}
                                     {% endif %}
                                     {% if project_request_detail %}
+                                        <!--売上-->
                                         <td class="num project_requested">{{ project_request_detail.get_all_price|intcomma }}</td>
+                                        <td class="num project_requested">{{ project_request_detail.total_price|intcomma }}</td>
+                                        <td class="num project_requested"></td>
                                         <td class="num">{{ project_member.member.cost|intcomma }}</td>
                                         <td class="num">{{ project_member.member.get_bonus|intcomma }}</td>
                                     {% else %}
+                                        <!--売上-->
+                                        <td class="num"></td>
+                                        <td class="num"></td>
                                         <td class="num"></td>
                                         <td class="num"></td>
                                         <td class="num"></td>
@@ -251,7 +272,7 @@
             </tbody>
             <tfoot>
                 <tr>
-                    <td colspan="25">
+                    <td colspan="28">
                         {{ project_members|length }} 件
                     </td>
                 </tr>

@@ -267,20 +267,28 @@ def load_section_attendance(file_content, year, month, use_id):
         project_member_id = values[constants.POS_ATTENDANCE_COL_PROJECT_MEMBER_ID]
         # 社員番号
         member_code = values[constants.POS_ATTENDANCE_COL_MEMBER_CODE]
+        member_code = member_code if member_code else  None
         # 氏名
         member_name = values[constants.POS_ATTENDANCE_COL_MEMBER_NAME]
+        member_name = member_name if member_name else  None
         # 勤務時間
         total_hours = values[constants.POS_ATTENDANCE_COL_TOTAL_HOURS]
+        total_hours = total_hours if total_hours else  None
         # 勤務日数
         total_days = values[constants.POS_ATTENDANCE_COL_TOTAL_DAYS]
+        total_days = total_days if total_days else  None
         # 深夜日数
         night_days = values[constants.POS_ATTENDANCE_COL_NIGHT_DAYS]
+        night_days = night_days if night_days else  None
         # 客先立替金
         advances_paid_client = values[constants.POS_ATTENDANCE_COL_ADVANCES_PAID_CLIENT]
+        advances_paid_client = advances_paid_client if advances_paid_client else None
         # 立替金
         advances_paid = values[constants.POS_ATTENDANCE_COL_ADVANCES_PAID]
+        advances_paid = advances_paid if advances_paid else None
         # 勤務交通費
         traffic_cost = values[constants.POS_ATTENDANCE_COL_TRAFFIC_COST]
+        traffic_cost = traffic_cost if traffic_cost else None
 
         if not project_member_id:
             messages.append((project_member_id, member_code, member_name, u"ID情報が取れません。"))
@@ -370,6 +378,7 @@ def load_section_attendance(file_content, year, month, use_id):
             common.get_object_changed_message(attendance, 'advances_paid_client', advances_paid_client, changed_list)
             common.get_object_changed_message(attendance, 'traffic_cost', traffic_cost, changed_list)
             change_message = (get_text_list(changed_list, _('and')) if changed_list else '') + _('Added.')
+
         attendance.save()
         if change_message:
             LogEntry.objects.log_action(user_id=use_id,

@@ -27,6 +27,7 @@ from django.core.mail.message import MIMEBase
 from django.conf import settings
 
 
+from eboa import models as oa_models
 from utils import common, constants
 
 
@@ -109,6 +110,9 @@ class AbstractMember(models.Model):
             elif self.private_email:
                 return [self.private_email]
         return []
+
+    def get_contract(self):
+        oa_user = oa_models.Salaryidmst.objects.filter(salaryid=self.employee_id)
 
 
 class PublicManager(models.Manager):
