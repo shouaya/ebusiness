@@ -237,6 +237,7 @@
                                     <td class="num {% if project_request_detail %}project_requested{% endif %}">{{ attendance.night_days|default:'' }}</td>
                                     <td class="num {% if project_request_detail %}project_requested{% endif %}">{{ attendance.advances_paid_client|default:''|intcomma }}</td>
                                     <td class="num {% if project_request_detail %}project_requested{% endif %}">{{ attendance.advances_paid|default:''|intcomma }}</td>
+                                    <!--交通費-->
                                     {% if attendance.traffic_cost %}
                                         <td class="num {% if project_request_detail %}project_requested{% endif %}">{{ attendance.traffic_cost|default:''|intcomma }}</td>
                                     {% else %}
@@ -265,11 +266,12 @@
                                             {% endif %}
                                         {% endif %}
                                         <td></td>
-                                        <td></td>
+                                        <!--交通費-->
+                                        <td class="num">{{ attendance.traffic_cost|default:''|intcomma }}</td>
                                         <td class="num">{{ attendance.get_employment_insurance|default:''|floatformat:1|intcomma }}</td>
                                         <td class="num">{{ attendance.get_health_insurance|default:''|floatformat:1|intcomma }}</td>
                                         <td></td>
-                                        <td class="num">{{ attendance.get_profits|floatformat:1|intcomma }}</td>
+                                        <td class="num {% if attendance.get_profits < 0 %}red{% endif %}">{{ attendance.get_profits|floatformat:1|intcomma }}</td>
                                     {% else %}
                                         <!--売上-->
                                         <td class="num"></td>

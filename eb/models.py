@@ -829,7 +829,8 @@ class Member(AbstractMember):
             return int(self.cost) if self.cost else 0
         contract = self.get_latest_contract(date)
         if contract:
-            return int(contract.cost) if contract.cost else 0
+            traffic_cost = int(contract.pay_commute if contract.pay_commute else 0)
+            return (int(contract.cost) - traffic_cost) if contract.cost else 0
         else:
             return 0
 
@@ -884,7 +885,8 @@ class Contract(models.Model):
     pay_safety = models.DecimalField(db_column='PAY_SAFETY', max_digits=13, decimal_places=0, blank=True, null=True)
     pay_qual = models.DecimalField(db_column='PAY_QUAL', max_digits=13, decimal_places=0, blank=True, null=True)
     pay_qual_memo = models.CharField(db_column='PAY_QUAL_MEMO', max_length=1000, blank=True, null=True)
-    pay_commute = models.DecimalField(db_column='PAY_COMMUTE', max_digits=13, decimal_places=0, blank=True, null=True)
+    pay_commute = models.DecimalField(db_column='PAY_COMMUTE', max_digits=13, decimal_places=0, blank=True, null=True,
+                                      verbose_name=u"交通費")
     pay_commute_memo = models.CharField(db_column='PAY_COMMUTE_MEMO', max_length=1000, blank=True, null=True)
     pay_overtime = models.CharField(db_column='PAY_OVERTIME', max_length=100, blank=True, null=True)
     pay_absence = models.CharField(db_column='PAY_ABSENCE', max_length=100, blank=True, null=True)
@@ -2045,7 +2047,8 @@ class MemberAttendance(models.Model):
             cost = float(self.get_cost())
             bonus = float(self.get_bonus())
             allowance = float(self.allowance) if self.allowance else 0
-            return (cost + bonus + allowance) * 0.02
+            traffic_cost = float(self.traffic_cost) if self.traffic_cost else 0
+            return (cost + bonus + allowance + traffic_cost) * 0.02
         else:
             return 0
 
@@ -2060,7 +2063,8 @@ class MemberAttendance(models.Model):
             cost = float(self.get_cost())
             bonus = float(self.get_bonus())
             allowance = float(self.allowance) if self.allowance else 0
-            return (cost + bonus + allowance) * 0.14
+            traffic_cost = float(self.traffic_cost) if self.traffic_cost else 0
+            return (cost + bonus + allowance + traffic_cost) * 0.14
         else:
             return 0
 
@@ -2077,6 +2081,7 @@ class MemberAttendance(models.Model):
             all_price = request_detail.get_all_price()
             minus = sum((self.get_cost(),
                          self.get_bonus(),
+                         int(self.traffic_cost) if self.traffic_cost else 0,
                          allowance,
                          self.get_employment_insurance(),
                          self.get_health_insurance()))
