@@ -39,10 +39,13 @@ download_patterns = [
     url(r'^project_quotation/(?P<project_id>[0-9]+).html$', views.download_project_quotation,
         name='download_project_quotation'),
     url(r'^resume/(?P<member_id>[0-9]+).html$', views.download_resume, name='download_resume'),
-    url(r'^attendance_list/(?P<year>[0-9]{4})/(?P<month>[0-9]{2}).html$', eboa_views.download_attendance_list,
+    url(r'^attendance_list/(?P<year>[0-9]{4})/(?P<month>[0-9]{2}).html$',
+        eboa_views.download_attendance_list,
         name='download_attendance_list'),
-    url(r'^section/(?P<section_id>[0-9]+)/attendance/(?P<year>[0-9]{4})/(?P<month>[0-9]{2}).html$', views.download_section_attendance,
+    url(r'^section/(?P<section_id>[0-9]+)/attendance/(?P<year>[0-9]{4})/(?P<month>[0-9]{2}).html$',
+        views.download_section_attendance,
         name='download_section_attendance'),
+    url(r'^member/list/eboa_info.html$', eboa_views.download_eboa_members, name='download_eboa_members'),
 ]
 
 turnover_patterns = [

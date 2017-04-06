@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>社員一覧</title>
+</head>
+<body>
+<table>
+    <thead>
+        <tr>
+            <td>名前</td>
+            <td>名前（カナ）</td>
+            <td>生年月日</td>
+            <td>性別</td>
+            <td>郵便番号</td>
+            <td>住所</td>
+            <td>個人携帯番号</td>
+            <td>最寄り駅</td>
+            <td>個人メールアドレス</td>
+            <td>入社年月日</td>
+            <td>会社メールアドレス</td>
+            <td>在留カード番号</td>
+            <td>在留資格</td>
+            <td>在留期間</td>
+        </tr>
+    </thead>
+    <tbody>
+        {% for member in member_list %}
+        <tr>
+            <td>{{ member.name }}</td>
+            <td>{{ member.residence_name_kana|default:'' }}</td>
+            <td>{{ member.birthday|default:'' }}</td>
+            <td>{% if member.sex == "1" %}男{% else %}女{% endif %}</td>
+            <td>{{ member.zipcode|default:'' }}</td>
+            <td>{{ member.address|default:'' }}</td>
+            <td>{{ member.private_tel_number|default:'' }}</td>
+            <td>{{ member.station|default:'' }}</td>
+            <td>{{ member.private_mail_address|default:'' }}</td>
+            <td>{{ member.join_date|default:'' }}</td>
+            <td>{{ member.business_mail_addr|default:'' }}</td>
+            <td>{{ member.id_number|default:'' }}</td>
+            <td>{{ member.residence_type|default:'' }}</td>
+            <td>{{ member.id_card_expired_date|default:'' }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+</body>
+</html>

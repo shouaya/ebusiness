@@ -4,6 +4,7 @@ from . import models
 
 from django.db.models import Q
 
+
 def get_attendance_by_month(year, month):
     period = year + "/" + month
     attendance_list = models.EbAttendance.objects.filter(period=period)
@@ -36,3 +37,11 @@ def get_user_holidays_by_month(sys_user, year, month):
         for holiday in used_holidays:
             used_days += holiday.use_days
     return used_days
+
+
+def get_members():
+    """ＤＢから社員一覧を取得する
+
+    :return:
+    """
+    return models.EbEmployee.objects.filter(retire_date__isnull=True)

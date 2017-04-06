@@ -58,6 +58,13 @@ class ActionFlagFilter(admin.SimpleListFilter):
             return queryset.filter(action_flag=self.value())
 
 
+class RelatedUserFilter(admin.RelatedOnlyFieldListFilter):
+    def field_choices(self, field, request, model_admin):
+        pk_list = set(model_admin.get_queryset(request).values_list(field.name, flat=True))
+        user_list = User.objects.filter(pk__in=pk_list)
+        return [(u.pk, u"%s %s" % (u.first_name, u.last_name)) for u in user_list]
+
+
 class ProjectSkillInline(admin.TabularInline):
     model = models.ProjectSkill
     extra = 0
@@ -1177,7 +1184,7 @@ class LogEntryAdmin(ReadonlyAdmin):
     list_filter = (
         ActionFlagFilter,
         ('content_type', admin.RelatedOnlyFieldListFilter),
-        'user'
+        ('user', RelatedUserFilter),
     )
     search_fields = ['object_repr']
 

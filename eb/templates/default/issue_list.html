@@ -47,7 +47,7 @@
         <tbody>
             {% for issue in issues %}
                 <tr class="issue_status{{ issue.status }}">
-                    <td>{{ issue.pk }}</td>
+                    <td class="center">#{{ issue.pk }}</td>
                     <td>
                         <a href="{% url 'issue_detail' issue.pk %}">{{ issue.title }}</a>
                     </td>

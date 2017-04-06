@@ -5,7 +5,7 @@
 
 {% block content %}
     <div class="dashboard">
-        <div class="dashboard-title">課題 - No.{{ issue.pk }}</div>
+        <div class="dashboard-title">課題 - #{{ issue.pk }}</div>
         <form>
             <a href="{% url 'admin:eb_issue_change' issue.pk %}?from=portal&_popup=1" class="button" target="_blank">編集</a>
         </form>

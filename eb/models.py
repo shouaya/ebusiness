@@ -2578,8 +2578,9 @@ class Config(models.Model):
             c = Config.objects.get(name=config_name)
             return c.value
         except ObjectDoesNotExist:
-            c = Config(name=config_name, value=default_value)
-            c.save()
+            if default_value:
+                c = Config(name=config_name, value=default_value)
+                c.save()
             return default_value
 
 
