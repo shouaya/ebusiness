@@ -32,18 +32,22 @@
         <tr>
             <th>ステータス</th>
             <td>{{ issue.get_status_display }}</td>
-            <th>対応者</th>
+            <th>担当者</th>
             <td>{{ issue.resolve_user.first_name }}&nbsp;{{ issue.resolve_user.last_name }}</td>
         </tr>
         <tr>
             <th>予定完了日</th>
-            <td colspan="3">{{ issue.end_date }}</td>
+            <td colspan="3">{{ issue.planned_end_date }}</td>
         </tr>
         <tr>
             <th>対応方法</th>
             <td colspan="3">
                 <div style="min-height: 150px;"><pre>{{ issue.solution }}</pre></div>
             </td>
+        </tr>
+        <tr>
+            <th>実際完了日</th>
+            <td colspan="3">{{ issue.really_end_date }}</td>
         </tr>
     </table>
 {% endblock %}

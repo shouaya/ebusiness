@@ -2314,8 +2314,9 @@ class Issue(models.Model):
                               verbose_name=u"ステータス")
     limit_date = models.DateField(blank=True, null=True, verbose_name=u"期限日")
     resolve_user = models.ForeignKey(User, related_name='resolve_issue_set', blank=True, null=True,
-                                     verbose_name=u"対応者")
-    end_date = models.DateField(blank=True, null=True, verbose_name=u"予定完了日")
+                                     verbose_name=u"担当者")
+    planned_end_date = models.DateField(blank=True, null=True, verbose_name=u"予定完了日")
+    really_end_date = models.DateField(blank=True, null=True, verbose_name=u"実際完了日")
     solution = models.TextField(blank=True, null=True, verbose_name=u"対応方法")
     created_date = models.DateTimeField(auto_now_add=True, verbose_name=u"作成日時")
     updated_date = models.DateTimeField(auto_now=True, verbose_name=u"更新日時")
@@ -2332,7 +2333,7 @@ class Issue(models.Model):
         return self.title
 
     def get_mail_title(self):
-        return u"【営業支援システム】【課題管理】#%d: %s - %s" % (self.pk, self.title, self.get_status_display())
+        return u"【営業支援システム】[課題管理] #%d: %s - %s" % (self.pk, self.title, self.get_status_display())
 
     def get_mail_body(self, updated_user):
         """課題のメール本文を取得する。
@@ -2547,7 +2548,7 @@ class BatchCarbonCopy(models.Model):
 
 class Config(models.Model):
     name = models.CharField(max_length=50, unique=True, verbose_name=u"設定名")
-    value = models.CharField(max_length=500, verbose_name=u"設定値")
+    value = models.CharField(max_length=2000, verbose_name=u"設定値")
     description = models.TextField(blank=True, null=True, verbose_name=u"説明")
 
     class Meta:

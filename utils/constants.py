@@ -187,10 +187,11 @@ CHOICE_DEV_LOCATION = (('01', u"東大島"),
 CHOICE_NOTIFY_TYPE = ((1, u"EBのメールアドレス"),
                       (2, u"個人メールアドレス"),
                       (3, u"EBと個人両方のメールアドレス"))
-CHOICE_ISSUE_STATUS = (('1', u"提出中"),
+CHOICE_ISSUE_STATUS = (('1', u"起票"),
                        ('2', u"対応中"),
                        ('3', u"対応完了"),
-                       ('4', u"クローズ"))
+                       ('4', u"クローズ"),
+                       ('5', u"取下げ"))
 CHOICE_ISSUE_LEVEL = ((1, u"低"),
                       (2, u"中"),
                       (3, u"高"),
