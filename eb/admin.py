@@ -18,6 +18,7 @@ from django.utils.translation import ugettext as _
 from django.db.models import Max
 from django.utils.encoding import force_text
 from django.utils.text import get_text_list
+from django.template import Context, Template
 
 import forms
 from . import models, biz, biz_config
@@ -199,6 +200,38 @@ class BaseAdmin(admin.ModelAdmin):
         else:
             response = super(BaseAdmin, self).response_add(request, obj)
             return response
+
+    def send_user_create_mail(self, user):
+        """ユーザ作成後、お知らせのメールを送信する
+
+        :param user:
+        :return:
+        """
+        try:
+            system_name = biz_config.get_sales_system_name()
+            mail_title = u"【%s】アカウント作成　- %s %s" % (system_name, user.first_name, user.last_name)
+            body_template = models.Config.get(constants.CONFIG_USER_CREATE_MAIL_BODY)
+            if body_template:
+                t = Template(body_template)
+                context = {'user': user,
+                           'system_name': system_name,
+                           }
+                ctx = Context(context)
+                mail_body = t.render(ctx)
+                from_email = models.Config.get(constants.CONFIG_ADMIN_EMAIL_ADDRESS)
+                recipient_list = [user.email]
+                connection = models.BatchManage.get_custom_connection()
+                email = models.EmailMultiAlternativesWithEncoding(
+                    subject=mail_title,
+                    body=mail_body,
+                    from_email=from_email,
+                    to=recipient_list,
+                    cc=[],
+                    connection=connection
+                )
+                email.send()
+        except:
+            pass
 
 
 class AdminOnlyAdmin(BaseAdmin):
@@ -461,6 +494,7 @@ class MemberAdmin(BaseAdmin):
                     user.first_name = member.first_name
                     user.last_name = member.last_name
                     user.save()
+                    self.send_user_create_mail(user)
                     member.user = user
                     member.save()
                     cnt += 1
@@ -527,6 +561,7 @@ class SalespersonAdmin(BaseAdmin):
                     user.first_name = member.first_name
                     user.last_name = member.last_name
                     user.save()
+                    self.send_user_create_mail(user)
                     member.user = user
                     member.save()
                     cnt += 1

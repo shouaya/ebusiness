@@ -38,8 +38,10 @@ CONFIG_YEAR_LIST_END = 'year_list_end'
 CONFIG_PAGE_SIZE = 'page_size'
 CONFIG_THEME = 'theme'
 CONFIG_ISSUE_MAIL_BODY = 'issue_mail_body'
+CONFIG_USER_CREATE_MAIL_BODY = 'user_create_mail_body'
 CONFIG_SERVICE_MEMBERS = 'service_members'
 CONFIG_SERVICE_CONTRACT = 'service_contract'
+CONFIG_SALES_SYSTEM_NAME = 'sales_system_name'
 
 MARK_POST_CODE = u"〒"
 

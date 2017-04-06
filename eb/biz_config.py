@@ -58,3 +58,11 @@ def get_theme():
     :return:
     """
     return get_config(constants.CONFIG_THEME, 'common')
+
+
+def get_sales_system_name():
+    """この営業システムの名前を取得する。
+
+    :return:
+    """
+    return get_config(constants.CONFIG_SALES_SYSTEM_NAME, u"営業支援システム")
