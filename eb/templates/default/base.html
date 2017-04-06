@@ -73,7 +73,7 @@
                         <ul>
                             {% if user.username == "admin" %}
                             <li><a href="{% url 'eboa_admin:index' %}">EBOAデータ参照</a></li>
-                            {% endif %*
+                            {% endif %}
                             <li><a href="{% url 'del_data_admin:index' %}">削除したデータ</a></li>
                             <li><a href="{% url 'batch_list' %}">バッチ一覧</a></li>
                         </ul>
