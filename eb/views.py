@@ -177,6 +177,7 @@ def employee_list(request):
         'paginator': paginator,
         'params': "&" + params if params else "",
         'dict_order': dict_order,
+        'orders': "&o=%s" % (o,) if o else "",
         'page_type': "off_sales" if status == "off_sales" else None,
     })
     template = loader.get_template('default/employee_list.html')
