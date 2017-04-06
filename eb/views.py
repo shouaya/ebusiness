@@ -1601,14 +1601,21 @@ def login_user(request):
     if request.POST:
         username = request.POST.get('username')
         password = request.POST.get('password')
+        next_url = request.POST.get('next')
+    else:
+        next_url = request.GET.get('next')
 
     user = authenticate(username=username, password=password)
     if user is not None:
         if user.is_active:
             login(request, user)
-            return redirect('index')
+            if next_url:
+                return redirect(next_url)
+            else:
+                return redirect('index')
 
     context = get_base_context()
+    context.update({'next': next_url})
 
     template = loader.get_template('default/login.html')
     return HttpResponse(template.render(context, request))
