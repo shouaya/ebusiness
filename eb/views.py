@@ -115,6 +115,7 @@ def index(request):
 
 
 @login_required(login_url='/eb/login/')
+@permission_required('eb.view_member', raise_exception=True)
 def employee_list(request):
     status = request.GET.get('status', None)
     section_id = request.GET.get('section', None)
@@ -185,6 +186,7 @@ def employee_list(request):
 
 
 @login_required(login_url='/eb/login/')
+@permission_required('eb.view_member', raise_exception=True)
 def members_in_coming(request):
     param_list = common.get_request_params(request.GET)
     params = "&".join(["%s=%s" % (key, value) for key, value in param_list.items()]) if param_list else ""
@@ -225,6 +227,7 @@ def members_in_coming(request):
 
 
 @login_required(login_url='/eb/login/')
+@permission_required('eb.view_member', raise_exception=True)
 def members_subcontractor(request):
     status = request.GET.get('status', None)
     if status == "sales":
@@ -289,6 +292,7 @@ def members_subcontractor(request):
 
 
 @login_required(login_url='/eb/login/')
+@permission_required('eb.view_member', raise_exception=True)
 def change_list(request):
     o = request.GET.get('o', None)
     dict_order = common.get_ordering_dict(o, ['first_name', 'section__name', 'salesperson__first_name'])
@@ -337,6 +341,7 @@ def member_expanses_update(request, member_id, year, month):
 
 
 @login_required(login_url='/eb/login/')
+@permission_required('eb.view_project', raise_exception=True)
 def project_list(request):
     param_list = common.get_request_params(request.GET)
     o = request.GET.get('o', None)
@@ -395,6 +400,7 @@ def project_end(request, project_id):
 
 
 @login_required(login_url='/eb/login/')
+@permission_required('eb.view_project', raise_exception=True)
 def project_order_list(request):
     param_list = common.get_request_params(request.GET)
     ym = request.GET.get('ym', None)
@@ -438,6 +444,7 @@ def project_order_list(request):
 
 
 @login_required(login_url='/eb/login/')
+@permission_required('eb.view_project', raise_exception=True)
 def project_detail(request, project_id):
     project = get_object_or_404(models.Project, pk=project_id)
 
@@ -973,12 +980,14 @@ def turnover_client_monthly(request, client_id, ym):
 
 
 @login_required(login_url='/eb/login/')
+@permission_required('eb.view_member', raise_exception=True)
 def release_list_current(request):
     now = datetime.date.today()
     return release_list(request, now.strftime('%Y%m'))
 
 
 @login_required(login_url='/eb/login/')
+@permission_required('eb.view_member', raise_exception=True)
 def release_list(request, ym):
     param_list = common.get_request_params(request.GET)
     section_id = request.GET.get('section', None)
@@ -1035,6 +1044,7 @@ def release_list(request, ym):
 
 
 @login_required(login_url='/eb/login/')
+@permission_required('eb.view_member', raise_exception=True)
 def member_detail(request, employee_id):
     member = get_object_or_404(models.Member, employee_id=employee_id)
     member.set_coordinate()
@@ -1107,6 +1117,7 @@ def recommended_project_list(request, employee_id):
 
 
 @login_required(login_url='/eb/login/')
+@permission_required('eb.view_subcontractor', raise_exception=True)
 def subcontractor_list(request):
     name = request.GET.get('name', None)
     o = request.GET.get('o', None)
@@ -1145,6 +1156,7 @@ def subcontractor_list(request):
 
 
 @login_required(login_url='/eb/login/')
+@permission_required('eb.view_subcontractor', raise_exception=True)
 def subcontractor_detail(request, subcontractor_id):
     o = request.GET.get('o', None)
     dict_order = common.get_ordering_dict(o, ['first_name'])
@@ -1179,6 +1191,7 @@ def subcontractor_detail(request, subcontractor_id):
 
 
 @login_required(login_url='/eb/login/')
+@permission_required('eb.view_subcontractor', raise_exception=True)
 def subcontractor_members(request, subcontractor_id):
     subcontractor = get_object_or_404(models.Subcontractor, pk=subcontractor_id)
     ym = request.GET.get('ym', None)
@@ -1406,14 +1419,14 @@ def download_section_attendance(request, section_id, year, month):
     batch = biz.get_batch_manage(constants.BATCH_SEND_ATTENDANCE_FORMAT)
     project_members = biz.get_project_members_month_section(section, datetime.date(int(year), int(month), 20))
     filename = constants.NAME_SECTION_ATTENDANCE % (section.name, int(year), int(month))
-    output = file_gen.generate_attendance_format(batch.attachment1.path,
-                                                 project_members, datetime.date(int(year), int(month), 20))
+    output = file_gen.generate_attendance_format(request.user, batch.attachment1.path, project_members)
     response = HttpResponse(output, content_type="application/ms-excel")
     response['Content-Disposition'] = "filename=" + urllib.quote(filename.encode('utf-8')) + ".xlsx"
     return response
 
 
 @login_required(login_url='/eb/login/')
+@permission_required('eb.view_member', raise_exception=True)
 def map_position(request):
     members = models.Member.objects.public_filter(lat__isnull=False,
                                                   lng__isnull=False).exclude(lat__exact='', lng__exact='')

@@ -104,10 +104,12 @@
     <div class="dashboard">
         <div class="dashboard-title">{{ title }}</div>
         <form onsubmit="return checkUploadAttendance(this);" method="post"  enctype="multipart/form-data">
+            {% if perms.eb.input_attendance %}
             <div>{% csrf_token %}</div>
             <div style="color: gray;">既に請求書作成済みの出勤情報は上書きしません。</div>
             <input type="file" id="attendance_file" name="attendance_file"/>
             <input type="submit" value="勤怠情報アップロード">
+            {% endif %}
             <div class="example" style="float: right;">
                 <span>凡例:</span>
                 <div class="lump_project">【一括】一括案件</div>
@@ -250,42 +252,35 @@
                                         {% endif %}
                                     {% endif %}
                                     {% if project_request_detail %}
-                                        <!--売上-->
-                                        <td class="num project_requested">{{ project_request_detail.get_all_price|intcomma }}</td>
-                                        <td class="num project_requested">{{ project_request_detail.total_price|intcomma }}</td>
-                                        <td class="num project_requested">{{ project_request_detail.expenses_price|intcomma }}</td>
-                                        <td class="num">{{ attendance.get_cost|intcomma }}</td>
-                                        <td class="num">{{ attendance.get_bonus|intcomma }}</td>
-                                        {% if attendance.allowance %}
-                                            <td class="num">{{ attendance.allowance|default:''|intcomma }}</td>
-                                        {% else %}
-                                            {% if prev_attendance and prev_attendance.allowance %}
-                                                <td class="num prev_month_data">{{ prev_attendance.allowance|default:''|intcomma }}</td>
+                                        {% if perms.eb.view_turnover %}
+                                            <!--売上-->
+                                            <td class="num project_requested">{{ project_request_detail.get_all_price|intcomma }}</td>
+                                            <td class="num project_requested">{{ project_request_detail.total_price|intcomma }}</td>
+                                            <td class="num project_requested">{{ project_request_detail.expenses_price|intcomma }}</td>
+                                            <td class="num">{{ attendance.get_cost|intcomma }}</td>
+                                            <td class="num">{{ attendance.get_bonus|intcomma }}</td>
+                                            {% if attendance.allowance %}
+                                                <td class="num">{{ attendance.allowance|default:''|intcomma }}</td>
                                             {% else %}
-                                                <td class="num"></td>
+                                                {% if prev_attendance and prev_attendance.allowance %}
+                                                    <td class="num prev_month_data">{{ prev_attendance.allowance|default:''|intcomma }}</td>
+                                                {% else %}
+                                                    <td class="num"></td>
+                                                {% endif %}
                                             {% endif %}
+                                            <td></td>
+                                            <!--交通費-->
+                                            <td class="num">{{ attendance.traffic_cost|default:''|intcomma }}</td>
+                                            <td class="num">{{ attendance.get_employment_insurance|default:''|floatformat:1|intcomma }}</td>
+                                            <td class="num">{{ attendance.get_health_insurance|default:''|floatformat:1|intcomma }}</td>
+                                            <td></td>
+                                            <td class="num {% if attendance.get_profits < 0 %}red{% endif %}">{{ attendance.get_profits|floatformat:1|intcomma }}</td>
+                                        {% else %}
+                                            <td colspan="12">売上データを参照する権限がありません。</td>
                                         {% endif %}
-                                        <td></td>
-                                        <!--交通費-->
-                                        <td class="num">{{ attendance.traffic_cost|default:''|intcomma }}</td>
-                                        <td class="num">{{ attendance.get_employment_insurance|default:''|floatformat:1|intcomma }}</td>
-                                        <td class="num">{{ attendance.get_health_insurance|default:''|floatformat:1|intcomma }}</td>
-                                        <td></td>
-                                        <td class="num {% if attendance.get_profits < 0 %}red{% endif %}">{{ attendance.get_profits|floatformat:1|intcomma }}</td>
                                     {% else %}
                                         <!--売上-->
-                                        <td class="num"></td>
-                                        <td class="num"></td>
-                                        <td class="num"></td>
-                                        <td class="num"></td>
-                                        <td class="num"></td>
-                                        <td class="num"></td>
-                                        <td class="num"></td>
-                                        <td class="num"></td>
-                                        <td class="num"></td>
-                                        <td class="num"></td>
-                                        <td class="num"></td>
-                                        <td class="num"></td>
+                                        <td class="num" colspan="12"></td>
                                     {% endif %}
                                 {% endwith %}
                                 {% endwith %}

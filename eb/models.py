@@ -273,6 +273,9 @@ class Subcontractor(AbstractCompany):
     class Meta:
         ordering = ['name']
         verbose_name = verbose_name_plural = u"協力会社"
+        permissions = (
+            ('view_subcontractor', u'協力会社参照'),
+        )
 
     def get_start_date(self):
         """
@@ -583,6 +586,9 @@ class Member(AbstractMember):
     class Meta:
         ordering = ['first_name', 'last_name']
         verbose_name = verbose_name_plural = u"社員"
+        permissions = (
+            ('view_member', u'社員参照'),
+        )
 
     def __unicode__(self):
         return u"%s %s" % (self.first_name, self.last_name)
@@ -1157,6 +1163,9 @@ class Project(models.Model):
         ordering = ['name']
         unique_together = ('name', 'client')
         verbose_name = verbose_name_plural = u"案件"
+        permissions = (
+            ('view_project', u'案件参照'),
+        )
 
     def __unicode__(self):
         return self.name

@@ -36,7 +36,11 @@
                             {% if user.salesperson %}
                                 {{ user.salesperson }}
                             {% else %}
-                                {{ user }}
+                                {% if user.member %}
+                                    {{ user.member }}
+                                {% else %}
+                                    {{ user }}
+                                {% endif %}
                             {% endif %}
                         </b>&nbsp;&nbsp;
                         {{ user.salesperson.get_member_type_display }}
@@ -65,7 +69,9 @@
                             <li><a href="{% url 'section_list' %}">部署情報一覧</a></li>
                         </ul>
                     </li>
+                    {% if perms.eb.view_subcontractor %}
                     <li><a href="{% url 'subcontractor_list' %}">協力会社</a></li>
+                    {% endif %}
                     {% if perms.eb.view_turnover %}
                     <li><a href="{% url 'turnover_company_monthly' %}">売上情報</a></li>
                     {% endif %}

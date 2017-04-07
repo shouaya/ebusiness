@@ -954,7 +954,14 @@ def replace_excel_list(sheet, items, range_start='ITERATOR_START', range_end='IT
         print ex.message
 
 
-def generate_attendance_format(template_path, project_members, date):
+def generate_attendance_format(user, template_path, project_members):
+    """出勤情報をダウンロードする
+
+    :param user: ログインユーザー
+    :param template_path: テンプレートの格納場所
+    :param project_members: 案件メンバー
+    :return: エクセルのバイナリ
+    """
     book = px.load_workbook(template_path)
     sheet = book.get_sheet_by_name('Sheet1')
 
@@ -1012,7 +1019,7 @@ def generate_attendance_format(template_path, project_members, date):
             sheet.cell(row=start_row, column=18).value = attendance.traffic_cost
 
             request_detail = attendance.get_project_request_detail()
-            if request_detail:
+            if request_detail and user.has_perm('eb.view_turnover'):
                 # 売上（税込）
                 sheet.cell(row=start_row, column=19).value = request_detail.get_all_price()
                 # 売上（税抜）
