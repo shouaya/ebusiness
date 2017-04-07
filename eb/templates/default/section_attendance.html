@@ -31,6 +31,31 @@
         height = window.innerHeight - $(".sub_scroll_container")[0].offsetTop - 20;
         $(".sub_scroll_container").css("height", height);
     }
+    function switchDisplay() {
+        if ($("#switch").text() == " 展開") {
+            setDisplayExpand(true);
+        } else {
+            setDisplayExpand(false);
+        }
+        setScrollBodyHeight();
+    }
+    function setDisplayExpand(isExpand) {
+        if (isExpand) {
+            $("section .dashboard .dashboard-title").css("display", "none");
+            $("section .dashboard form").css("display", "none");
+            $("section div.container").css("margin", "0");
+            $("section div.container").css("width", window.innerWidth);
+            $("section div.scroll_container").css("width", window.innerWidth);
+            $("#switch").html('<i class="fa fa-compress" aria-hidden="true"> 折畳</i>');
+        } else {
+            $("section .dashboard .dashboard-title").css("display", "");
+            $("section .dashboard form").css("display", "");
+            $("section div.container").css("margin", "0 auto");
+            $("section div.container").css("width", "1100px");
+            $("section div.scroll_container").css("width", "1100px");
+            $("#switch").html('<i class="fa fa-expand" aria-hidden="true"></i> 展開');
+        }
+    }
 
     window.addEventListener('resize', function (event) {
         setScrollBodyHeight();
@@ -137,6 +162,9 @@
             <div class="clear"></div>
         </form>
         <div class="dashboard-tail">
+            {% if theme == "default" %}
+            <a id="switch" href="javascript:switchDisplay()"><i class="fa fa-expand" aria-hidden="true"></i> 展開</a>
+            {% endif %}
             <a href="?year={{ prev_month|date:'Y' }}&month={{ prev_month|date:'m' }}"><i class="fa fa-angle-double-left" aria-hidden="true"></i> 先月</a>
             <a href="?year={{ next_month|date:'Y' }}&month={{ next_month|date:'m' }}">来月 <i class="fa fa-angle-double-right" aria-hidden="true"></i></a>
             <a href="{% url 'download_section_attendance' section.pk year month %}" target="_blank"><i class="fa fa-download" aria-hidden="true"></i> ダウンロード</a>
