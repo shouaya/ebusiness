@@ -353,27 +353,27 @@ def load_section_attendance(file_content, year, month, use_id):
             if not allowance:
                 allowance = attendance.get_prev_allowance()
             action_flag = CHANGE
-            common.get_object_changed_message(attendance, 'total_hours', total_hours, changed_list)
-            common.get_object_changed_message(attendance, 'extra_hours', extra_hours, changed_list)
             common.get_object_changed_message(attendance, 'total_days', total_days, changed_list)
             common.get_object_changed_message(attendance, 'night_days', night_days, changed_list)
-            common.get_object_changed_message(attendance, 'price', price, changed_list)
             common.get_object_changed_message(attendance, 'advances_paid', advances_paid, changed_list)
             common.get_object_changed_message(attendance, 'advances_paid_client', advances_paid_client, changed_list)
             common.get_object_changed_message(attendance, 'traffic_cost', traffic_cost, changed_list)
             common.get_object_changed_message(attendance, 'allowance', allowance, changed_list)
-            change_message = _('Changed %s.') % get_text_list(changed_list, _('and')) if changed_list else ''
+            attendance.total_days = total_days if total_days else None
+            attendance.night_days = night_days if night_days else None
             if not has_requested:
                 # 請求書作成済みの場合は上書きしない。
                 attendance.total_hours = total_hours
                 attendance.extra_hours = extra_hours
-            attendance.total_days = total_days if total_days else None
-            attendance.night_days = night_days if night_days else None
-            attendance.price = price
+                attendance.price = price
+                common.get_object_changed_message(attendance, 'total_hours', total_hours, changed_list)
+                common.get_object_changed_message(attendance, 'extra_hours', extra_hours, changed_list)
+                common.get_object_changed_message(attendance, 'price', price, changed_list)
             attendance.advances_paid = advances_paid
             attendance.advances_paid_client = advances_paid_client
             attendance.traffic_cost = traffic_cost
             attendance.allowance = allowance
+            change_message = _('Changed %s.') % get_text_list(changed_list, _('and')) if changed_list else ''
         else:
             attendance = models.MemberAttendance(project_member=project_member,
                                                  year=year, month=month,
