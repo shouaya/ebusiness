@@ -2463,6 +2463,23 @@ class BatchManage(models.Model):
     def __unicode__(self):
         return self.title
 
+    def get_logger(self):
+        return logging.getLogger('eb.management.commands.%s' % (self.name,))
+
+    @classmethod
+    def get_log_entry_user(cls):
+        """ログエントリーにログを記録するにはログインユーザが必要
+
+        :return:
+        """
+        try:
+            user = User.objects.get(username='admin')
+            return user
+        except ObjectDoesNotExist:
+            return None
+        except MultipleObjectsReturned:
+            return None
+
     def get_formatted_batch(self, context):
         """フォーマット後のバッチを返す
 
@@ -2499,7 +2516,7 @@ class BatchManage(models.Model):
         return cc_list
 
     def send_notify_mail(self, context, recipient_list, attachments=None, no_cc=False):
-        logger = logging.getLogger('eb.management.commands.%s' % (self.name,))
+        logger = self.get_logger()
         if not recipient_list:
             logger.warning(u"宛先が空白になっている。")
             return False

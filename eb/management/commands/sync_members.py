@@ -20,6 +20,7 @@ class Command(BaseBatch):
     MAIL_TITLE = u"【営業支援システム】社員導入"
 
     def handle(self, *args, **options):
+        biz_batch.sync_members_for_change(self.batch)
         message_list = biz_batch.sync_members()
         if message_list:
             for message in message_list:

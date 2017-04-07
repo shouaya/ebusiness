@@ -7,14 +7,20 @@ Created on 2016/06/03
 import datetime
 import urllib2
 import json
-import logging
+import re
 import os
+import traceback
 
 from . import biz, biz_config
 from utils import constants, common, file_gen
 from eb import models
+from eboa import models as eboa_models
 
-from django.core.exceptions import ObjectDoesNotExist
+from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
+from django.contrib.admin.models import LogEntry, ADDITION, CHANGE
+from django.contrib.contenttypes.models import ContentType
+from django.utils.text import get_text_list
+from django.utils.translation import ugettext as _
 
 
 def sync_members():
@@ -135,6 +141,67 @@ def sync_members():
     return message_list
 
 
+def sync_members_for_change(batch):
+    members = models.Member.objects.public_filter(eboa_user_id__isnull=False)
+    logger = batch.get_logger()
+    user = batch.get_log_entry_user()
+    for member in members:
+        try:
+            oa_member = eboa_models.EbEmployee.objects.get(user__userid=member.eboa_user_id)
+            changed_list = []
+            zip_code = oa_member.zipcode.replace('-', '') if oa_member.zipcode else ""
+            # 郵便番号
+            if re.match(r'^[0-9]{7}$', zip_code) and member.post_code != zip_code:
+                common.get_object_changed_message(member, 'post_code', zip_code, changed_list)
+                member.post_code = zip_code
+            # 住所
+            address = unicode(oa_member.address.decode('utf8')) if oa_member.address else ''
+            old_address = member.address1 if member.address1 else ''
+            old_address += member.address2 if member.address2 else ''
+            if address and old_address != address:
+                common.get_object_changed_message(member, 'address1', address, changed_list)
+                common.get_object_changed_message(member, 'address2', "", changed_list)
+                member.address1 = address
+                member.address2 = ""
+            # 電話番号
+            private_tel_number = oa_member.private_tel_number.replace("-", "") if oa_member.private_tel_number else ''
+            if re.match(r'^[0-9]{11}$', private_tel_number) and member.phone != private_tel_number:
+                common.get_object_changed_message(member, 'phone', private_tel_number, changed_list)
+                member.phone = private_tel_number
+            # 会社メールアドレス
+            if oa_member.business_mail_addr and oa_member.business_mail_addr.endswith("@e-business.co.jp") \
+                    and member.email != oa_member.business_mail_addr:
+                common.get_object_changed_message(member, 'email', oa_member.business_mail_addr, changed_list)
+                member.email = oa_member.business_mail_addr
+            if changed_list:
+                member.save()
+            if changed_list and user:
+                change_message = _('Changed %s.') % get_text_list(changed_list, _('and')) if changed_list else ''
+                prefix = u"【%s】" % batch.title
+                LogEntry.objects.log_action(user_id=user.pk,
+                                            content_type_id=ContentType.objects.get_for_model(member).pk,
+                                            object_id=member.pk,
+                                            object_repr=unicode(member),
+                                            action_flag=CHANGE,
+                                            change_message=(prefix + change_message) or _('No fields changed.'))
+                args = (member.eboa_user_id, member.__unicode__(), change_message)
+                msg = u"【INFO】eboa_user_id: %s, name: %s, %s" % args
+                logger.info(msg)
+        except ObjectDoesNotExist:
+            args = (member.eboa_user_id, member.__unicode__(), u"ＥＢＯＡのＤＢに該当するデータがありません。")
+            msg = u"【ERROR】eboa_user_id: %s, name: %s, %s" % args
+            logger.error(msg)
+        except MultipleObjectsReturned:
+            args = (member.eboa_user_id, member.__unicode__(), u"ＥＢＯＡのＤＢに該当するデータ複数存在している。")
+            msg = u"【ERROR】eboa_user_id: %s, name: %s, %s" % args
+            logger.error(msg)
+        except Exception as ex:
+            args = (member.eboa_user_id, member.__unicode__(), unicode(ex))
+            msg = u"【ERROR】eboa_user_id: %s, name: %s, 予期しないエラー: %s" % args
+            logger.error(msg)
+            logger.error(traceback.format_exc())
+
+
 def get_cost(code):
     if code:
         url = biz_config.get_config(constants.CONFIG_SERVICE_CONTRACT) % (code,)
@@ -209,7 +276,7 @@ def notify_member_status_mails(batch, status_list, summary):
                 return [status]
         return []
 
-    logger = logging.getLogger('eb.management.commands.%s' % (batch.name,))
+    logger = batch.get_logger()
     today = datetime.date.today()
     next_month = common.add_months(today, 1)
     next_2_months = common.add_months(today, 2)
@@ -254,7 +321,7 @@ def send_attendance_format(batch, date):
     :param batch:
     :return:
     """
-    logger = logging.getLogger('eb.management.commands.send_attendance_format')
+    logger = batch.get_logger()
     if not batch.attachment1 or not os.path.exists(batch.attachment1.path):
         logger.warning(u"出勤フォーマットの添付ファイルが設定していません。")
         return

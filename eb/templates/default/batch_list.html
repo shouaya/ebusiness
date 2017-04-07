@@ -1,4 +1,4 @@
-{% extends "admin/base_site.html" %}
+{% extends theme|add:"/base.html" %}
 
 {% block content %}
 <form id="form1" method="post" action="{% url 'batch_list' %}">
@@ -7,7 +7,7 @@
         <input type="hidden" id="batch_name" name="batch_name" value="">
         <input type="submit"/>
     </div>
-    <table>
+    <table class="list" cellpadding="0" cellspacing="0">
         <thead>
             <tr>
                 <th>バッチID</th>
@@ -19,10 +19,10 @@
         </thead>
         <tbody>
         {% for batch in batches %}
-            <tr>
-                <td style="padding-top: 13px;">{{ batch.name }}</td>
-                <td style="padding-top: 13px;">{{ batch.title }}</td>
-                <td style="padding-top: 12px;">
+            <tr class="{% cycle 'row1' 'row2' %}">
+                <td>{{ batch.name }}</td>
+                <td>{{ batch.title }}</td>
+                <td>
                     {% if batch.is_active %}
                     <img width="12px" src="/static/{{ theme }}/img/icon-normal.png"/>
                     {% else %}
@@ -33,7 +33,7 @@
                     {% if batch.is_active %}
                     <input type="button" id="{{ batch.name }}" name="{{ batch.name }}" value="実行"
                            onclick="execute_batch('{{ batch.name }}')"
-                           style="padding: 2px 15px;"/>
+                           style="padding: 0px 15px;"/>
                     {% endif %}
                 </td>
                 <td>
@@ -42,9 +42,19 @@
             </tr>
         {% endfor %}
         </tbody>
+        <tfoot>
+            <tr>
+                <th>バッチID</th>
+                <th>バッチ名</th>
+                <th>有効</th>
+                <th>実行</th>
+                <th>ログ</th>
+            </tr>
+        </tfoot>
     </table>
     <script type="text/javascript">
         function execute_batch(name) {
+            musk();
             document.getElementById("batch_name").value = name;
             document.getElementById("form1").submit();
         }

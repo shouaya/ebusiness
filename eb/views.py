@@ -1538,13 +1538,12 @@ def batch_list(request):
         'batches': batches,
     })
     if request.method == 'GET':
-        pass
+        template = loader.get_template('default/batch_list.html')
+        return HttpResponse(template.render(context, request))
     else:
         batch_name = request.POST.get('batch_name', None)
         call_command(batch_name)
-
-    template = loader.get_template('default/batch_list.html')
-    return HttpResponse(template.render(context, request))
+        return redirect(reverse("batch_log", args=(batch_name,)))
 
 
 @login_required(login_url='/eb/login/')
