@@ -9,6 +9,13 @@ section div.scroll_container {
     width: 1100px;
     overflow-x: scroll;
 }
+section div.scroll_container table.attendance {
+    width: 2000px;
+}
+section div.scroll_container div.sub_scroll_container {
+    width: 2017px;
+    overflow-y: scroll;
+}
 
 section table.nested_list {
     margin: 0 auto;

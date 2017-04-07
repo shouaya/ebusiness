@@ -4,6 +4,10 @@
 
 {% block header %}
 <script type="text/javascript">
+    $(document).ready(function() {
+        setScrollBodyHeight();
+    });
+
     function checkUploadAttendance(form) {
         var filename = $("#attendance_file").val();
         if (filename == "") {
@@ -18,66 +22,79 @@
         musk();
         return true;
     }
+    function setScrollBodyHeight() {
+        $("header").css("height", "47px");
+        $("header div.header-top").css("display", "none");
+        $("header div.header-nav ul li ul").css("top", "42px");
+        $("footer").css("display", "none");
+
+        height = window.innerHeight - $(".sub_scroll_container")[0].offsetTop - 20;
+        $(".sub_scroll_container").css("height", height);
+    }
+
+    window.addEventListener('resize', function (event) {
+        setScrollBodyHeight();
+    });
 </script>
 <style type="text/css">
-    table#attendance {
+    table.attendance {
         border-top: thin solid black;
         border-right: thin solid black;
         font-size: 12px;
         table-layout: fixed;
     }
-    table#attendance thead th {
+    table.attendance thead th {
         text-align: center;
         border-left: thin solid black;
         border-bottom: thin solid black;
     }
-    table#attendance tbody {
+    table.attendance tbody {
         background: white;
     }
-    table#attendance tbody td {
+    table.attendance tbody td {
         padding-top: 2px;
         padding-bottom: 2px;
         border-left: thin solid black;
         border-bottom: thin solid black;
     }
-    table#attendance tfoot {
+    table.attendance tfoot {
         font-size: 13px;
         background: linear-gradient(#fff, #eee);
     }
-    table#attendance tfoot tr {
+    table.attendance tfoot tr {
         height: 30px;
     }
-    table#attendance tfoot td {
+    table.attendance tfoot td {
         padding-top: 4px;
         padding-left: 5px;
         border-left: thin solid lightgray;
         border-bottom: thin solid lightgray;
         border-right: thin solid lightgray;
     }
-    table#attendance th.bk01 {
+    table.attendance th.bk01 {
         background: rgb(180, 198, 231);
     }
-    table#attendance th.bk02 {
+    table.attendance th.bk02 {
         background: rgb(198, 224, 180);
     }
-    table#attendance th.bk03 {
+    table.attendance th.bk03 {
         background: rgb(255, 230, 153);
     }
-    table#attendance th.bk04 {
+    table.attendance th.bk04 {
         background: rgb(244, 176, 132);
     }
-    table#attendance th.bk05 {
+    table.attendance th.bk05 {
         background: rgb(155, 194, 230);
     }
-    table#attendance th.bk06 {
+    table.attendance th.bk06 {
         background: rgb(255, 255, 0);
     }
-    table#attendance th, td {
+    table.attendance th, td {
         padding: 0 3px;
         overflow: hidden;
         white-space: nowrap;
     }
-    table#attendance td.error {
+    table.attendance td.error {
         background: red;
         color: white;
     }
@@ -88,10 +105,10 @@
         border: 3px solid white;
         color: white;
     }
-    table#attendance tr:hover {
+    table.attendance tr:hover {
         background-color: LightGreen;
     }
-    table#attendance tr:hover td {
+    table.attendance tr:hover td {
         background-color: transparent;
     }
     .prev_month_data {
@@ -136,10 +153,10 @@
         </div>
     {% endif %}
     <div class="scroll_container">
-        <table id="attendance" cellspacing="0" cellpadding="0">
+        <table class="attendance" cellspacing="0" cellpadding="0">
             <thead>
                 <tr>
-                    <th class="bk01" rowspan="2" style="width: 30px;">No</th>
+                    <th class="bk01" rowspan="2" style="width: 20px;">No</th>
                     <th class="bk01" colspan="6">基本データ</th>
                     <th class="bk02" colspan="3">案件情報</th>
                     <th class="bk03" colspan="6">勤務情報</th>
@@ -149,155 +166,159 @@
                 </tr>
                 <tr>
                     <!--基本データ-->
-                    <th class="bk01" style="width: 50px;">{% create_order_display "社員番号" "member__employee_id" %}</th>
-                    <th class="bk01" style="width: 50px;">{% create_order_display "名前" "member__first_name" %}</th>
-                    <th class="bk01" style="width: 50px;">所在部署</th>
-                    <th class="bk01" style="width: 50px;">{% create_order_display "所属" "member__subcontractor__name" %}</th>
+                    <th class="bk01">{% create_order_display "社員番号" "member__employee_id" %}</th>
+                    <th class="bk01">{% create_order_display "名前" "member__first_name" %}</th>
+                    <th class="bk01">所在部署</th>
+                    <th class="bk01">{% create_order_display "所属" "member__subcontractor__name" %}</th>
                     <th class="bk01">社会保険<br/>加入有無</th>
-                    <th class="bk01" style="width: 50px;">{% create_order_display "契約形態" "member__member_type" %}</th>
+                    <th class="bk01">{% create_order_display "契約形態" "member__member_type" %}</th>
                     <!--案件情報-->
-                    <th class="bk02" style="width: 50px;">{% create_order_display "案件名" "project__name" %}</th>
-                    <th class="bk02" style="width: 50px;">{% create_order_display "顧客" "project__client__name" %}</th>
-                    <th class="bk02" style="width: 50px;">契約種類</th>
+                    <th class="bk02">{% create_order_display "案件名" "project__name" %}</th>
+                    <th class="bk02">{% create_order_display "顧客" "project__client__name" %}</th>
+                    <th class="bk02">契約種類</th>
                     <!--勤務情報-->
-                    <th class="bk03" style="width: 50px;">勤務時間</th>
-                    <th class="bk03" style="width: 50px;">勤務日数</th>
-                    <th class="bk03" style="width: 50px;">深夜日数</th>
-                    <th class="bk03" style="width: 50px;">客先立替金</th>
-                    <th class="bk03" style="width: 50px;">立替金</th>
-                    <th class="bk03" style="width: 50px;">勤務交通費</th>
+                    <th class="bk03">勤務時間</th>
+                    <th class="bk03">勤務日数</th>
+                    <th class="bk03">深夜日数</th>
+                    <th class="bk03">客先立替金</th>
+                    <th class="bk03">立替金</th>
+                    <th class="bk03">勤務交通費</th>
                     <!--売上-->
                     <th class="bk04">税込</th>
                     <th class="bk04">税別</th>
                     <th class="bk04">経費</th>
-                    <th class="bk05" style="width: 50px;">月給</th>
-                    <th class="bk05" style="width: 50px;">ボーナス</th>
-                    <th class="bk05" style="width: 50px;">手当</th>
-                    <th class="bk05" style="width: 50px;">残業<br/>／控除</th>
-                    <th class="bk05" style="width: 50px;">交通費</th>
-                    <th class="bk05" style="width: 50px;">雇用<br/>／労災</th>
-                    <th class="bk05" style="width: 50px;">健康<br/>／厚生</th>
-                    <th class="bk05" style="width: 50px;">業績<br/>ボーナス</th>
+                    <th class="bk05">月給</th>
+                    <th class="bk05">ボーナス</th>
+                    <th class="bk05">手当</th>
+                    <th class="bk05">残業／控除</th>
+                    <th class="bk05">交通費</th>
+                    <th class="bk05">雇用／労災</th>
+                    <th class="bk05">健康／厚生</th>
+                    <th class="bk05">業績ボーナス</th>
                 </tr>
             </thead>
-            <tbody>
-                {% if project_members %}
-                    {% for project_member, msg in project_members %}
-                        <tr>
-                            <td style="text-align:center;">{{ forloop.counter }}</td>
-                            <!--基本データ-->
-                            <td>{{ project_member.member.employee_id }}</td>
-                            <td>
-                                <a href="{% url 'member_detail' project_member.member.employee_id %}">
-                                    {{ project_member.member }}
-                                </a>
-                            </td>
-                            <td>{{ project_member.section_name }}</td>
-                            <td>
-                                <div style="width: 120px; overflow: hidden; white-space: nowrap;">
-                                {% if project_member.member.company %}
-                                    {{ project_member.member.company }}
-                                {% else %}
-                                    {{ project_member.member.subcontractor }}
-                                {% endif %}
-                                </div>
-                            </td>
-                            {% if msg %}
-                                <td colspan="23" class="error">{{ msg }}</td>
-                            {% else %}
-                                {% with attendance=project_member.current_attendance_set|first prev_attendance=project_member.prev_attendance_set|first %}
-                                {% with project_request_detail=attendance.get_project_request_detail %}
-                                    <td class="center">
-                                        {% if attendance.get_contract.endowment_insurance == "2" %}
-                                            ○
-                                        {% endif %}
-                                    </td>
-                                    <td>{{ project_member.member.get_member_type_display }}</td>
-                                    <!--案件情報-->
-                                    <td title="{{ project_member.project }}"
-                                        {% if project_member.project.is_lump %}class="lump_project"{% endif %}>
-                                        <div style="width: 160px; overflow: hidden; white-space: nowrap;">
-                                            <a href="{% url 'project_detail' project_member.project.pk %}">
-                                            {% if project_member.project.is_lump %}【一括】{% endif %}{{ project_member.project }}
-                                            </a>
-                                        </div>
-                                    </td>
-                                    <td title="{{ project_member.project.client }}">
-                                        <div style="width: 120px; overflow: hidden; white-space: nowrap;">
-                                        {{ project_member.project.client }}
-                                        </div>
-                                    </td>
-                                    <td>
-                                        {% if project_member.project.is_lump %}
-                                            一括
-                                        {% else %}
-                                            SES
-                                        {% endif %}
-                                    </td>
-                                    <td class="num {% if project_request_detail %}project_requested{% endif %}">{{ attendance.total_hours }}</td>
-                                    <td class="num {% if project_request_detail %}project_requested{% endif %}">{{ attendance.total_days|default:'' }}</td>
-                                    <td class="num {% if project_request_detail %}project_requested{% endif %}">{{ attendance.night_days|default:'' }}</td>
-                                    <td class="num {% if project_request_detail %}project_requested{% endif %}">{{ attendance.advances_paid_client|default:''|intcomma }}</td>
-                                    <td class="num {% if project_request_detail %}project_requested{% endif %}">{{ attendance.advances_paid|default:''|intcomma }}</td>
-                                    <!--交通費-->
-                                    {% if attendance.traffic_cost %}
-                                        <td class="num {% if project_request_detail %}project_requested{% endif %}">{{ attendance.traffic_cost|default:''|intcomma }}</td>
-                                    {% else %}
-                                        {% if prev_attendance and prev_attendance.traffic_cost %}
-                                            <td class="num prev_month_data {% if project_request_detail %}project_requested{% endif %}">
-                                                {{ prev_attendance.traffic_cost|default:''|intcomma }}
-                                            </td>
-                                        {% else %}
-                                            <td class=" {% if project_request_detail %}project_requested{% endif %}"></td>
-                                        {% endif %}
-                                    {% endif %}
-                                    {% if project_request_detail %}
-                                        {% if perms.eb.view_turnover %}
-                                            <!--売上-->
-                                            <td class="num project_requested">{{ project_request_detail.get_all_price|intcomma }}</td>
-                                            <td class="num project_requested">{{ project_request_detail.total_price|intcomma }}</td>
-                                            <td class="num project_requested">{{ project_request_detail.expenses_price|intcomma }}</td>
-                                            <td class="num">{{ attendance.get_cost|intcomma }}</td>
-                                            <td class="num">{{ attendance.get_bonus|intcomma }}</td>
-                                            {% if attendance.allowance %}
-                                                <td class="num">{{ attendance.allowance|default:''|intcomma }}</td>
-                                            {% else %}
-                                                {% if prev_attendance and prev_attendance.allowance %}
-                                                    <td class="num prev_month_data">{{ prev_attendance.allowance|default:''|intcomma }}</td>
-                                                {% else %}
-                                                    <td class="num"></td>
-                                                {% endif %}
-                                            {% endif %}
-                                            <td></td>
-                                            <!--交通費-->
-                                            <td class="num">{{ attendance.traffic_cost|default:''|intcomma }}</td>
-                                            <td class="num">{{ attendance.get_employment_insurance|default:''|floatformat:1|intcomma }}</td>
-                                            <td class="num">{{ attendance.get_health_insurance|default:''|floatformat:1|intcomma }}</td>
-                                            <td></td>
-                                            <td class="num {% if attendance.get_profits < 0 %}red{% endif %}">{{ attendance.get_profits|floatformat:1|intcomma }}</td>
-                                        {% else %}
-                                            <td colspan="12">売上データを参照する権限がありません。</td>
-                                        {% endif %}
-                                    {% else %}
-                                        <!--売上-->
-                                        <td class="num" colspan="12"></td>
-                                    {% endif %}
-                                {% endwith %}
-                                {% endwith %}
-                            {% endif %}
-                        </tr>
-                    {% endfor %}
-                {% else %}
-                    <tr class="row2"><td class="center red" colspan="8">メンバーがいません。</td></tr>
-                {% endif %}
-            </tbody>
-            <tfoot>
-                <tr>
-                    <td colspan="28">
-                        {{ project_members|length }} 件
-                    </td>
-                </tr>
-            </tfoot>
         </table>
+        <div class="sub_scroll_container">
+            <table class="attendance" cellspacing="0" cellpadding="0">
+                <tbody>
+                    {% if project_members %}
+                        {% for project_member, msg in project_members %}
+                            <tr>
+                                <td style="text-align:center; width: 20px;">{{ forloop.counter }}</td>
+                                <!--基本データ-->
+                                <td>{{ project_member.member.employee_id }}</td>
+                                <td>
+                                    <a href="{% url 'member_detail' project_member.member.employee_id %}">
+                                        {{ project_member.member }}
+                                    </a>
+                                </td>
+                                <td>{{ project_member.section_name }}</td>
+                                <td>
+                                    <div style="width: 120px; overflow: hidden; white-space: nowrap;">
+                                    {% if project_member.member.company %}
+                                        {{ project_member.member.company }}
+                                    {% else %}
+                                        {{ project_member.member.subcontractor }}
+                                    {% endif %}
+                                    </div>
+                                </td>
+                                {% if msg %}
+                                    <td colspan="23" class="error">{{ msg }}</td>
+                                {% else %}
+                                    {% with attendance=project_member.current_attendance_set|first prev_attendance=project_member.prev_attendance_set|first %}
+                                    {% with project_request_detail=attendance.get_project_request_detail %}
+                                        <td class="center">
+                                            {% if attendance.get_contract.endowment_insurance == "2" %}
+                                                ○
+                                            {% endif %}
+                                        </td>
+                                        <td>{{ project_member.member.get_member_type_display }}</td>
+                                        <!--案件情報-->
+                                        <td title="{{ project_member.project }}"
+                                            {% if project_member.project.is_lump %}class="lump_project"{% endif %}>
+                                            <div style="width: 160px; overflow: hidden; white-space: nowrap;">
+                                                <a href="{% url 'project_detail' project_member.project.pk %}">
+                                                {% if project_member.project.is_lump %}【一括】{% endif %}{{ project_member.project }}
+                                                </a>
+                                            </div>
+                                        </td>
+                                        <td title="{{ project_member.project.client }}">
+                                            <div style="width: 120px; overflow: hidden; white-space: nowrap;">
+                                            {{ project_member.project.client }}
+                                            </div>
+                                        </td>
+                                        <td>
+                                            {% if project_member.project.is_lump %}
+                                                一括
+                                            {% else %}
+                                                SES
+                                            {% endif %}
+                                        </td>
+                                        <td class="num {% if project_request_detail %}project_requested{% endif %}">{{ attendance.total_hours }}</td>
+                                        <td class="num {% if project_request_detail %}project_requested{% endif %}">{{ attendance.total_days|default:'' }}</td>
+                                        <td class="num {% if project_request_detail %}project_requested{% endif %}">{{ attendance.night_days|default:'' }}</td>
+                                        <td class="num {% if project_request_detail %}project_requested{% endif %}">{{ attendance.advances_paid_client|default:''|intcomma }}</td>
+                                        <td class="num {% if project_request_detail %}project_requested{% endif %}">{{ attendance.advances_paid|default:''|intcomma }}</td>
+                                        <!--交通費-->
+                                        {% if attendance.traffic_cost %}
+                                            <td class="num {% if project_request_detail %}project_requested{% endif %}">{{ attendance.traffic_cost|default:''|intcomma }}</td>
+                                        {% else %}
+                                            {% if prev_attendance and prev_attendance.traffic_cost %}
+                                                <td class="num prev_month_data {% if project_request_detail %}project_requested{% endif %}">
+                                                    {{ prev_attendance.traffic_cost|default:''|intcomma }}
+                                                </td>
+                                            {% else %}
+                                                <td class=" {% if project_request_detail %}project_requested{% endif %}"></td>
+                                            {% endif %}
+                                        {% endif %}
+                                        {% if project_request_detail %}
+                                            {% if perms.eb.view_turnover %}
+                                                <!--売上-->
+                                                <td class="num project_requested">{{ project_request_detail.get_all_price|intcomma }}</td>
+                                                <td class="num project_requested">{{ project_request_detail.total_price|intcomma }}</td>
+                                                <td class="num project_requested">{{ project_request_detail.expenses_price|intcomma }}</td>
+                                                <td class="num">{{ attendance.get_cost|intcomma }}</td>
+                                                <td class="num">{{ attendance.get_bonus|intcomma }}</td>
+                                                {% if attendance.allowance %}
+                                                    <td class="num">{{ attendance.allowance|default:''|intcomma }}</td>
+                                                {% else %}
+                                                    {% if prev_attendance and prev_attendance.allowance %}
+                                                        <td class="num prev_month_data">{{ prev_attendance.allowance|default:''|intcomma }}</td>
+                                                    {% else %}
+                                                        <td class="num"></td>
+                                                    {% endif %}
+                                                {% endif %}
+                                                <td></td>
+                                                <!--交通費-->
+                                                <td class="num">{{ attendance.traffic_cost|default:''|intcomma }}</td>
+                                                <td class="num">{{ attendance.get_employment_insurance|default:''|floatformat:1|intcomma }}</td>
+                                                <td class="num">{{ attendance.get_health_insurance|default:''|floatformat:1|intcomma }}</td>
+                                                <td></td>
+                                                <td class="num {% if attendance.get_profits < 0 %}red{% endif %}">{{ attendance.get_profits|floatformat:1|intcomma }}</td>
+                                            {% else %}
+                                                <td colspan="12">売上データを参照する権限がありません。</td>
+                                            {% endif %}
+                                        {% else %}
+                                            <!--売上-->
+                                            <td class="num" colspan="12"></td>
+                                        {% endif %}
+                                    {% endwith %}
+                                    {% endwith %}
+                                {% endif %}
+                            </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr class="row2"><td class="center red" colspan="8">メンバーがいません。</td></tr>
+                    {% endif %}
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td colspan="28">
+                            {{ project_members|length }} 件
+                        </td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
     </div>
 {% endblock %}

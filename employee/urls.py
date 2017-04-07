@@ -20,3 +20,6 @@ urlpatterns = [
     url(r'^eboa-admin/', include(eboa_admin_site.urls)),
     url(r'^del-data-admin/', include(del_data_admin_site.urls)),
 ]
+
+handler403 = 'eb.views.handler403'
+handler404 = 'eb.views.handler404'

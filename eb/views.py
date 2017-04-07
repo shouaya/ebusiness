@@ -1675,6 +1675,14 @@ def password_change(request,
     return TemplateResponse(request, template_name, context)
 
 
+def handler403(request):
+    context = get_base_context()
+    template = loader.get_template('default/403.html')
+    response = HttpResponse(template.render(context, request))
+    response.status_code = 403
+    return response
+
+
 def handler404(request):
     context = get_base_context()
     template = loader.get_template('default/404.html')

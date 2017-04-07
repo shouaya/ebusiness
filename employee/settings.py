@@ -22,9 +22,12 @@ BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 SECRET_KEY = '@p5sj45=(^$_b=%3^qzs$=tw72j01+6ay076w)6gogwwaj#if7'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+if sys.platform == 'linux2':
+    DEBUG = False
+else:
+    DEBUG = False
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['127.0.0.1', 'localhost', '*.e-business.co.jp']
 NUMBER_GROUPING = 3
 
 # Application definition

@@ -2,7 +2,15 @@
 
 section {
     font-size: 13px;
-    padding-top: 35px;
+    min-height: 100%;
+}
+
+section div.scroll_container table.attendance {
+    width: 2000px;
+}
+section div.scroll_container div.sub_scroll_container {
+    width: 2017px;
+    overflow-y: scroll;
 }
 
 section table.nested_list {
@@ -193,7 +201,6 @@ section .issue_status4 {
 }
 
 section div.dashboard {
-    margin-top: 10px;
     margin-bottom: 10px;
     border-bottom: 1px solid #eee;
     background-color: #fff;
