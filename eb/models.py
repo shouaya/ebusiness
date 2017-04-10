@@ -833,14 +833,14 @@ class Member(AbstractMember):
         if self.member_type == 4:
             # 他者技術者の場合
             return int(self.cost) if self.cost else 0
-        contract = self.get_latest_contract(date)
+        contract = self.get_contract(date)
         if contract:
             traffic_cost = int(contract.pay_commute if contract.pay_commute else 0)
             return (int(contract.cost) - traffic_cost) if contract.cost else 0
         else:
             return 0
 
-    def get_latest_contract(self, date):
+    def get_contract(self, date):
         """最新の契約情報を取得する。
 
         :param date 対象年月
@@ -2023,7 +2023,7 @@ class MemberAttendance(models.Model):
 
     def get_contract(self):
         date = timezone.datetime(int(self.year), int(self.month), 1)
-        return self.project_member.member.get_latest_contract(date)
+        return self.project_member.member.get_contract(date)
 
     def get_cost(self):
         """コストを取得する

@@ -6,11 +6,13 @@ import MySQLdb
 import os
 import django
 import sys
+import logging
 
 from crontab import CronTab
 from multiprocessing import Pool
 
 from django.core.management import call_command
+from utils import constants
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "employee.settings")
 django.setup()
@@ -99,12 +101,17 @@ def call_batch(name):
 
 
 def main():
+    logger = logging.getLogger(constants.LOG_EB_SALES)
     batches = get_batches()
     job_configs = []
+    logger.info(u"バッチ起動")
+    if not batches:
+        logger.info(u"バッチがありません！")
+        return
     for name, cron_tab in batches:
-        print name, cron_tab
         job_config = JobConfig(CronTab(cron_tab), call_batch, name)
         job_configs.append(job_config)
+        logger.info(u"%s: %s" % (name, cron_tab))
 
     if not job_configs:
         return

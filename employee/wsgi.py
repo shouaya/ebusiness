@@ -8,7 +8,11 @@ https://docs.djangoproject.com/en/1.7/howto/deployment/wsgi/
 """
 
 import os
+import subprocess
+from django.core.wsgi import get_wsgi_application
+
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "employee.settings")
 
-from django.core.wsgi import get_wsgi_application
 application = get_wsgi_application()
+batch_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'batch.py')
+command1 = subprocess.Popen(['python', batch_path])
