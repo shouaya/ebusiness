@@ -21,9 +21,6 @@ class Command(BaseBatch):
 
     def handle(self, *args, **options):
         biz_batch.sync_members_for_change(self.batch)
-        message_list = biz_batch.sync_members()
-        if message_list:
-            for message in message_list:
-                logger.info(u"【%s】code: %s, name: %s, birthday: %s, address: %s, %s" % message)
-        else:
+        count = biz_batch.sync_members(self.batch)
+        if count == 0:
             logger.info(u"新入社員がいません。")

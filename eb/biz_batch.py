@@ -23,17 +23,19 @@ from django.utils.text import get_text_list
 from django.utils.translation import ugettext as _
 
 
-def sync_members():
+def sync_members(batch):
     company = biz.get_company()
+    logger = batch.get_logger()
     url = biz_config.get_config(constants.CONFIG_SERVICE_MEMBERS)
     response = urllib2.urlopen(url)
     html = response.read()
     dict_data = json.loads(html.replace("\r", "").replace("\n", ""))
-    message_list = []
     lll = []
+    count = 0
+    user = batch.get_log_entry_user()
     if 'employeeList' in dict_data:
         for data in dict_data.get("employeeList"):
-            employee_code = data.get("id", None)
+            api_id = data.get("id", None)
             name = data.get("name", None)
             birthday = data.get("birthDate", None)
             address = data.get("address", None)
@@ -58,10 +60,15 @@ def sync_members():
             postcode = data.get("postcode", None)
             sex = data.get("sex", None)
             station = data.get("station", None)
-            if employee_code:
-                if employee_code < '0402':
+            salary_id = data.get("salaryId", None)
+            if api_id:
+                if api_id < '0402':
                     continue
-                if department_name == u"営業部" or employee_code in ('0123', '0126', '0198', '0150', '0249', '0335'):
+                if salary_id:
+                    salary_id = "%06d" % int(salary_id)
+                else:
+                    salary_id = api_id
+                if department_name == u"営業部" or api_id in ('0123', '0126', '0198', '0150', '0249', '0335'):
                     # 0123 馬婷婷
                     # 0150 孫雲釵
                     # 0198 劉 暢
@@ -69,17 +76,17 @@ def sync_members():
                     # 0249 齋藤 善次
                     # 0335 蒋杰
                     query_set = models.Salesperson.objects.raw('select * from eb_salesperson where id_from_api=%s',
-                                                               [employee_code])
+                                                               [api_id])
                     if len(list(query_set)) == 0:
-                        member = models.Salesperson(employee_id=employee_code, id_from_api=employee_code)
+                        member = models.Salesperson(employee_id=salary_id, id_from_api=api_id)
                     else:
                         # message_list.append(("WARN", name, birthday, address, u"既に存在しているレコードです。"))
                         continue
                 else:
                     query_set = models.Member.objects.raw('select * from eb_member where id_from_api=%s',
-                                                          [employee_code])
+                                                          [api_id])
                     if len(list(query_set)) == 0:
-                        member = models.Member(employee_id=employee_code, id_from_api=employee_code)
+                        member = models.Member(employee_id=salary_id, id_from_api=api_id)
                     else:
                         # message_list.append(("WARN", name, birthday, address, u"既に存在しているレコードです。"))
                         continue
@@ -99,8 +106,12 @@ def sync_members():
                         try:
                             member.birthday = common.parse_date_from_string(birthday)
                         except Exception as ex:
-                            print ex.message
-                            message_list.append(("WARN", name, birthday, address, u"生年月日が存在しません。"))
+                            args = (member.employee_id, member.__unicode__(),
+                                    u"「%s」が正確な日付ではありません。" % birthday,
+                                    u"%s" % unicode(ex))
+                            msg = u"社員コード: %s, name: %s, %s, %s" % args
+                            logger.warning(msg)
+                            logger.error(traceback.format_exc())
                             member.birthday = None
                     else:
                         member.birthday = datetime.date.today()
@@ -129,16 +140,32 @@ def sync_members():
                             member.post_code = None
                     member.nearest_station = station if station and len(station) <= 15 else None
                     member.sex = "2" if sex == "0" else "1"
-                    member.cost = get_cost(employee_code)
+                    member.cost = get_cost(api_id)
                     member.company = company
                     member.save()
                     # 部署を設定する。
                     sp = models.MemberSectionPeriod(member=member, section=section, start_date=member.join_date)
                     sp.save()
-                    message_list.append(("INFO", employee_code, name, birthday, address, u"完了"))
-                except Exception as e:
-                    message_list.append(("ERROR", employee_code, name, birthday, address, u"エラー：" + str(e)))
-    return message_list
+                    # ログ出力
+                    change_message = _('Added.')
+                    prefix = u"【%s】" % batch.title
+                    LogEntry.objects.log_action(user_id=user.pk,
+                                                content_type_id=ContentType.objects.get_for_model(member).pk,
+                                                object_id=member.pk,
+                                                object_repr=unicode(member),
+                                                action_flag=ADDITION,
+                                                change_message=(prefix + change_message) or _('No fields changed.'))
+
+                    args = (member.employee_id, member.__unicode__(), u"追加完了。")
+                    msg = u"社員コード: %s, name: %s, %s" % args
+                    logger.info(msg)
+                    count += 1
+                except Exception as ex:
+                    args = (salary_id, name, unicode(ex))
+                    msg = u"社員コード: %s, name: %s, 予期しないエラー: %s" % args
+                    logger.error(msg)
+                    logger.error(traceback.format_exc())
+    return count
 
 
 def sync_members_for_change(batch):
@@ -155,7 +182,10 @@ def sync_members_for_change(batch):
                 common.get_object_changed_message(member, 'post_code', zip_code, changed_list)
                 member.post_code = zip_code
             # 住所
-            address = unicode(oa_member.address.decode('utf8')) if oa_member.address else ''
+            if isinstance(oa_member.address, unicode):
+                address = oa_member.address if oa_member.address else ''
+            else:
+                address = unicode(oa_member.address.decode('utf8')) if oa_member.address else ''
             old_address = member.address1 if member.address1 else ''
             old_address += member.address2 if member.address2 else ''
             if address and old_address != address:
@@ -184,20 +214,20 @@ def sync_members_for_change(batch):
                                             object_repr=unicode(member),
                                             action_flag=CHANGE,
                                             change_message=(prefix + change_message) or _('No fields changed.'))
-                args = (member.eboa_user_id, member.__unicode__(), change_message)
-                msg = u"【INFO】eboa_user_id: %s, name: %s, %s" % args
+                args = (member.eboa_user_id, member.__unicode__(), u"情報が変更されました。")
+                msg = u"eboa_user_id: %s, name: %s, %s" % args
                 logger.info(msg)
         except ObjectDoesNotExist:
             args = (member.eboa_user_id, member.__unicode__(), u"ＥＢＯＡのＤＢに該当するデータがありません。")
-            msg = u"【ERROR】eboa_user_id: %s, name: %s, %s" % args
+            msg = u"eboa_user_id: %s, name: %s, %s" % args
             logger.error(msg)
         except MultipleObjectsReturned:
             args = (member.eboa_user_id, member.__unicode__(), u"ＥＢＯＡのＤＢに該当するデータ複数存在している。")
-            msg = u"【ERROR】eboa_user_id: %s, name: %s, %s" % args
+            msg = u"eboa_user_id: %s, name: %s, %s" % args
             logger.error(msg)
         except Exception as ex:
             args = (member.eboa_user_id, member.__unicode__(), unicode(ex))
-            msg = u"【ERROR】eboa_user_id: %s, name: %s, 予期しないエラー: %s" % args
+            msg = u"eboa_user_id: %s, name: %s, 予期しないエラー: %s" % args
             logger.error(msg)
             logger.error(traceback.format_exc())
 
