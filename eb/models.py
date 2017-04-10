@@ -2439,6 +2439,7 @@ class History(models.Model):
 class BatchManage(models.Model):
     name = models.CharField(max_length=50, unique=True, verbose_name=u"バッチＩＤ")
     title = models.CharField(max_length=50, verbose_name=u"バッチタイトル")
+    cron_tab = models.CharField(blank=True, null=True, max_length=100, verbose_name=u"バッチの実行タイミング")
     is_active = models.BooleanField(default=True, verbose_name=u"有効フラグ")
     mail_title = models.CharField(max_length=50, verbose_name=u"送信メールのタイトル")
     mail_body = models.TextField(blank=True, null=True, verbose_name=u"メール本文(Plain Text)")
