@@ -683,16 +683,6 @@ def get_attendance_time_from_eboa(project_member, year, month):
         return 0
 
 
-def get_members_to_set_coordinate():
-    now = datetime.datetime.now()
-    last_week = now + datetime.timedelta(days=-7)
-    # １週間前更新したレコード
-    members = models.Member.objects.public_filter(Q(coordinate_update_date__lt=last_week) |
-                                                  Q(coordinate_update_date__isnull=True))
-    members = members.filter(address1__isnull=False).exclude(address1__exact=u'')
-    return members
-
-
 def get_master():
     # 代表取締役を取得する。
     members = models.Salesperson.objects.public_filter(member_type=7)
