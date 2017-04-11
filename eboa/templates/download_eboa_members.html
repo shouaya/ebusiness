@@ -3,25 +3,39 @@
 <head>
     <meta charset="UTF-8">
     <title>社員一覧</title>
+    <style type="text/css">
+        .text{
+            mso-number-format:"\@"; /*force text*/
+        }
+        .center {
+            text-align: center;
+        }
+    </style>
 </head>
 <body>
 <table>
     <thead>
         <tr>
             <td>名前</td>
-            <td>名前（カナ）</td>
-            <td>生年月日</td>
+            <td>フリカナ</td>
+            <td>雇用区分</td>
+            <td>所属部署</td>
             <td>性別</td>
+            <td>生年月日</td>
             <td>郵便番号</td>
             <td>住所</td>
             <td>個人携帯番号</td>
-            <td>最寄り駅</td>
-            <td>個人メールアドレス</td>
-            <td>入社年月日</td>
             <td>会社メールアドレス</td>
-            <td>在留カード番号</td>
             <td>在留資格</td>
+            <td>在留カード番号</td>
             <td>在留期間</td>
+            <td>入社年月日</td>
+            <td>雇用保険加入状況</td>
+            <td>雇用保険番号</td>
+            <td>社会保険加入状況</td>
+            <td>社会保険番号</td>
+            <td>厚生年金加入状況</td>
+            <td>厚生年金番号</td>
         </tr>
     </thead>
     <tbody>
@@ -29,18 +43,30 @@
         <tr>
             <td>{{ member.name }}</td>
             <td>{{ member.residence_name_kana|default:'' }}</td>
-            <td>{{ member.birthday|default:'' }}</td>
+            <td>{{ member.get_contract.employer_type }}</td>
+            <td>{{ member.get_organization.orgname }}</td>
             <td>{% if member.sex == "1" %}男{% else %}女{% endif %}</td>
+            <td>{{ member.birthday|default:'' }}</td>
             <td>{{ member.zipcode|default:'' }}</td>
             <td>{{ member.address|default:'' }}</td>
-            <td>{{ member.private_tel_number|default:'' }}</td>
-            <td>{{ member.station|default:'' }}</td>
-            <td>{{ member.private_mail_address|default:'' }}</td>
-            <td>{{ member.join_date|default:'' }}</td>
+            <td class="text">{{ member.private_tel_number|default:'' }}</td>
             <td>{{ member.business_mail_addr|default:'' }}</td>
-            <td>{{ member.id_number|default:'' }}</td>
             <td>{{ member.residence_type|default:'' }}</td>
-            <td>{{ member.id_card_expired_date|default:'' }}</td>
+            <td>{{ member.id_number|default:'' }}</td>
+            <td>{{ member.id_card_expired_date|date:'Y-m-d'|default:'' }}</td>
+            <td>{{ member.join_date|date:'Y-m-d'|default:'' }}</td>
+            <td></td>
+            <td></td>
+            <td class="center">
+                {% if member.get_contract.endowment_insurance == "2" %}
+                    ○
+                {% else %}
+
+                {% endif %}
+            </td>
+            <td></td>
+            <td></td>
+            <td></td>
         </tr>
         {% endfor %}
     </tbody>

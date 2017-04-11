@@ -2563,7 +2563,7 @@ class SysOrg(models.Model):
     orgpathname = models.CharField(db_column='ORGPATHNAME', max_length=2000, blank=True, null=True)  
     isdelete = models.NullBooleanField(db_column='ISDELETE', blank=True, null=True)
     code = models.CharField(db_column='CODE', max_length=128, blank=True, null=True)
-    members = models.ManyToManyField('SysUser', through='SysUserOrg', through_fields=('orgid', 'userid'))
+    members = models.ManyToManyField('SysUser', through='SysUserOrg', through_fields=('org', 'userid'))
 
     objects = EboaManager()
 
@@ -3056,7 +3056,7 @@ class SysUser(models.Model):
 
 class SysUserOrg(models.Model):
     userorgid = models.BigIntegerField(db_column='USERORGID', primary_key=True)
-    orgid = models.ForeignKey(SysOrg, db_column='ORGID', blank=True, null=True)
+    org = models.ForeignKey(SysOrg, db_column='ORGID', blank=True, null=True)
     userid = models.ForeignKey(SysUser, db_column='USERID', blank=True, null=True)
     isprimary = models.SmallIntegerField(db_column='ISPRIMARY')  
     ischarge = models.BigIntegerField(db_column='ISCHARGE', blank=True, null=True)  
@@ -3679,6 +3679,28 @@ class EbEmployee(models.Model):
 
     def __unicode__(self):
         return common.get_unicode(self.name)
+
+    def get_contract(self):
+        """契約情報取得
+
+        :return:
+        """
+        query_set = EbEmpContract.objects.filter(codeid=self.user.userid).order_by('-employment_date')
+        if query_set.count() > 0:
+            return query_set[0]
+        else:
+            return None
+
+    def get_organization(self):
+        """部署を取得する
+
+        :return:
+        """
+        query_set = self.user.sysuserorg_set.filter(isdelete=0)
+        if query_set.count() > 0:
+            return query_set[0].org
+        else:
+            return None
 
 
 class EbHoliday(models.Model):
