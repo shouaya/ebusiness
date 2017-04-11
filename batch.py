@@ -38,7 +38,7 @@ class JobConfig(object):
         :return:
         """
         cron_tab = self._cron_tab
-        return datetime.datetime.now() + datetime.timedelta(seconds=math.ceil(cron_tab.next()))
+        return datetime.datetime.now() + datetime.timedelta(seconds=math.ceil(cron_tab.next(default_utc=True)))
 
     def next(self):
         """次回実行時刻まで待機する時間を取得する。
@@ -46,7 +46,7 @@ class JobConfig(object):
         :return:
         """
         cron_tab = self._cron_tab
-        return math.ceil(cron_tab.next())
+        return math.ceil(cron_tab.next(default_utc=True))
 
 
 def job_controller(job_config):
