@@ -136,6 +136,7 @@ class BatchCarbonCopyInline(admin.TabularInline):
 
 class PositionShipInline(admin.TabularInline):
     model = models.PositionShip
+    form = forms.PositionShipForm
     extra = 0
 
 
@@ -339,7 +340,7 @@ class BankInfoAdmin(BaseAdmin):
 class SectionAdmin(BaseAdmin):
 
     form = forms.SectionForm
-    list_display = ['name', 'is_on_sales', 'is_deleted']
+    list_display = ['name', 'parent', 'org_type', 'is_on_sales', 'is_deleted']
     list_filter = ['is_on_sales', 'is_deleted']
     actions = ['delete_objects', 'active_objects']
     inlines = (PositionShipInline,)

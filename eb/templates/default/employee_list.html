@@ -26,7 +26,23 @@
             <select id="section" name="section">
                 <option value="">すべて</option>
                 {% for section in sections %}
-                    <option value="{{ section.pk }}">{{ section.name }}</option>
+                    {% if section.children.count == 0 %}
+                        <option value="{{ section.pk }}">{{ section.name }}</option>
+                    {% else %}
+                        <option class="group" value="section.pk">{{ section }}</option>
+                        {% for sec1 in section.children.all %}
+                            {% if sec1.children.count == 0 %}
+                                <option value="{{ sec1.pk }}">&nbsp;&nbsp;&nbsp;&nbsp;{{ sec1 }}</option>
+                            {% else %}
+                                <option class="group" value="{{ sec1.pk }}">&nbsp;&nbsp;&nbsp;&nbsp;{{ sec1 }}</option>
+                                {% if sec1.children.count > 0 %}
+                                    {% for sec2 in sec1.children.all %}
+                                        <option value="{{ sec2.pk }}">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{ sec2 }}</option>
+                                    {% endfor %}
+                                {% endif %}
+                            {% endif %}
+                        {% endfor %}
+                    {% endif %}
                 {% endfor %}
             </select>
             <span>稼働状態: </span>

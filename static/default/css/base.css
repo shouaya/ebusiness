@@ -81,3 +81,7 @@ div.musk {
     z-index: 100;
     text-align: center;
 }
+
+option.group {
+    font-weight: bold;
+}

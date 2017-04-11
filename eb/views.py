@@ -201,7 +201,7 @@ class MemberListView(BaseTemplateView):
         context.update({
             'title': u'要員一覧 | %s' % constants.NAME_SYSTEM,
             'members': members,
-            'sections': models.Section.objects.public_filter(is_on_sales=True),
+            'sections': models.Section.objects.public_filter(is_on_sales=True, parent__isnull=True),
             'salesperson': models.Salesperson.objects.public_all(),
             'paginator': paginator,
             'params': "&" + params if params else "",

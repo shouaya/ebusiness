@@ -340,6 +340,9 @@ class Section(models.Model):
     name = models.CharField(blank=False, null=False, max_length=30, verbose_name=u"部署名")
     description = models.CharField(blank=True, null=True, max_length=200, verbose_name=u"概要")
     is_on_sales = models.BooleanField(blank=False, null=False, default=False, verbose_name=u"営業対象")
+    parent = models.ForeignKey("self", related_name='children', blank=True, null=True, verbose_name=u"親組織")
+    org_type = models.CharField(blank=False, null=False, default='02', max_length=2, choices=constants.CHOICE_ORG_TYPE,
+                                verbose_name=u"組織類別")
     company = models.ForeignKey(Company, blank=False, null=False, verbose_name=u"会社")
     is_deleted = models.BooleanField(default=False, editable=False, verbose_name=u"削除フラグ")
     deleted_date = models.DateTimeField(blank=True, null=True, editable=False, verbose_name=u"削除年月日")
@@ -918,6 +921,8 @@ class Contract(models.Model):
 class MemberSectionPeriod(models.Model):
     member = models.ForeignKey(Member, verbose_name=u"社員名")
     section = models.ForeignKey(Section, verbose_name=u"部署")
+    division = models.ForeignKey(Section, blank=True, null=True, related_name='memberdivisionperiod_set',
+                                 verbose_name=u"課・グループ")
     start_date = models.DateField(verbose_name=u"開始日")
     end_date = models.DateField(blank=True, null=True, verbose_name=u"終了日")
     is_deleted = models.BooleanField(default=False, editable=False, verbose_name=u"削除フラグ")

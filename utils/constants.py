@@ -203,6 +203,10 @@ CHOICE_ISSUE_LEVEL = ((1, u"低"),
                       (5, u"大至急"))
 CHOICE_THEME = (('default', u'デフォルト'),
                 ('full_screen', u'フルスクリーン'))
+CHOICE_ORG_TYPE = (('', '--------'),
+                   ('01', u"事業部"),
+                   ('02', u"部署"),
+                   ('03', u"課・グループ"))
 
 xlPart = 2
 xlByRows = 1

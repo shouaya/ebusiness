@@ -115,6 +115,16 @@ class SectionForm(forms.ModelForm):
         fields = '__all__'
 
 
+class PositionShipForm(forms.ModelForm):
+    class Meta:
+        model = models.PositionShip
+        fields = '__all__'
+
+    member = forms.ModelChoiceField(queryset=models.Member.objects.public_all(),
+                                    widget=SearchSelect(models.Member),
+                                    label=u"名前")
+
+
 class ProjectForm(forms.ModelForm):
     class Meta:
         models = models.Project
@@ -486,16 +496,21 @@ class MemberSectionPeriodForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         forms.ModelForm.__init__(self, *args, **kwargs)
-        self.fields['section'].queryset = models.Section.objects.public_filter(is_on_sales=True)
+        self.fields['section'].queryset = models.Section.objects.public_filter(is_on_sales=True, org_type='02')
+        self.fields['division'].queryset = models.Section.objects.public_filter(is_on_sales=True, org_type='03')
 
     def clean(self):
         cleaned_data = super(MemberSectionPeriodForm, self).clean()
         start_date = cleaned_data.get("start_date")
         end_date = cleaned_data.get("end_date")
+        section = cleaned_data.get('section')
+        division = cleaned_data.get('division')
         if end_date and end_date <= start_date:
             self.add_error('end_date', u"終了日は開始日以降に設定してください。")
         if 'section' in self.changed_data and self.instance.pk:
             self.add_error('section', u"部署を変更できません、変更したい場合は新しい部署とその期間を追加してください。")
+        if section and division and division.parent.pk != section.pk:
+            self.add_error('division', u"指定された課は部署「%s」に所属していない。" % section.name)
 
 
 class MemberSalespersonPeriodForm(forms.ModelForm):
@@ -527,8 +542,9 @@ class MemberSectionPeriodFormset(forms.BaseInlineFormSet):
                 if form.cleaned_data:
                     start_date = form.cleaned_data.get("start_date")
                     end_date = form.cleaned_data.get("end_date")
-                    dates.append((start_date, end_date))
-                    count += 1
+                    if start_date:
+                        dates.append((start_date, end_date))
+                        count += 1
             except AttributeError:
                 pass
         if self.instance.section:
