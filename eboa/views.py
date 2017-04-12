@@ -86,8 +86,8 @@ def download_eboa_members(request):
     #                      member.retire_date,
     #                      ])
 
-    response = HttpResponse(content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
-    response['Content-Disposition'] = "filename=eboa_member_list.xls"
+    response = HttpResponse(content_type="application/ms-excel")
+    response['Content-Disposition'] = 'attachment; filename="eboa_member_list.xls"'
 
     template = loader.get_template('download_eboa_members.html')
     context = {

@@ -783,13 +783,14 @@ def section_attendance(request, section_id):
     today = datetime.date.today()
     year = request.GET.get('year', today.year)
     month = request.GET.get('month', today.month)
+    date = datetime.date(int(year), int(month), 20)
     prev_month = common.add_months(datetime.date(int(year), int(month), 1), -1)
     next_month = common.add_months(datetime.date(int(year), int(month), 1), 1)
 
     param_list = common.get_request_params(request.GET)
     params = "&".join(["%s=%s" % (key, value) for key, value in param_list.items()]) if param_list else ""
 
-    project_members = biz.get_project_members_month_section(section, datetime.date(int(year), int(month), 20))
+    project_members = biz.get_project_members_month_section(section, date)
 
     o = request.GET.get('o', None)
     dict_order = common.get_ordering_dict(o, ['member__first_name', 'member__employee_id',
@@ -815,7 +816,7 @@ def section_attendance(request, section_id):
                 if project_member.id == project_member_id:
                     msg = msg_content
                     break
-        all_project_members.append((project_member, msg))
+        all_project_members.append((project_member, project_member.member.is_belong_to(request.user, date), msg))
 
     context = get_base_context()
     context.update({

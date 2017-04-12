@@ -24,7 +24,6 @@
                 <th>{% create_order_display "所属" "" %}</th>
                 <th>{% create_order_display "稼働開始日" "start_date" %}</th>
                 <th>{% create_order_display "稼働終了日" "end_date" %}</th>
-                <th>{% create_order_display "単価" "" %}</th>
                 <th>{% create_order_display "備考" "" %}</th>
                 <th></th>
             </tr>
@@ -43,7 +42,6 @@
                         <td>{{ project_member.member.get_section }}</td>
                         <td>{{ project_member.start_date|date:"Y-m-d" }}</td>
                         <td>{{ project_member.end_date|date:"Y-m-d" }}</td>
-                        <td>{{ project_member.price|intcomma }}</td>
                         <td class="center">
                             {% if project_member.member.is_retired %}
                                 退職
@@ -58,7 +56,7 @@
                 {% endfor %}
             {% else %}
                 <tr class="row2">
-                    <td class="center red" colspan="8">
+                    <td class="center red" colspan="7">
                         プロジェクト<b>「{{ project.name }}」</b>に誰もアサインしてありません。
                     </td>
                 </tr>
@@ -66,7 +64,7 @@
         </tbody>
         <tfoot>
             <tr>
-                <td colspan="8">
+                <td colspan="7">
                     <div class="pagination">
                         <span class="step-links">
                             {% if project_members.has_previous %}

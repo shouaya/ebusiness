@@ -15,7 +15,7 @@ from email import encoders
 from email.header import Header
 from xml.etree import ElementTree
 
-from django.db import models
+from django.db import models, connection
 from django.contrib.auth.models import User
 from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
 from django.db.models import Max, Min, Q, Sum, Prefetch
@@ -379,8 +379,21 @@ class Section(models.Model):
         pass
 
     def get_chief(self):
+        """部門長、課長を取得する
+
+        :return:
+        """
         query_set = Member.objects.public_filter(positionship__section=self,
-                                                 positionship__position__in=[4, 6])
+                                                 positionship__position__in=[3, 4, 6])
+        return query_set
+
+    def get_chief2(self):
+        """担当部長、担当課長を取得する
+
+        :return:
+        """
+        query_set = Member.objects.public_filter(positionship__section=self,
+                                                 positionship__position__in=[5, 7])
         return query_set
 
     def get_attendance_statistician(self):
@@ -863,6 +876,35 @@ class Member(AbstractMember):
                 return None
         else:
             return None
+
+    def is_belong_to(self, user, date):
+        if user.is_superuser:
+            return True
+        if not hasattr(user, 'member'):
+            return False
+        first_day = common.get_first_day_by_month(date)
+        last_day = common.get_last_day_by_month(date)
+        with connection.cursor() as cursor:
+            cursor.execute("select distinct boss.id boss_id"
+                           "     , ps.position"
+                           "  from eb_positionship ps"
+                           "  join eb_membersectionperiod msp on (   msp.section_id = ps.section_id "
+                           "                                      or msp.division_id = ps.section_id)"
+                           "  join eb_member m on m.id = msp.member_id"
+                           "  join eb_member boss on boss.id = ps.member_id"
+                           " where m.is_deleted = 0"
+                           "   and ps.is_deleted = 0"
+                           "   and msp.is_deleted = 0"
+                           "   and msp.start_date <= %s"
+                           "   and (msp.end_date >= %s or msp.end_date is null)"
+                           "   and ps.position in (3, 4, 5, 6, 7)"
+                           "   and m.id = %s"
+                           "   and boss.id = %s", [last_day, first_day, self.pk, user.member.pk])
+            records = cursor.fetchall()
+        if len(records) > 0:
+            return True
+        else:
+            return False
 
     def delete(self, using=None, keep_parents=False):
         self.is_deleted = True

@@ -462,3 +462,21 @@ section div.example div {
     font-size: 11px;
     margin-left: 10px;
 }
+
+section .hierarchy {
+    background-color: white;
+}
+
+section .hierarchy .lev1 {
+
+}
+
+section .hierarchy .lev2,
+section .hierarchy .lev2 .first {
+    padding-left: 30px;
+}
+
+section .hierarchy .lev3,
+section .hierarchy .lev3 .first {
+    padding-left: 60px;
+}

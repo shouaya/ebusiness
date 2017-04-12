@@ -1000,7 +1000,9 @@ def generate_attendance_format(user, template_path, project_members):
             attendance = project_member.current_attendance_set[0]
         else:
             attendance = None
-        if attendance:
+        date = datetime.date(int(attendance.year), int(attendance.month), 20)
+        is_own = project_member.member.is_belong_to(user, date)
+        if attendance and is_own:
             # 社会保険加入有無
             contract = attendance.get_contract()
             if contract and contract.endowment_insurance == "2":
@@ -1018,8 +1020,12 @@ def generate_attendance_format(user, template_path, project_members):
             # 勤務交通費
             sheet.cell(row=start_row, column=18).value = attendance.traffic_cost
 
-            request_detail = attendance.get_project_request_detail()
-            if request_detail and user.has_perm('eb.view_turnover'):
+            # 請求情報取得
+            if len(project_member.project_request_detail_set) == 1:
+                request_detail = project_member.project_request_detail_set[0]
+            else:
+                request_detail = None
+            if request_detail:
                 # 売上（税込）
                 sheet.cell(row=start_row, column=19).value = request_detail.get_all_price()
                 # 売上（税抜）
