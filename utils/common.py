@@ -8,6 +8,7 @@ import os
 import re
 import sys
 import datetime
+import pytz
 import calendar
 import xlsxwriter
 import StringIO
@@ -17,6 +18,14 @@ import constants
 import jholiday
 
 from decimal import Decimal
+
+
+def get_tz_jp():
+    return pytz.timezone('Asia/Tokyo')
+
+
+def get_tz_utc():
+    return pytz.utc
 
 
 def add_months(source_date, months=1):

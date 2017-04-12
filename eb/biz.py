@@ -121,6 +121,14 @@ def get_project_members_by_salesperson(project_members, salesperson_id, date):
                                   member__membersalespersonperiod__is_deleted=False).distinct()
 
 
+def get_on_sales_top_org():
+    """営業対象のトップレベルの部署を取得する
+
+    :return:
+    """
+    return models.Section.objects.public_filter(is_on_sales=True, parent__isnull=True)
+
+
 def get_on_sales_section():
     """営業対象の部署を取得する。
 

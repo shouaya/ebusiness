@@ -144,6 +144,8 @@ class Company(AbstractCompany):
         verbose_name = verbose_name_plural = u"会社"
         permissions = (
             ('view_member_status_list', u"社員稼働状況リスト"),
+            ('view_data_belonged', u"関係するデータ参照"),
+            ('view_data_other', u"関係しないデータ参照"),
         )
 
     @staticmethod
@@ -378,7 +380,7 @@ class Section(models.Model):
 
     def get_chief(self):
         query_set = Member.objects.public_filter(positionship__section=self,
-                                                 positionship__position=4)
+                                                 positionship__position__in=[4, 6])
         return query_set
 
     def get_attendance_statistician(self):
@@ -591,6 +593,8 @@ class Member(AbstractMember):
         verbose_name = verbose_name_plural = u"社員"
         permissions = (
             ('view_member', u'社員参照'),
+            ('view_member_cost', u"社員コスト参照"),
+            ('view_bp_cost', u"ＢＰコスト参照"),
         )
 
     def __unicode__(self):
@@ -849,6 +853,8 @@ class Member(AbstractMember):
         :param date 対象年月
         :return:
         """
+        if self.pk == 1113:
+            pass
         if re.match(r"^[0-9]+$", str(self.employee_id)):
             contract_list = self.contract_set.filter(employment_date__lte=date).order_by('-employment_date')
             if contract_list.count() > 0:
@@ -971,7 +977,7 @@ class MemberSalespersonPeriod(models.Model):
 class PositionShip(models.Model):
     member = models.ForeignKey(Member, verbose_name=u"社員名")
     position = models.IntegerField(blank=True, null=True, choices=constants.CHOICE_POSITION, verbose_name=u"職位")
-    section = models.ForeignKey(Section, verbose_name=u"部署")
+    section = models.ForeignKey(Section, verbose_name=u"所属")
     is_part_time = models.BooleanField(default=False, verbose_name=u"兼任")
     is_deleted = models.BooleanField(default=False, editable=False, verbose_name=u"削除フラグ")
     deleted_date = models.DateTimeField(blank=True, null=True, editable=False, verbose_name=u"削除年月日")
@@ -1489,7 +1495,7 @@ class ProjectRequest(models.Model):
                 self.projectrequestheading.delete()
             self.projectrequestdetail_set.all().delete()
             bank = data['EXTRA']['BANK']
-            date = datetime.date(int(self.year), int(self.month), 1)
+            date = datetime.datetime(int(self.year), int(self.month), 1, tzinfo=common.get_tz_utc())
             date = common.get_last_day_by_month(date)
             heading = ProjectRequestHeading(project_request=self,
                                             is_lump=self.project.is_lump,
@@ -2027,7 +2033,7 @@ class MemberAttendance(models.Model):
         return u"%s %s %s" % (self.project_member, self.get_year_display(), self.get_month_display())
 
     def get_contract(self):
-        date = timezone.datetime(int(self.year), int(self.month), 1)
+        date = datetime.datetime(int(self.year), int(self.month), 1, tzinfo=common.get_tz_utc())
         return self.project_member.member.get_contract(date)
 
     def get_cost(self):
@@ -2035,7 +2041,7 @@ class MemberAttendance(models.Model):
 
         :return:
         """
-        date = timezone.datetime(int(self.year), int(self.month), 1)
+        date = datetime.datetime(int(self.year), int(self.month), 1, tzinfo=common.get_tz_utc())
         return self.project_member.member.get_cost(date)
 
     def get_bonus(self):

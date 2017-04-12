@@ -201,7 +201,7 @@ class MemberListView(BaseTemplateView):
         context.update({
             'title': u'要員一覧 | %s' % constants.NAME_SYSTEM,
             'members': members,
-            'sections': models.Section.objects.public_filter(is_on_sales=True, parent__isnull=True),
+            'sections': biz.get_on_sales_top_org(),
             'salesperson': models.Salesperson.objects.public_all(),
             'paginator': paginator,
             'params': "&" + params if params else "",
@@ -425,6 +425,7 @@ class ProjectEndView(BaseView):
 
 
 @method_decorator(permission_required('eb.view_project', raise_exception=True), name='dispatch')
+@method_decorator(permission_required('eb.view_turnover', raise_exception=True), name='dispatch')
 class ProjectOrdersView(BaseTemplateView):
     template_name = 'default/project_order_list.html'
 
@@ -722,7 +723,7 @@ class SectionListView(BaseTemplateView):
     template_name = 'default/section_list.html'
 
     def get(self, request, *args, **kwargs):
-        sections = biz.get_on_sales_section()
+        sections = biz.get_on_sales_top_org()
         section_count_list = []
         total_count = 0
         for section in sections:
@@ -836,6 +837,7 @@ def section_attendance(request, section_id):
     return HttpResponse(template.render(context, request))
 
 
+@method_decorator(permission_required('eb.view_turnover', raise_exception=True), name='dispatch')
 class ProjectRequestView(BaseTemplateView):
     template_name = 'default/project_request.html'
 

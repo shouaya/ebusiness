@@ -10,7 +10,7 @@
             <a href="" target="_blank"></a>
         </form>
     </div>
-    <table cellspacing="0" cellpadding="0" class="list">
+    <table cellspacing="0" cellpadding="0" class="list hierarchy">
         <thead>
             <tr>
                 <th>名称</th>
@@ -21,8 +21,14 @@
         </thead>
         <tbody>
         {% for section, count in sections %}
-            <tr class="{% cycle 'row1' 'row2' %}">
-                <td><a href="{% url 'section_detail' section.pk %}">{{ section }}</a></td>
+            <tr class="lev1">
+                <td>
+                    {% if section.org_type == '02' %}
+                        <a href="{% url 'section_detail' section.pk %}">{{ section }}</a>
+                    {% else %}
+                        {{ section }}
+                    {% endif %}
+                </td>
                 <td>{{ count }}</td>
                 <td>
                     {% for member in section.get_chief %}
@@ -35,6 +41,44 @@
                     {% endfor %}
                 </td>
             </tr>
+            {% for sec1 in section.children.all %}
+                <tr class="lev2">
+                    <td class="first"><a href="{% url 'section_detail' sec1.pk %}">{{ sec1 }}</a></td>
+                    <td></td>
+                    <td>
+                        {% for member in sec1.get_chief %}
+                            {{ member}},
+                        {% endfor %}
+                    </td>
+                    <td>
+                        {% for member in sec1.get_attendance_statistician %}
+                            {{ member}},
+                        {% endfor %}
+                    </td>
+                </tr>
+                {% for sec2 in sec1.children.all %}
+                    <tr class="lev3">
+                        <td class="first">
+                            {% if sec2.org_type == '02' %}
+                                <a href="{% url 'section_detail' sec2.pk %}">{{ sec2 }}</a>
+                            {% else %}
+                                {{ sec2 }}
+                            {% endif %}
+                        </td>
+                        <td></td>
+                        <td>
+                            {% for member in sec2.get_chief %}
+                                {{ member}},
+                            {% endfor %}
+                        </td>
+                        <td>
+                            {% for member in sec2.get_attendance_statistician %}
+                                {{ member}},
+                            {% endfor %}
+                        </td>
+                    </tr>
+                {% endfor %}
+            {% endfor %}
         {% endfor %}
         </tbody>
         <tfoot>

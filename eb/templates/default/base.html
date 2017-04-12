@@ -63,7 +63,9 @@
                     </li>
                     <li><a href="{% url 'project_list' %}">案件一覧</a>
                         <ul>
+                            {% if perms.eb.view_turnover %}
                             <li><a href="{% url 'project_order_list' %}">案件の注文情報</a></li>
+                            {% endif %}
                             <li><a href="{% url 'section_list' %}">部署情報一覧</a></li>
                         </ul>
                     </li>
