@@ -343,7 +343,7 @@ class Section(models.Model):
     description = models.CharField(blank=True, null=True, max_length=200, verbose_name=u"概要")
     is_on_sales = models.BooleanField(blank=False, null=False, default=False, verbose_name=u"営業対象")
     parent = models.ForeignKey("self", related_name='children', blank=True, null=True, verbose_name=u"親組織")
-    org_type = models.CharField(blank=False, null=False, default='02', max_length=2, choices=constants.CHOICE_ORG_TYPE,
+    org_type = models.CharField(blank=False, null=False, max_length=2, choices=constants.CHOICE_ORG_TYPE,
                                 verbose_name=u"組織類別")
     company = models.ForeignKey(Company, blank=False, null=False, verbose_name=u"会社")
     is_deleted = models.BooleanField(default=False, editable=False, verbose_name=u"削除フラグ")
@@ -2744,7 +2744,7 @@ def get_project_members_by_month(date):
     """
     first_day = common.get_first_day_by_month(date)
     today = datetime.date.today()
-    next_2_month = common.add_months(today, 2)
+    next_2_month = common.add_months(first_day, 2)
     if date.year == today.year and date.month == today.month:
         first_day = today
     last_day = common.get_last_day_by_month(date)
@@ -2759,14 +2759,14 @@ def get_project_members_by_month(date):
                         " where ((msp.start_date <= '{0}' and msp.end_date is null) "
                         "     or (msp.start_date <= '{0}' and msp.end_date >= '{0}')) "
                         "   and msp.member_id = eb_projectmember.member_id "
-                        "   and msp.is_deleted = 0".format(today),
+                        "   and msp.is_deleted = 0".format(date),
         'salesperson_name': "select concat(first_name, last_name) "
                             "  from eb_salesperson s "
                             " inner join eb_membersalespersonperiod msp on s.id = msp.salesperson_id "
                             " where ((msp.start_date <= '{0}' and msp.end_date is null) "
                             "     or (msp.start_date <= '{0}' and msp.end_date >= '{0}')) "
                             "   and msp.member_id = eb_projectmember.member_id "
-                            "   and msp.is_deleted = 0".format(today),
+                            "   and msp.is_deleted = 0".format(date),
         'business_status': "select case"
                            "           when (select count(*) "
                            "                   from eb_projectmember pm2 "
