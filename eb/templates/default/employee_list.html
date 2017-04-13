@@ -29,7 +29,7 @@
                     {% if section.children.count == 0 %}
                         <option value="{{ section.pk }}">{{ section.name }}</option>
                     {% else %}
-                        <option class="group" value="section.pk">{{ section }}</option>
+                        <option class="group" value="{{ section.pk }}">{{ section }}</option>
                         {% for sec1 in section.children.all %}
                             {% if sec1.children.count == 0 %}
                                 <option value="{{ sec1.pk }}">&nbsp;&nbsp;&nbsp;&nbsp;{{ sec1 }}</option>
@@ -87,7 +87,9 @@
         <thead>
             <tr>
                 <th>{% create_order_display "名前" "first_name" %}</th>
-                <th>所属</th>
+                <th>事業部</th>
+                <th>部署</th>
+                <th>課・グループ</th>
                 <th>{% create_order_display "協力会社" "subcontractor__name" %}</th>
                 <th style="width: 50px;">稼働</th>
                 <th style="width: 120px;">
@@ -116,11 +118,11 @@
                                 {{ member.first_name }}&nbsp;{{ member.last_name }}
                             </a>
                         </td>
-                        <td>
-                            {% for section_period in member.current_section_period %}
-                                {{ section_period.section }}
-                            {% endfor %}
-                        </td>
+                        {% with section_period=member.current_section_period|first %}
+                        <td>{{ section_period.division|default:'' }}</td>
+                        <td>{{ section_period.section|default:'' }}</td>
+                        <td>{{ section_period.subsection|default:'' }}</td>
+                        {% endwith %}
                         <td>{{ member.subcontractor|default:"" }}</td>
                         <td class="center">
                             {% if member.last_end_date|date:"Y-m-d" > ymd %}
@@ -157,12 +159,12 @@
                     </tr>
                 {% endfor %}
             {% else %}
-                <tr class="row2"><td class="center red" colspan="8">該当する要員がいません。</td></tr>
+                <tr class="row2"><td class="center red" colspan="10">該当する要員がいません。</td></tr>
             {% endif %}
         </tbody>
         <tfoot>
             <tr>
-                <td colspan="8">
+                <td colspan="10">
                     <div class="pagination">
                         <span class="step-links">
                             {% if members.has_previous %}

@@ -76,6 +76,16 @@ class ProjectMemberInline(admin.TabularInline):
     formset = forms.ProjectMemberFormset
     extra = 0
 
+    def get_formset(self, request, obj=None, **kwargs):
+        formset = super(ProjectMemberInline, self).get_formset(request, obj, **kwargs)
+
+        class AdminFormsetWithRequest(formset):
+            def __new__(cls, *args, **kwargs):
+                kwargs.update({'request': request})
+                return formset(*args, **kwargs)
+
+        return AdminFormsetWithRequest
+
     def get_queryset(self, request):
         queryset = super(ProjectMemberInline, self).get_queryset(request)
         return queryset.filter(member__is_retired=False, member__is_deleted=False).order_by('end_date', 'start_date')
@@ -628,6 +638,12 @@ class ProjectAdmin(BaseAdmin):
                 fm.form.base_fields['max_hours'].initial = obj.max_hours
         return formsets, inline_instances
 
+    def get_inline_formsets(self, request, formsets, inline_instances,
+                            obj=None):
+        inline_admin_formsets = super(ProjectAdmin, self).get_inline_formsets(request, formsets, inline_instances, obj)
+
+        return inline_admin_formsets
+
     def get_actions(self, request):
         actions = super(ProjectAdmin, self).get_actions(request)
         if 'delete_selected' in actions:
@@ -869,6 +885,7 @@ class ProjectMemberAdmin(BaseAdmin):
 
     def display_project_client(self, obj):
         return obj.project.client.name
+
     def display_eboa_user_id(self, obj):
         return obj.member.eboa_user_id
     display_project_client.short_description = u"関連会社"
@@ -896,6 +913,15 @@ class ProjectMemberAdmin(BaseAdmin):
     delete_objects.short_description = u"選択されたレコードを削除する。"
     active_objects.short_description = u"選択されたレコードを復活する。"
 
+    # def change_view(self, request, object_id, form_url='', extra_context=None):
+    #     project_member = models.ProjectMember.objects.get(pk=object_id)
+    #     if project_member.member.is_belong_to(request.user, datetime.date.today()):
+    #         try:
+    #             self.fieldsets[2][1]['fields'].remove('cost')
+    #         except ValueError:
+    #             pass
+    #     return super(ProjectMemberAdmin, self).change_view(request, object_id, form_url, extra_context)
+
     def get_form(self, request, obj=None, **kwargs):
         form = super(ProjectMemberAdmin, self).get_form(request, obj, **kwargs)
         project_id = request.GET.get('project_id', None)
@@ -910,6 +936,14 @@ class ProjectMemberAdmin(BaseAdmin):
         employee_id = request.GET.get('employee_id', None)
         if employee_id:
             form.base_fields['member'].initial = models.Member.objects.get(employee_id=employee_id)
+        if obj and not obj.member.is_belong_to(request.user, datetime.date.today()):
+            del form.base_fields['price']
+            del form.base_fields['min_hours']
+            del form.base_fields['max_hours']
+            del form.base_fields['plus_per_hour']
+            del form.base_fields['minus_per_hour']
+            if 'hourly_pay' in form.base_fields:
+                del form.base_fields['hourly_pay']
         return form
 
 

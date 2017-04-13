@@ -10,14 +10,26 @@ import datetime
 
 from django import forms
 from django.forms.utils import flatatt
+from django.forms.widgets import Widget
 from django.utils.html import format_html, mark_safe
 from django.core.urlresolvers import reverse
 from django.utils.translation import ugettext_lazy as _
+from django.utils.functional import cached_property
 
 from utils import constants
 
 REG_POST_CODE = r"^\d{7}$"
 REG_UPPER_CAMEL = r"^([A-Z][a-z]+)+$"
+
+
+class EncryptField(Widget):
+
+    def __init__(self, attrs=None):
+        super(EncryptField, self).__init__(attrs)
+
+    def render(self, name, value, attrs=None):
+        final_attrs = self.build_attrs(attrs, name=name)
+        return format_html('<span{}>******</span>', flatatt(final_attrs))
 
 
 class SearchSelect(forms.Select):
@@ -243,6 +255,9 @@ class ProjectMemberForm(forms.ModelForm):
         fields = '__all__'
 
     def __init__(self, *args, **kwargs):
+        self.request = kwargs.pop('request', None)
+        self.encrypt_fields = ('price', 'min_hours', 'max_hours', 'plus_per_hour', 'minus_per_hour')
+        self.is_encrypted = False
         super(ProjectMemberForm, self).__init__(*args, **kwargs)
         instance = kwargs.get('instance', None)
         if instance and isinstance(instance, models.ProjectMember):
@@ -254,6 +269,20 @@ class ProjectMemberForm(forms.ModelForm):
                 old_class = self.fields['status'].widget.attrs.get('class')
                 new_class = (old_class + ' planning') if old_class else 'planning'
                 self.fields['status'].widget.attrs.update({'class': new_class})
+            if self.request and not instance.member.is_belong_to(self.request.user, datetime.date.today()):
+                for name in self.encrypt_fields:
+                    self.fields[name].widget = EncryptField()
+                    self.fields[name].required = False
+                self.is_encrypted = True
+
+    @cached_property
+    def changed_data(self):
+        data = super(ProjectMemberForm, self).changed_data
+        if self.is_encrypted:
+            for name in self.encrypt_fields:
+                if name in data:
+                    data.remove(name)
+        return data
 
     member = forms.ModelChoiceField(queryset=models.Member.objects.public_all(),
                                     widget=SearchSelect(models.Member),
@@ -282,6 +311,17 @@ class ProjectMemberForm(forms.ModelForm):
 
 
 class ProjectMemberFormset(forms.BaseInlineFormSet):
+
+    def __init__(self, data=None, files=None, instance=None,
+                 save_as_new=False, prefix=None, queryset=None, **kwargs):
+        self.request = kwargs.pop('request', None)
+        super(ProjectMemberFormset, self).__init__(data, files, instance, save_as_new, prefix, queryset, **kwargs)
+
+    def _construct_form(self, i, **kwargs):
+        kwargs.update({'request': self.request})
+        form = super(ProjectMemberFormset, self)._construct_form(i, **kwargs)
+        return form
+
     def clean(self):
         count = 0
         project_members = []
@@ -496,21 +536,39 @@ class MemberSectionPeriodForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         forms.ModelForm.__init__(self, *args, **kwargs)
-        self.fields['section'].queryset = models.Section.objects.public_filter(is_on_sales=True, org_type='02')
-        self.fields['division'].queryset = models.Section.objects.public_filter(is_on_sales=True, org_type='03')
+        instance = kwargs.get('instance', None)
+        if instance:
+            self.fields['division'].queryset = models.Section.objects.public_filter(is_on_sales=True, org_type='01')
+            self.fields['section'].queryset = models.Section.objects.public_filter(
+                is_on_sales=True, org_type='02',
+                parent__pk=instance.division.pk
+            )
+            self.fields['subsection'].queryset = models.Section.objects.public_filter(
+                is_on_sales=True, org_type='03',
+                parent__pk=instance.section.pk
+            )
+        else:
+            self.fields['division'].queryset = models.Section.objects.public_filter(is_on_sales=True, org_type='01')
+            self.fields['section'].queryset = models.Section.objects.public_filter(is_on_sales=True, org_type='02')
+            self.fields['subsection'].queryset = models.Section.objects.public_filter(is_on_sales=True, org_type='03')
 
     def clean(self):
         cleaned_data = super(MemberSectionPeriodForm, self).clean()
         start_date = cleaned_data.get("start_date")
         end_date = cleaned_data.get("end_date")
-        section = cleaned_data.get('section')
         division = cleaned_data.get('division')
+        section = cleaned_data.get('section')
+        subsection = cleaned_data.get('subsection')
         if end_date and end_date <= start_date:
             self.add_error('end_date', u"終了日は開始日以降に設定してください。")
         if 'section' in self.changed_data and self.instance.pk:
             self.add_error('section', u"部署を変更できません、変更したい場合は新しい部署とその期間を追加してください。")
-        if section and division and division.parent.pk != section.pk:
-            self.add_error('division', u"指定された課は部署「%s」に所属していない。" % section.name)
+        if section and division and section.parent.pk != division.pk:
+            self.add_error('section',
+                           u"指定された「%s」は「%s」に所属していません。" % (section.name, division.name))
+        if section and subsection and subsection.parent.pk != section.pk:
+            self.add_error('subsection',
+                           u"指定された「%s」は「%s」に所属していません。" % (subsection.name, section.name))
 
 
 class MemberSalespersonPeriodForm(forms.ModelForm):
@@ -530,7 +588,8 @@ class MemberSalespersonPeriodForm(forms.ModelForm):
         if end_date and end_date <= start_date:
             self.add_error('end_date', u"終了日は開始日以降に設定してください。")
         if 'salesperson' in self.changed_data and self.instance.pk:
-            self.add_error('salesperson', u"営業員を変更できません、変更したい場合は新しい営業員とその期間を追加してください。")
+            self.add_error('salesperson',
+                           u"営業員を変更できません、変更したい場合は新しい営業員とその期間を追加してください。")
 
 
 class MemberSectionPeriodFormset(forms.BaseInlineFormSet):

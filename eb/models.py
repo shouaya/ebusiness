@@ -144,8 +144,6 @@ class Company(AbstractCompany):
         verbose_name = verbose_name_plural = u"会社"
         permissions = (
             ('view_member_status_list', u"社員稼働状況リスト"),
-            ('view_data_belonged', u"関係するデータ参照"),
-            ('view_data_other', u"関係しないデータ参照"),
         )
 
     @staticmethod
@@ -404,6 +402,13 @@ class Section(models.Model):
         query_set = Member.objects.public_filter(positionship__section=self,
                                                  positionship__position=11)
         return query_set
+
+    def get_children(self):
+        children = []
+        for org in self.children.filter(is_deleted=False):
+            children.append(org)
+            children.extend(list(org.get_children()))
+        return children
 
     def delete(self, using=None, keep_parents=False):
         self.is_deleted = True
@@ -880,29 +885,50 @@ class Member(AbstractMember):
     def is_belong_to(self, user, date):
         if user.is_superuser:
             return True
-        if not hasattr(user, 'member'):
-            return False
         first_day = common.get_first_day_by_month(date)
         last_day = common.get_last_day_by_month(date)
-        with connection.cursor() as cursor:
-            cursor.execute("select distinct boss.id boss_id"
-                           "     , ps.position"
-                           "  from eb_positionship ps"
-                           "  join eb_membersectionperiod msp on (   msp.section_id = ps.section_id "
-                           "                                      or msp.division_id = ps.section_id)"
-                           "  join eb_member m on m.id = msp.member_id"
-                           "  join eb_member boss on boss.id = ps.member_id"
-                           " where m.is_deleted = 0"
-                           "   and ps.is_deleted = 0"
-                           "   and msp.is_deleted = 0"
-                           "   and msp.start_date <= %s"
-                           "   and (msp.end_date >= %s or msp.end_date is null)"
-                           "   and ps.position in (3, 4, 5, 6, 7)"
-                           "   and m.id = %s"
-                           "   and boss.id = %s", [last_day, first_day, self.pk, user.member.pk])
-            records = cursor.fetchall()
-        if len(records) > 0:
-            return True
+        if hasattr(user, 'member'):
+            with connection.cursor() as cursor:
+                cursor.execute("select distinct boss.id boss_id"
+                               "     , ps.position"
+                               "  from eb_positionship ps"
+                               "  join eb_membersectionperiod msp on (   msp.section_id = ps.section_id "
+                               "                                      or msp.division_id = ps.section_id"
+                               "                                      or msp.subsection_id = ps.section_id)"
+                               "  join eb_member m on m.id = msp.member_id"
+                               "  join eb_member boss on boss.id = ps.member_id"
+                               " where m.is_deleted = 0"
+                               "   and ps.is_deleted = 0"
+                               "   and msp.is_deleted = 0"
+                               "   and msp.start_date <= %s"
+                               "   and (msp.end_date >= %s or msp.end_date is null)"
+                               "   and ps.position in (3, 4, 5, 6, 7)"
+                               "   and m.id = %s"
+                               "   and boss.id = %s", [last_day, first_day, self.pk, user.member.pk])
+                records = cursor.fetchall()
+            if len(records) > 0:
+                return True
+            else:
+                return False
+        elif hasattr(user, 'salesperson'):
+            # 営業員ログインの場合
+            with connection.cursor() as cursor:
+                cursor.execute("select count(*)"
+                               "  from eb_member m"
+                               "  join eb_membersalespersonperiod msp on msp.member_id = m.id"
+                               "  join eb_salesperson s on s.id = msp.salesperson_id"
+                               " where m.is_deleted = 0"
+                               "   and s.is_deleted = 0"
+                               "   and msp.is_deleted = 0"
+                               "   and msp.start_date <= %s"
+                               "   and (msp.end_date >= %s or msp.end_date is null)"
+                               "   and m.id = %s"
+                               "   and msp.salesperson_id = %s", [last_day, first_day, self.pk, user.salesperson.pk])
+                records = cursor.fetchall()
+            if records[0][0] > 0:
+                return True
+            else:
+                return False
         else:
             return False
 
@@ -968,9 +994,11 @@ class Contract(models.Model):
 
 class MemberSectionPeriod(models.Model):
     member = models.ForeignKey(Member, verbose_name=u"社員名")
+    division = models.ForeignKey(Section, blank=False, null=True, related_name='memberdivisionperiod_set',
+                                 verbose_name=u"事業部")
     section = models.ForeignKey(Section, verbose_name=u"部署")
-    division = models.ForeignKey(Section, blank=True, null=True, related_name='memberdivisionperiod_set',
-                                 verbose_name=u"課・グループ")
+    subsection = models.ForeignKey(Section, blank=True, null=True, related_name='membersubsectionperiod_set',
+                                   verbose_name=u"課・グループ")
     start_date = models.DateField(verbose_name=u"開始日")
     end_date = models.DateField(blank=True, null=True, verbose_name=u"終了日")
     is_deleted = models.BooleanField(default=False, editable=False, verbose_name=u"削除フラグ")

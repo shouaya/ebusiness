@@ -87,7 +87,9 @@ def get_members_by_section(all_members, section_id):
                                Q(membersectionperiod__end_date__isnull=True)) |
                               (Q(membersectionperiod__start_date__lte=today) &
                                Q(membersectionperiod__end_date__gte=today)),
-                              membersectionperiod__section__pk=section_id,
+                              Q(membersectionperiod__division__pk=section_id) |
+                              Q(membersectionperiod__section__pk=section_id) |
+                              Q(membersectionperiod__subsection__pk=section_id),
                               membersectionperiod__is_deleted=False)
 
 
@@ -108,7 +110,9 @@ def get_project_members_by_section(project_members, section_id, date):
                                    Q(member__membersectionperiod__end_date__isnull=date)) |
                                   (Q(member__membersectionperiod__start_date__lte=date) &
                                    Q(member__membersectionperiod__end_date__gte=date)),
-                                  member__membersectionperiod__section__pk=section_id,
+                                  Q(member__membersectionperiod__division__pk=section_id) |
+                                  Q(member__membersectionperiod__section__pk=section_id) |
+                                  Q(member__membersectionperiod__subsection__pk=section_id),
                                   member__membersectionperiod__is_deleted=False).distinct()
 
 
@@ -227,7 +231,9 @@ def get_project_members_month_section(section, date, user=None):
                                    Q(member__membersectionperiod__end_date__isnull=date)) |
                                   (Q(member__membersectionperiod__start_date__lte=date) &
                                    Q(member__membersectionperiod__end_date__gte=date)),
-                                  member__membersectionperiod__section=section).distinct().prefetch_related(
+                                  Q(member__membersectionperiod__division=section) |
+                                  Q(member__membersectionperiod__section=section) |
+                                  Q(member__membersectionperiod__subsection=section)).distinct().prefetch_related(
         Prefetch('member'),
         Prefetch('memberattendance_set', queryset=current_attendance_set, to_attr='current_attendance_set'),
         Prefetch('memberattendance_set', queryset=prev_attendance_set, to_attr='prev_attendance_set'),
