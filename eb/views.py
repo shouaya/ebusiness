@@ -871,6 +871,21 @@ class ProjectRequestView(BaseTemplateView):
 
 
 @method_decorator(permission_required('eb.view_turnover', raise_exception=True), name='dispatch')
+class TurnoverCompanyYearlyView(BaseTemplateView):
+    template_name = 'default/turnover_company_yearly.html'
+
+    def get(self, request, *args, **kwargs):
+        company_turnover = biz_turnover.turnover_company_year()
+
+        context = self.get_context_data()
+        context.update({
+            'title': u'年間売上情報 | %s' % constants.NAME_SYSTEM,
+            'company_turnover': company_turnover,
+        })
+        return self.render_to_response(context)
+
+
+@method_decorator(permission_required('eb.view_turnover', raise_exception=True), name='dispatch')
 class TurnoverCompanyMonthlyView(BaseTemplateView):
     template_name = 'default/turnover_company_monthly.html'
 
@@ -985,6 +1000,32 @@ class TurnoverMembersMonthlyView(BaseTemplateView):
             'orders': "&o=%s" % (o,) if o else "",
             'params': "&" + params if params else "",
             'ym': ym,
+        })
+        return self.render_to_response(context)
+
+
+@method_decorator(permission_required('eb.view_turnover', raise_exception=True), name='dispatch')
+class TurnoverClientsYearlyView(BaseTemplateView):
+    template_name = 'default/turnover_clients_yearly.html'
+
+    def get(self, request, *args, **kwargs):
+        year = kwargs.get('year', None)
+        clients_turnover = biz_turnover.clients_turnover_yearly(year)
+
+        summary = {'attendance_amount': 0, 'expenses_amount': 0,
+                   'attendance_tex': 0, 'all_amount': 0}
+        for item in clients_turnover:
+            summary['attendance_amount'] += item['attendance_amount']
+            summary['attendance_tex'] += item['attendance_tex']
+            summary['expenses_amount'] += item['expenses_amount']
+            summary['all_amount'] += item['attendance_amount'] + item['attendance_tex'] + item['expenses_amount']
+
+        context = self.get_context_data()
+        context.update({
+            'title': u'%s年のお客様別売上情報 | %s' % (year, constants.NAME_SYSTEM),
+            'clients_turnover': clients_turnover,
+            'year': year,
+            'summary': summary,
         })
         return self.render_to_response(context)
 

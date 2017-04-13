@@ -9,6 +9,25 @@ from eb import models
 from django.db.models import Sum
 
 
+def turnover_company_year():
+    """年単位の会社の売上情報を取得する。
+
+    :return: QuerySet
+    """
+    turnover_year = models.ProjectRequest.objects.filter(projectrequestheading__isnull=False).\
+        values('year',).\
+        annotate(amount__sum=Sum('amount'),
+                 turnover_amount=Sum('turnover_amount'),
+                 tax_amount=Sum('tax_amount'),
+                 expenses_amount=Sum('expenses_amount')).distinct()\
+        .order_by('year')
+    for d in turnover_year:
+        cost = models.ProjectRequestDetail.objects.filter(project_request__year=d['year']).aggregate(Sum('cost'))
+        d['cost_amount'] = cost.get('cost__sum', 0)
+
+    return turnover_year
+
+
 def turnover_company_monthly():
     """月単位の会社の売上情報を取得する。
 
@@ -87,6 +106,31 @@ def salesperson_turnover_monthly(ym):
         d['all_amount'] = d['attendance_amount'] + d['attendance_tex'] + d['expenses_amount']
         salesperson_turnover.append(d)
     return salesperson_turnover
+
+
+def clients_turnover_yearly(year):
+    """お客様別の年間売上を取得する。
+
+    :param year: 対象年
+    :return:
+    """
+    turnover_details = models.ProjectRequest.objects.order_by().filter(year=year,
+                                                                       projectrequestheading__client__isnull=False). \
+        values('projectrequestheading__client').annotate(attendance_amount=Sum('turnover_amount'),
+                                                         tax_amount=Sum('tax_amount'),
+                                                         expenses_amount=Sum('expenses_amount'),
+                                                         all_amount=Sum('amount')).\
+        order_by('projectrequestheading__client').distinct()
+    clients_turnover = []
+    for turnover_detail in turnover_details:
+        d = dict()
+        d['client'] = models.Client.objects.get(pk=turnover_detail['projectrequestheading__client'])
+        d['attendance_amount'] = turnover_detail['attendance_amount']
+        d['attendance_tex'] = turnover_detail['tax_amount']
+        d['expenses_amount'] = turnover_detail['expenses_amount']
+        d['all_amount'] = turnover_detail['all_amount']
+        clients_turnover.append(d)
+    return clients_turnover
 
 
 def clients_turnover_monthly(ym):

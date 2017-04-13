@@ -44,11 +44,14 @@ download_patterns = [
 ]
 
 turnover_patterns = [
+    url(r'^company_yearly.html$', views.TurnoverCompanyYearlyView.as_view(), name="turnover_company_yearly"),
     url(r'^company_monthly.html$', views.TurnoverCompanyMonthlyView.as_view(), name="turnover_company_monthly"),
     url(r'^charts/(?P<ym>[0-9]{6}).html$', views.TurnoverChartsMonthlyView.as_view(),
         name='turnover_charts_monthly'),
     url(r'^members/(?P<ym>[0-9]{6}).html$', views.TurnoverMembersMonthlyView.as_view(),
         name='turnover_members_monthly'),
+    url(r'^clients/(?P<year>[0-9]{4}).html$', views.TurnoverClientsYearlyView.as_view(),
+        name='turnover_clients_yearly'),
     url(r'^clients/(?P<ym>[0-9]{6}).html$', views.TurnoverClientsMonthlyView.as_view(),
         name='turnover_clients_monthly'),
     url(r'^client/(?P<client_id>[0-9]+)/(?P<ym>[0-9]{6}).html$', views.TurnoverClientMonthlyView.as_view(),

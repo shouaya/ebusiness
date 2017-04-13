@@ -1,0 +1,48 @@
+{% extends theme|add:"/base.html" %}
+{% load humanize %}
+
+{% block header %}
+{% endblock %}
+
+{% block content %}
+    <div class="dashboard">
+        <div class="dashboard-title">年間売上情報</div>
+    </div>
+    <table id="tbl_turnover_monthly" class="list" cellpadding="0" cellspacing="0">
+        <thead>
+            <tr>
+                <th></th>
+                <th>コスト</th>
+                <th>売上（税別）</th>
+                <th>税金</th>
+                <th>精算</th>
+                <th>合計</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for turnover in company_turnover %}
+            <tr class="{% cycle 'row1' 'row2' %}">
+                <td>{{ turnover.year }}年</td>
+                <td style="text-align: right;">{{ turnover.cost_amount|intcomma }}</td>
+                <td style="text-align: right;">{{ turnover.turnover_amount|intcomma }}</td>
+                <td style="text-align: right;">{{ turnover.tax_amount|intcomma }}</td>
+                <td style="text-align: right;">{{ turnover.expenses_amount|intcomma }}</td>
+                <td style="text-align: right;">{{ turnover.amount__sum|intcomma }}</td>
+                <td class="center"><a href="{% url 'turnover_clients_yearly' turnover.year %}">お客様別詳細</a></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+        <tfoot>
+            <tr>
+                <th></th>
+                <th>コスト</th>
+                <th>売上（税別）</th>
+                <th>税金</th>
+                <th>精算</th>
+                <th>合計</th>
+                <th></th>
+            </tr>
+        </tfoot>
+    </table>
+{% endblock %}

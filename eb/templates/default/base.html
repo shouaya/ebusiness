@@ -73,7 +73,11 @@
                     <li><a href="{% url 'subcontractor_list' %}">協力会社</a></li>
                     {% endif %}
                     {% if perms.eb.view_turnover %}
-                    <li><a href="{% url 'turnover_company_monthly' %}">売上情報</a></li>
+                    <li><a href="{% url 'turnover_company_monthly' %}">売上情報</a>
+                        <ul>
+                            <li><a href="{% url 'turnover_company_yearly' %}">年間売上情報</a></li>
+                        </ul>
+                    </li>
                     {% endif %}
                     <li><a href="{% url 'admin:index' %}">管理サイト</a>
                         <ul>
