@@ -541,7 +541,6 @@ class MemberSectionPeriodForm(forms.ModelForm):
             self.fields['division'].queryset = models.Section.objects.public_filter(is_on_sales=True, org_type='01')
             self.fields['section'].queryset = models.Section.objects.public_filter(
                 is_on_sales=True, org_type='02',
-                parent__pk=instance.division.pk
             )
             self.fields['subsection'].queryset = models.Section.objects.public_filter(
                 is_on_sales=True, org_type='03',
