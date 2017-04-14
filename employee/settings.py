@@ -40,7 +40,6 @@ INSTALLED_APPS = (
     'eb',
     'eboa',
     'del_data',
-    'django_crontab',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -218,9 +217,3 @@ LOGGING = {
         },
     }
 }
-
-CRONJOBS = [
-    ('0 2 * * *', 'django.core.management.call_command', ['sync_members']),
-    ('0 9 * * *', 'django.core.management.call_command', ['member_status']),
-    ('0 6 25 * *', 'django.core.management.call_command', ['send_attendance_format']),
-]

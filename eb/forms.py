@@ -562,12 +562,14 @@ class MemberSectionPeriodForm(forms.ModelForm):
             self.add_error('end_date', u"終了日は開始日以降に設定してください。")
         if 'section' in self.changed_data and self.instance.pk:
             self.add_error('section', u"部署を変更できません、変更したい場合は新しい部署とその期間を追加してください。")
-        if section and division and section.parent.pk != division.pk:
-            self.add_error('section',
-                           u"指定された「%s」は「%s」に所属していません。" % (section.name, division.name))
-        if section and subsection and subsection.parent.pk != section.pk:
-            self.add_error('subsection',
-                           u"指定された「%s」は「%s」に所属していません。" % (subsection.name, section.name))
+        if section and division:
+            if not section.parent or section.parent.pk != division.pk:
+                self.add_error('section',
+                               u"指定された「%s」は「%s」に所属していません。" % (section.name, division.name))
+        if section and subsection:
+            if not subsection.parent or subsection.parent.pk != section.pk:
+                self.add_error('subsection',
+                               u"指定された「%s」は「%s」に所属していません。" % (subsection.name, section.name))
 
 
 class MemberSalespersonPeriodForm(forms.ModelForm):
