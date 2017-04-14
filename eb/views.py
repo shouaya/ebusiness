@@ -1655,8 +1655,11 @@ def login_user(request):
     user = authenticate(username=username, password=password)
     if user is not None:
         if user.is_active:
+            is_first_login = biz.is_first_login(user)
             login(request, user)
-            if next_url:
+            if is_first_login:
+                return redirect(reverse('password_change') + "?is_first_login=1")
+            elif next_url:
                 return redirect(next_url)
             else:
                 return redirect('index')
@@ -1674,7 +1677,7 @@ def logout_view(request):
 
 
 @csrf_protect
-@login_required
+@login_required(login_url=constants.LOGIN_IN_URL)
 def password_change(request,
                     template_name='default/password_change_form.html',
                     post_change_redirect=None,
@@ -1697,10 +1700,12 @@ def password_change(request,
     else:
         form = password_change_form(user=request.user)
 
+    is_first_login = request.GET.get('is_first_login', None)
     context = get_base_context()
     context.update({
         'form': form,
         'title': _('Password change'),
+        'is_first_login': True if is_first_login == "1" else False,
     })
     if extra_context is not None:
         context.update(extra_context)

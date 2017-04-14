@@ -8,7 +8,7 @@ import datetime
 
 from django.db.models import Q, Max, Prefetch
 from django.contrib.auth.models import User
-from django.core.exceptions import ObjectDoesNotExist
+from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
 from django.contrib.humanize.templatetags import humanize
 from django.utils import timezone
 
@@ -709,3 +709,18 @@ def get_master():
         return members[0]
     else:
         return None
+
+
+def is_first_login(user):
+    """初めてのログインなのかどうか
+
+    :param user:
+    :return:
+    """
+    try:
+        User.objects.get(username=user.username, last_login__isnull=True)
+        return True
+    except ObjectDoesNotExist:
+        return False
+    except MultipleObjectsReturned:
+        return False
