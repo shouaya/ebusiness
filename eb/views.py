@@ -140,7 +140,7 @@ class IndexView(BaseTemplateView):
         return self.render_to_response(context)
 
 
-@method_decorator(permission_required('eb.view_member', raise_exception=True), name='dispatch')
+@method_decorator(permission_required('eb.view_member', raise_exception=True), name='get')
 class MemberListView(BaseTemplateView):
     template_name = 'default/employee_list.html'
 
@@ -212,7 +212,7 @@ class MemberListView(BaseTemplateView):
         return self.render_to_response(context)
 
 
-@method_decorator(permission_required('eb.view_member', raise_exception=True), name='dispatch')
+@method_decorator(permission_required('eb.view_member', raise_exception=True), name='get')
 class MemberDetailView(BaseTemplateView):
     template_name = 'default/member_detail.html'
 
@@ -233,7 +233,7 @@ class MemberDetailView(BaseTemplateView):
         return self.render_to_response(context)
 
 
-@method_decorator(permission_required('eb.view_member', raise_exception=True), name='dispatch')
+@method_decorator(permission_required('eb.view_member', raise_exception=True), name='get')
 class MembersComingView(BaseTemplateView):
     template_name = 'default/employee_list.html'
 
@@ -275,7 +275,7 @@ class MembersComingView(BaseTemplateView):
         return self.render_to_response(context)
 
 
-@method_decorator(permission_required('eb.view_member', raise_exception=True), name='dispatch')
+@method_decorator(permission_required('eb.view_member', raise_exception=True), name='get')
 class MembersSubcontractorView(BaseTemplateView):
     template_name = 'default/employee_list.html'
 
@@ -330,7 +330,7 @@ class MembersSubcontractorView(BaseTemplateView):
         return self.render_to_response(context)
 
 
-@method_decorator(permission_required('eb.view_member', raise_exception=True), name='dispatch')
+@method_decorator(permission_required('eb.view_member', raise_exception=True), name='get')
 class MemberChangeListView(BaseTemplateView):
     template_name = 'default/member_change_list.html'
 
@@ -362,7 +362,7 @@ class MemberChangeListView(BaseTemplateView):
         return self.render_to_response(context)
 
 
-@method_decorator(permission_required('eb.view_project', raise_exception=True), name='dispatch')
+@method_decorator(permission_required('eb.view_project', raise_exception=True), name='get')
 class ProjectListView(BaseTemplateView):
     template_name = 'default/project_list.html'
 
@@ -424,17 +424,20 @@ class ProjectEndView(BaseView):
             return redirect(reverse('project_list') + "?" + params)
 
 
-@method_decorator(permission_required('eb.view_project', raise_exception=True), name='dispatch')
-@method_decorator(permission_required('eb.view_turnover', raise_exception=True), name='dispatch')
+@method_decorator(permission_required('eb.view_project', raise_exception=True), name='get')
+@method_decorator(permission_required('eb.view_turnover', raise_exception=True), name='get')
 class ProjectOrdersView(BaseTemplateView):
     template_name = 'default/project_order_list.html'
 
     def get(self, request, *args, **kwargs):
         param_list = common.get_request_params(request.GET)
-        ym = request.GET.get('ym', None)
-        if not ym:
+        year = request.GET.get('year', None)
+        month = request.GET.get('month', None)
+        if not year or not month:
             today = common.add_months(datetime.date.today(), -1)
-            ym = "%s%02d" % (today.year, today.month)
+            year = "%04d" % today.year
+            month = "%02d" % today.month
+        ym = year + month
         o = request.GET.get('o', None)
         dict_order = common.get_ordering_dict(o, ['project__name', 'project__client__name',
                                                   'clientorder__order_no', 'project__projectrequest__request_no'])
@@ -462,15 +465,13 @@ class ProjectOrdersView(BaseTemplateView):
             'dict_order': dict_order,
             'params': params,
             'orders': "&o=%s" % (o,) if o else "",
-            'month_list': common.get_month_list(-1, 1),
-            'current_year': ym[:4],
-            'current_month': ym[4:],
-            'ym': ym,
+            'year': year,
+            'month': month,
         })
         return self.render_to_response(context)
 
 
-@method_decorator(permission_required('eb.view_project', raise_exception=True), name='dispatch')
+@method_decorator(permission_required('eb.view_project', raise_exception=True), name='get')
 class ProjectDetailView(BaseTemplateView):
     template_name = 'default/project_detail.html'
 
@@ -679,7 +680,7 @@ class ProjectAttendanceView(BaseTemplateView):
             return self.render_to_response(context)
 
 
-@method_decorator(permission_required('eb.view_project', raise_exception=True), name='dispatch')
+@method_decorator(permission_required('eb.view_project', raise_exception=True), name='get')
 class ProjectMembersView(BaseTemplateView):
     template_name = 'default/project_members.html'
 
@@ -838,7 +839,7 @@ def section_attendance(request, section_id):
     return HttpResponse(template.render(context, request))
 
 
-@method_decorator(permission_required('eb.view_turnover', raise_exception=True), name='dispatch')
+@method_decorator(permission_required('eb.view_turnover', raise_exception=True), name='get')
 class ProjectRequestView(BaseTemplateView):
     template_name = 'default/project_request.html'
 
@@ -870,7 +871,7 @@ class ProjectRequestView(BaseTemplateView):
         return self.render_to_response(context)
 
 
-@method_decorator(permission_required('eb.view_turnover', raise_exception=True), name='dispatch')
+@method_decorator(permission_required('eb.view_turnover', raise_exception=True), name='get')
 class TurnoverCompanyYearlyView(BaseTemplateView):
     template_name = 'default/turnover_company_yearly.html'
 
@@ -885,7 +886,7 @@ class TurnoverCompanyYearlyView(BaseTemplateView):
         return self.render_to_response(context)
 
 
-@method_decorator(permission_required('eb.view_turnover', raise_exception=True), name='dispatch')
+@method_decorator(permission_required('eb.view_turnover', raise_exception=True), name='get')
 class TurnoverCompanyMonthlyView(BaseTemplateView):
     template_name = 'default/turnover_company_monthly.html'
 
@@ -904,7 +905,7 @@ class TurnoverCompanyMonthlyView(BaseTemplateView):
         return self.render_to_response(context)
 
 
-@method_decorator(permission_required('eb.view_turnover', raise_exception=True), name='dispatch')
+@method_decorator(permission_required('eb.view_turnover', raise_exception=True), name='get')
 class TurnoverChartsMonthlyView(BaseTemplateView):
     template_name = 'default/turnover_charts_monthly.html'
 
@@ -951,7 +952,7 @@ class TurnoverChartsMonthlyView(BaseTemplateView):
         return self.render_to_response(context)
 
 
-@method_decorator(permission_required('eb.view_turnover', raise_exception=True), name='dispatch')
+@method_decorator(permission_required('eb.view_turnover', raise_exception=True), name='get')
 class TurnoverMembersMonthlyView(BaseTemplateView):
     template_name = 'default/turnover_members_monthly.html'
 
@@ -1004,7 +1005,7 @@ class TurnoverMembersMonthlyView(BaseTemplateView):
         return self.render_to_response(context)
 
 
-@method_decorator(permission_required('eb.view_turnover', raise_exception=True), name='dispatch')
+@method_decorator(permission_required('eb.view_turnover', raise_exception=True), name='get')
 class TurnoverClientsYearlyView(BaseTemplateView):
     template_name = 'default/turnover_clients_yearly.html'
 
@@ -1030,7 +1031,7 @@ class TurnoverClientsYearlyView(BaseTemplateView):
         return self.render_to_response(context)
 
 
-@method_decorator(permission_required('eb.view_turnover', raise_exception=True), name='dispatch')
+@method_decorator(permission_required('eb.view_turnover', raise_exception=True), name='get')
 class TurnoverClientsMonthlyView(BaseTemplateView):
     template_name = 'default/turnover_clients_monthly.html'
 
@@ -1056,7 +1057,7 @@ class TurnoverClientsMonthlyView(BaseTemplateView):
         return self.render_to_response(context)
 
 
-@method_decorator(permission_required('eb.view_turnover', raise_exception=True), name='dispatch')
+@method_decorator(permission_required('eb.view_turnover', raise_exception=True), name='get')
 class TurnoverClientMonthlyView(BaseTemplateView):
     template_name = 'default/turnover_projects_monthly.html'
 
@@ -1085,7 +1086,7 @@ class TurnoverClientMonthlyView(BaseTemplateView):
         return self.render_to_response(context)
 
 
-@method_decorator(permission_required('eb.view_member', raise_exception=True), name='dispatch')
+@method_decorator(permission_required('eb.view_member', raise_exception=True), name='get')
 class ReleaseListCurrentView(BaseTemplateView):
     template_name = 'default/release_list.html'
 
@@ -1094,7 +1095,7 @@ class ReleaseListCurrentView(BaseTemplateView):
         return redirect(reverse("release_list", args=(now.strftime('%Y%m'),)))
 
 
-@method_decorator(permission_required('eb.view_member', raise_exception=True), name='dispatch')
+@method_decorator(permission_required('eb.view_member', raise_exception=True), name='get')
 class ReleaseListView(BaseTemplateView):
     template_name = 'default/release_list.html'
 

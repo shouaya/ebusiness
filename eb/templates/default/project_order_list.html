@@ -1,5 +1,6 @@
 {% extends theme|add:"/base.html" %}
 {% load humanize %}
+{% load year_month_filter %}
 {% load order_by_tag %}
 
 {% block header %}
@@ -7,7 +8,8 @@
         window.onload = function() {
             init_select("project__name__contains");
             init_select("project__client__name__contains");
-            init_select("ym");
+            init_select("project__projectrequest__year");
+            init_select("project__projectrequest__month");
             init_select("project__projectrequest__request_no__contains");
             init_select("clientorder__order_no__contains");
         };
@@ -22,22 +24,9 @@
             <span>関連会社: </span><input type="text" id="project__client__name__contains" name="project__client__name__contains" style="width: 100px;"/>
             <span>請求番号: </span><input type="text" id="project__projectrequest__request_no__contains" name="project__projectrequest__request_no__contains" maxlength="7" style="width: 60px;"/>
             <span>注文番号: </span><input type="text" id="clientorder__order_no__contains" name="clientorder__order_no__contains" style="width: 80px;"/>
-            <label for="ym">対象年月</label>
-            <select name="ym" id="ym">
-                {% for year, month in month_list %}
-                    {% ifequal year current_year %}
-                        {% ifequal month current_month %}
-                            <option selected="selected" value="{{ year }}{{ month }}">{{ year }}年{{ month}}月</option>
-                        {% else %}
-                            <option value="{{ year }}{{ month }}">{{ year }}年{{ month}}月</option>
-                        {% endifequal %}
-                    {% else %}
-                        <option value="{{ year }}{{ month }}">{{ year }}年{{ month}}月</option>
-                    {% endifequal %}
-                {% endfor %}
-            </select>
+            {% year_month_filter year month %}
             <input type="submit" value="Filter" />
-            <a href="{% url 'project_order_list' %}?ym={{ ym }}">クリア</a>
+            <a href="{% url 'project_order_list' %}?year={{ year }}&month={{ month }}">クリア</a>
             <a href="{% url 'admin:eb_project_add' %}?from=portal&_popup=1" class="button" target="_blank">案件を追加</a>
         </form>
     </div>

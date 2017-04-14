@@ -1,4 +1,5 @@
 {% extends theme|add:"/base.html" %}
+{% load year_month_filter %}
 {% load order_by_tag %}
 
 {% block header %}
@@ -8,32 +9,9 @@
     <div class="dashboard">
         <div class="dashboard-title">部署「{{ section }}」</div>
         <form method="get" action="{% url 'section_attendance' section.pk %}">
-            <span>対象年月</span>
             {% now "Y" as current_year %}
             {% now "m" as current_month %}
-            <select id="year" name="year">
-                {% for y in year_list %}
-                    {% ifequal y|stringformat:"i" current_year %}
-                        <option selected value="{{ y }}">{{ y }}</option>
-                    {% else %}
-                        <option value="{{ y }}">{{ y }}</option>
-                    {% endifequal %}
-                {% endfor %}
-            </select>
-            <select id="month" name="month">
-                <option {% ifequal current_month '01' %}selected{% endifequal %} value="01">01</option>
-                <option {% ifequal current_month '02' %}selected{% endifequal %} value="02">02</option>
-                <option {% ifequal current_month '03' %}selected{% endifequal %} value="03">03</option>
-                <option {% ifequal current_month '04' %}selected{% endifequal %} value="04">04</option>
-                <option {% ifequal current_month '05' %}selected{% endifequal %} value="05">05</option>
-                <option {% ifequal current_month '06' %}selected{% endifequal %} value="06">06</option>
-                <option {% ifequal current_month '07' %}selected{% endifequal %} value="07">07</option>
-                <option {% ifequal current_month '08' %}selected{% endifequal %} value="08">08</option>
-                <option {% ifequal current_month '09' %}selected{% endifequal %} value="09">09</option>
-                <option {% ifequal current_month '10' %}selected{% endifequal %} value="10">10</option>
-                <option {% ifequal current_month '11' %}selected{% endifequal %} value="11">11</option>
-                <option {% ifequal current_month '12' %}selected{% endifequal %} value="12">12</option>
-            </select>
+            {% year_month_filter current_year current_month %}
             <input type="submit" value="出勤情報"/>
         </form>
     </div>
