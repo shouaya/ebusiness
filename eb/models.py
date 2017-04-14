@@ -130,6 +130,23 @@ class PublicManager(models.Manager):
         return self.public_all().filter(*args, **kwargs)
 
 
+class BaseModel(models.Model):
+    created_date = models.DateTimeField(auto_now_add=True, verbose_name=u"作成日時")
+    updated_date = models.DateTimeField(auto_now=True, verbose_name=u"更新日時")
+    is_deleted = models.BooleanField(default=False, editable=False, verbose_name=u"削除フラグ")
+    deleted_date = models.DateTimeField(blank=True, null=True, editable=False, verbose_name=u"削除年月日")
+
+    objects = PublicManager(is_deleted=False)
+
+    class Meta:
+        abstract = True
+
+    def delete(self, using=None, keep_parents=False):
+        self.is_deleted = True
+        self.deleted_date = datetime.datetime.now()
+        self.save()
+
+
 class Company(AbstractCompany):
 
     quotation_file = models.FileField(blank=True, null=True, upload_to="./quotation",
@@ -994,7 +1011,7 @@ class Contract(models.Model):
 
 class MemberSectionPeriod(models.Model):
     member = models.ForeignKey(Member, verbose_name=u"社員名")
-    division = models.ForeignKey(Section, blank=False, null=True, related_name='memberdivisionperiod_set',
+    division = models.ForeignKey(Section, blank=True, null=True, related_name='memberdivisionperiod_set',
                                  verbose_name=u"事業部")
     section = models.ForeignKey(Section, verbose_name=u"部署")
     subsection = models.ForeignKey(Section, blank=True, null=True, related_name='membersubsectionperiod_set',
@@ -2400,11 +2417,13 @@ class HistoryProject(models.Model):
         self.save()
 
 
-class Issue(models.Model):
+class Issue(BaseModel):
     title = models.CharField(max_length=30, verbose_name=u"タイトル")
     level = models.PositiveSmallIntegerField(choices=constants.CHOICE_ISSUE_LEVEL, default=1, verbose_name=u"優先度")
     content = models.TextField(verbose_name=u"内容")
     created_user = models.ForeignKey(User, related_name='created_issue_set', editable=False, verbose_name=u"作成者")
+    present_user = models.ForeignKey(User, blank=False, null=True, related_name='present_issue_set',
+                                     verbose_name=u"提出者")
     status = models.CharField(max_length=1, default=1, choices=constants.CHOICE_ISSUE_STATUS,
                               verbose_name=u"ステータス")
     limit_date = models.DateField(blank=True, null=True, verbose_name=u"期限日")
@@ -2413,12 +2432,6 @@ class Issue(models.Model):
     planned_end_date = models.DateField(blank=True, null=True, verbose_name=u"予定完了日")
     really_end_date = models.DateField(blank=True, null=True, verbose_name=u"実際完了日")
     solution = models.TextField(blank=True, null=True, verbose_name=u"対応方法")
-    created_date = models.DateTimeField(auto_now_add=True, verbose_name=u"作成日時")
-    updated_date = models.DateTimeField(auto_now=True, verbose_name=u"更新日時")
-    is_deleted = models.BooleanField(default=False, editable=False, verbose_name=u"削除フラグ")
-    deleted_date = models.DateTimeField(blank=True, null=True, editable=False, verbose_name=u"削除年月日")
-
-    objects = PublicManager(is_deleted=False)
 
     class Meta:
         ordering = ['-created_date']
@@ -2470,14 +2483,14 @@ class Issue(models.Model):
         from_email = Config.get(constants.CONFIG_ADMIN_EMAIL_ADDRESS)
         recipient_list = [updated_user.email]
         cc_list = self.get_cc_list()
-        connection = BatchManage.get_custom_connection()
+        mail_connection = BatchManage.get_custom_connection()
         email = EmailMultiAlternativesWithEncoding(
             subject=self.get_mail_title(),
             body="",
             from_email=from_email,
             to=recipient_list,
             cc=cc_list,
-            connection=connection
+            connection=mail_connection
         )
         if html:
             email.attach_alternative(html, constants.MIME_TYPE_HTML)
@@ -2485,11 +2498,6 @@ class Issue(models.Model):
             for filename, content, mimetype in attachments:
                 email.attach(filename, content, mimetype)
         email.send()
-
-    def delete(self, using=None, keep_parents=False):
-        self.is_deleted = True
-        self.deleted_date = datetime.datetime.now()
-        self.save()
 
 
 class History(models.Model):
@@ -2603,7 +2611,7 @@ class BatchManage(models.Model):
             logger.warning(u"宛先が空白になっている。")
             return False
         from_email, title, body, html = self.get_formatted_batch(context)
-        connection = BatchManage.get_custom_connection()
+        mail_connection = BatchManage.get_custom_connection()
         cc_list = [] if no_cc else self.get_cc_list()
         email = EmailMultiAlternativesWithEncoding(
             subject=title,
@@ -2611,7 +2619,7 @@ class BatchManage(models.Model):
             from_email=from_email,
             to=recipient_list,
             cc=cc_list,
-            connection=connection
+            connection=mail_connection
         )
         if html:
             email.attach_alternative(html, constants.MIME_TYPE_HTML)

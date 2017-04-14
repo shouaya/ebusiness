@@ -132,6 +132,16 @@ class MemberSalespersonPeriodInline(admin.TabularInline):
     form = forms.MemberSalespersonPeriodForm
     formset = forms.MemberSalespersonPeriodFormset
 
+    def get_formset(self, request, obj=None, **kwargs):
+        formset = super(MemberSalespersonPeriodInline, self).get_formset(request, obj, **kwargs)
+
+        class AdminFormsetWithRequest(formset):
+            def __new__(cls, *args, **kwargs):
+                kwargs.update({'request': request})
+                return formset(*args, **kwargs)
+
+        return AdminFormsetWithRequest
+
 
 class DegreeInline(admin.TabularInline):
     model = models.Degree
@@ -1183,6 +1193,11 @@ class HistoryProjectAdmin(BaseAdmin):
 class IssueAdmin(BaseAdmin):
     list_display = ['title', 'created_user', 'status', 'created_date']
     list_filter = ['status']
+
+    def get_form(self, request, obj=None, **kwargs):
+        form = super(IssueAdmin, self).get_form(request, obj, **kwargs)
+        form.base_fields['present_user'].initial = request.user
+        return form
 
     def save_model(self, request, obj, form, change):
         if not change:

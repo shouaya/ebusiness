@@ -579,6 +579,7 @@ class MemberSalespersonPeriodForm(forms.ModelForm):
         fields = '__all__'
 
     def __init__(self, *args, **kwargs):
+        self.request = kwargs.pop('request', None)
         forms.ModelForm.__init__(self, *args, **kwargs)
         self.fields['salesperson'].queryset = models.Salesperson.objects.public_all()
 
@@ -624,6 +625,17 @@ class MemberSectionPeriodFormset(forms.BaseInlineFormSet):
 
 
 class MemberSalespersonPeriodFormset(forms.BaseInlineFormSet):
+
+    def __init__(self, data=None, files=None, instance=None,
+                 save_as_new=False, prefix=None, queryset=None, **kwargs):
+        self.request = kwargs.pop('request', None)
+        super(MemberSalespersonPeriodFormset, self).__init__(data, files, instance, save_as_new, prefix, queryset, **kwargs)
+
+    def _construct_form(self, i, **kwargs):
+        kwargs.update({'request': self.request})
+        form = super(MemberSalespersonPeriodFormset, self)._construct_form(i, **kwargs)
+        return form
+
     def clean(self):
         count = 0
         dates = []
