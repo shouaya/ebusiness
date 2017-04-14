@@ -411,7 +411,7 @@ class MemberAdmin(BaseAdmin):
     list_display_links = [get_full_name]
     list_filter = ['member_type', NoUserFilter,
                    'is_retired', 'is_deleted']
-    search_fields = ['first_name', 'last_name']
+    search_fields = ['first_name', 'last_name', 'employee_id']
     inlines = (DegreeInline, MemberSectionPeriodInline, MemberSalespersonPeriodInline, EmployeeExpensesInline)
     actions = ['create_users', 'delete_objects', 'active_objects', 'member_retire']
     fieldsets = (
@@ -957,7 +957,7 @@ class ProjectMemberAdmin(BaseAdmin):
         return form
 
 
-class ProjectRequestAdmin(BaseAdmin):
+class ProjectRequestAdmin(ReadonlyAdmin):
     list_display = ['project', 'year', 'month', 'request_no', 'created_user', 'created_date', 'amount']
     search_fields = ['project__name', 'request_no']
     list_display_links = ['project', 'request_no']
@@ -968,12 +968,6 @@ class ProjectRequestAdmin(BaseAdmin):
     def has_add_permission(self, request):
         return False
 
-    def has_change_permission(self, request, obj=None):
-        if request.user.username == u"admin":
-            return True
-        else:
-            return False
-
     def get_actions(self, request):
         actions = super(ProjectRequestAdmin, self).get_actions(request)
         if 'delete_selected' in actions:
@@ -981,7 +975,7 @@ class ProjectRequestAdmin(BaseAdmin):
         return actions
 
 
-class ProjectRequestHeadingAdmin(BaseAdmin):
+class ProjectRequestHeadingAdmin(ReadonlyAdmin):
     list_display = ['get_request_no', 'get_project_name']
     search_fields = ['project_request__request_no', 'project_request__project__name']
 
@@ -1001,12 +995,6 @@ class ProjectRequestHeadingAdmin(BaseAdmin):
     def has_add_permission(self, request):
         return False
 
-    def has_change_permission(self, request, obj=None):
-        if request.user.username == u"admin":
-            return True
-        else:
-            return False
-
     def get_actions(self, request):
         actions = super(ProjectRequestHeadingAdmin, self).get_actions(request)
         if 'delete_selected' in actions:
@@ -1014,7 +1002,7 @@ class ProjectRequestHeadingAdmin(BaseAdmin):
         return actions
 
 
-class ProjectRequestDetailAdmin(BaseAdmin):
+class ProjectRequestDetailAdmin(ReadonlyAdmin):
     list_display = ['get_request_no', 'get_project_name', 'no', 'project_member', 'total_price', 'expenses_price']
     search_fields = ['project_request__request_no', 'project_request__project__name',
                      'project_member__member__first_name', 'project_member__member__last_name']
@@ -1034,12 +1022,6 @@ class ProjectRequestDetailAdmin(BaseAdmin):
 
     def has_add_permission(self, request):
         return False
-
-    def has_change_permission(self, request, obj=None):
-        if request.user.username == u"admin":
-            return True
-        else:
-            return False
 
     def get_actions(self, request):
         actions = super(ProjectRequestDetailAdmin, self).get_actions(request)
