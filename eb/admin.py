@@ -289,6 +289,12 @@ class ReadonlyAdmin(admin.ModelAdmin):
         js = ('/static/admin/js/jquery-2.1.4.min.js',
               '/static/admin/js/readonly.js')
 
+    def get_actions(self, request):
+        actions = super(ReadonlyAdmin, self).get_actions(request)
+        if 'delete_selected' in actions:
+            del actions['delete_selected']
+        return actions
+
     def has_add_permission(self, request):
         return False
 
@@ -1033,6 +1039,11 @@ class ProjectRequestDetailAdmin(ReadonlyAdmin):
         return actions
 
 
+class MemberAttendanceAdmin(ReadonlyAdmin):
+    list_display = ('project_member', 'year', 'month', 'total_hours')
+    search_fields = ('project_member__member__first_name', 'project_member__member__last_name')
+
+
 class ProjectActivityAdmin(BaseAdmin):
 
     list_display = ['project', 'name', 'open_date', 'address', 'get_client_members', 'get_salesperson', 'is_deleted']
@@ -1310,7 +1321,7 @@ admin.site.register(models.ProjectMember, ProjectMemberAdmin)
 admin.site.register(models.ProjectRequest, ProjectRequestAdmin)
 admin.site.register(models.ProjectRequestHeading, ProjectRequestHeadingAdmin)
 admin.site.register(models.ProjectRequestDetail, ProjectRequestDetailAdmin)
-admin.site.register(models.MemberAttendance)
+admin.site.register(models.MemberAttendance, MemberAttendanceAdmin)
 admin.site.register(models.ProjectActivity, ProjectActivityAdmin)
 admin.site.register(models.Subcontractor, SubcontractorAdmin)
 admin.site.register(models.PositionShip, PositionShipAdmin)

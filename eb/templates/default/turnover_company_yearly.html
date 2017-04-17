@@ -12,7 +12,6 @@
         <thead>
             <tr>
                 <th></th>
-                <th>コスト</th>
                 <th>売上（税別）</th>
                 <th>税金</th>
                 <th>精算</th>
@@ -23,8 +22,8 @@
         <tbody>
             {% for turnover in company_turnover %}
             <tr class="{% cycle 'row1' 'row2' %}">
-                <td>{{ turnover.year }}年</td>
-                <td style="text-align: right;">{{ turnover.cost_amount|intcomma }}</td>
+                <td>{{ turnover.year }}01 ～ {{ turnover.year }}12</td>
+                <!--<td style="text-align: right;">{{ turnover.cost_amount|intcomma }}</td>-->
                 <td style="text-align: right;">{{ turnover.turnover_amount|intcomma }}</td>
                 <td style="text-align: right;">{{ turnover.tax_amount|intcomma }}</td>
                 <td style="text-align: right;">{{ turnover.expenses_amount|intcomma }}</td>
@@ -32,11 +31,22 @@
                 <td class="center"><a href="{% url 'turnover_clients_yearly' turnover.year %}">お客様別詳細</a></td>
             </tr>
             {% endfor %}
+            <tr class="row2 center red"><td colspan="7">四月～来年３月</td></tr>
+            {% for turnover in company_turnover2 %}
+            <tr class="{% cycle 'row1' 'row2' %}">
+                <td>{{ turnover.year }}04 ～ {{ turnover.year|add:'1' }}03</td>
+                <!--<td style="text-align: right;">{{ turnover.cost_amount|intcomma }}</td>-->
+                <td style="text-align: right;">{{ turnover.turnover_amount|intcomma }}</td>
+                <td style="text-align: right;">{{ turnover.tax_amount|intcomma }}</td>
+                <td style="text-align: right;">{{ turnover.expenses_amount|intcomma }}</td>
+                <td style="text-align: right;">{{ turnover.amount__sum|intcomma }}</td>
+                <td class="center"><a href="{% url 'turnover_clients_yearly' turnover.year %}?data_type=2">お客様別詳細</a></td>
+            </tr>
+            {% endfor %}
         </tbody>
         <tfoot>
             <tr>
                 <th></th>
-                <th>コスト</th>
                 <th>売上（税別）</th>
                 <th>税金</th>
                 <th>精算</th>

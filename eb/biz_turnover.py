@@ -7,6 +7,7 @@ Created on 2016/06/02
 from eb import models
 
 from django.db.models import Sum
+from django.db.models.functions import Concat
 
 
 def turnover_company_year():
@@ -23,6 +24,33 @@ def turnover_company_year():
         .order_by('year')
     for d in turnover_year:
         cost = models.ProjectRequestDetail.objects.filter(project_request__year=d['year']).aggregate(Sum('cost'))
+        d['cost_amount'] = cost.get('cost__sum', 0)
+
+    return turnover_year
+
+
+def turnover_company_year2():
+    """年単位の会社の売上情報を取得する。
+
+    :return: QuerySet
+    """
+    turnover_year = models.ProjectRequest.objects.filter(projectrequestheading__isnull=False).\
+        values('year',).distinct().order_by('year')
+    for d in turnover_year:
+        queryset = models.ProjectRequest.objects.annotate(ym=Concat('year', 'month')).filter(
+            projectrequestheading__isnull=False,
+            ym__gte='%s04' % d['year'],
+            ym__lte='%s03' % (int(d['year']) + 1)
+        ).distinct()
+        d['amount__sum'] = queryset.aggregate(Sum('amount')).get('amount__sum', 0)
+        d['turnover_amount'] = queryset.aggregate(Sum('turnover_amount')).get('turnover_amount__sum', 0)
+        d['tax_amount'] = queryset.aggregate(Sum('tax_amount')).get('tax_amount__sum', 0)
+        d['expenses_amount'] = queryset.aggregate(Sum('expenses_amount')).get('expenses_amount__sum', 0)
+        cost = models.ProjectRequestDetail.objects.annotate(ym=Concat('project_request__year',
+                                                                      'project_request__month')).filter(
+            ym__gte='%s04' % d['year'],
+            ym__lte='%s03' % (int(d['year']) + 1)
+        ).aggregate(Sum('cost'))
         d['cost_amount'] = cost.get('cost__sum', 0)
 
     return turnover_year
@@ -121,6 +149,38 @@ def clients_turnover_yearly(year):
                                                          expenses_amount=Sum('expenses_amount'),
                                                          all_amount=Sum('amount')).\
         order_by('projectrequestheading__client').distinct()
+    clients_turnover = []
+    for turnover_detail in turnover_details:
+        d = dict()
+        d['client'] = models.Client.objects.get(pk=turnover_detail['projectrequestheading__client'])
+        d['attendance_amount'] = turnover_detail['attendance_amount']
+        d['attendance_tex'] = turnover_detail['tax_amount']
+        d['expenses_amount'] = turnover_detail['expenses_amount']
+        d['all_amount'] = turnover_detail['all_amount']
+        clients_turnover.append(d)
+    return clients_turnover
+
+
+def clients_turnover_yearly2(year):
+    """お客様別の年間売上を取得する。
+
+    :param year: 対象年
+    :return:
+    """
+    ym_start = '%s04' % year,
+    ym_end = '%s03' % (int(year) + 1)
+
+    turnover_details = models.ProjectRequest.objects.order_by().annotate(ym=Concat('year', 'month')).filter(
+        ym__gte=ym_start,
+        ym__lte=ym_end,
+        projectrequestheading__client__isnull=False,
+        projectrequestheading__isnull=False
+    ).values('projectrequestheading__client').annotate(
+        attendance_amount=Sum('turnover_amount'),
+        tax_amount=Sum('tax_amount'),
+        expenses_amount=Sum('expenses_amount'),
+        all_amount=Sum('amount')
+    ).order_by('projectrequestheading__client').distinct()
     clients_turnover = []
     for turnover_detail in turnover_details:
         d = dict()

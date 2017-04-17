@@ -877,11 +877,13 @@ class TurnoverCompanyYearlyView(BaseTemplateView):
 
     def get(self, request, *args, **kwargs):
         company_turnover = biz_turnover.turnover_company_year()
+        company_turnover2 = biz_turnover.turnover_company_year2()
 
         context = self.get_context_data()
         context.update({
             'title': u'年間売上情報 | %s' % constants.NAME_SYSTEM,
             'company_turnover': company_turnover,
+            'company_turnover2': company_turnover2,
         })
         return self.render_to_response(context)
 
@@ -1011,7 +1013,11 @@ class TurnoverClientsYearlyView(BaseTemplateView):
 
     def get(self, request, *args, **kwargs):
         year = kwargs.get('year', None)
-        clients_turnover = biz_turnover.clients_turnover_yearly(year)
+        data_type = request.GET.get('data_type', None)
+        if data_type == '2':
+            clients_turnover = biz_turnover.clients_turnover_yearly2(year)
+        else:
+            clients_turnover = biz_turnover.clients_turnover_yearly(year)
 
         summary = {'attendance_amount': 0, 'expenses_amount': 0,
                    'attendance_tex': 0, 'all_amount': 0}
