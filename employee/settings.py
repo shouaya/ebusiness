@@ -40,6 +40,7 @@ INSTALLED_APPS = (
     'eb',
     'eboa',
     'del_data',
+    'flow',
 )
 
 MIDDLEWARE_CLASSES = (

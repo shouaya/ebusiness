@@ -208,6 +208,8 @@ CHOICE_ORG_TYPE = (('', '--------'),
                    ('01', u"事業部"),
                    ('02', u"部署"),
                    ('03', u"課・グループ"))
+CHOICE_WORKFLOW_OPERATION = (('01', u"項目値変更"),
+                             ('02', u"レコード追加"))
 
 xlPart = 2
 xlByRows = 1

@@ -1,0 +1,12 @@
+@CHARSET "utf-8";
+
+article {
+    color: #666666;
+    padding-top: 20px;
+    padding-left: 10px;
+}
+
+article h3 {
+    border: 1px solid lightgray;
+    padding-left: 10px;
+}

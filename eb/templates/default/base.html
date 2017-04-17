@@ -54,7 +54,11 @@
             </div>
             <div class="header-nav">
                 <ul>
-                    <li><a href="{% url 'index' %}">HOME</a></li>
+                    <li><a href="{% url 'index' %}">HOME</a>
+                        <!--<ul>
+                            <li><a href="{% url 'flow-index' %}">マイページ</a></li>
+                        </ul>-->
+                    </li>
                     <li><a href="{% url 'employee_list' %}">要員一覧</a>
                         <ul>
                             <li><a href="{% url 'change_list' %}">入退場リスト</a></li>

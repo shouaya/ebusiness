@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Cache-Control" content="no-cache">
+    <title>{{ title }}</title>
+
+    <link rel="shortcut icon" type="image/png" href="/static/favicon.ico"/>
+    <link rel="stylesheet" type="text/css" href="/static/flow/css/base.css"/>
+    <link rel="stylesheet" type="text/css" href="/static/flow/css/aside.css"/>
+    <link rel="stylesheet" type="text/css" href="/static/flow/css/article.css"/>
+</head>
+<body>
+<header>
+
+</header>
+<aside>
+    <dl>
+        <dt><a>ワークフロー作成</a></dt>
+        <dd>
+            {% for workflow in workfows %}
+            <a href="{% url 'new_workflow' workflow.pk %}">{{ workflow }}</a>
+            {% endfor %}
+        </dd>
+    </dl>
+</aside>
+<article>
+    {% block content %}{% endblock %}
+</article>
+<footer>
+
+</footer>
+</body>
+</html>

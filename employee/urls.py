@@ -8,6 +8,7 @@ from employee import views
 urlpatterns = [
     url(r'^$', views.home, name='home'),
     url(r'^eb/', include('eb.urls')),
+    url(r'^flow/', include('flow.urls')),
 
     url(r'^admin/', include(admin.site.urls)),
     url(r'^admin/password_reset/$', auth_views.password_reset, name='admin_password_reset'),

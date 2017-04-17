@@ -58,6 +58,7 @@ target/
 
 .idea/
 eb/migrations/
+flow/migrations/
 media/request/temp/*
 media/client_order/*
 media/quotation/temp/*

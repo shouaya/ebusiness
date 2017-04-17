@@ -1,0 +1,28 @@
+@CHARSET "utf-8";
+
+aside {
+    float: left;
+    background-color: #2e3740;
+    width: 220px;
+    font-size: 12px;
+    height: 100%;
+}
+
+aside dt a,
+aside dd a {
+    padding: 10px 15px;
+    display: block;
+    color: #949ca7;
+}
+
+aside dd a:hover {
+    background-color: #28b779;
+}
+
+aside dt {
+    background-color: #2e3740;
+}
+
+aside dd {
+    background-color: #1d242c;
+}
