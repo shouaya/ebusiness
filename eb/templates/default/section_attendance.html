@@ -324,7 +324,18 @@
                                                 <td></td>
                                                 <td class="num {% if attendance.get_profits < 0 %}red{% endif %}">{{ attendance.get_profits|floatformat:1|intcomma }}</td>
                                             {% else %}
-                                                <td colspan="12">********</td>
+                                                <td class="project_requested" style="color: lightblue;">******</td>
+                                                <td class="project_requested" style="color: lightblue;">******</td>
+                                                <td class="project_requested" style="color: lightblue;">******</td>
+                                                <td style="color: lightblue;">******</td>
+                                                <td style="color: lightblue;">******</td>
+                                                <td style="color: lightblue;">******</td>
+                                                <td style="color: lightblue;">******</td>
+                                                <td style="color: lightblue;">******</td>
+                                                <td style="color: lightblue;">******</td>
+                                                <td style="color: lightblue;">******</td>
+                                                <td style="color: lightblue;">******</td>
+                                                <td style="color: lightblue;">******</td>
                                             {% endif %}
                                         {% else %}
                                             <!--売上-->

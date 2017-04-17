@@ -466,8 +466,11 @@ class MemberAdmin(BaseAdmin):
         member = models.Member.objects.get(pk=object_id)
         if member.member_type == 4:
             # 他社技術者
-            if self.fieldsets[2][1]['fields'].count('cost') == 0:
-                self.fieldsets[2][1]['fields'].insert(-2, 'cost')
+            if member.is_belong_to(request.user, datetime.date.today()):
+                if self.fieldsets[2][1]['fields'].count('cost') == 0:
+                    self.fieldsets[2][1]['fields'].insert(-2, 'cost')
+            elif self.fieldsets[2][1]['fields'].count('cost') > 0:
+                self.fieldsets[2][1]['fields'].remove('cost')
             if self.fieldsets[2][1]['fields'].count('is_individual_pay') == 0:
                 self.fieldsets[2][1]['fields'].insert(-3, 'is_individual_pay')
         else:
