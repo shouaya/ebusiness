@@ -131,8 +131,8 @@ class PublicManager(models.Manager):
 
 
 class BaseModel(models.Model):
-    created_date = models.DateTimeField(auto_now_add=True, verbose_name=u"作成日時")
-    updated_date = models.DateTimeField(auto_now=True, verbose_name=u"更新日時")
+    created_date = models.DateTimeField(auto_now_add=True, null=True, verbose_name=u"作成日時")
+    updated_date = models.DateTimeField(auto_now=True, null=True, verbose_name=u"更新日時")
     is_deleted = models.BooleanField(default=False, editable=False, verbose_name=u"削除フラグ")
     deleted_date = models.DateTimeField(blank=True, null=True, editable=False, verbose_name=u"削除年月日")
 
@@ -2253,7 +2253,7 @@ class MemberAttendance(models.Model):
         super(MemberAttendance, self).save(force_insert, force_update, using, update_fields)
 
 
-class SubcontractorOrder(models.Model):
+class SubcontractorOrder(BaseModel):
     subcontractor = models.ForeignKey(Subcontractor, verbose_name=u"協力会社")
     order_no = models.CharField(max_length=14, unique=True, verbose_name=u"注文番号")
     year = models.CharField(max_length=4, default=str(datetime.date.today().year),
@@ -2261,14 +2261,8 @@ class SubcontractorOrder(models.Model):
     month = models.CharField(max_length=2, choices=constants.CHOICE_ATTENDANCE_MONTH, verbose_name=u"対象月")
     created_user = models.ForeignKey(User, related_name='created_orders', null=True,
                                      editable=False, verbose_name=u"作成者")
-    created_date = models.DateTimeField(auto_now_add=True, editable=False, verbose_name=u"追加日時")
     updated_user = models.ForeignKey(User, related_name='updated_orders', null=True,
                                      editable=False, verbose_name=u"更新者")
-    updated_date = models.DateTimeField(auto_now=True, editable=False, verbose_name=u"更新日時")
-    is_deleted = models.BooleanField(default=False, editable=False, verbose_name=u"削除フラグ")
-    deleted_date = models.DateTimeField(blank=True, null=True, editable=False, verbose_name=u"削除日時")
-
-    objects = PublicManager(is_deleted=False, subcontractor__is_deleted=False)
 
     def __unicode__(self):
         return self.order_no
@@ -2277,13 +2271,8 @@ class SubcontractorOrder(models.Model):
         unique_together = ('subcontractor', 'year', 'month')
         verbose_name = verbose_name_plural = u"ＢＰ註文書"
 
-    def delete(self, using=None, keep_parents=False):
-        self.is_deleted = True
-        self.deleted_date = datetime.datetime.now()
-        self.save()
 
-
-class BpMemberOrderInfo(models.Model):
+class BpMemberOrderInfo(BaseModel):
     member = models.ForeignKey(Member, verbose_name=u"協力社員")
     year = models.CharField(max_length=4, default=str(datetime.date.today().year),
                             choices=constants.CHOICE_ATTENDANCE_YEAR, verbose_name=u"対象年")
@@ -2294,41 +2283,23 @@ class BpMemberOrderInfo(models.Model):
     minus_per_hour = models.IntegerField(default=0, verbose_name=u"減（円）")
     cost = models.IntegerField(null=False, default=0, verbose_name=u"コスト")
     comment = models.CharField(blank=True, null=True, max_length=50, verbose_name=u"備考")
-    is_deleted = models.BooleanField(default=False, editable=False, verbose_name=u"削除フラグ")
-    deleted_date = models.DateTimeField(blank=True, null=True, editable=False, verbose_name=u"削除年月日")
-
-    objects = PublicManager(is_deleted=False, member__is_deleted=False)
 
     class Meta:
         unique_together = ('member', 'year', 'month')
         verbose_name = verbose_name_plural = u"協力社員の注文情報"
 
-    def delete(self, using=None, keep_parents=False):
-        self.is_deleted = True
-        self.deleted_date = datetime.datetime.now()
-        self.save()
 
-
-class Degree(models.Model):
+class Degree(BaseModel):
     member = models.ForeignKey(Member, verbose_name=u"社員")
     start_date = models.DateField(verbose_name=u"入学日")
     end_date = models.DateField(verbose_name=u"卒業日")
     description = models.CharField(blank=True, null=True, max_length=255, verbose_name=u"学校名称/学部/専門/学位")
-    is_deleted = models.BooleanField(default=False, editable=False, verbose_name=u"削除フラグ")
-    deleted_date = models.DateTimeField(blank=True, null=True, editable=False, verbose_name=u"削除年月日")
-
-    objects = PublicManager(is_deleted=False, member__is_deleted=False)
 
     class Meta:
         verbose_name = verbose_name_plural = u"学歴"
 
-    def delete(self, using=None, keep_parents=False):
-        self.is_deleted = True
-        self.deleted_date = datetime.datetime.now()
-        self.save()
 
-
-class HistoryProject(models.Model):
+class HistoryProject(BaseModel):
     name = models.CharField(max_length=50, verbose_name=u"案件名称")
     member = models.ForeignKey(Member, verbose_name=u"名前")
     location = models.CharField(max_length=20, blank=True, null=True, verbose_name=u"作業場所")
@@ -2339,10 +2310,6 @@ class HistoryProject(models.Model):
     skill = models.ManyToManyField(Skill, blank=True, verbose_name=u"スキル要求")
     role = models.CharField(default="PG", max_length=2, choices=constants.CHOICE_PROJECT_ROLE, verbose_name=u"作業区分")
     stages = models.ManyToManyField(ProjectStage, blank=True, verbose_name=u"作業工程")
-    is_deleted = models.BooleanField(default=False, editable=False, verbose_name=u"削除フラグ")
-    deleted_date = models.DateTimeField(blank=True, null=True, editable=False, verbose_name=u"削除年月日")
-
-    objects = PublicManager(is_deleted=False, member__is_deleted=False)
 
     class Meta:
         ordering = ['-start_date']
@@ -2410,11 +2377,6 @@ class HistoryProject(models.Model):
             return True
         else:
             return False
-
-    def delete(self, using=None, keep_parents=False):
-        self.is_deleted = True
-        self.deleted_date = datetime.datetime.now()
-        self.save()
 
 
 class Issue(BaseModel):
@@ -2500,15 +2462,11 @@ class Issue(BaseModel):
         email.send()
 
 
-class History(models.Model):
+class History(BaseModel):
     start_datetime = models.DateTimeField(default=timezone.now, verbose_name=u"開始日時")
     end_datetime = models.DateTimeField(default=timezone.now, verbose_name=u"終了日時")
     location = models.CharField(max_length=2, choices=constants.CHOICE_DEV_LOCATION, verbose_name=u"作業場所")
     description = models.TextField(verbose_name=u"詳細")
-    is_deleted = models.BooleanField(default=False, editable=False, verbose_name=u"削除フラグ")
-    deleted_date = models.DateTimeField(blank=True, null=True, editable=False, verbose_name=u"削除年月日")
-
-    objects = PublicManager(is_deleted=False)
 
     class Meta:
         ordering = ['-start_datetime']
@@ -2519,13 +2477,8 @@ class History(models.Model):
         hours = td.seconds / 3600.0
         return round(hours, 1)
 
-    def delete(self, using=None, keep_parents=False):
-        self.is_deleted = True
-        self.deleted_date = datetime.datetime.now()
-        self.save()
 
-
-class BatchManage(models.Model):
+class BatchManage(BaseModel):
     name = models.CharField(max_length=50, unique=True, verbose_name=u"バッチＩＤ")
     title = models.CharField(max_length=50, verbose_name=u"バッチタイトル")
     cron_tab = models.CharField(blank=True, null=True, max_length=100, verbose_name=u"バッチの実行タイミング")
@@ -2542,10 +2495,6 @@ class BatchManage(models.Model):
     is_send_to_boss = models.BooleanField(default=True, verbose_name=u"上司に送る")
     is_send_to_self = models.BooleanField(default=True, verbose_name=u"自分に送る")
     description = models.TextField(blank=True, null=True, verbose_name=u"説明")
-    is_deleted = models.BooleanField(default=False, editable=False, verbose_name=u"削除フラグ")
-    deleted_date = models.DateTimeField(blank=True, null=True, editable=False, verbose_name=u"削除年月日")
-
-    objects = PublicManager(is_deleted=False)
 
     class Meta:
         verbose_name = verbose_name_plural = u"バッチ管理"
@@ -2644,15 +2593,11 @@ class BatchManage(models.Model):
         return backend
 
 
-class BatchCarbonCopy(models.Model):
+class BatchCarbonCopy(BaseModel):
     batch = models.ForeignKey(BatchManage, verbose_name=u"バッチ名")
     member = models.ForeignKey(Member, blank=True, null=True, verbose_name=u"ＣＣ先の社員")
     salesperson = models.ForeignKey(Salesperson, blank=True, null=True, verbose_name=u"ＣＣ先の営業員")
     email = models.EmailField(blank=True, null=True, verbose_name=u"メールアドレス")
-    is_deleted = models.BooleanField(default=False, editable=False, verbose_name=u"削除フラグ")
-    deleted_date = models.DateTimeField(blank=True, null=True, editable=False, verbose_name=u"削除年月日")
-
-    objects = PublicManager(is_deleted=False)
 
     class Meta:
         ordering = ['batch']
