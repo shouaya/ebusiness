@@ -64,12 +64,20 @@ def sync_members(batch):
             station = data.get("station", None)
             salary_id = data.get("salaryId", None)
             if api_id:
-                if api_id < '0402':
-                    continue
                 if salary_id:
                     salary_id = "%06d" % int(salary_id)
                 else:
                     salary_id = api_id
+
+                if api_id < '0402':
+                    try:
+                        member = models.Member.objects.get(employee_id=salary_id, id_from_api__isnull=True)
+                        member.id_from_api = api_id
+                        member.save()
+                        logger.info(u"%sのAPI_ID(%s)変更しました。" % (member.__unicode__(), api_id))
+                    except (ObjectDoesNotExist, MultipleObjectsReturned):
+                        pass
+                    continue
                 if department_name == u"営業部" or api_id in ('0123', '0126', '0198', '0150', '0249', '0335'):
                     # 0123 馬婷婷
                     # 0150 孫雲釵
