@@ -233,7 +233,8 @@ def get_project_members_month_section(section, date, user=None):
                                    Q(member__membersectionperiod__end_date__gte=date)),
                                   Q(member__membersectionperiod__division=section) |
                                   Q(member__membersectionperiod__section=section) |
-                                  Q(member__membersectionperiod__subsection=section)).distinct().prefetch_related(
+                                  Q(member__membersectionperiod__subsection=section),
+                                  member__membersectionperiod__is_deleted=False).distinct().prefetch_related(
         Prefetch('member'),
         Prefetch('memberattendance_set', queryset=current_attendance_set, to_attr='current_attendance_set'),
         Prefetch('memberattendance_set', queryset=prev_attendance_set, to_attr='prev_attendance_set'),
