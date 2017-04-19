@@ -10,6 +10,7 @@ import json
 import re
 import os
 import traceback
+import openpyxl as px
 
 from . import biz, biz_config
 from utils import constants, common, file_gen
@@ -34,6 +35,7 @@ def sync_members(batch):
     count = 0
     user = batch.get_log_entry_user()
     if 'employeeList' in dict_data:
+        # members_to_excel(dict_data.get("employeeList"), r'C:\Users\EB061\Documents\members.xlsx')
         for data in dict_data.get("employeeList"):
             api_id = data.get("id", None)
             name = data.get("name", None)
@@ -395,3 +397,19 @@ def get_salesperson_members():
     """営業のメンバーを取得する。
     """
     return models.Salesperson.objects.public_filter(member_type=5)
+
+
+def members_to_excel(data_list, path):
+    book = px.Workbook()
+    sheet = book.create_sheet(title='Members')
+    r = 2
+    for i, data in enumerate(data_list):
+        c = 1
+        for key in data.keys():
+            if i == 0:
+                sheet.cell(row=1, column=c).value = key
+            sheet.cell(row=r, column=c).value = data.get(key, None)
+            c += 1
+        r += 1
+
+    book.save(path)

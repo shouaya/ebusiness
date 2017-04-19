@@ -998,10 +998,11 @@ def generate_attendance_format(user, template_path, project_members):
         # 出勤情報取得
         if len(project_member.current_attendance_set) == 1:
             attendance = project_member.current_attendance_set[0]
+            date = datetime.date(int(attendance.year), int(attendance.month), 20)
+            is_own = project_member.member.is_belong_to(user, date)
         else:
             attendance = None
-        date = datetime.date(int(attendance.year), int(attendance.month), 20)
-        is_own = project_member.member.is_belong_to(user, date)
+            is_own = False
         if attendance and is_own:
             # 社会保険加入有無
             contract = attendance.get_contract()
