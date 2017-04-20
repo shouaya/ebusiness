@@ -304,6 +304,9 @@ def load_section_attendance(file_content, year, month, use_id):
         # 手当
         allowance = values[constants.POS_ATTENDANCE_COL_ALLOWANCE]
         allowance = allowance if allowance else None
+        # 経費(原価)
+        expenses = values[constants.POS_ATTENDANCE_COL_EXPENSES]
+        expenses = expenses if expenses else None
 
         if not project_member_id:
             messages.append((project_member_id, member_code, member_name, u"ID情報が取れません。"))
@@ -359,6 +362,7 @@ def load_section_attendance(file_content, year, month, use_id):
             common.get_object_changed_message(attendance, 'advances_paid_client', advances_paid_client, changed_list)
             common.get_object_changed_message(attendance, 'traffic_cost', traffic_cost, changed_list)
             common.get_object_changed_message(attendance, 'allowance', allowance, changed_list)
+            common.get_object_changed_message(attendance, 'expenses', expenses, changed_list)
             attendance.total_days = total_days if total_days else None
             attendance.night_days = night_days if night_days else None
             if not has_requested:
@@ -373,6 +377,7 @@ def load_section_attendance(file_content, year, month, use_id):
             attendance.advances_paid_client = advances_paid_client
             attendance.traffic_cost = traffic_cost
             attendance.allowance = allowance
+            attendance.expenses = expenses
             change_message = _('Changed %s.') % get_text_list(changed_list, _('and')) if changed_list else ''
         else:
             attendance = models.MemberAttendance(project_member=project_member,
@@ -391,7 +396,8 @@ def load_section_attendance(file_content, year, month, use_id):
                                                  advances_paid=advances_paid,
                                                  advances_paid_client=advances_paid_client,
                                                  traffic_cost=traffic_cost,
-                                                 allowance=allowance)
+                                                 allowance=allowance,
+                                                 expenses=expenses)
             action_flag = ADDITION
             common.get_object_changed_message(attendance, 'total_hours', total_hours, changed_list)
             common.get_object_changed_message(attendance, 'extra_hours', extra_hours, changed_list)
@@ -402,6 +408,7 @@ def load_section_attendance(file_content, year, month, use_id):
             common.get_object_changed_message(attendance, 'advances_paid_client', advances_paid_client, changed_list)
             common.get_object_changed_message(attendance, 'traffic_cost', traffic_cost, changed_list)
             common.get_object_changed_message(attendance, 'allowance', allowance, changed_list)
+            common.get_object_changed_message(attendance, 'expenses', expenses, changed_list)
             change_message = (get_text_list(changed_list, _('and')) if changed_list else '') + _('Added.')
 
         attendance.save()

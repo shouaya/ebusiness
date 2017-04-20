@@ -2098,6 +2098,7 @@ class MemberAttendance(models.Model):
                                        help_text=u"今月に勤務交通費がない場合、先月のを使用する。")
     allowance = models.IntegerField(blank=True, null=True, editable=False, verbose_name=u"手当",
                                     help_text=u"今月に手当がない場合、先月のを使用する。")
+    expenses = models.IntegerField(blank=True, null=True, editable=False, verbose_name=u"経費")
     min_hours = models.DecimalField(max_digits=5, decimal_places=2, default=0, editable=False, verbose_name=u"基準時間")
     max_hours = models.DecimalField(max_digits=5, decimal_places=2, default=0, editable=False, verbose_name=u"最大時間")
     plus_per_hour = models.IntegerField(default=0, editable=False, verbose_name=u"増（円）")
@@ -2119,6 +2120,16 @@ class MemberAttendance(models.Model):
 
     def __unicode__(self):
         return u"%s %s %s" % (self.project_member, self.get_year_display(), self.get_month_display())
+
+    def get_night_allowance(self):
+        """深夜手当を取得する
+
+        :return:
+        """
+        if self.night_days and self.night_days > 0 and self.project_member.member.member_type == 2:
+            return int(self.night_days) * 3000
+        else:
+            return 0
 
     def get_contract(self):
         date = datetime.datetime(int(self.year), int(self.month), 1, tzinfo=common.get_tz_utc())
@@ -2155,8 +2166,9 @@ class MemberAttendance(models.Model):
             cost = float(self.get_cost())
             bonus = float(self.get_bonus())
             allowance = float(self.allowance) if self.allowance else 0
+            night_allowance = float(self.get_night_allowance())
             traffic_cost = float(self.traffic_cost) if self.traffic_cost else 0
-            return (cost + bonus + allowance + traffic_cost) * 0.02
+            return (cost + bonus + allowance + night_allowance + traffic_cost) * 0.02
         else:
             return 0
 
@@ -2171,29 +2183,38 @@ class MemberAttendance(models.Model):
             cost = float(self.get_cost())
             bonus = float(self.get_bonus())
             allowance = float(self.allowance) if self.allowance else 0
+            night_allowance = float(self.get_night_allowance())
             traffic_cost = float(self.traffic_cost) if self.traffic_cost else 0
-            return (cost + bonus + allowance + traffic_cost) * 0.14
+            return (cost + bonus + allowance + night_allowance + traffic_cost) * 0.14
         else:
             return 0
+
+    def get_all_cost(self):
+        """原価合計を取得する
+
+        原価合計 = 月給 + 手当 + 深夜手当 + 残業／控除 + 交通費 + 経費 + 雇用／労災 + 健康／厚生
+
+        :return:
+        """
+        return sum((self.get_cost(),
+                    int(self.allowance) if self.allowance else 0,
+                    self.get_night_allowance(),
+                    int(self.traffic_cost) if self.traffic_cost else 0,
+                    int(self.expenses) if self.expenses else 0,
+                    self.get_employment_insurance(),
+                    self.get_health_insurance()))
 
     def get_profits(self):
         """利益を取得する
 
-        税込の売上 - 月給 - ボーナス - 手当 - 残業／控除 - 交通費 - 雇用／労災 - 健康／厚生 - 業績ボーナス
+        税抜きの売上 - 原価合計
 
         :return:
         """
         request_detail = self.get_project_request_detail()
-        allowance = int(self.allowance) if self.allowance else 0
         if request_detail:
             total_price = request_detail.total_price
-            minus = sum((self.get_cost(),
-                         self.get_bonus(),
-                         int(self.traffic_cost) if self.traffic_cost else 0,
-                         allowance,
-                         self.get_employment_insurance(),
-                         self.get_health_insurance()))
-            return total_price - minus
+            return total_price - self.get_all_cost()
         else:
             return None
 

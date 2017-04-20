@@ -189,7 +189,7 @@
                     <th class="bk02" colspan="3">案件情報</th>
                     <th class="bk03" colspan="6">勤務情報</th>
                     <th class="bk04" colspan="3">売上</th>
-                    <th class="bk05" colspan="6">原価</th>
+                    <th class="bk05" colspan="9">原価</th>
                     <th class="bk06" rowspan="2">利益</th>
                 </tr>
                 <tr>
@@ -205,22 +205,25 @@
                     <th class="bk02">{% create_order_display "顧客" "project__client__name" %}</th>
                     <th class="bk02">契約種類</th>
                     <!--勤務情報-->
-                    <th class="bk03">勤務時間</th>
-                    <th class="bk03">勤務日数</th>
-                    <th class="bk03">深夜日数</th>
-                    <th class="bk03">客先立替金</th>
-                    <th class="bk03">立替金</th>
-                    <th class="bk03">勤務交通費</th>
+                    <th class="bk03 red">勤務時間</th>
+                    <th class="bk03 red">勤務日数</th>
+                    <th class="bk03 red">深夜日数</th>
+                    <th class="bk03 red">客先立替金</th>
+                    <th class="bk03 red">立替金</th>
+                    <th class="bk03 red">勤務交通費</th>
                     <!--売上-->
                     <th class="bk04">税込</th>
                     <th class="bk04">税別</th>
                     <th class="bk04">経費</th>
                     <th class="bk05">月給</th>
-                    <th class="bk05">手当</th>
+                    <th class="bk05 red">手当</th>
+                    <th class="bk05">深夜手当</th>
                     <th class="bk05">残業／控除</th>
                     <th class="bk05">交通費</th>
+                    <th class="bk05 red">経費</th>
                     <th class="bk05">雇用／労災</th>
                     <th class="bk05">健康／厚生</th>
+                    <th class="bk05">原価合計</th>
                 </tr>
             </thead>
         </table>
@@ -315,11 +318,21 @@
                                                         <td class="num"></td>
                                                     {% endif %}
                                                 {% endif %}
+                                                <!--深夜手当-->
+                                                <td class="num">
+                                                    {% if project_member.member.member_type == 2 %}
+                                                        {{ attendance.get_night_allowance|default:''|intcomma }}
+                                                    {% endif %}
+                                                </td>
                                                 <td></td>
                                                 <!--交通費-->
                                                 <td class="num">{{ attendance.traffic_cost|default:''|intcomma }}</td>
+                                                <!--経費(原価)-->
+                                                <td class="num">{{ attendance.expenses|default:''|intcomma }}</td>
                                                 <td class="num">{{ attendance.get_employment_insurance|default:''|floatformat:0|intcomma }}</td>
                                                 <td class="num">{{ attendance.get_health_insurance|default:''|floatformat:0|intcomma }}</td>
+                                                <!--原価合計-->
+                                                <td class="num">{{ attendance.get_all_cost|default:''|floatformat:0|intcomma }}</td>
                                                 <td class="num {% if attendance.get_profits < 0 %}red{% endif %}">{{ attendance.get_profits|floatformat:0|intcomma }}</td>
                                             {% else %}
                                                 <td class="project_requested" style="color: lightblue;">******</td>
@@ -336,7 +349,7 @@
                                             {% endif %}
                                         {% else %}
                                             <!--売上-->
-                                            <td class="num" colspan="10"></td>
+                                            <td class="num" colspan="13"></td>
                                         {% endif %}
                                     {% endwith %}
                                     {% endwith %}
@@ -344,12 +357,12 @@
                             </tr>
                         {% endfor %}
                     {% else %}
-                        <tr class="row2"><td class="center red" colspan="8">メンバーがいません。</td></tr>
+                        <tr class="row2"><td class="center red" colspan="11">メンバーがいません。</td></tr>
                     {% endif %}
                 </tbody>
                 <tfoot>
                     <tr>
-                        <td colspan="26">
+                        <td colspan="29">
                             {{ project_members|length }} 件
                         </td>
                     </tr>

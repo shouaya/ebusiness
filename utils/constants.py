@@ -231,6 +231,7 @@ POS_ATTENDANCE_COL_ADVANCES_PAID_CLIENT = 15
 POS_ATTENDANCE_COL_ADVANCES_PAID = 16
 POS_ATTENDANCE_COL_TRAFFIC_COST = 17                # 通勤交通費
 POS_ATTENDANCE_COL_ALLOWANCE = 22                   # 手当
+POS_ATTENDANCE_COL_EXPENSES = 26                    # 経費(原価)
 
 FORMAT_ATTENDANCE_TITLE1 = (u"",
                             u"No",
@@ -254,6 +255,9 @@ FORMAT_ATTENDANCE_TITLE1 = (u"",
                             u"",
                             u"",
                             u"原価",
+                            u"",
+                            u"",
+                            u"",
                             u"",
                             u"",
                             u"",
@@ -284,9 +288,12 @@ FORMAT_ATTENDANCE_TITLE2 = (u"",
                             u"経費",
                             u"月給",
                             u"手当",
+                            u"深夜手当",
                             u"残業／控除",
                             u"交通費",
+                            u"経費",
                             u"雇用／労災",
                             u"健康／厚生",
+                            u"原価合計",
                             u"",
                             )

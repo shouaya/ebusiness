@@ -966,7 +966,7 @@ def generate_attendance_format(user, template_path, project_members):
     sheet = book.get_sheet_by_name('Sheet1')
 
     start_row = constants.POS_ATTENDANCE_START_ROW
-    set_openpyxl_styles(sheet, 'B5:AD%s' % (start_row - 1 + project_members.count(),), 5)
+    set_openpyxl_styles(sheet, 'B5:AE%s' % (start_row - 1 + project_members.count(),), 5)
     for i, project_member in enumerate(project_members):
         # NO
         sheet.cell(row=start_row, column=2).value = i + 1
@@ -1037,8 +1037,12 @@ def generate_attendance_format(user, template_path, project_members):
                 sheet.cell(row=start_row, column=22).value = attendance.get_cost()
                 # 手当
                 sheet.cell(row=start_row, column=23).value = attendance.allowance
+                # 深夜手当
+                sheet.cell(row=start_row, column=24).value = attendance.get_night_allowance()
                 # 交通費(原価)
-                sheet.cell(row=start_row, column=25).value = attendance.traffic_cost
+                sheet.cell(row=start_row, column=26).value = attendance.traffic_cost
+                # 経費(原価)
+                sheet.cell(row=start_row, column=27).value = attendance.expenses
         else:
             if len(project_member.prev_attendance_set) == 1:
                 prev_attendance = project_member.prev_attendance_set[0]
@@ -1046,7 +1050,7 @@ def generate_attendance_format(user, template_path, project_members):
                     # 勤務交通費
                     sheet.cell(row=start_row, column=18).value = prev_attendance.traffic_cost
                     # 交通費(原価)
-                    sheet.cell(row=start_row, column=25).value = prev_attendance.traffic_cost
+                    sheet.cell(row=start_row, column=26).value = prev_attendance.traffic_cost
                 if prev_attendance.allowance:
                     # 手当
                     sheet.cell(row=start_row, column=23).value = prev_attendance.allowance
