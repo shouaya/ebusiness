@@ -255,7 +255,9 @@
                                     {% with project_request_detail=project_member.project_request_detail_set|first %}
                                         <td class="center">
                                             {% if attendance.get_contract.endowment_insurance == "2" %}
+                                            {% if project_member.member.member_type < 4 %}
                                                 ○
+                                            {% endif %}
                                             {% endif %}
                                         </td>
                                         <td>{{ project_member.member.get_member_type_display }}</td>

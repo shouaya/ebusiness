@@ -2166,7 +2166,7 @@ class MemberAttendance(models.Model):
         :return:
         """
         contract = self.get_contract()
-        if contract and contract.endowment_insurance == "2":
+        if contract and contract.endowment_insurance == "2" and self.project_member.member.member_type != 4:
             # 契約情報保険加入した場合
             cost = float(self.get_cost())
             bonus = float(self.get_bonus())
