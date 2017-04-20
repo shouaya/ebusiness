@@ -97,30 +97,32 @@ def sync_members(batch):
             #     lll.append((department_id, department_name))
             if api_id:
                 # 契約情報取得する。
-                concat = get_latest_concat(api_id)
+                # concat = get_latest_concat(api_id)
                 # コスト
-                cost = concat.get('ALLOWANLE_COST', 0)
+                cost = get_cost(api_id)
+                if cost == 0:
+                    continue
                 if re.match(r"[0-9]+", str(cost)):
                     cost = int(cost)
                 # 社員区分
-                member_type = concat.get('EMPLOYER_TYPE', 0)
-                if member_type == u"正社員":
-                    member_type = 1
-                elif member_type == u"契約社員":
-                    member_type = 2
-                elif member_type == u"個人事業主":
-                    member_type = 3
-                else:
-                    logger.warning(u"%sの契約形態（%s）が識別できません。" % (name, member_type))
-                    member_type = 0
+                # member_type = concat.get('EMPLOYER_TYPE', 0)
+                # if member_type == u"正社員":
+                #     member_type = 1
+                # elif member_type == u"契約社員":
+                #     member_type = 2
+                # elif member_type == u"個人事業主":
+                #     member_type = 3
+                # else:
+                #     logger.warning(u"%sの契約形態（%s）が識別できません。" % (name, member_type))
+                #     member_type = 0
                 try:
                     member = models.Member.objects.get(id_from_api=api_id)
                     changed_list = []
                     common.get_object_changed_message(member, 'cost', cost, changed_list)
-                    common.get_object_changed_message(member, 'member_type', member_type, changed_list)
+                    # common.get_object_changed_message(member, 'member_type', member_type, changed_list)
                     if changed_list:
                         member.cost = cost
-                        member.member_type = member_type
+                        # member.member_type = member_type
                         member.save()
 
                         change_message = _('Changed %s.') % get_text_list(changed_list,
@@ -309,23 +311,28 @@ def get_latest_concat(code):
 
 def get_cost(code):
     if code:
-        url = biz_config.get_config(constants.CONFIG_SERVICE_CONTRACT) % (code,)
+        date = '2017-03-01'
+        url = 'http://service.e-business.co.jp:8080/ContractManagement/api/newContract?uid=%s' % (code,)
         response = urllib2.urlopen(url)
         html = response.read()
         data = json.loads(html.replace("\r", "").replace("\n", ""))
         period_list = []
         for item in data['contractList']:
-            period_list.append(item['EMPLOYMENT_PERIOD_END'])
+            period_list.append(item['EMPLOYMENT_PERIOD_START'])
         latest_period = None
         if period_list:
-            latest_period = max(period_list)
+            period_list.sort(reverse=True)
+            for p in period_list:
+                if date >= p:
+                    latest_period = p
+                    break
         for item in data['contractList']:
-            if latest_period and item['EMPLOYER_NO'] == code and item['EMPLOYMENT_PERIOD_END'] == latest_period:
+            if latest_period and item['EMPLOYMENT_PERIOD_START'] == latest_period:
                 if item['ALLOWANLE_COST'] != "-":
-                    return item['ALLOWANLE_COST']
+                    return int(item['ALLOWANLE_COST']) if item['ALLOWANLE_COST'] else 0
         for item in data['contractList']:
             if item['EMPLOYER_NO'] == code:
-                return item['ALLOWANLE_COST'] if item['ALLOWANLE_COST'] != "-" else 0
+                return int(item['ALLOWANLE_COST']) if item['ALLOWANLE_COST'] != "-" else 0
     return 0
 
 
