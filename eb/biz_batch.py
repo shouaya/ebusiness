@@ -105,9 +105,9 @@ def sync_members(batch):
                 # 社員区分
                 member_type = concat.get('EMPLOYER_TYPE', 0)
                 if member_type == u"正社員":
-                    member_type = 2
-                elif member_type == u"契約社員":
                     member_type = 1
+                elif member_type == u"契約社員":
+                    member_type = 2
                 elif member_type == u"個人事業主":
                     member_type = 3
                 else:
