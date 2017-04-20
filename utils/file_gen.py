@@ -1036,9 +1036,9 @@ def generate_attendance_format(user, template_path, project_members):
                 # 月給
                 sheet.cell(row=start_row, column=22).value = attendance.get_cost()
                 # 手当
-                sheet.cell(row=start_row, column=24).value = attendance.allowance
+                sheet.cell(row=start_row, column=23).value = attendance.allowance
                 # 交通費(原価)
-                sheet.cell(row=start_row, column=26).value = attendance.traffic_cost
+                sheet.cell(row=start_row, column=25).value = attendance.traffic_cost
         else:
             if len(project_member.prev_attendance_set) == 1:
                 prev_attendance = project_member.prev_attendance_set[0]
@@ -1046,10 +1046,10 @@ def generate_attendance_format(user, template_path, project_members):
                     # 勤務交通費
                     sheet.cell(row=start_row, column=18).value = prev_attendance.traffic_cost
                     # 交通費(原価)
-                    sheet.cell(row=start_row, column=26).value = prev_attendance.traffic_cost
+                    sheet.cell(row=start_row, column=25).value = prev_attendance.traffic_cost
                 if prev_attendance.allowance:
                     # 手当
-                    sheet.cell(row=start_row, column=24).value = prev_attendance.allowance
+                    sheet.cell(row=start_row, column=23).value = prev_attendance.allowance
 
         start_row += 1
 

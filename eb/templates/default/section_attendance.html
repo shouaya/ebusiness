@@ -189,7 +189,7 @@
                     <th class="bk02" colspan="3">案件情報</th>
                     <th class="bk03" colspan="6">勤務情報</th>
                     <th class="bk04" colspan="3">売上</th>
-                    <th class="bk05" colspan="8">原価</th>
+                    <th class="bk05" colspan="6">原価</th>
                     <th class="bk06" rowspan="2">利益</th>
                 </tr>
                 <tr>
@@ -216,13 +216,11 @@
                     <th class="bk04">税別</th>
                     <th class="bk04">経費</th>
                     <th class="bk05">月給</th>
-                    <th class="bk05">ボーナス</th>
                     <th class="bk05">手当</th>
                     <th class="bk05">残業／控除</th>
                     <th class="bk05">交通費</th>
                     <th class="bk05">雇用／労災</th>
                     <th class="bk05">健康／厚生</th>
-                    <th class="bk05">業績ボーナス</th>
                 </tr>
             </thead>
         </table>
@@ -302,11 +300,10 @@
                                         {% if project_request_detail %}
                                             {% if is_own %}
                                                 <!--売上-->
-                                                <td class="num project_requested">{{ project_request_detail.get_all_price|intcomma }}</td>
-                                                <td class="num project_requested">{{ project_request_detail.total_price|intcomma }}</td>
-                                                <td class="num project_requested">{{ project_request_detail.expenses_price|intcomma }}</td>
+                                                <td class="num project_requested">{{ project_request_detail.get_all_price|floatformat:0|intcomma }}</td>
+                                                <td class="num project_requested">{{ project_request_detail.total_price|floatformat:0|intcomma }}</td>
+                                                <td class="num project_requested">{{ project_request_detail.expenses_price|floatformat:0|intcomma }}</td>
                                                 <td class="num">{{ attendance.get_cost|intcomma }}</td>
-                                                <td class="num">{{ attendance.get_bonus|intcomma }}</td>
                                                 {% if attendance.allowance %}
                                                     <td class="num">{{ attendance.allowance|default:''|intcomma }}</td>
                                                 {% else %}
@@ -319,10 +316,9 @@
                                                 <td></td>
                                                 <!--交通費-->
                                                 <td class="num">{{ attendance.traffic_cost|default:''|intcomma }}</td>
-                                                <td class="num">{{ attendance.get_employment_insurance|default:''|floatformat:1|intcomma }}</td>
-                                                <td class="num">{{ attendance.get_health_insurance|default:''|floatformat:1|intcomma }}</td>
-                                                <td></td>
-                                                <td class="num {% if attendance.get_profits < 0 %}red{% endif %}">{{ attendance.get_profits|floatformat:1|intcomma }}</td>
+                                                <td class="num">{{ attendance.get_employment_insurance|default:''|floatformat:0|intcomma }}</td>
+                                                <td class="num">{{ attendance.get_health_insurance|default:''|floatformat:0|intcomma }}</td>
+                                                <td class="num {% if attendance.get_profits < 0 %}red{% endif %}">{{ attendance.get_profits|floatformat:0|intcomma }}</td>
                                             {% else %}
                                                 <td class="project_requested" style="color: lightblue;">******</td>
                                                 <td class="project_requested" style="color: lightblue;">******</td>
@@ -335,11 +331,10 @@
                                                 <td style="color: lightblue;">******</td>
                                                 <td style="color: lightblue;">******</td>
                                                 <td style="color: lightblue;">******</td>
-                                                <td style="color: lightblue;">******</td>
                                             {% endif %}
                                         {% else %}
                                             <!--売上-->
-                                            <td class="num" colspan="12"></td>
+                                            <td class="num" colspan="10"></td>
                                         {% endif %}
                                     {% endwith %}
                                     {% endwith %}
@@ -352,7 +347,7 @@
                 </tbody>
                 <tfoot>
                     <tr>
-                        <td colspan="28">
+                        <td colspan="26">
                             {{ project_members|length }} 件
                         </td>
                     </tr>

@@ -10,10 +10,10 @@ section div.scroll_container {
     overflow-x: scroll;
 }
 section div.scroll_container table.attendance {
-    width: 2000px;
+    width: 1903px;
 }
 section div.scroll_container div.sub_scroll_container {
-    width: 2017px;
+    width: 1920px;
     overflow-y: scroll;
 }
 

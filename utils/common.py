@@ -846,7 +846,7 @@ def get_object_changed_message(obj, field, new_value, changed_list=None):
         if isinstance(old_value, Decimal):
             old_value = "%.2f" % old_value
             new_value = "%.2f" % new_value
-        if old_value and new_value and old_value != new_value:
+        if old_value != new_value:
             message = u"%s(%s→%s)" % (verbose_name, old_value, new_value)
             if isinstance(changed_list, list):
                 changed_list.append(message)

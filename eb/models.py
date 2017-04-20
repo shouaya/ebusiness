@@ -872,15 +872,16 @@ class Member(AbstractMember):
 
         :return:
         """
-        if self.member_type == 4:
-            # 他者技術者の場合
-            return int(self.cost) if self.cost else 0
-        contract = self.get_contract(date)
-        if contract:
-            traffic_cost = int(contract.pay_commute if contract.pay_commute else 0)
-            return (int(contract.cost) - traffic_cost) if contract.cost else 0
-        else:
-            return 0
+        # if self.member_type == 4:
+        #     # 他者技術者の場合
+        #     return int(self.cost) if self.cost else 0
+        # contract = self.get_contract(date)
+        # if contract:
+        #     traffic_cost = int(contract.pay_commute if contract.pay_commute else 0)
+        #     return (int(contract.cost) - traffic_cost) if contract.cost else 0
+        # else:
+        #     return 0
+        return int(self.cost) if self.cost else 0
 
     def get_contract(self, date):
         """最新の契約情報を取得する。
@@ -2138,10 +2139,10 @@ class MemberAttendance(models.Model):
 
         :return:
         """
-        cost = self.get_cost()
-        if cost:
-            if self.project_member.member.member_type == 1:
-                return int(cost) / 6
+        # cost = self.get_cost()
+        # if cost:
+        #     if self.project_member.member.member_type == 1:
+        #         return int(cost) / 6
         return 0
 
     def get_employment_insurance(self):
