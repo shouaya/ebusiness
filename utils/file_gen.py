@@ -966,7 +966,8 @@ def generate_attendance_format(user, template_path, project_members):
     sheet = book.get_sheet_by_name('Sheet1')
 
     start_row = constants.POS_ATTENDANCE_START_ROW
-    set_openpyxl_styles(sheet, 'B5:AE%s' % (start_row - 1 + project_members.count(),), 5)
+    count = project_members.count()
+    set_openpyxl_styles(sheet, 'B5:AE%s' % (start_row + count,), 5)
     for i, project_member in enumerate(project_members):
         # NO
         sheet.cell(row=start_row, column=2).value = i + 1
@@ -1056,6 +1057,20 @@ def generate_attendance_format(user, template_path, project_members):
                     sheet.cell(row=start_row, column=23).value = prev_attendance.allowance
 
         start_row += 1
+    # 合計
+    sheet.cell(row=start_row, column=19).value = "=SUM(S5:S%s)" % (count + 4)
+    sheet.cell(row=start_row, column=20).value = "=SUM(T5:T%s)" % (count + 4)
+    sheet.cell(row=start_row, column=21).value = "=SUM(U5:U%s)" % (count + 4)
+    sheet.cell(row=start_row, column=22).value = "=SUM(V5:V%s)" % (count + 4)
+    sheet.cell(row=start_row, column=23).value = "=SUM(W5:W%s)" % (count + 4)
+    sheet.cell(row=start_row, column=24).value = "=SUM(X5:X%s)" % (count + 4)
+    sheet.cell(row=start_row, column=25).value = "=SUM(Y5:Y%s)" % (count + 4)
+    sheet.cell(row=start_row, column=26).value = "=SUM(Z5:Z%s)" % (count + 4)
+    sheet.cell(row=start_row, column=27).value = "=SUM(AA5:AA%s)" % (count + 4)
+    sheet.cell(row=start_row, column=28).value = "=SUM(AB5:AB%s)" % (count + 4)
+    sheet.cell(row=start_row, column=29).value = "=SUM(AC5:AC%s)" % (count + 4)
+    sheet.cell(row=start_row, column=30).value = "=SUM(AD5:AD%s)" % (count + 4)
+    sheet.cell(row=start_row, column=31).value = "=SUM(AE5:AE%s)" % (count + 4)
 
     return save_virtual_workbook(book)
 

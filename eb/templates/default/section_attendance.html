@@ -6,6 +6,19 @@
 <script type="text/javascript">
     $(document).ready(function() {
         setScrollBodyHeight();
+        calculate_total("total_col_01", "col_01");
+        calculate_total("total_col_02", "col_02");
+        calculate_total("total_col_03", "col_03");
+        calculate_total("total_col_04", "col_04");
+        calculate_total("total_col_05", "col_05");
+        calculate_total("total_col_06", "col_06");
+        calculate_total("total_col_07", "col_07");
+        calculate_total("total_col_08", "col_08");
+        calculate_total("total_col_09", "col_09");
+        calculate_total("total_col_10", "col_10");
+        calculate_total("total_col_11", "col_11");
+        calculate_total("total_col_12", "col_12");
+        calculate_total("total_col_13", "col_13");
     });
 
     function checkUploadAttendance(form) {
@@ -57,6 +70,22 @@
         }
     }
 
+    function calculate_total(id, cls) {
+        total_obj = $("#" + id)
+        total = 0
+        $.each($("." + cls), function(i, obj) {
+            text = $(obj).text();
+            if (text.trim() != "") {
+                text = text.replace(",", "");
+                val = parseInt(text);
+                total = total + val;
+            }
+        });
+        total_comma = (total + "").replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,');
+        total_obj.text(total_comma);
+        total_obj.css("font-size", "12px");
+    }
+
     window.addEventListener('resize', function (event) {
         setScrollBodyHeight();
     });
@@ -94,7 +123,7 @@
         padding-left: 5px;
         border-left: thin solid lightgray;
         border-bottom: thin solid lightgray;
-        border-right: thin solid lightgray;
+        border-right: 0 solid lightgray;
     }
     table.attendance th.bk01 {
         background: rgb(180, 198, 231);
@@ -130,10 +159,10 @@
         border: 3px solid white;
         color: white;
     }
-    table.attendance tr:hover {
+    table.attendance tbody tr:hover {
         background-color: LightGreen;
     }
-    table.attendance tr:hover td {
+    table.attendance tbody tr:hover td {
         background-color: transparent;
     }
     .prev_month_data {
@@ -305,35 +334,35 @@
                                         {% if project_request_detail %}
                                             {% if is_own %}
                                                 <!--売上-->
-                                                <td class="num project_requested">{{ project_request_detail.get_all_price|floatformat:0|intcomma }}</td>
-                                                <td class="num project_requested">{{ project_request_detail.total_price|floatformat:0|intcomma }}</td>
-                                                <td class="num project_requested">{{ project_request_detail.expenses_price|floatformat:0|intcomma }}</td>
-                                                <td class="num">{{ attendance.get_cost|intcomma }}</td>
+                                                <td class="num project_requested col_01">{{ project_request_detail.get_all_price|floatformat:0|intcomma }}</td>
+                                                <td class="num project_requested col_02">{{ project_request_detail.total_price|floatformat:0|intcomma }}</td>
+                                                <td class="num project_requested col_03">{{ project_request_detail.expenses_price|floatformat:0|intcomma }}</td>
+                                                <td class="num col_04">{{ attendance.get_cost|intcomma }}</td>
                                                 {% if attendance.allowance %}
-                                                    <td class="num">{{ attendance.allowance|default:''|intcomma }}</td>
+                                                    <td class="num col_05">{{ attendance.allowance|default:''|intcomma }}</td>
                                                 {% else %}
                                                     {% if prev_attendance and prev_attendance.allowance %}
-                                                        <td class="num prev_month_data">{{ prev_attendance.allowance|default:''|intcomma }}</td>
+                                                        <td class="num prev_month_data col_05">{{ prev_attendance.allowance|default:''|intcomma }}</td>
                                                     {% else %}
                                                         <td class="num"></td>
                                                     {% endif %}
                                                 {% endif %}
                                                 <!--深夜手当-->
-                                                <td class="num">
+                                                <td class="num col_06">
                                                     {% if project_member.member.member_type == 2 %}
                                                         {{ attendance.get_night_allowance|default:''|intcomma }}
                                                     {% endif %}
                                                 </td>
-                                                <td></td>
+                                                <td class="num col_07"></td>
                                                 <!--交通費-->
-                                                <td class="num">{{ attendance.traffic_cost|default:''|intcomma }}</td>
+                                                <td class="num col_08">{{ attendance.traffic_cost|default:''|intcomma }}</td>
                                                 <!--経費(原価)-->
-                                                <td class="num">{{ attendance.expenses|default:''|intcomma }}</td>
-                                                <td class="num">{{ attendance.get_employment_insurance|default:''|floatformat:0|intcomma }}</td>
-                                                <td class="num">{{ attendance.get_health_insurance|default:''|floatformat:0|intcomma }}</td>
+                                                <td class="num col_09">{{ attendance.expenses|default:''|intcomma }}</td>
+                                                <td class="num col_10">{{ attendance.get_employment_insurance|default:''|floatformat:0|intcomma }}</td>
+                                                <td class="num col_11">{{ attendance.get_health_insurance|default:''|floatformat:0|intcomma }}</td>
                                                 <!--原価合計-->
-                                                <td class="num">{{ attendance.get_all_cost|default:''|floatformat:0|intcomma }}</td>
-                                                <td class="num {% if attendance.get_profits < 0 %}red{% endif %}">{{ attendance.get_profits|floatformat:0|intcomma }}</td>
+                                                <td class="num col_12">{{ attendance.get_all_cost|default:''|floatformat:0|intcomma }}</td>
+                                                <td class="num col_13 {% if attendance.get_profits < 0 %}red{% endif %}">{{ attendance.get_profits|floatformat:0|intcomma }}</td>
                                             {% else %}
                                                 <td class="project_requested" style="color: lightblue;">******</td>
                                                 <td class="project_requested" style="color: lightblue;">******</td>
@@ -362,9 +391,22 @@
                 </tbody>
                 <tfoot>
                     <tr>
-                        <td colspan="29">
+                        <td colspan="16">
                             {{ project_members|length }} 件
                         </td>
+                        <td class="num" id="total_col_01"></td>
+                        <td class="num" id="total_col_02"></td>
+                        <td class="num" id="total_col_03"></td>
+                        <td class="num" id="total_col_04"></td>
+                        <td class="num" id="total_col_05"></td>
+                        <td class="num" id="total_col_06"></td>
+                        <td class="num" id="total_col_07"></td>
+                        <td class="num" id="total_col_08"></td>
+                        <td class="num" id="total_col_09"></td>
+                        <td class="num" id="total_col_10"></td>
+                        <td class="num" id="total_col_11"></td>
+                        <td class="num" id="total_col_12"></td>
+                        <td class="num" id="total_col_13"></td>
                     </tr>
                 </tfoot>
             </table>
