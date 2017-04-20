@@ -2186,14 +2186,14 @@ class MemberAttendance(models.Model):
         request_detail = self.get_project_request_detail()
         allowance = int(self.allowance) if self.allowance else 0
         if request_detail:
-            all_price = request_detail.get_all_price()
+            total_price = request_detail.total_price
             minus = sum((self.get_cost(),
                          self.get_bonus(),
                          int(self.traffic_cost) if self.traffic_cost else 0,
                          allowance,
                          self.get_employment_insurance(),
                          self.get_health_insurance()))
-            return all_price - minus
+            return total_price - minus
         else:
             return None
 
