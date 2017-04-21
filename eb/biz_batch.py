@@ -31,11 +31,9 @@ def sync_members(batch):
     response = urllib2.urlopen(url)
     html = response.read()
     dict_data = json.loads(html.replace("\r", "").replace("\n", ""))
-    lll = []
     count = 0
     user = batch.get_log_entry_user()
     if 'employeeList' in dict_data:
-        # members_to_excel(dict_data.get("employeeList"), r'C:\Users\EB061\Documents\members.xlsx')
         for data in dict_data.get("employeeList"):
             # ＩＤ主キー
             api_id = data.get("id", None)
@@ -53,13 +51,20 @@ def sync_members(batch):
                     first_name_ja = common.get_first_last_ja_name(name_jp)[0]
             # 誕生日
             birthday = data.get("birthDate", None)
+            if birthday:
+                try:
+                    birthday = common.parse_date_from_string(birthday)
+                except Exception as ex:
+                    logger.warning(u"%sの生年月日(%s)が取得できません。%s" % (name, birthday, unicode(ex)))
+            else:
+                birthday = None
             # 郵便番号
             postcode = data.get("postcode", None)
-            if postcode:
-                postcode = postcode.strip().replace("/", "").replace("-", "").strip()
+            if postcode and postcode.strip():
+                postcode = postcode.strip().replace("/", "").replace("-", "").replace(u"‐", "").strip()
                 if not re.match(r"[0-9]{7}", postcode):
                     postcode = None
-                    logger.info(u"%s郵便番号(%s)が取得できません。" % (name, postcode))
+                    logger.warning(u"%sの郵便番号(%s)が取得できません。" % (name, postcode))
             # 住所
             address = data.get("address", None)
             # 個人メールアドレス
@@ -68,12 +73,19 @@ def sync_members(batch):
             eb_mail = data.get("ebMailAddress", None)
             # 携帯番号
             phone = data.get("phone", None)
+            if phone:
+                phone = phone.replace("-", "")
+                if not re.match(r"[0-9]+", phone):
+                    phone = None
+                    logger.warning(u"%sの携帯番号(%s)が取得できません。" % (name, phone))
             # 性別
             sex = data.get("sex", None)
             # 最寄り駅
             station = data.get("station", None)
             # 入社年月日
             join_date = data.get("joinDate", None)
+            if join_date:
+                join_date = common.parse_date_from_string(join_date)
             # 給料王ＩＤ
             salary_id = data.get("salaryId", None)
             if salary_id and re.match(r"[0-9]+", salary_id):
@@ -85,25 +97,16 @@ def sync_members(batch):
             # 部署
             department_id = data.get('departmentId', None)
             department_name = data.get("department", None)
-            # if department_name == u"SS　1部":
-            #     department_name = u"開発部　1部"
-            # elif department_name == u"SS　2部":
-            #     department_name = u"開発部　2部"
-            # elif department_name == u"SS　4部":
-            #     department_name = u"開発部　4部"
-            # elif department_name == u"SS　5部":
-            #     department_name = u"開発部　5部"
-            # if (department_id, department_name) not in lll:
-            #     lll.append((department_id, department_name))
+            org_id = constants.DICT_ORG_MAPPING.get(department_id, None)
             if api_id:
                 # 契約情報取得する。
                 # concat = get_latest_concat(api_id)
                 # コスト
-                cost = get_cost(api_id)
-                if cost == 0:
-                    continue
-                if re.match(r"[0-9]+", str(cost)):
-                    cost = int(cost)
+                # cost = get_cost(api_id)
+                # if cost == 0:
+                #     continue
+                # if re.match(r"[0-9]+", str(cost)):
+                #     cost = int(cost)
                 # 社員区分
                 # member_type = concat.get('EMPLOYER_TYPE', 0)
                 # if member_type == u"正社員":
@@ -116,120 +119,63 @@ def sync_members(batch):
                 #     logger.warning(u"%sの契約形態（%s）が識別できません。" % (name, member_type))
                 #     member_type = 0
                 try:
-                    member = models.Member.objects.get(id_from_api=api_id)
-                    changed_list = []
-                    common.get_object_changed_message(member, 'cost', cost, changed_list)
-                    # common.get_object_changed_message(member, 'member_type', member_type, changed_list)
-                    if changed_list:
-                        member.cost = cost
-                        # member.member_type = member_type
-                        member.save()
-
-                        change_message = _('Changed %s.') % get_text_list(changed_list,
-                                                                          _('and')) if changed_list else ''
-                        prefix = u"【%s】" % batch.title
-                        LogEntry.objects.log_action(user_id=user.pk,
-                                                    content_type_id=ContentType.objects.get_for_model(member).pk,
-                                                    object_id=member.pk,
-                                                    object_repr=unicode(member),
-                                                    action_flag=CHANGE,
-                                                    change_message=(prefix + change_message) or _('No fields changed.'))
-                        msg = u"name: %s, %s" % (member.__unicode__(), u"情報が変更されました。")
-                        logger.info(msg)
+                    models.Member.objects.get(id_from_api=api_id)
                 except ObjectDoesNotExist:
-                    logger.info(u"%s（%s）はまだ導入していない。" % (name, api_id))
+                    member = models.Member(employee_id=salary_id, id_from_api=api_id)
+                    member.first_name = common.get_first_last_name(name)[0]
+                    member.last_name = common.get_first_last_name(name)[1]
+                    member.first_name_ja = first_name_ja
+                    member.last_name_ja = last_name_ja
+                    member.birthday = birthday
+                    member.post_code = postcode
+                    member.address1 = address
+                    member.private_email = private_mail
+                    member.email = eb_mail
+                    member.phone = phone
+                    member.sex = "2" if sex == "0" else "1"
+                    member.nearest_station = station if station and len(station) <= 15 else None
+                    member.join_date = join_date
+                    member.comment = introduction
+                    member.company = company
+                    if department_id not in ('4', '5', '6', '7', '13', '18', '19', '20', '21', '22') and org_id:
+                        try:
+                            section = models.Section.objects.get(pk=org_id)
+                            member.section = section
+                        except ObjectDoesNotExist:
+                            pass
+                    member.save()
+                    # ログ出力
+                    change_message = _('Added.')
+                    prefix = u"【%s】" % batch.title
+                    LogEntry.objects.log_action(user_id=user.pk,
+                                                content_type_id=ContentType.objects.get_for_model(member).pk,
+                                                object_id=member.pk,
+                                                object_repr=unicode(member),
+                                                action_flag=ADDITION,
+                                                change_message=(prefix + change_message) or _('No fields changed.'))
+
+                    args = (member.employee_id, member.__unicode__(), u"追加完了。")
+                    msg = u"社員コード: %s, name: %s, %s" % args
+                    logger.info(msg)
+                    count += 1
                 except MultipleObjectsReturned:
                     # 一意制約なので、存在しないケース
                     pass
+                except Exception as ex:
+                    args = (salary_id, name, unicode(ex))
+                    msg = u"社員コード: %s, name: %s, 予期しないエラー: %s" % args
+                    logger.error(msg)
+                    logger.error(traceback.format_exc())
 
-                # if department_name == u"営業部" or api_id in ('0123', '0126', '0198', '0150', '0249', '0335'):
-                #     # 0123 馬婷婷
-                #     # 0150 孫雲釵
-                #     # 0198 劉 暢
-                #     # 0126 丁 玲
-                #     # 0249 齋藤 善次
-                #     # 0335 蒋杰
-                #     query_set = models.Salesperson.objects.raw('select * from eb_salesperson where id_from_api=%s',
-                #                                                [api_id])
-                #     if len(list(query_set)) == 0:
-                #         member = models.Salesperson(employee_id=salary_id, id_from_api=api_id)
-                #     else:
-                #         # message_list.append(("WARN", name, birthday, address, u"既に存在しているレコードです。"))
-                #         continue
-                # else:
-                #     query_set = models.Member.objects.raw('select * from eb_member where id_from_api=%s',
-                #                                           [api_id])
-                #     if len(list(query_set)) == 0:
-                #         member = models.Member(employee_id=salary_id, id_from_api=api_id)
-                #     else:
-                #         # message_list.append(("WARN", name, birthday, address, u"既に存在しているレコードです。"))
-                #         continue
-                #
-                # try:
-                #     # コストを取得する。
-                #     member.first_name = common.get_first_last_name(name)[0]
-                #     member.last_name = common.get_first_last_name(name)[1]
-                #     if birthday:
-                #         try:
-                #             member.birthday = common.parse_date_from_string(birthday)
-                #         except Exception as ex:
-                #             args = (member.employee_id, member.__unicode__(),
-                #                     u"「%s」が正確な日付ではありません。" % birthday,
-                #                     u"%s" % unicode(ex))
-                #             msg = u"社員コード: %s, name: %s, %s, %s" % args
-                #             logger.warning(msg)
-                #             logger.error(traceback.format_exc())
-                #             member.birthday = None
-                #     else:
-                #         member.birthday = datetime.date.today()
-                #     member.address1 = address if address else station
-                #     if department_name:
-                #         try:
-                #             section = models.Section.objects.get(name=department_name)
-                #         except ObjectDoesNotExist:
-                #             section = models.Section(name=department_name)
-                #             section.company = company
-                #             section.save()
-                #     else:
-                #         section = None
-                #     member.email = eb_mail
-                #     member.private_email = private_mail
-                #     member.comment = introduction
-                #     if join_date:
-                #         member.join_date = common.parse_date_from_string(join_date)
-                #     if phone:
-                #         member.phone = phone.replace("-", "")
-                #     member.nearest_station = station if station and len(station) <= 15 else None
-                #     member.sex = "2" if sex == "0" else "1"
-                #     member.cost = get_cost(api_id)
-                #     member.company = company
-                #     member.save()
-                #     # 部署を設定する。
-                #     sp = models.MemberSectionPeriod(member=member, section=section, start_date=member.join_date)
-                #     sp.save()
-                #     # ログ出力
-                #     change_message = _('Added.')
-                #     prefix = u"【%s】" % batch.title
-                #     LogEntry.objects.log_action(user_id=user.pk,
-                #                                 content_type_id=ContentType.objects.get_for_model(member).pk,
-                #                                 object_id=member.pk,
-                #                                 object_repr=unicode(member),
-                #                                 action_flag=ADDITION,
-                #                                 change_message=(prefix + change_message) or _('No fields changed.'))
-                #
-                #     args = (member.employee_id, member.__unicode__(), u"追加完了。")
-                #     msg = u"社員コード: %s, name: %s, %s" % args
-                #     logger.info(msg)
-                #     count += 1
-                # except Exception as ex:
-                #     args = (salary_id, name, unicode(ex))
-                #     msg = u"社員コード: %s, name: %s, 予期しないエラー: %s" % args
-                #     logger.error(msg)
-                #     logger.error(traceback.format_exc())
     return count
 
 
 def sync_members_for_change(batch):
+    """EBOAのＤＢから社員の情報を更新する。
+
+    :param batch:
+    :return:
+    """
     members = models.Member.objects.public_filter(eboa_user_id__isnull=False)
     logger = batch.get_logger()
     user = batch.get_log_entry_user()
@@ -281,16 +227,48 @@ def sync_members_for_change(batch):
         except ObjectDoesNotExist:
             args = (member.eboa_user_id, member.__unicode__(), u"ＥＢＯＡのＤＢに該当するデータがありません。")
             msg = u"eboa_user_id: %s, name: %s, %s" % args
-            logger.error(msg)
+            logger.warning(msg)
         except MultipleObjectsReturned:
             args = (member.eboa_user_id, member.__unicode__(), u"ＥＢＯＡのＤＢに該当するデータ複数存在している。")
             msg = u"eboa_user_id: %s, name: %s, %s" % args
-            logger.error(msg)
+            logger.warning(msg)
         except Exception as ex:
             args = (member.eboa_user_id, member.__unicode__(), unicode(ex))
             msg = u"eboa_user_id: %s, name: %s, 予期しないエラー: %s" % args
             logger.error(msg)
             logger.error(traceback.format_exc())
+    # EBOAのユーザーＩＤが設定されてないメンバーを出力する。
+    no_user_members = models.Member.objects.public_filter(eboa_user_id__isnull=True).exclude(member_type=4)
+    name_list = []
+    for member in no_user_members:
+        name_list.append(u"%s(%s)" % (unicode(member), member.employee_id))
+    if name_list:
+        logger.warning(u"%sのEBOAユーザーＩＤが設定されていません。" % (', '.join(name_list)))
+
+
+def sync_contracts(batch):
+    members = models.Member.objects.public_filter(eboa_user_id__isnull=False)
+    logger = batch.get_logger()
+    user = batch.get_log_entry_user()
+    # changed_list = []
+    # common.get_object_changed_message(member, 'cost', cost, changed_list)
+    # # common.get_object_changed_message(member, 'member_type', member_type, changed_list)
+    # if changed_list:
+    #     member.cost = cost
+    #     # member.member_type = member_type
+    #     member.save()
+    #
+    #     change_message = _('Changed %s.') % get_text_list(changed_list,
+    #                                                       _('and')) if changed_list else ''
+    #     prefix = u"【%s】" % batch.title
+    #     LogEntry.objects.log_action(user_id=user.pk,
+    #                                 content_type_id=ContentType.objects.get_for_model(member).pk,
+    #                                 object_id=member.pk,
+    #                                 object_repr=unicode(member),
+    #                                 action_flag=CHANGE,
+    #                                 change_message=(prefix + change_message) or _('No fields changed.'))
+    #     msg = u"name: %s, %s" % (member.__unicode__(), u"情報が変更されました。")
+    #     logger.info(msg)
 
 
 def get_latest_concat(code):

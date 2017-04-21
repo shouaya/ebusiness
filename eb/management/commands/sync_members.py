@@ -20,7 +20,7 @@ class Command(BaseBatch):
     MAIL_TITLE = u"【営業支援システム】社員導入"
 
     def handle(self, *args, **options):
-        biz_batch.sync_members_for_change(self.batch)
         count = biz_batch.sync_members(self.batch)
+        biz_batch.sync_members_for_change(self.batch)
         if count == 0:
             logger.info(u"新入社員がいません。")

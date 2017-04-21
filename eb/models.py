@@ -2545,12 +2545,14 @@ class BatchManage(BaseModel):
         :return:
         """
         try:
-            user = User.objects.get(username='admin')
+            user = User.objects.get(username='batch')
             return user
         except ObjectDoesNotExist:
-            return None
-        except MultipleObjectsReturned:
-            return None
+            try:
+                user = User.objects.get(username='admin')
+                return user
+            except ObjectDoesNotExist:
+                return None
 
     def get_formatted_batch(self, context):
         """フォーマット後のバッチを返す
