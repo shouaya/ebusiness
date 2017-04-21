@@ -224,8 +224,8 @@ def get_project_members_month_section(section, date, user=None):
                                                                  month="%02d" % prev_month.month,
                                                                  is_deleted=False)
     # 請求明細情報
-    project_request_set = models.ProjectRequestDetail.objects.filter(project_request__year="%04d" % date.year,
-                                                                     project_request__month="%02d" % date.month)
+    project_request_detail_set = models.ProjectRequestDetail.objects.filter(project_request__year="%04d" % date.year,
+                                                                            project_request__month="%02d" % date.month)
 
     return project_members.filter((Q(member__membersectionperiod__start_date__lte=date) &
                                    Q(member__membersectionperiod__end_date__isnull=date)) |
@@ -238,7 +238,7 @@ def get_project_members_month_section(section, date, user=None):
         Prefetch('member'),
         Prefetch('memberattendance_set', queryset=current_attendance_set, to_attr='current_attendance_set'),
         Prefetch('memberattendance_set', queryset=prev_attendance_set, to_attr='prev_attendance_set'),
-        Prefetch('projectrequestdetail_set', queryset=project_request_set, to_attr='project_request_detail_set'),
+        Prefetch('projectrequestdetail_set', queryset=project_request_detail_set, to_attr='project_request_detail_set'),
     )
 
 

@@ -1,6 +1,7 @@
 {% extends theme|add:"/base.html" %}
 {% load humanize %}
 {% load order_by_tag %}
+{% load is_repeated %}
 
 {% block header %}
 <script type="text/javascript">
@@ -261,6 +262,7 @@
                 <tbody>
                     {% if project_members %}
                         {% for project_member, is_own, msg in project_members %}
+                            {% is_repeated project_member.member.pk as repeated %}
                             <tr>
                                 <td style="text-align:center; width: 20px;">{{ forloop.counter }}</td>
                                 <!--基本データ-->
@@ -375,10 +377,45 @@
                                                 <td style="color: lightblue;">******</td>
                                                 <td style="color: lightblue;">******</td>
                                                 <td style="color: lightblue;">******</td>
+                                                <td style="color: lightblue;">******</td>
+                                                <td style="color: lightblue;">******</td>
                                             {% endif %}
                                         {% else %}
-                                            <!--売上-->
-                                            <td class="num" colspan="13"></td>
+                                            <!-- 一括案件 -->
+                                            {% if project_member.project.is_lump %}
+                                                <td class="num col_01">{{ project_member.project.all_price_lump|floatformat:0|intcomma }}</td>
+                                                <td class="num col_02">{{ project_member.project.lump_amount|floatformat:0|intcomma }}</td>
+                                                <td class="num col_03">0</td>
+                                                <td class="num col_04 {% if repeated %}crossed{% endif %}">{{ attendance.get_cost|intcomma }}</td>
+                                                {% if attendance.allowance %}
+                                                    <td class="num col_05">{{ attendance.allowance|default:''|intcomma }}</td>
+                                                {% else %}
+                                                    {% if prev_attendance and prev_attendance.allowance %}
+                                                        <td class="num prev_month_data col_05">{{ prev_attendance.allowance|default:''|intcomma }}</td>
+                                                    {% else %}
+                                                        <td class="num"></td>
+                                                    {% endif %}
+                                                {% endif %}
+                                                <!--深夜手当-->
+                                                <td class="num col_06">
+                                                    {% if project_member.member.member_type == 2 %}
+                                                        {{ attendance.get_night_allowance|default:''|intcomma }}
+                                                    {% endif %}
+                                                </td>
+                                                <td class="num col_07"></td>
+                                                <!--交通費-->
+                                                <td class="num col_08">{{ attendance.traffic_cost|default:''|intcomma }}</td>
+                                                <!--経費(原価)-->
+                                                <td class="num col_09">{{ attendance.expenses|default:''|intcomma }}</td>
+                                                <td class="num col_10">{{ attendance.get_employment_insurance|default:''|floatformat:0|intcomma }}</td>
+                                                <td class="num col_11">{{ attendance.get_health_insurance|default:''|floatformat:0|intcomma }}</td>
+                                                <!--原価合計-->
+                                                <td class="num col_12">{{ attendance.get_all_cost|default:''|floatformat:0|intcomma }}</td>
+                                                <td class="num col_13 {% if attendance.get_profits < 0 %}red{% endif %}">{{ attendance.get_profits|floatformat:0|intcomma }}</td>
+                                            {% else %}
+                                                <!--売上-->
+                                                <td class="num" colspan="13"></td>
+                                            {% endif %}
                                         {% endif %}
                                     {% endwith %}
                                     {% endwith %}
@@ -386,7 +423,7 @@
                             </tr>
                         {% endfor %}
                     {% else %}
-                        <tr class="row2"><td class="center red" colspan="11">メンバーがいません。</td></tr>
+                        <tr class="row2"><td class="center red" colspan="29">メンバーがいません。</td></tr>
                     {% endif %}
                 </tbody>
                 <tfoot>

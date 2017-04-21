@@ -832,6 +832,7 @@ def section_attendance(request, section_id):
         'next_month': next_month,
         'has_error': True if messages else False,
         'format_error': format_error,
+        'repeat_check_list': [],
     })
     context.update(csrf(request))
 

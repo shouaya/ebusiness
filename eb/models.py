@@ -1243,6 +1243,7 @@ class Project(models.Model):
                                     help_text=u"该项目会作为请求书中備考栏中的值。")
     is_hourly_pay = models.BooleanField(default=False, verbose_name=u"時給",
                                         help_text=u"选中后将会无视人员的单价与增减等信息，计算请求时会将总时间乘以时薪。")
+    # is_reserve = models.BooleanField(default=False, verbose_name=u"待機案件フラグ")
     client = models.ForeignKey(Client, null=True, verbose_name=u"関連会社")
     boss = models.ForeignKey(ClientMember, blank=True, null=True, related_name="boss_set", verbose_name=u"案件責任者")
     middleman = models.ForeignKey(ClientMember, blank=True, null=True,
@@ -1499,6 +1500,14 @@ class Project(models.Model):
             if project_member.end_date >= today:
                 return False
         return True
+
+    @property
+    def all_price_lump(self):
+        """一括案件の税込売上を取得する。
+
+        :return:
+        """
+        return self.lump_amount + self.lump_amount * self.client.tax_rate
 
     def delete(self, using=None, keep_parents=False):
         self.is_deleted = True
@@ -2215,6 +2224,8 @@ class MemberAttendance(models.Model):
         if request_detail:
             total_price = request_detail.total_price
             return total_price - self.get_all_cost()
+        elif self.project_member.project.is_lump:
+            return self.project_member.project.lump_amount - self.get_all_cost()
         else:
             return None
 
