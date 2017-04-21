@@ -446,7 +446,7 @@ class ProjectOrdersView(BaseTemplateView):
         all_project_orders = biz.get_projects_orders(ym, q=param_list, o=order_list)
 
         params = "&".join(["%s=%s" % (key, value) for key, value in param_list.items()]) if param_list else ""
-        params = "%s&ym=%s" % ("&" + params if params else "", ym,)
+        params = "%s&year=%s&month=%s" % ("&" + params if params else "", year, month)
 
         paginator = Paginator(all_project_orders, biz_config.get_page_size())
         page = request.GET.get('page')
