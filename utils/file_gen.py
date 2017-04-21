@@ -1034,6 +1034,15 @@ def generate_attendance_format(user, template_path, project_members):
                 sheet.cell(row=start_row, column=20).value = request_detail.total_price
                 # 売上（経費）
                 sheet.cell(row=start_row, column=21).value = request_detail.expenses_price
+            elif project_member.project.is_lump:
+                # 売上（税込）
+                sheet.cell(row=start_row, column=19).value = project_member.project.all_price_lump
+                # 売上（税抜）
+                sheet.cell(row=start_row, column=20).value = project_member.project.lump_amount
+                # 売上（経費）
+                sheet.cell(row=start_row, column=21).value = 0
+
+            if request_detail or project_member.project.is_lump:
                 # 月給
                 sheet.cell(row=start_row, column=22).value = attendance.get_cost()
                 # 手当
