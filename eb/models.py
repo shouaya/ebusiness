@@ -889,10 +889,8 @@ class Member(AbstractMember):
         :param date 対象年月
         :return:
         """
-        if self.pk == 1113:
-            pass
         if re.match(r"^[0-9]+$", str(self.employee_id)):
-            contract_list = self.contract_set.filter(employment_date__lte=date).order_by('-employment_date')
+            contract_list = self.v_contract_set.filter(employment_date__lte=date).order_by('-employment_date')
             if contract_list.count() > 0:
                 return contract_list[0]
             else:
@@ -956,7 +954,7 @@ class Member(AbstractMember):
         self.save()
 
 
-class Contract(models.Model):
+class V_Contract(models.Model):
     member = models.ForeignKey(Member, db_column='member_id', verbose_name=u"社員テーブル主キー")
     employee_id = models.CharField(max_length=30, verbose_name=u"給料王ＩＤ")
     id = models.BigIntegerField(db_column='ID', primary_key=True)
@@ -1006,7 +1004,7 @@ class Contract(models.Model):
 
     class Meta:
         managed = False
-        db_table = 'eb_contract'
+        db_table = 'v_contract'
         verbose_name = verbose_name_plural = u"社員契約情報"
 
 
