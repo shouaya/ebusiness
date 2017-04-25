@@ -1388,7 +1388,7 @@ class SubcontractorMembersView(BaseTemplateView):
                     bp_member_id = request.POST.get("form-%s-id" % (i,), None)
                     bp_member.pk = int(bp_member_id) if bp_member_id else None
                 bp_member.save()
-            return redirect("/eb/subcontractor_detail/%s.html" % (subcontractor.pk,))
+            return redirect(reverse('subcontractor_detail', args=(subcontractor_id,)))
         else:
             context.update({'formset': formset})
             template = loader.get_template('default/subcontractor_members.html')
