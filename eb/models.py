@@ -156,8 +156,8 @@ class Config(models.Model):
         :return:
         """
         try:
-            c = Config.objects.get(name=config_name)
-            return c.value
+            # c = Config.objects.get(name=config_name)
+            return ""
         except ObjectDoesNotExist:
             if default_value:
                 c = Config(name=config_name, value=default_value)
