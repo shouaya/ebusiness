@@ -852,36 +852,94 @@ def generate_order(company, data):
     :param data 註文書の出力データ
     :return エクセルのバイナリー
     """
-    # テンプレートを取得する
-    order_file = company.order_file
-    if not order_file or not os.path.exists(order_file.path):
-        raise errors.FileNotExistException(constants.ERROR_TEMPLATE_NOT_EXISTS)
+    if is_win32:
+        # テンプレートを取得する
+        order_file = company.order_file
+        if not order_file or not os.path.exists(order_file.path):
+            raise errors.FileNotExistException(constants.ERROR_TEMPLATE_NOT_EXISTS)
 
-    pythoncom.CoInitializeEx(pythoncom.COINIT_MULTITHREADED)
-    # 新しいエクセルを作成する。
-    template_book = get_excel_template(order_file.path)
-    template_sheet = template_book.Worksheets(1)
-    book = get_new_book()
-    cnt = book.Sheets.Count
-    # テンプレートを生成対象ワークブックにコピーする。
-    template_sheet.Copy(None, book.Worksheets(cnt))
-    template_book.Close()
-    sheet = book.Worksheets(cnt + 1)
-    replace_excel_dict(sheet, data['DETAIL'])
-    replace_excel_list(sheet, data['MEMBERS'])
+        pythoncom.CoInitializeEx(pythoncom.COINIT_MULTITHREADED)
+        # 新しいエクセルを作成する。
+        template_book = get_excel_template(order_file.path)
+        template_sheet = template_book.Worksheets(1)
+        book = get_new_book()
+        cnt = book.Sheets.Count
+        # テンプレートを生成対象ワークブックにコピーする。
+        template_sheet.Copy(None, book.Worksheets(cnt))
+        template_book.Close()
+        sheet = book.Worksheets(cnt + 1)
+        replace_excel_dict(sheet, data['DETAIL'])
+        replace_excel_list(sheet, data['MEMBERS'])
 
-    for i in range(cnt, 0, -1):
-        book.Worksheets(i).Delete()
+        for i in range(cnt, 0, -1):
+            book.Worksheets(i).Delete()
 
-    file_folder = os.path.join(os.path.dirname(order_file.path), "temp")
-    if not os.path.exists(file_folder):
-        os.mkdir(file_folder)
-    file_name = "tmp_%s_%s.xls" % (constants.DOWNLOAD_ORDER, datetime.datetime.now().strftime("%Y%m%d_%H%M%S%f"))
-    path = os.path.join(file_folder, file_name)
-    # 一時ファイルを削除する。
-    common.delete_temp_files(os.path.dirname(path))
-    book.SaveAs(path, FileFormat=constants.EXCEL_FORMAT_EXCEL2003)
+        file_folder = os.path.join(os.path.dirname(order_file.path), "temp")
+        if not os.path.exists(file_folder):
+            os.mkdir(file_folder)
+        file_name = "tmp_%s_%s.xls" % (constants.DOWNLOAD_ORDER, datetime.datetime.now().strftime("%Y%m%d_%H%M%S%f"))
+        path = os.path.join(file_folder, file_name)
+        # 一時ファイルを削除する。
+        common.delete_temp_files(os.path.dirname(path))
+        book.SaveAs(path, FileFormat=constants.EXCEL_FORMAT_EXCEL2003)
 
+        return path
+    else:
+        return generate_order_linux(company, data)
+
+
+def generate_order_linux(company, data):
+    order_no = data['DETAIL']['ORDER_NO']
+    partner_name = data['DETAIL']['SUBCONTRACTOR_NAME']
+    path = common.get_order_file_path(order_no, partner_name, '201704')
+    book = xlsxwriter.Workbook(path)
+    sheet = book.add_worksheet()
+    sheet.set_default_row(18)
+    sheet.set_column('A:I', 10.3)
+
+    # タイトル設定
+    title_format = book.add_format({'bold': True,
+                                    'align': 'center',
+                                    'valign': 'vcenter',
+                                    'font_size': 20,})
+    sheet.merge_range('D3:F3', u"注　文　書", title_format)
+    # 注文番号
+    sheet.write_string('G1', u"請求番号: %s" % order_no)
+    # 発行年月日
+    sheet.write_string('G2', data['DETAIL']['PUBLISH_DATE'])
+    sheet.write_string('A4', u"（乙）")
+    # 協力会社名
+    sheet.write_string('A5', u"%s御中" % data['DETAIL']['SUBCONTRACTOR_NAME'])
+    sheet.write_string('F5', u"（甲）")
+    # 会社名
+    sheet.write_string('F6', data['DETAIL']['COMPANY_NAME'])
+    # 本社住所
+    sheet.write_string('F7', data['DETAIL']['ADDRESS1'])
+    sheet.write_string('F8', data['DETAIL']['ADDRESS2'])
+    # 本社電話番号
+    sheet.write_string('F9', "TEL:%s  FAX:03-6809-3238" % data['DETAIL']['TEL'])
+    # 作成者
+    sheet.write_string('G11', u"作成者")
+
+    sheet.write_string('A16', u"下記の通り注文致しますので、ご了承の上、折り返し注文請書をご送付下さい。")
+    cell_format1 = book.add_format({'align': 'center',
+                                    'valign': 'vcenter',
+                                    'border': 1,
+                                    'font_size': 10.5})
+    sheet.merge_range('A17:B17', u"作業期間", cell_format1)
+    sheet.merge_range('C17:I17', u"%s ～ %s" % (data['DETAIL']['START_DATE'], data['DETAIL']['END_DATE']), cell_format1)
+
+    sheet.merge_range('A18:B18', u"委託業務責任者（甲）", cell_format1)
+    sheet.merge_range('C18:E18', data['DETAIL']['MASTER'], cell_format1)
+    sheet.merge_range('F18:G18', u"連絡窓口担当者（甲）", cell_format1)
+    sheet.merge_range('H18:I18', u"")
+
+    sheet.merge_range('A19:B19', u"委託業務責任者（乙）", cell_format1)
+    sheet.merge_range('C19:E19', data['DETAIL']['SUBCONTRACTOR_MASTER'], cell_format1)
+    sheet.merge_range('F19:G19', u"連絡窓口担当者（乙）")
+    sheet.merge_range('H19:I19', u"")
+
+    book.close()
     return path
 
 

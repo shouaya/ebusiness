@@ -1384,9 +1384,9 @@ class SubcontractorMembersView(BaseTemplateView):
         if formset.is_valid():
             bp_member_list = formset.save(commit=False)
             for i, bp_member in enumerate(bp_member_list):
-                if not bp_member.pk:
-                    bp_member_id = request.POST.get("form-%s-id" % (i,), None)
-                    bp_member.pk = int(bp_member_id) if bp_member_id else None
+                # if not bp_member.pk:
+                #     bp_member_id = request.POST.get("form-%s-id" % (i,), None)
+                #     bp_member.pk = int(bp_member_id) if bp_member_id else None
                 action_flag = CHANGE if bp_member.pk else ADDITION
                 bp_member.save()
                 change_messages = [
@@ -1486,7 +1486,7 @@ class DownloadSubcontractorOrderView(BaseView):
         try:
             data = biz.generate_order_data(company, subcontractor, request.user, ym)
             path = file_gen.generate_order(company, data)
-            filename = biz.get_order_filename(subcontractor, data['DETAIL']['ORDER_NO'])
+            filename = os.path.basename(path)
             response = HttpResponse(open(path, 'rb'), content_type="application/excel")
             response['Content-Disposition'] = "filename=" + urllib.quote(filename.encode('UTF-8'))
             return response

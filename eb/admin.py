@@ -166,6 +166,12 @@ get_full_name.short_description = u"名前"
 get_full_name.admin_order_field = "first_name"
 
 
+def get_bp_member_order_company_name(obj):
+    return obj.member.subcontractor.name
+get_bp_member_order_company_name.short_description = u"協力会社"
+get_bp_member_order_company_name.admin_order_field = "member__subcontractor__name"
+
+
 class BaseAdmin(admin.ModelAdmin):
 
     class Media:
@@ -1289,7 +1295,8 @@ class ConfigAdmin(BaseAdmin):
 
 class BpMemberOrderInfoAdmin(BaseAdmin):
     form = forms.BpMemberOrderInfoForm
-    list_display = ('member', 'year', 'month', 'cost')
+    list_display = ('member', get_bp_member_order_company_name, 'year', 'month', 'cost')
+    search_fields = ('member__first_name', 'member__last_name', 'member__subcontractor__name')
 
     def get_form(self, request, obj=None, **kwargs):
         form = super(BpMemberOrderInfoAdmin, self).get_form(request, obj, **kwargs)

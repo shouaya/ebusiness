@@ -18,6 +18,7 @@ import constants
 import jholiday
 
 from decimal import Decimal
+from django.conf import settings
 
 
 def get_tz_jp():
@@ -696,8 +697,23 @@ def get_request_file_path(request_no, client_name, ym):
     """
     now = datetime.datetime.now()
     filename = "EB請求書_%s_%s_%s.xlsx" % (str(request_no), client_name.encode('UTF-8'), now.strftime("%Y%m%d_%H%M%S%f"))
-    from django.conf import settings
     path = os.path.join(settings.GENERATED_FILES_ROOT, "project_request", str(ym))
+    if not os.path.exists(path):
+        os.makedirs(path)
+    return os.path.join(path, filename).decode('UTF-8')
+
+
+def get_order_file_path(order_no, client_name, ym):
+    """協力会社の注文書のパスを取得する。
+
+    :param order_no:
+    :param client_name:
+    :param ym:
+    :return:
+    """
+    now = datetime.datetime.now()
+    filename = "EB注文書_%s_%s_%s.xlsx" % (str(order_no), client_name.encode('UTF-8'), now.strftime("%Y%m%d_%H%M%S%f"))
+    path = os.path.join(settings.GENERATED_FILES_ROOT, "partner_order", str(ym))
     if not os.path.exists(path):
         os.makedirs(path)
     return os.path.join(path, filename).decode('UTF-8')

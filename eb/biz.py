@@ -400,17 +400,6 @@ def get_order_no(user):
     return "{0}{1:02d}".format(order_no, index)
 
 
-def get_order_filename(subcontractor, order_no):
-    """生成した註文書の名称を取得する。
-
-    :param subcontractor 発注先
-    :param order_no 請求番号
-    :return 註文書の名称
-    """
-    now = datetime.datetime.now()
-    return u"{0}_{1}_{2}.xls".format(order_no, subcontractor.name, now.strftime('%Y%m%d%H%M%S'))
-
-
 def get_user_profile(user):
     """ログインしているユーザの詳細情報を取得する。
 

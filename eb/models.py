@@ -250,8 +250,8 @@ class Config(models.Model):
 
 
 class BaseModel(models.Model):
-    created_date = models.DateTimeField(auto_now_add=True, null=True, verbose_name=u"作成日時")
-    updated_date = models.DateTimeField(auto_now=True, null=True, verbose_name=u"更新日時")
+    created_date = models.DateTimeField(auto_now_add=True, auto_now=False, null=True, editable=False, verbose_name=u"作成日時")
+    updated_date = models.DateTimeField(auto_now=True, null=True, editable=False, verbose_name=u"更新日時")
     is_deleted = models.BooleanField(default=False, editable=False, verbose_name=u"削除フラグ")
     deleted_date = models.DateTimeField(blank=True, null=True, editable=False, verbose_name=u"削除年月日")
 
@@ -2431,6 +2431,7 @@ class BpMemberOrderInfo(BaseModel):
     comment = models.CharField(blank=True, null=True, max_length=50, verbose_name=u"備考")
 
     class Meta:
+        ordering = ['member', 'year', 'month']
         unique_together = ('member', 'year', 'month')
         verbose_name = verbose_name_plural = u"協力社員の注文情報"
 
