@@ -1286,6 +1286,16 @@ class ConfigAdmin(BaseAdmin):
     list_display = ['name', 'value']
 
 
+class BpMemberOrderInfoAdmin(BaseAdmin):
+    form = forms.BpMemberOrderInfoForm
+    list_display = ('member', 'year', 'month', 'cost')
+
+    def get_form(self, request, obj=None, **kwargs):
+        form = super(BpMemberOrderInfoAdmin, self).get_form(request, obj, **kwargs)
+        form.base_fields['member'].queryset = models.Member.objects.public_filter(member_type=4)
+        return form
+
+
 NEW_USERNAME_LENGTH = 50
 
 
@@ -1333,6 +1343,7 @@ admin.site.register(models.Issue, IssueAdmin)
 admin.site.register(models.History, HistoryAdmin)
 admin.site.register(models.BatchManage, BatchManageAdmin)
 admin.site.register(models.Config, ConfigAdmin)
+admin.site.register(models.BpMemberOrderInfo, BpMemberOrderInfoAdmin)
 
 admin.site.unregister(User)
 admin.site.register(User, CustomUserAdmin)

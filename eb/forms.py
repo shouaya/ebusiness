@@ -503,6 +503,12 @@ class MemberAttendanceFormSetHourlyPay(forms.ModelForm):
                                     required=False)
 
 
+class BpMemberOrderInfoForm(forms.ModelForm):
+    class Meta:
+        model = models.BpMemberOrderInfo
+        fields = '__all__'
+
+
 class BpMemberOrderInfoFormSet(forms.ModelForm):
     class Meta:
         model = models.BpMemberOrderInfo
