@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Cache-Control" content="no-cache">
+    <title>契約管理システム</title>
+
+    <link rel="shortcut icon" type="image/png" href="/static/favicon.ico"/>
+    <link rel="stylesheet" type="text/css" href="/static/contract/css/base.css"/>
+    <link rel="stylesheet" type="text/css" href="/static/contract/css/header.css"/>
+    <link rel="stylesheet" type="text/css" href="/static/contract/css/article.css"/>
+</head>
+<body>
+<header>
+    <div class="container">
+        <h1 class="title"><a href="{% url 'contract-index' %}">契約管理システム</a></h1>
+    </div>
+</header>
+<article class="container">
+    <div class="container">
+        {% block content %}{% endblock %}
+    </div>
+</article>
+<footer style="height: 50px;">
+
+</footer>
+</body>
+</html>

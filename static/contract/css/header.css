@@ -1,0 +1,18 @@
+@CHARSET "utf-8";
+
+header {
+    position: relative;
+    margin: auto;
+    height: 108px;
+    background: url(../img/top-bg.jpg) repeat-x;
+}
+
+header h1.title {
+    padding-top: 25px;
+    font-size: 35px;
+    font-weight: bold;
+}
+
+header h1.title a {
+    color: #F63;
+}

@@ -60,7 +60,7 @@
                     <div class="pagination">
                         <span class="step-links">
                             {% if members.has_previous %}
-                                <a href="?page={{ members.previous_page_number }}{{ params }}">&lt;</a>
+                                <a href="?page={{ members.previous_page_number }}{{ params }}{{ orders }}">&lt;</a>
                             {% endif %}
 
                             {% if paginator.page_range|length > 1 %}
@@ -70,13 +70,13 @@
                                             {{ page }}
                                         </span>
                                     {% else %}
-                                        <a href="?page={{ page }}{{ params }}">{{ page }}</a>
+                                        <a href="?page={{ page }}{{ params }}{{ orders }}">{{ page }}</a>
                                     {% endifequal %}
                                 {% endfor %}
                             {% endif %}
 
                             {% if members.has_next %}
-                                <a href="?page={{ members.next_page_number }}{{ params }}">&gt;</a>
+                                <a href="?page={{ members.next_page_number }}{{ params }}{{ orders }}">&gt;</a>
                             {% endif %}
                             <span>{{ paginator.count }} 件</span>
                         </span>

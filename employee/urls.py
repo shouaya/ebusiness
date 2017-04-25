@@ -3,12 +3,14 @@ from django.contrib import admin
 from django.contrib.auth import views as auth_views
 from eboa.admin import eboa_admin_site
 from del_data.admin import del_data_admin_site
+from contract.admin import contract_admin_site
 from employee import views
 
 urlpatterns = [
     url(r'^$', views.home, name='home'),
     url(r'^eb/', include('eb.urls')),
     url(r'^flow/', include('flow.urls')),
+    url(r'^contract/', include('contract.urls')),
 
     url(r'^admin/', include(admin.site.urls)),
     url(r'^admin/password_reset/$', auth_views.password_reset, name='admin_password_reset'),
@@ -20,6 +22,7 @@ urlpatterns = [
 
     url(r'^eboa-admin/', include(eboa_admin_site.urls)),
     url(r'^del-data-admin/', include(del_data_admin_site.urls)),
+    url(r'^contract-admin/', include(contract_admin_site.urls)),
 ]
 
 handler403 = 'eb.views.handler403'

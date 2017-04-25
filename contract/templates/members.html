@@ -1,0 +1,89 @@
+{% extends "base_contract.html" %}
+{% load humanize %}
+
+{% block content %}
+<form method="get" action="#">
+    <input type="text" name="q" value="" style="height: 40px;width: 500px;line-height:30px;font-size:25px">
+    <input type="submit" style="height: 40px;width: 100px;line-height:30px;font-size:25px" value="確定">
+</form>
+<div>
+    <div class="flowTit"></div>
+    <div class="flowBox">
+        <table class="list">
+            <thead>
+                <tr>
+                    <th>社員番号</th>
+                    <th>社員名前</th>
+                    <th>雇用形態</th>
+                    <th>雇用日</th>
+                    <th>コスト</th>
+                    <th>年金保険</th>
+                    <th>状態</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for member in members %}
+                <tr>
+                    {% with contract=member.latest_contract_set|first %}
+                    {% if contract %}
+                        <td class="center"><a href="{% url 'contract_change' member.id_from_api %}">{{ member.id_from_api }}</a></td>
+                        <td><a href="{% url 'contract_change' member.id_from_api %}">{{ member }}</a></td>
+                        <td>{{ contract.get_member_type_display }}</td>
+                        <td>{{ contract.employment_date }}</td>
+                        <td class="num">¥ {{ contract.get_cost|intcomma }}円/月</td>
+                        <td class="center">
+                            {% if contract.endowment_insurance == '1' %}
+                                ○
+                            {% else %}
+
+                            {% endif %}
+                        </td>
+                        <td>{{ contract.get_status_display }}</td>
+                    {% else %}
+                        <td class="center">{{ member.id_from_api }}</td>
+                        <td>{{ member }}</td>
+                        <td>{{ member.get_member_type_display }}</td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                    {% endif %}
+                    {% endwith %}
+                </tr>
+                {% endfor %}
+            </tbody>
+            <tfoot>
+                <tr>
+                    <td colspan="7">
+                        <div class="pagination">
+                            <span class="step-links">
+                                {% if members.has_previous %}
+                                    <a href="?page={{ members.previous_page_number }}{{ params }}{{ orders }}">&lt;</a>
+                                {% endif %}
+
+                                {% if paginator.page_range|length > 1 %}
+                                    {% for page in paginator.page_range %}
+                                        {% ifequal page members.number %}
+                                            <span class="current">
+                                                {{ page }}
+                                            </span>
+                                        {% else %}
+                                            <a href="?page={{ page }}{{ params }}{{ orders }}">{{ page }}</a>
+                                        {% endifequal %}
+                                    {% endfor %}
+                                {% endif %}
+
+                                {% if members.has_next %}
+                                    <a href="?page={{ members.next_page_number }}{{ params }}{{ orders }}">&gt;</a>
+                                {% endif %}
+                                <span>{{ paginator.count }} 件</span>
+                            </span>
+                        </div>
+                    </td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+    <div class="flowBottom"></div>
+</div>
+{% endblock %}

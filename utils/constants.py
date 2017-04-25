@@ -44,6 +44,19 @@ CONFIG_USER_CREATE_MAIL_BODY = 'user_create_mail_body'
 CONFIG_SERVICE_MEMBERS = 'service_members'
 CONFIG_SERVICE_CONTRACT = 'service_contract'
 CONFIG_SALES_SYSTEM_NAME = 'sales_system_name'
+# 契約設定
+CONFIG_GROUP_CONTRACT = 'contract'
+CONFIG_EMPLOYMENT_PERIOD_COMMENT = 'employment_period_comment'
+CONFIG_BUSINESS_ADDRESS = 'employment_business_address'
+CONFIG_BUSINESS_TIME = 'business_time'
+CONFIG_ALLOWANCE_DATE_COMMENT = 'allowance_date_comment'
+CONFIG_ALLOWANCE_CHANGE_COMMENT = 'allowance_change_comment'
+CONFIG_BONUS_COMMENT = 'bonus_comment'
+CONFIG_HOLIDAY_COMMENT = 'holiday_comment'
+CONFIG_PAID_VACATION_COMMENT = 'paid_vacation_comment'
+CONFIG_NO_PAID_VACATION_COMMENT = 'no_paid_vacation_comment'
+CONFIG_RETIRE_COMMENT = 'retire_comment'
+CONFIG_CONTRACT_COMMENT = 'contract_comment'
 
 MARK_POST_CODE = u"〒"
 
@@ -94,7 +107,10 @@ CHOICE_SALESPERSON_TYPE = ((0, u"営業部長"),
 CHOICE_MEMBER_TYPE = ((1, u"正社員"),
                       (2, u"契約社員"),
                       (3, u"個人事業者"),
-                      (4, u"他社技術者"))
+                      (4, u"他社技術者"),
+                      (5, u"パート"),
+                      (6, u"アルバイト"),
+                      (7, u"正社員（試用期間）"))
 CHOICE_PROJECT_ROLE = (("OP", u"OP：ｵﾍﾟﾚｰﾀｰ"),
                        ("PG", u"PG：ﾌﾟﾛｸﾞﾗﾏｰ"),
                        ("SP", u"SP：ｼｽﾃﾑﾌﾟﾛｸﾞﾗﾏｰ"),
@@ -210,6 +226,26 @@ CHOICE_ORG_TYPE = (('', '--------'),
                    ('03', u"課・グループ"))
 CHOICE_WORKFLOW_OPERATION = (('01', u"項目値変更"),
                              ('02', u"レコード追加"))
+CHOICE_BUSINESS_TYPE = (('01', u"業務の種類（プログラマー）"),
+                        ('02', u"業務の種類（シニアプログラマー）"),
+                        ('03', u"業務の種類（システムエンジニア）"),
+                        ('04', u"業務の種類（シニアシステムエンジニア）"),
+                        ('05', u"業務の種類（課長）"),
+                        ('06', u"業務の種類（部長）"),
+                        ('07', u"業務の種類（営業担当）"),
+                        ('08', u"業務の種類（マネージャー）"),
+                        ('09', u"業務の種類（新規事業推進部担当）"),
+                        ('10', u"業務の種類（一般社員）"),
+                        ('11', u"業務の種類（担当課長）"),
+                        ('12', u"業務の種類（担当部長）"),
+                        ('13', u"業務の種類（シニアコンサルタント兼中国現地担当）"),
+                        ('14', u"業務の種類（営業アシスタント事務）"),
+                        ('15', u"業務の種類（経営管理業務及び管理）"),
+                        ('16', u"その他"))
+CHOICE_CONTRACT_STATUS = (('01', u"登録済み"),
+                          ('02', u"承認待ち"),
+                          ('03', u"承認済み"),
+                          ('04', u"廃棄"))
 
 xlPart = 2
 xlByRows = 1

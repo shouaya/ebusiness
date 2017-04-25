@@ -772,7 +772,8 @@ class SectionDetailView(BaseTemplateView):
             'members': members,
             'dict_order': dict_order,
             'paginator': paginator,
-            'year_list': biz.get_year_list()
+            'year_list': biz.get_year_list(),
+            'orders': "&o=%s" % (o,) if o else "",
         })
         return self.render_to_response(context)
 

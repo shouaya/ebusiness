@@ -41,6 +41,7 @@ INSTALLED_APPS = (
     'eboa',
     'del_data',
     'flow',
+    'contract',
 )
 
 MIDDLEWARE_CLASSES = (

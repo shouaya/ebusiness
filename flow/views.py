@@ -1,4 +1,3 @@
-from django.shortcuts import render
 from django.views.generic import View
 from django.views.generic.base import TemplateResponseMixin, ContextMixin
 from django.contrib.auth.decorators import login_required

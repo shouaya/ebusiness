@@ -130,6 +130,125 @@ class PublicManager(models.Manager):
         return self.public_all().filter(*args, **kwargs)
 
 
+class Config(models.Model):
+    group = models.CharField(max_length=50, blank=False, null=True, verbose_name=u"グループ")
+    name = models.CharField(max_length=50, unique=True, verbose_name=u"設定名")
+    value = models.CharField(max_length=2000, verbose_name=u"設定値")
+    description = models.TextField(blank=True, null=True, verbose_name=u"説明")
+
+    class Meta:
+        ordering = ['name']
+        verbose_name = verbose_name_plural = u"設定"
+        db_table = 'mst_config'
+
+    def __unicode__(self):
+        return self.name
+
+    @staticmethod
+    def get(config_name, default_value=None, group_name=None):
+        """システム設定を取得する。
+
+        DBから値を取得する。
+
+        :param config_name: 設定名
+        :param default_value: デフォルト値
+        :param group_name: グループ名
+        :return:
+        """
+        try:
+            c = Config.objects.get(name=config_name)
+            return c.value
+        except ObjectDoesNotExist:
+            if default_value:
+                c = Config(name=config_name, value=default_value)
+                c.save()
+            return default_value
+
+    @staticmethod
+    def get_employment_period_comment():
+        """社員の雇用期間コメントを取得する。
+
+        :return:
+        """
+        default = u"（期間満了の１ヶ月前までに双方にいずれからも別段の意志表示がないときは、" \
+                  u"同一条件をもってさらに３ヶ月継続するものとし、その後も同じとする。） "
+        return Config.get(constants.CONFIG_EMPLOYMENT_PERIOD_COMMENT, default,
+                          group_name=constants.CONFIG_GROUP_CONTRACT)
+
+    @staticmethod
+    def get_business_address():
+        """就業の場所
+
+        :return:
+        """
+        default = u"就業の場所（当社社内および雇用者が指定した場所）"
+        return Config.get(constants.CONFIG_BUSINESS_ADDRESS, default, group_name=constants.CONFIG_GROUP_CONTRACT)
+
+    @staticmethod
+    def get_business_time():
+        default = u"始業および終業時刻　午前　9時30分　～　午後　6時30分\n" \
+                  u"休憩時間　　　　　　　正午～午後1時\n" \
+                  u"就業時間の変更　　前記にかかわらず業務の都合または就業場所変更により\n" \
+                  u"　　　　　　　　　　　　　始業および終業時刻の変更を行うことがある。\n" \
+                  u"所定労働時間を越える労働の有無　有"
+        return Config.get(constants.CONFIG_BUSINESS_TIME, default, group_name=constants.CONFIG_GROUP_CONTRACT)
+
+    @staticmethod
+    def get_allowance_date_comment():
+        """給与締め切り日及び支払日のコメントを取得する。
+
+        :return:
+        """
+        default = u"1、締切日および支払日：毎月末日〆、翌月末日払\n" \
+                  u"2、支払時の控除：所得税、雇用保険"
+        return Config.get(constants.CONFIG_ALLOWANCE_DATE_COMMENT, default, group_name=constants.CONFIG_GROUP_CONTRACT)
+
+    @staticmethod
+    def get_allowance_change_comment():
+        """昇給及び降給のコメントを取得する。
+
+        :return:
+        """
+        default = u"会社の業績および社員個人の業績その他の状況を勘案し、昇給または降給を行うことがある。"
+        return Config.get(constants.CONFIG_ALLOWANCE_CHANGE_COMMENT, default,
+                          group_name=constants.CONFIG_GROUP_CONTRACT)
+
+    @staticmethod
+    def get_bonus_comment():
+        default = u"賞与支給要件を満たした者に対し、賞与が年2回、計2ヵ月分。\n" \
+                  u"ただし会社業績、本人業績、勤怠状況および将来への期待度により、変更の可能性がある。"
+        return Config.get(constants.CONFIG_BONUS_COMMENT, default, group_name=constants.CONFIG_GROUP_CONTRACT)
+
+    @staticmethod
+    def get_holiday_comment():
+        default = u"週休2日制（土・日・祝祭日休み）"
+        return Config.get(constants.CONFIG_HOLIDAY_COMMENT, default, group_name=constants.CONFIG_GROUP_CONTRACT)
+
+    @staticmethod
+    def get_paid_vacation_comment():
+        default = u"年次有給休暇：労働基準法の定めによる。"
+        return Config.get(constants.CONFIG_PAID_VACATION_COMMENT, default, group_name=constants.CONFIG_GROUP_CONTRACT)
+
+    @staticmethod
+    def get_no_paid_vacation_comment():
+        default = u"産前産後、育児・介護休業、生理休暇、その他就業規則に定めがあるときは当該休暇。"
+        return Config.get(constants.CONFIG_NO_PAID_VACATION_COMMENT, default,
+                          group_name=constants.CONFIG_GROUP_CONTRACT)
+
+    @staticmethod
+    def get_retire_comment():
+        default = u"1、就業期間中、業務能力が著しく劣り、又は業務実績が著しく不良のとき、" \
+                  u"会社の業務命令が従わないとき、減給、降職又は諭旨解雇とする。\n" \
+                  u"2、自己都合退職の際は退職する30日前までに届け出ること。\n" \
+                  u"3、解雇の事由および手続きは、就業規則の定めるところによる。"
+        return Config.get(constants.CONFIG_RETIRE_COMMENT, default, group_name=constants.CONFIG_GROUP_CONTRACT)
+
+    @staticmethod
+    def get_contract_comment():
+        default = u"上記以外の雇用条件については、就業規則の定めることによる。"
+        return Config.get(constants.CONFIG_CONTRACT_COMMENT, default, group_name=constants.CONFIG_GROUP_CONTRACT)
+
+
 class BaseModel(models.Model):
     created_date = models.DateTimeField(auto_now_add=True, null=True, verbose_name=u"作成日時")
     updated_date = models.DateTimeField(auto_now=True, null=True, verbose_name=u"更新日時")
@@ -872,16 +991,15 @@ class Member(AbstractMember):
 
         :return:
         """
-        # if self.member_type == 4:
-        #     # 他者技術者の場合
-        #     return int(self.cost) if self.cost else 0
-        # contract = self.get_contract(date)
-        # if contract:
-        #     traffic_cost = int(contract.pay_commute if contract.pay_commute else 0)
-        #     return (int(contract.cost) - traffic_cost) if contract.cost else 0
-        # else:
-        #     return 0
-        return int(self.cost) if self.cost else 0
+        if self.member_type == 4:
+            # 他者技術者の場合
+            return int(self.cost) if self.cost else 0
+        contract = self.get_contract(date)
+        if contract:
+            return contract.get_cost()
+        else:
+            return 0
+        # return int(self.cost) if self.cost else 0
 
     def get_contract(self, date):
         """最新の契約情報を取得する。
@@ -889,12 +1007,9 @@ class Member(AbstractMember):
         :param date 対象年月
         :return:
         """
-        if re.match(r"^[0-9]+$", str(self.employee_id)):
-            contract_list = self.v_contract_set.filter(employment_date__lte=date).order_by('-employment_date')
-            if contract_list.count() > 0:
-                return contract_list[0]
-            else:
-                return None
+        contract_list = self.contract_set.filter(employment_date__lte=date).order_by('-employment_date', '-contract_no')
+        if contract_list.count() > 0:
+            return contract_list[0]
         else:
             return None
 
@@ -2185,7 +2300,7 @@ class MemberAttendance(models.Model):
         :return:
         """
         contract = self.get_contract()
-        if contract and contract.endowment_insurance == "2" and self.project_member.member.member_type != 4:
+        if contract and contract.endowment_insurance == "1" and contract.member_type != 4:
             # 契約情報保険加入した場合
             cost = float(self.get_cost())
             bonus = float(self.get_bonus())
@@ -2643,39 +2758,6 @@ class BatchCarbonCopy(BaseModel):
             return self.salesperson.__unicode__()
         else:
             return self.email
-
-
-class Config(models.Model):
-    name = models.CharField(max_length=50, unique=True, verbose_name=u"設定名")
-    value = models.CharField(max_length=2000, verbose_name=u"設定値")
-    description = models.TextField(blank=True, null=True, verbose_name=u"説明")
-
-    class Meta:
-        ordering = ['name']
-        verbose_name = verbose_name_plural = u"設定"
-        db_table = 'mst_config'
-
-    def __unicode__(self):
-        return self.name
-
-    @staticmethod
-    def get(config_name, default_value=None):
-        """システム設定を取得する。
-
-        DBから値を取得する。
-
-        :param config_name: 設定名
-        :param default_value: デフォルト値
-        :return:
-        """
-        try:
-            c = Config.objects.get(name=config_name)
-            return c.value
-        except ObjectDoesNotExist:
-            if default_value:
-                c = Config(name=config_name, value=default_value)
-                c.save()
-            return default_value
 
 
 class EmailMultiAlternativesWithEncoding(EmailMultiAlternatives):
