@@ -1387,7 +1387,24 @@ class SubcontractorMembersView(BaseTemplateView):
                 if not bp_member.pk:
                     bp_member_id = request.POST.get("form-%s-id" % (i,), None)
                     bp_member.pk = int(bp_member_id) if bp_member_id else None
+                action_flag = CHANGE if bp_member.pk else ADDITION
                 bp_member.save()
+                change_messages = [
+                    u"対象年(%s)" % bp_member.year,
+                    u"対象月(%s)" % bp_member.month,
+                    u"基準時間(%s)" % bp_member.min_hours,
+                    u"最大時間(%s)" % bp_member.max_hours,
+                    u"増(%s)" % bp_member.plus_per_hour,
+                    u"減(%s)" % bp_member.minus_per_hour,
+                    u"コスト(%s)" % bp_member.cost,
+                    u"備考(%s)" % bp_member.comment,
+                ]
+                LogEntry.objects.log_action(request.user.id,
+                                            ContentType.objects.get_for_model(bp_member).pk,
+                                            bp_member.pk,
+                                            unicode(bp_member),
+                                            action_flag,
+                                            change_message=u",".join(change_messages))
             return redirect(reverse('subcontractor_detail', args=(subcontractor_id,)))
         else:
             context.update({'formset': formset})

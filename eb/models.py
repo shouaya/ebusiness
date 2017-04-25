@@ -2434,6 +2434,9 @@ class BpMemberOrderInfo(BaseModel):
         unique_together = ('member', 'year', 'month')
         verbose_name = verbose_name_plural = u"協力社員の注文情報"
 
+    def __unicode__(self):
+        return u"%s_%s(%s/%s)" % (unicode(self.member), unicode(self.member.subcontractor), self.year, self.month)
+
 
 class Degree(BaseModel):
     member = models.ForeignKey(Member, verbose_name=u"社員")
