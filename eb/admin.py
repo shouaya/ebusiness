@@ -1283,7 +1283,8 @@ class BatchManageAdmin(BaseAdmin):
 
 class ConfigAdmin(BaseAdmin):
     form = forms.ConfigForm
-    list_display = ['name', 'value']
+    list_display = ['group', 'name', 'value']
+    list_display_links = ('name',)
 
 
 class BpMemberOrderInfoAdmin(BaseAdmin):

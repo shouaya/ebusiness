@@ -137,7 +137,7 @@ class Config(models.Model):
     description = models.TextField(blank=True, null=True, verbose_name=u"説明")
 
     class Meta:
-        ordering = ['name']
+        ordering = ['group', 'name']
         verbose_name = verbose_name_plural = u"設定"
         db_table = 'mst_config'
 
@@ -156,11 +156,11 @@ class Config(models.Model):
         :return:
         """
         try:
-            # c = Config.objects.get(name=config_name)
-            return ""
+            c = Config.objects.get(name=config_name)
+            return c.value
         except ObjectDoesNotExist:
             if default_value:
-                c = Config(name=config_name, value=default_value)
+                c = Config(group=group_name, name=config_name, value=default_value)
                 c.save()
             return default_value
 
