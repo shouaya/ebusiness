@@ -88,3 +88,7 @@ div.musk {
 option.group {
     font-weight: bold;
 }
+
+.nowrap {
+    white-space: nowrap;
+}

@@ -1,4 +1,4 @@
-from django.shortcuts import render
+# coding: UTF-8
 from django.views.generic import View
 from django.views.generic.base import TemplateResponseMixin, ContextMixin
 from django.contrib.auth.decorators import login_required
@@ -6,6 +6,7 @@ from django.utils.decorators import method_decorator
 from django.shortcuts import redirect, get_object_or_404
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.db.models import Q
+from django.core.urlresolvers import reverse
 
 from . import biz, models, forms
 from eb import biz_config
@@ -111,12 +112,28 @@ class ContractView(BaseTemplateView):
             'request': request
         })
         context = self.get_context_data(**kwargs)
-        # contract = context.get('contract')
+        member = context.get('member')
+        old_contract = context.get('contract')
         form = forms.ContractForm(request.POST)
         context.update({
             'form': form,
         })
         if form.is_valid():
-            pass
+            contract = form.save(commit=False)
+            contract.member = member
+            next_contract_no = contract.get_next_contract_no()
+            if contract.contract_no == next_contract_no:
+                # 契約当日、変更しません
+                contract.pk = contract.id = old_contract.pk
+                contract.created_date = old_contract.created_date
+                contract.save()
+            else:
+                # 契約を追加する。
+                contract.pk = None
+                contract.contract_no = next_contract_no
+                contract.save()
+            return redirect(reverse("contract_change",
+                                    args=(contract.member.id_from_api,)) + "?" + "ver=%s" % contract.contract_no
+                            )
 
         return self.render_to_response(context)

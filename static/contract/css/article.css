@@ -133,6 +133,11 @@ article table.detail select {
     height: 35px;
 }
 
+article table.detail input[readonly=readonly] {
+    background-color: #eee;
+    opacity: 1;
+}
+
 article table.inner {
     border: 0px;
     table-layout: fixed;
@@ -141,8 +146,39 @@ article table.inner {
 article table.inner td {
     border: 0px;
     padding: 0px;
+    white-space: nowrap;
 }
 
 article .errorlist {
     color: red;
+}
+
+article .help_text {
+    padding: 2px 5px;
+    color: gray;
+}
+
+article input.add {
+    background: url(../img/button_add.jpg) no-repeat left top;
+    width: 149px;
+    height: 50px;
+}
+
+article input.add:hover {
+    background: url(../img/button_add.jpg) no-repeat left top;
+}
+
+article input.cancel {
+    background: url(../img/button_cancel.jpg) no-repeat left top;
+    width: 149px;
+    height: 50px;
+}
+
+article input.cancel:hover {
+    background: url(../img/button_cancel.jpg) no-repeat left top;
+}
+
+article div.errors {
+    width: 800px;
+    margin: 0px auto;
 }

@@ -8,6 +8,7 @@ from __future__ import unicode_literals
 import datetime
 
 from django.db import models
+from django.utils import timezone
 
 from eb.models import Member, Config, Company
 from utils import constants
@@ -33,8 +34,8 @@ class PublicManager(models.Manager):
 
 
 class BaseModel(models.Model):
-    created_date = models.DateTimeField(auto_now_add=True, verbose_name=u"作成日時")
-    updated_date = models.DateTimeField(auto_now=True, verbose_name=u"更新日時")
+    created_date = models.DateTimeField(auto_now_add=True, editable=False, verbose_name=u"作成日時")
+    updated_date = models.DateTimeField(auto_now=True, editable=False, verbose_name=u"更新日時")
     is_deleted = models.BooleanField(default=False, editable=False, verbose_name=u"削除フラグ")
     deleted_date = models.DateTimeField(blank=True, null=True, editable=False, verbose_name=u"削除年月日")
 
@@ -109,7 +110,8 @@ class Contract(BaseModel):
                                                  verbose_name=u"無給休暇")
     retire_comment = models.TextField(blank=True, null=True, default=Config.get_retire_comment(),
                                       verbose_name=u"退職に関する項目")
-    status = models.CharField(max_length=2, choices=constants.CHOICE_CONTRACT_STATUS, verbose_name=u"契約状態")
+    status = models.CharField(max_length=2, default='01', choices=constants.CHOICE_CONTRACT_STATUS,
+                              verbose_name=u"契約状態")
     comment = models.TextField(blank=True, null=True, default=Config.get_contract_comment(), verbose_name=u"備考")
 
     class Meta:
@@ -137,3 +139,8 @@ class Contract(BaseModel):
         if self.member_type == 1:
             cost = int((cost * 14) / 12)
         return cost
+
+    def get_next_contract_no(self):
+        today = datetime.date.today()
+        return "EB%04d%s" % (int(self.member.id_from_api), today.strftime('%Y%m%d'))
+

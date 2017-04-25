@@ -1,6 +1,7 @@
 from django.conf.urls import include, url
 from django.contrib import admin
 from django.contrib.auth import views as auth_views
+from django.views.i18n import javascript_catalog
 from eboa.admin import eboa_admin_site
 from del_data.admin import del_data_admin_site
 from contract.admin import contract_admin_site
@@ -19,6 +20,7 @@ urlpatterns = [
         name='password_reset_confirm'),
     url(r'^reset/done/$', auth_views.password_reset_complete, name='password_reset_complete'),
     url(r'^accounts/login/$', auth_views.login),
+    url(r'^jsi18n/$', javascript_catalog, {'packages': 'django.conf'}),
 
     url(r'^eboa-admin/', include(eboa_admin_site.urls)),
     url(r'^del-data-admin/', include(del_data_admin_site.urls)),

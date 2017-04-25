@@ -1,6 +1,25 @@
 {% extends "base_contract.html" %}
 {% load humanize %}
 
+{% block header %}
+<link rel="stylesheet" type="text/css" href="/static/admin/css/base.css" />
+<link rel="stylesheet" type="text/css" href="/static/admin/css/forms.css" />
+<script type="text/javascript" src="/jsi18n/"></script>
+<script type="text/javascript" src="/static/admin/js/core.js"></script>
+<script type="text/javascript" src="/static/admin/js/admin/RelatedObjectLookups.js"></script>
+{{ form.media }}
+<script type="text/javascript">
+django.jQuery = $
+    function switch_version(obj) {
+        window.location = "{% url 'contract_change' member.id_from_api %}?ver=" + $(obj).val()
+    }
+
+    function cancel() {
+        window.location = "{% url 'contract-index' %}"
+    }
+</script>
+{% endblock %}
+
 {% block content %}
 <div>
     <div class="flowTop"></div>
@@ -27,9 +46,9 @@
             <tr>
                 <th>バージョン:</th>
                 <td colspan="3">
-                    <select>
-                        {% for contract in contract_set %}
-                        <option value="{{ contract.contract_no }}">{{ contract.contract_no }}</option>
+                    <select onchange="switch_version(this)">
+                        {% for c in contract_set %}
+                        <option value="{{ c.contract_no }}" {% if contract.pk == c.pk %}selected{% endif %}>{{ c.contract_no }}</option>
                         {% endfor %}
                     </select>
                 </td>
@@ -41,8 +60,9 @@
     <div class="flowTop"></div>
     <div class="flowBox">
         <form method="post" action="#">
-            <div style="display: none;">{% csrf_token %}</div>
-            {{ form.non_field_errors }}
+            <div style="display: none;">{% csrf_token %}
+            </div>
+            <div class="errors">{{ form.errors }}</div>
             <table class="detail">
                 <tr>
                     <th style="width: 150px;">{{ form.company.label_tag }}</th>
@@ -51,13 +71,14 @@
                 <tr>
                     <th>{{ form.contract_no.label_tag }}</th>
                     <td>{{ form.contract_no.errors }}{{ form.contract_no }}
-                        <p class="red">契約変更すると、契約番号は[EB004320170424]に変更します。（契約当日、変更しません）</p>
+                        <p class="red">契約変更すると、契約番号は[{{ contract.get_next_contract_no }}]に変更します。（契約当日、変更しません）</p>
                     </td>
                 </tr>
                 <tr>
                     <th>{{ form.contract_date.label_tag }}</th>
                     <td>{{ form.contract_date.errors }}
-                        <table class="inner"><tr><td>{{ form.contract_date }}</td></tr></table>
+                        <table class="inner"><tr><td class="nowrap">{{ form.contract_date }}</td></tr></table>
+                        <div class="help_text">{{ form.contract_date.help_text }}</div>
                     </td>
                 </tr>
                 <tr>
@@ -68,22 +89,27 @@
                 </tr>
                 <tr>
                     <th>{{ form.employment_date.label_tag }}</th>
-                    <td>{{ form.employment_date.errors }}{{ form.employment_date }}</td>
+                    <td>{{ form.employment_date.errors }}
+                        <table class="inner"><tr><td>{{ form.employment_date }}</td></tr></table>
+                        <div class="help_text">{{ form.employment_date.help_text }}</div>
+                    </td>
                 </tr>
                 <tr>
-                    <th>雇用期間</th>
+                    <th><label>雇用期間</label></th>
                     <td>
                         <div>
                             {{ form.start_date.errors }}
                             {{ form.end_date.errors }}
                         </div>
                         <div>
-                            <table class="inner">
+                            <table class="inner" width="200">
                                 <tr>
                                     <td style="border: 0px;">
                                         {{ form.start_date.label_tag }}
                                         {{ form.start_date }}
                                     </td>
+                                </tr>
+                                <tr>
                                     <td style="border: 0px;">
                                         {{ form.end_date.label_tag }}
                                         {{ form.end_date }}
@@ -99,7 +125,7 @@
                     <td>{{ form.position.errors }}{{ form.position }}</td>
                 </tr>
                 <tr>
-                    <th>就業の場所<br/>業務の種類</th>
+                    <th><label>就業の場所<br/>業務の種類</label></th>
                     <td>
                         <div>{{ form.business_address }}</div>
                         <div><table class="inner"><tr><td>{{ form.business_type }}</td></tr></table></div>
@@ -111,7 +137,7 @@
                     <td>{{ form.business_time.errors }}{{ form.business_time }}</td>
                 </tr>
                 <tr>
-                    <th>基本給</th>
+                    <th><label>基本給</label></th>
                     <td>
                         <table class="inner">
                             <tr>
@@ -130,7 +156,7 @@
                     </td>
                 </tr>
                 <tr>
-                    <th>諸手当</th>
+                    <th><label>諸手当</label></th>
                     <td>
                         <table class="inner">
                             <tr>
@@ -225,7 +251,7 @@
                     <td>{{ form.bonus_comment.errors }}{{ form.bonus_comment }}</td>
                 </tr>
                 <tr>
-                    <th>休暇</th>
+                    <th><label>休暇</label></th>
                     <td>
                         {{ form.holiday_comment.label_tag }}{{ form.holiday_comment }}
                         {{ form.paid_vacation_comment.label_tag }}{{ form.paid_vacation_comment }}
@@ -247,8 +273,9 @@
                     <td>{{ form.comment.errors }}{{ form.comment }}</td>
                 </tr>
             </table>
-            <div>
-                <input type="submit" value="保存" />
+            <div style="margin: auto; margin-top: 30px; margin-bottom: 15px; width: 700px; display: block;">
+                <input type="submit" class="add" value="" />
+                <input type="button" class="cancel right" onclick="cancel()" value="">
             </div>
         </form>
     </div>
