@@ -69,11 +69,11 @@ class IndexView(BaseTemplateView):
         return context
 
 
-class ContractView(BaseTemplateView):
-    template_name = 'contract.html'
+class ContractChangeView(BaseTemplateView):
+    template_name = 'contract_change.html'
 
     def get_context_data(self, **kwargs):
-        context = super(ContractView, self).get_context_data(**kwargs)
+        context = super(ContractChangeView, self).get_context_data(**kwargs)
         request = kwargs.get('request')
         api_id = kwargs.get('api_id')
         member = get_object_or_404(sales_models.Member, id_from_api=api_id)
@@ -137,3 +137,16 @@ class ContractView(BaseTemplateView):
                             )
 
         return self.render_to_response(context)
+
+
+class ContractView(BaseTemplateView):
+    template_name = 'contract.html'
+
+    def get_context_data(self, **kwargs):
+        context = super(ContractView, self).get_context_data(**kwargs)
+        contract_id = kwargs.get('contract_id')
+        contract = get_object_or_404(models.Contract, pk=contract_id)
+        context.update({
+            'contract': contract,
+        })
+        return context

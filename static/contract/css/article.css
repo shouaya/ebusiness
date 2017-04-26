@@ -182,3 +182,42 @@ article div.errors {
     width: 800px;
     margin: 0px auto;
 }
+
+article.contract {
+    width: 720px;
+    margin: 0px auto;
+    padding-top: 0px;
+    font-size: 14px;
+}
+
+article.contract h1 {
+    text-align: center;
+    font-size: 25px;
+}
+article.contract table th {
+    background: #eee;
+    font-weight: normal;
+}
+
+article.contract table td,
+article.contract table th {
+    width: 120px;
+    line-height: 20px;
+    font-size: 14px;
+}
+article.contract table td {
+    padding: 5px;
+}
+
+article.contract table td pre {
+    margin: 0px;
+    font-family: inherit;
+    white-space: pre-line;
+}
+
+article div.tail {
+    width: 250px;
+    border-bottom: 1px solid black;
+    padding: 5px;
+    padding-bottom: 2px;
+}

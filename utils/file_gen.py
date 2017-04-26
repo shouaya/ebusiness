@@ -930,14 +930,16 @@ def generate_order_linux(company, data):
     sheet.merge_range('C17:I17', u"%s ～ %s" % (data['DETAIL']['START_DATE'], data['DETAIL']['END_DATE']), cell_format1)
 
     sheet.merge_range('A18:B18', u"委託業務責任者（甲）", cell_format1)
-    sheet.merge_range('C18:E18', data['DETAIL']['MASTER'], cell_format1)
+    sheet.merge_range('C18:E18', data['DETAIL']['MASTER'],  )
     sheet.merge_range('F18:G18', u"連絡窓口担当者（甲）", cell_format1)
-    sheet.merge_range('H18:I18', u"")
+    sheet.merge_range('H18:I18', u"", cell_format1)
 
     sheet.merge_range('A19:B19', u"委託業務責任者（乙）", cell_format1)
     sheet.merge_range('C19:E19', data['DETAIL']['SUBCONTRACTOR_MASTER'], cell_format1)
-    sheet.merge_range('F19:G19', u"連絡窓口担当者（乙）")
-    sheet.merge_range('H19:I19', u"")
+    sheet.merge_range('F19:G19', u"連絡窓口担当者（乙）", cell_format1)
+    sheet.merge_range('H19:I19', u"", cell_format1)
+
+    sheet.merge_range('A20:B26', u"業務委託料金")
 
     book.close()
     return path

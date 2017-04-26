@@ -98,6 +98,7 @@ class Contract(BaseModel):
     allowance_other_memo = models.CharField(max_length=255, blank=True, null=True, verbose_name=u"その他手当メモ")
     endowment_insurance = models.CharField(max_length=1, blank=True, null=True, verbose_name=u"社会保険加入有無",
                                            help_text=u"0:加入しない、1:加入する")
+    allowance_ticket_comment = models.TextField(blank=True, null=True, verbose_name=u"諸手当")
     allowance_date_comment = models.TextField(blank=True, null=True, default=Config.get_allowance_date_comment(),
                                               verbose_name=u"給与締め切り日及び支払日")
     allowance_change_comment = models.TextField(blank=True, null=True, default=Config.get_allowance_change_comment(),
@@ -113,6 +114,7 @@ class Contract(BaseModel):
     status = models.CharField(max_length=2, default='01', choices=constants.CHOICE_CONTRACT_STATUS,
                               verbose_name=u"契約状態")
     comment = models.TextField(blank=True, null=True, default=Config.get_contract_comment(), verbose_name=u"備考")
+    move_flg = models.BooleanField(default=0, editable=False)
 
     class Meta:
         ordering = ['member', 'contract_no']

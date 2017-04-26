@@ -1,284 +1,174 @@
-{% extends "base_contract.html" %}
 {% load humanize %}
 
-{% block header %}
-<link rel="stylesheet" type="text/css" href="/static/admin/css/base.css" />
-<link rel="stylesheet" type="text/css" href="/static/admin/css/forms.css" />
-<script type="text/javascript" src="/jsi18n/"></script>
-<script type="text/javascript" src="/static/admin/js/core.js"></script>
-<script type="text/javascript" src="/static/admin/js/admin/RelatedObjectLookups.js"></script>
-{{ form.media }}
-<script type="text/javascript">
-django.jQuery = $
-    function switch_version(obj) {
-        window.location = "{% url 'contract_change' member.id_from_api %}?ver=" + $(obj).val()
-    }
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Cache-Control" content="no-cache">
+    <title>雇 用 契 約 書</title>
 
-    function cancel() {
-        window.location = "{% url 'contract-index' %}"
-    }
-</script>
-{% endblock %}
+    <link rel="shortcut icon" type="image/png" href="/static/favicon.ico"/>
+    <link rel="stylesheet" type="text/css" href="/static/contract/css/article.css"/>
 
-{% block content %}
-<div>
-    <div class="flowTop"></div>
-    <div class="flowBox">
-        <table class="detail">
+    <script type="text/javascript" src="/static/admin/js/jquery-2.1.4.min.js"></script>
+
+</head>
+<body>
+<article class="contract">
+    <h1>雇 用 契 約 書</h1>
+    <div>
+        <u>{{ contract.member }} 殿</u>
+        <div>貴殿を雇用するに当たっての条件は次の通りです。</div>
+    </div>
+    <table border="1" cellpadding="0" cellspacing="0" width="100%">
+        <tbody>
             <tr>
-                <th>社員名前:</th>
-                <td colspan="3">{{ member }}</td>
+                <th>雇用形態</th>
+                <td>{{ contract.get_member_type_display }}</td>
+                <th>所属部署</th>
+                <td></td>
+                <th>職位</th>
+                <td style="width: 200px;">{{ contract.position }}</td>
             </tr>
             <tr>
-                <th>给料王ID:</th>
-                <td>{{ member.employee_id }}</td>
-                <th>社員番号:</th>
-                <td>{{ member.id_from_api }}</td>
+                <th>雇用日</th>
+                <td colspan="5">{{ contract.employment_date }}</td>
             </tr>
             <tr>
-                <th>電話番号:</th>
-                <td colspan="3">{{ member.phone }}</td>
+                <th>雇用期間</th>
+                <td colspan="5">
+                    {% if contract.start_date %}
+                        {% if contract.end_date %}
+                            {{ contract.start_date }} ～ {{ contract.end_date }}
+                        {% endif %}
+                    {% endif %}
+                    {{ contract.employment_period_comment }}</td>
             </tr>
             <tr>
-                <th>住所:</th>
-                <td colspan="3">{{ member.address1 }}{{ member.address2 }}</td>
-            </tr>
-            <tr>
-                <th>バージョン:</th>
-                <td colspan="3">
-                    <select onchange="switch_version(this)">
-                        {% for c in contract_set %}
-                        <option value="{{ c.contract_no }}" {% if contract.pk == c.pk %}selected{% endif %}>{{ c.contract_no }}</option>
-                        {% endfor %}
-                    </select>
+                <th>就業の場所<br/>業務の種類</th>
+                <td colspan="5">
+                    {{ contract.business_address }}<br/>
+                    {{ contract.get_business_type_display }}<br/>
+                    <pre>{{ contract.business_other }}</pre>
                 </td>
             </tr>
-        </table>
-    </div>
-    <div class="flowBottom"></div>
-
-    <div class="flowTop"></div>
-    <div class="flowBox">
-        <form method="post" action="#">
-            <div style="display: none;">{% csrf_token %}
+            <tr>
+                <th>就業時間</th>
+                <td colspan="5"><pre>{{ contract.business_time }}</pre></td>
+            </tr>
+            <tr>
+                <th rowspan="5">給　　与</th>
+                <th>基本給</th>
+                <td colspan="4">
+                    ¥{{ contract.allowance_base|intcomma }}円/{% if contract.is_hourly_pay %}時間{% else %}月{% endif %}
+                    {% if contract.move_flg == 0 %}
+                        {{ contract.allowance_base_memo }}
+                    {% endif %}
+                </td>
+            </tr>
+            <tr>
+                <th>諸手当</th>
+                <td colspan="4">
+                    {% if contract.move_flg == 0 %}
+                        {% if contract.allowance_work %}
+                            現場手当 : ¥{{ contract.allowance_work|intcomma }}円/ 月&nbsp;{{ contract.allowance_work_memo|default:'' }}<br/>
+                        {% endif %}
+                        {% if contract.allowance_director %}
+                            役職手当 : ¥{{ contract.allowance_director|intcomma }}円/ 月&nbsp;{{ contract.allowance_director_memo|default:'' }}<br/>
+                        {% endif %}
+                        {% if contract.allowance_position %}
+                            職務手当 : ¥{{ contract.allowance_position|intcomma }}円/ 月&nbsp;{{ contract.allowance_position_memo|default:'' }}<br/>
+                        {% endif %}
+                        {% if contract.allowance_diligence %}
+                            精勤手当 : ¥{{ contract.allowance_diligence|intcomma }}円/ 月&nbsp;{{ contract.allowance_diligence_memo|default:'' }}<br/>
+                        {% endif %}
+                        {% if contract.allowance_security %}
+                            安全手当 : ¥{{ contract.allowance_security|intcomma }}円/ 月&nbsp;{{ contract.allowance_security_memo|default:'' }}<br/>
+                        {% endif %}
+                        {% if contract.allowance_qualification %}
+                            資格手当 : ¥{{ contract.allowance_qualification|intcomma }}円/ 月&nbsp;{{ contract.allowance_qualification_memo|default:'' }}<br/>
+                        {% endif %}
+                        {% if contract.allowance_traffic %}
+                            通勤手当 : {{ contract.allowance_traffic_memo|default:'' }}<br/>
+                        {% endif %}
+                        {% if contract.allowance_overtime %}
+                            残業手当 : {{ contract.allowance_overtime_memo|default:'' }}<br/>
+                        {% endif %}
+                        {% if contract.allowance_absenteeism %}
+                            欠勤手当 : {{ contract.allowance_absenteeism_memo|default:'' }}<br/>
+                        {% endif %}
+                        {% if contract.allowance_other_memo %}
+                            その他 : {{ contract.allowance_other_memo|default:'' }}<br/>
+                        {% endif %}
+                    {% else %}
+                        <pre>{{ contract.allowance_ticket_comment|default:'' }}</pre>
+                    {% endif %}
+                </td>
+            </tr>
+            <tr>
+                {% if contract.endowment_insurance == '1' %}
+                    <th>会社保険</th>
+                    <td colspan="4">厚生年金保険 : 加入する</td>
+                {% endif %}
+            </tr>
+            <tr>
+                <th>給与締切日<br/>および支払日</th>
+                <td colspan="4"><pre>{{ contract.allowance_date_comment|default:'' }}</pre></td>
+            </tr>
+            <tr>
+                <th>昇給および<br/>降給</th>
+                <td colspan="4">{{ contract.allowance_change_comment|default:'' }}</td>
+            </tr>
+            {% if contract.member_type == 1 %}
+            <tr>
+                <th>賞　　与</th>
+                <td colspan="5"><pre>{{ contract.bonus_comment|default:'' }}</pre></td>
+            </tr>
+            {% else %}
+            {% if contract.member_type == 7 %}
+            <tr>
+                <th>賞　　与</th>
+                <td colspan="5"><pre>{{ contract.bonus_comment|default:'' }}</pre></td>
+            </tr>
+            {% endif %}
+            {% endif %}
+            <tr>
+                <th>休　　日</th>
+                <td colspan="5">{{ contract.holiday_comment|default:'' }}</td>
+            </tr>
+            <tr>
+                <th>無給休暇</th>
+                <td colspan="5">{{ contract.non_paid_vacation_comment|default:'' }}</td>
+            </tr>
+            <tr>
+                <th>退職に関する<br/>事　項</th>
+                <td colspan="5"><pre>{{ contract.retire_comment|default:'' }}</pre></td>
+            </tr>
+            <tr>
+                <th>備　　考</th>
+                <td colspan="5"><pre>{{ contract.comment|default:'' }}</pre></td>
+            </tr>
+        </tbody>
+    </table>
+    <div style="padding: 15px;">
+        <div style="margin-left: 20px;">契約日:{{ contract.contract_date }}</div>
+        <div style="text-align: right;">会社および従業員は、上記の雇用条件について確認のうえ、同意いたします。</div>
+        <div>
+            <div class="tail" style="float: left;">{{ contract.company }}</div>
+            <div class="tail" style="float: right;">
+                従業員
+                <span style="float:right;">㊞</span>
             </div>
-            <div class="errors">{{ form.errors }}</div>
-            <table class="detail">
-                <tr>
-                    <th style="width: 150px;">{{ form.company.label_tag }}</th>
-                    <td>{{ form.company.errors }}{{ form.company }}</td>
-                </tr>
-                <tr>
-                    <th>{{ form.contract_no.label_tag }}</th>
-                    <td>{{ form.contract_no.errors }}{{ form.contract_no }}
-                        <p class="red">契約変更すると、契約番号は[{{ contract.get_next_contract_no }}]に変更します。（契約当日、変更しません）</p>
-                    </td>
-                </tr>
-                <tr>
-                    <th>{{ form.contract_date.label_tag }}</th>
-                    <td>{{ form.contract_date.errors }}
-                        <table class="inner"><tr><td class="nowrap">{{ form.contract_date }}</td></tr></table>
-                        <div class="help_text">{{ form.contract_date.help_text }}</div>
-                    </td>
-                </tr>
-                <tr>
-                    <th>{{ form.member_type.label_tag }}</th>
-                    <td>{{ form.member_type.errors }}
-                        <table class="inner"><tr><td>{{ form.member_type }}</td></tr></table>
-                    </td>
-                </tr>
-                <tr>
-                    <th>{{ form.employment_date.label_tag }}</th>
-                    <td>{{ form.employment_date.errors }}
-                        <table class="inner"><tr><td>{{ form.employment_date }}</td></tr></table>
-                        <div class="help_text">{{ form.employment_date.help_text }}</div>
-                    </td>
-                </tr>
-                <tr>
-                    <th><label>雇用期間</label></th>
-                    <td>
-                        <div>
-                            {{ form.start_date.errors }}
-                            {{ form.end_date.errors }}
-                        </div>
-                        <div>
-                            <table class="inner" width="200">
-                                <tr>
-                                    <td style="border: 0px;">
-                                        {{ form.start_date.label_tag }}
-                                        {{ form.start_date }}
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td style="border: 0px;">
-                                        {{ form.end_date.label_tag }}
-                                        {{ form.end_date }}
-                                    </td>
-                                </tr>
-                            </table>
-                        </div>
-                        {{ form.employment_period_comment }}
-                    </td>
-                </tr>
-                <tr>
-                    <th>{{ form.position.label_tag }}</th>
-                    <td>{{ form.position.errors }}{{ form.position }}</td>
-                </tr>
-                <tr>
-                    <th><label>就業の場所<br/>業務の種類</label></th>
-                    <td>
-                        <div>{{ form.business_address }}</div>
-                        <div><table class="inner"><tr><td>{{ form.business_type }}</td></tr></table></div>
-                        <div>{{ form.business_other }}</div>
-                    </td>
-                </tr>
-                <tr>
-                    <th>{{ form.business_time.label_tag }}</th>
-                    <td>{{ form.business_time.errors }}{{ form.business_time }}</td>
-                </tr>
-                <tr>
-                    <th><label>基本給</label></th>
-                    <td>
-                        <table class="inner">
-                            <tr>
-                                <td>￥:</td>
-                                <td>{{ form.allowance_base.errors }}{{ form.allowance_base }}</td>
-                                <td style="width: 55px;" class="center">円/月</td>
-                                <td>{{ form.allowance_base_memo }}</td>
-                            </tr>
-                            <tr>
-                                <td>その他:</td>
-                                <td>{{ form.allowance_base_other.errors }}{{ form.allowance_base_other }}</td>
-                                <td style="width: 55px;" class="center">円/月</td>
-                                <td>{{ form.allowance_base_other_memo }}</td>
-                            </tr>
-                        </table>
-                    </td>
-                </tr>
-                <tr>
-                    <th><label>諸手当</label></th>
-                    <td>
-                        <table class="inner">
-                            <tr>
-                                <td style="width: 65px;">{{ form.allowance_work.label_tag }}</td>
-                                <td style="width: 60px;">{{ form.allowance_work.errors }}{{ form.allowance_work }}</td>
-                                <td style="width: 55px;" class="center">円/月</td>
-                                <td style="width: 330px;">{{ form.allowance_work_memo }}</td>
-                            </tr>
-                            <tr>
-                                <td>{{ form.allowance_director.label_tag }}</td>
-                                <td>{{ form.allowance_director.errors }}{{ form.allowance_director }}</td>
-                                <td style="width: 55px;" class="center">円/月</td>
-                                <td>{{ form.allowance_director_memo }}</td>
-                            </tr>
-                            <tr>
-                                <td>{{ form.allowance_position.label_tag }}</td>
-                                <td>{{ form.allowance_position.errors }}{{ form.allowance_position }}</td>
-                                <td style="width: 55px;" class="center">円/月</td>
-                                <td>{{ form.allowance_position_memo }}</td>
-                            </tr>
-                            <tr>
-                                <td>{{ form.allowance_diligence.label_tag }}</td>
-                                <td>{{ form.allowance_diligence.errors }}{{ form.allowance_diligence }}</td>
-                                <td style="width: 55px;" class="center">円/月</td>
-                                <td>{{ form.allowance_diligence_memo }}</td>
-                            </tr>
-                            <tr>
-                                <td>{{ form.allowance_security.label_tag }}</td>
-                                <td>{{ form.allowance_security.errors }}{{ form.allowance_security }}</td>
-                                <td style="width: 55px;" class="center">円/月</td>
-                                <td>{{ form.allowance_security_memo }}</td>
-                            </tr>
-                            <tr>
-                                <td>{{ form.allowance_qualification.label_tag }}</td>
-                                <td>{{ form.allowance_qualification.errors }}{{ form.allowance_qualification }}</td>
-                                <td style="width: 55px;" class="center">円/月</td>
-                                <td>{{ form.allowance_qualification_memo }}</td>
-                            </tr>
-                            <tr>
-                                <td>{{ form.allowance_traffic.label_tag }}</td>
-                                <td>{{ form.allowance_traffic.errors }}{{ form.allowance_traffic }}</td>
-                                <td style="width: 55px;" class="center">円/月</td>
-                                <td>{{ form.allowance_traffic_memo }}</td>
-                            </tr>
-                            <tr>
-                                <td>{{ form.allowance_time_min.label_tag }}</td>
-                                <td>{{ form.allowance_time_min.errors }}{{ form.allowance_time_min }}</td>
-                                <td></td>
-                                <td></td>
-                            </tr>
-                            <tr>
-                                <td>{{ form.allowance_time_max.label_tag }}</td>
-                                <td>{{ form.allowance_time_max.errors }}{{ form.allowance_time_max }}</td>
-                                <td></td>
-                                <td></td>
-                            </tr>
-                            <tr>
-                                <td>{{ form.allowance_overtime.label_tag }}</td>
-                                <td>{{ form.allowance_overtime.errors }}{{ form.allowance_overtime }}</td>
-                                <td style="width: 55px;" class="center">円/月</td>
-                                <td>{{ form.allowance_overtime_memo }}</td>
-                            </tr>
-                            <tr>
-                                <td>{{ form.allowance_absenteeism.label_tag }}</td>
-                                <td>{{ form.allowance_absenteeism.errors }}{{ form.allowance_absenteeism }}</td>
-                                <td style="width: 55px;" class="center">円/月</td>
-                                <td>{{ form.allowance_absenteeism_memo }}</td>
-                            </tr>
-                            <tr>
-                                <td>{{ form.allowance_other.label_tag }}</td>
-                                <td>{{ form.allowance_other.errors }}{{ form.allowance_other }}</td>
-                                <td style="width: 55px;" class="center">円/月</td>
-                                <td>{{ form.allowance_other_memo }}</td>
-                            </tr>
-                        </table>
-                    </td>
-                </tr>
-                <tr>
-                    <th>{{ form.endowment_insurance.label_tag }}</th>
-                    <td>{{ form.endowment_insurance.errors }}{{ form.endowment_insurance }}</td>
-                </tr>
-                <tr>
-                    <th>{{ form.allowance_date_comment.label_tag }}</th>
-                    <td>{{ form.allowance_date_comment.errors }}{{ form.allowance_date_comment }}</td>
-                </tr>
-                <tr>
-                    <th>{{ form.allowance_change_comment.label_tag }}</th>
-                    <td>{{ form.allowance_change_comment.errors }}{{ form.allowance_change_comment }}</td>
-                </tr>
-                <tr>
-                    <th>{{ form.bonus_comment.label_tag }}</th>
-                    <td>{{ form.bonus_comment.errors }}{{ form.bonus_comment }}</td>
-                </tr>
-                <tr>
-                    <th><label>休暇</label></th>
-                    <td>
-                        {{ form.holiday_comment.label_tag }}{{ form.holiday_comment }}
-                        {{ form.paid_vacation_comment.label_tag }}{{ form.paid_vacation_comment }}
-                        {{ form.non_paid_vacation_comment.label_tag }}{{ form.non_paid_vacation_comment }}
-                    </td>
-                </tr>
-                <tr>
-                    <th>{{ form.retire_comment.label_tag }}</th>
-                    <td>{{ form.retire_comment.errors }}{{ form.retire_comment }}</td>
-                </tr>
-                <tr>
-                    <th>{{ form.status.label_tag }}</th>
-                    <td>{{ form.status.errors }}
-                        <table class="inner" width="200"><tr><td>{{ form.status }}</td></tr></table>
-                    </td>
-                </tr>
-                <tr>
-                    <th>{{ form.comment.label_tag }}</th>
-                    <td>{{ form.comment.errors }}{{ form.comment }}</td>
-                </tr>
-            </table>
-            <div style="margin: auto; margin-top: 30px; margin-bottom: 15px; width: 700px; display: block;">
-                <input type="submit" class="add" value="" />
-                <input type="button" class="cancel right" onclick="cancel()" value="">
+        </div>
+        <div>
+            <div class="tail" style="float: left;">
+                代表取締役&nbsp;&nbsp;&nbsp;&nbsp;{{ contract.company.president }}
+                <span style="float:right;">㊞</span>
             </div>
-        </form>
+            <div class="tail" style="float: right;">住所</div>
+        </div>
     </div>
-    <div class="flowBottom"></div>
-</div>
-{% endblock %}
+    <div style="clear: both;"></div>
+</article>
+</body>
+</html>

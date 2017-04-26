@@ -10,5 +10,7 @@ from . import views
 
 urlpatterns = [
     url(r'^$', views.IndexView.as_view(), name='contract-index'),
-    url(r'^contract/(?P<api_id>[0-9]+).html$', views.ContractView.as_view(), name='contract_change'),
+    url(r'^contract_change/(?P<api_id>[0-9]+).html$', views.ContractChangeView.as_view(), name='contract_change'),
+    url(r'^contract/(?P<contract_id>[0-9]+).html$', views.ContractView.as_view(),
+        name='contract'),
 ]
