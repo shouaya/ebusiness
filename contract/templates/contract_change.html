@@ -8,6 +8,8 @@
 <script type="text/javascript" src="/static/admin/js/core.js"></script>
 <script type="text/javascript" src="/static/admin/js/admin/RelatedObjectLookups.js"></script>
 {{ form.media }}
+
+<script type="text/javascript" src="/static/contract/js/base.js"></script>
 <script type="text/javascript">
 django.jQuery = $
     function switch_version(obj) {
@@ -166,43 +168,43 @@ django.jQuery = $
                             <tr>
                                 <td style="width: 65px;">{{ form.allowance_work.label_tag }}</td>
                                 <td style="width: 60px;">{{ form.allowance_work.errors }}{{ form.allowance_work }}</td>
-                                <td style="width: 55px;" class="center">円/月</td>
-                                <td style="width: 330px;">{{ form.allowance_work_memo }}</td>
+                                <td style="width: 70px;" class="center">円/月</td>
+                                <td style="width: 300px;">{{ form.allowance_work_memo }}</td>
                             </tr>
                             <tr>
                                 <td>{{ form.allowance_director.label_tag }}</td>
                                 <td>{{ form.allowance_director.errors }}{{ form.allowance_director }}</td>
-                                <td style="width: 55px;" class="center">円/月</td>
+                                <td class="center">円/月</td>
                                 <td>{{ form.allowance_director_memo }}</td>
                             </tr>
                             <tr>
                                 <td>{{ form.allowance_position.label_tag }}</td>
                                 <td>{{ form.allowance_position.errors }}{{ form.allowance_position }}</td>
-                                <td style="width: 55px;" class="center">円/月</td>
+                                <td class="center">円/月</td>
                                 <td>{{ form.allowance_position_memo }}</td>
                             </tr>
                             <tr>
                                 <td>{{ form.allowance_diligence.label_tag }}</td>
                                 <td>{{ form.allowance_diligence.errors }}{{ form.allowance_diligence }}</td>
-                                <td style="width: 55px;" class="center">円/月</td>
+                                <td class="center">円/月</td>
                                 <td>{{ form.allowance_diligence_memo }}</td>
                             </tr>
                             <tr>
                                 <td>{{ form.allowance_security.label_tag }}</td>
                                 <td>{{ form.allowance_security.errors }}{{ form.allowance_security }}</td>
-                                <td style="width: 55px;" class="center">円/月</td>
+                                <td class="center">円/月</td>
                                 <td>{{ form.allowance_security_memo }}</td>
                             </tr>
                             <tr>
                                 <td>{{ form.allowance_qualification.label_tag }}</td>
                                 <td>{{ form.allowance_qualification.errors }}{{ form.allowance_qualification }}</td>
-                                <td style="width: 55px;" class="center">円/月</td>
+                                <td class="center">円/月</td>
                                 <td>{{ form.allowance_qualification_memo }}</td>
                             </tr>
                             <tr>
                                 <td>{{ form.allowance_traffic.label_tag }}</td>
                                 <td>{{ form.allowance_traffic.errors }}{{ form.allowance_traffic }}</td>
-                                <td style="width: 55px;" class="center">円/月</td>
+                                <td class="center">円/月</td>
                                 <td>{{ form.allowance_traffic_memo }}</td>
                             </tr>
                             <tr>
@@ -220,19 +222,19 @@ django.jQuery = $
                             <tr>
                                 <td>{{ form.allowance_overtime.label_tag }}</td>
                                 <td>{{ form.allowance_overtime.errors }}{{ form.allowance_overtime }}</td>
-                                <td style="width: 55px;" class="center">円/月</td>
+                                <td class="center">円/時間</td>
                                 <td>{{ form.allowance_overtime_memo }}</td>
                             </tr>
                             <tr>
                                 <td>{{ form.allowance_absenteeism.label_tag }}</td>
                                 <td>{{ form.allowance_absenteeism.errors }}{{ form.allowance_absenteeism }}</td>
-                                <td style="width: 55px;" class="center">円/月</td>
+                                <td class="center">円/時間</td>
                                 <td>{{ form.allowance_absenteeism_memo }}</td>
                             </tr>
                             <tr>
                                 <td>{{ form.allowance_other.label_tag }}</td>
                                 <td>{{ form.allowance_other.errors }}{{ form.allowance_other }}</td>
-                                <td style="width: 55px;" class="center">円/月</td>
+                                <td class="center">円/月</td>
                                 <td>{{ form.allowance_other_memo }}</td>
                             </tr>
                         </table>
@@ -257,9 +259,9 @@ django.jQuery = $
                 <tr>
                     <th><label>休暇</label></th>
                     <td>
-                        {{ form.holiday_comment.label_tag }}{{ form.holiday_comment }}
-                        {{ form.paid_vacation_comment.label_tag }}{{ form.paid_vacation_comment }}
-                        {{ form.non_paid_vacation_comment.label_tag }}{{ form.non_paid_vacation_comment }}
+                        {{ form.holiday_comment.label_tag }}<br/>{{ form.holiday_comment }}<br/>
+                        {{ form.paid_vacation_comment.label_tag }}<br/>{{ form.paid_vacation_comment }}<br/>
+                        {{ form.non_paid_vacation_comment.label_tag }}<br/>{{ form.non_paid_vacation_comment }}
                     </td>
                 </tr>
                 <tr>

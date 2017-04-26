@@ -21,6 +21,26 @@ class ContractForm(BaseForm):
     def __init__(self, *args, **kwargs):
         super(ContractForm, self).__init__(*args, **kwargs)
         self.fields['contract_no'].widget.attrs.update({'readonly': 'readonly'})
+        self.fields['allowance_time_max'].widget.attrs.update({
+            'onchange': 'set_allowance_overtime_memo("%s", "%s", "%s")' % ('id_allowance_time_max',
+                                                                           'id_allowance_overtime',
+                                                                           'id_allowance_overtime_memo')
+        })
+        self.fields['allowance_overtime'].widget.attrs.update({
+            'onchange': 'set_allowance_overtime_memo("%s", "%s", "%s")' % ('id_allowance_time_max',
+                                                                           'id_allowance_overtime',
+                                                                           'id_allowance_overtime_memo')
+        })
+        self.fields['allowance_time_min'].widget.attrs.update({
+            'onchange': 'set_allowance_absenteeism_memo("%s", "%s", "%s")' % ('id_allowance_time_min',
+                                                                              'id_allowance_absenteeism',
+                                                                              'id_allowance_absenteeism_memo')
+        })
+        self.fields['allowance_absenteeism'].widget.attrs.update({
+            'onchange': 'set_allowance_absenteeism_memo("%s", "%s", "%s")' % ('id_allowance_time_min',
+                                                                              'id_allowance_absenteeism',
+                                                                              'id_allowance_absenteeism_memo')
+        })
 
     contract_date = forms.DateField(widget=AdminDateWidget, label=u"契約日")
     employment_date = forms.DateField(widget=AdminDateWidget, label=u"雇用日")
