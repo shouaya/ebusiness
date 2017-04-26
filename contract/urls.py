@@ -13,4 +13,5 @@ urlpatterns = [
     url(r'^contract_change/(?P<api_id>[0-9]+).html$', views.ContractChangeView.as_view(), name='contract_change'),
     url(r'^contract/(?P<contract_id>[0-9]+).html$', views.ContractView.as_view(),
         name='contract'),
+    url(r'^contract/(?P<member_id>[0-9]+)/certificate.html$', views.CertificateView.as_view(), name='certificate'),
 ]

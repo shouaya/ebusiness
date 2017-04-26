@@ -1,0 +1,53 @@
+{% load humanize %}
+{% load wareki %}
+
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Cache-Control" content="no-cache">
+    <title>雇 用 契 約 書</title>
+
+    <link rel="shortcut icon" type="image/png" href="/static/favicon.ico"/>
+    <link rel="stylesheet" type="text/css" href="/static/contract/css/article.css"/>
+</head>
+<body>
+<article class="certificate">
+    <h1>在 職 証 明 書</h1>
+    <table class="middle">
+        <tr>
+            <td class="left_side">住　　　　　　所 ： </td>
+            <td class="right_side">{{ member.address1|default:'' }}{{ member.address2|default:'' }}</td>
+        </tr>
+        <tr>
+            <td class="left_side">氏　　　　　　名 ： </td>
+            <td class="right_side">{{ member }}</td>
+        </tr>
+        <tr>
+            <td class="left_side">生　年　月　日 ： </td>
+            <td class="right_side">{{ member.birthday|to_wareki }}</td>
+        </tr>
+        <tr>
+            <td class="left_side">就 職 年 月 日 ： </td>
+            <td class="right_side">{{ member.join_date|to_wareki }}</td>
+        </tr>
+    </table>
+    <div style="margin: 100px 150px 50px 150px;">上記の者、在職していることを証明します。</div>
+    <div style="margin: 50px 150px 50px 150px; text-align: right;">{{ today|to_wareki }}</div>
+    <table class="bottom">
+        <tr>
+            <td class="left_side">住　　　 　所 :</td>
+            <td class="right_side">{{ member.company.address1|default:'' }}{{ member.company.address2|default:'' }}</td>
+        </tr>
+        <tr>
+            <td class="left_side">会　 社　 名 :	</td>
+            <td class="right_side">{{ member.company }}</td>
+        </tr>
+        <tr>
+            <td class="left_side">代表取締役 : </td>
+            <td class="right_side">{{ member.company.president }}</td>
+        </tr>
+    </table>
+</article>
+</body>
+</html>

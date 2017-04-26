@@ -26,7 +26,7 @@
                 <tr>
                     {% with contract=member.latest_contract_set|first %}
                     {% if contract %}
-                        <td class="center"><a href="{% url 'contract_change' member.id_from_api %}">{{ member.id_from_api }}</a></td>
+                        <td class="center"><a href="{% url 'contract_change' member.id_from_api %}">{{ member.id_from_api|default:'' }}</a></td>
                         <td><a href="{% url 'contract_change' member.id_from_api %}">{{ member }}</a></td>
                         <td>{{ contract.get_member_type_display }}</td>
                         <td>{{ contract.employment_date }}</td>
@@ -40,7 +40,7 @@
                         </td>
                         <td>{{ contract.get_status_display }}</td>
                     {% else %}
-                        <td class="center">{{ member.id_from_api }}</td>
+                        <td class="center">{{ member.id_from_api|default:'' }}</td>
                         <td>{{ member }}</td>
                         <td>{{ member.get_member_type_display }}</td>
                         <td></td>

@@ -1001,8 +1001,16 @@ class Member(AbstractMember):
             return 0
         # return int(self.cost) if self.cost else 0
 
+    def get_latest_contract(self):
+        """最新の契約情報を取得する
+
+        :return:
+        """
+        today = datetime.date.today()
+        return self.get_contract(today)
+
     def get_contract(self, date):
-        """最新の契約情報を取得する。
+        """指定日付の契約情報を取得する。
 
         :param date 対象年月
         :return:

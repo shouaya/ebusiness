@@ -1,4 +1,5 @@
 # coding: UTF-8
+import datetime
 from django.views.generic import View
 from django.views.generic.base import TemplateResponseMixin, ContextMixin
 from django.contrib.auth.decorators import login_required
@@ -148,5 +149,20 @@ class ContractView(BaseTemplateView):
         contract = get_object_or_404(models.Contract, pk=contract_id)
         context.update({
             'contract': contract,
+        })
+        return context
+
+
+class CertificateView(BaseTemplateView):
+    template_name = 'certificate.html'
+
+    def get_context_data(self, **kwargs):
+        context = super(CertificateView, self).get_context_data(**kwargs)
+        member_id = kwargs.get('member_id')
+        member = get_object_or_404(sales_models.Member, pk=member_id)
+        context.update({
+            'member': member,
+            'contract': member.get_latest_contract(),
+            'today': datetime.date.today()
         })
         return context

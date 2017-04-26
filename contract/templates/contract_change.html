@@ -23,7 +23,8 @@ django.jQuery = $
 {% block content %}
 <div>
     <div style="margin-bottom: 20px;">
-        <a href="{% url 'contract' contract.pk %}" target="_blank">契約書</a>
+        <a href="{% url 'contract' contract.pk %}" target="_blank">契約書</a>&nbsp;&nbsp;&nbsp;
+        <a href="{% url 'certificate' member.pk %}" target="_blank">在職証明書</a>
     </div>
     <div class="flowTop"></div>
     <div class="flowBox">
