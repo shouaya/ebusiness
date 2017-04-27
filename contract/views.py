@@ -1,24 +1,28 @@
 # coding: UTF-8
 import datetime
+import json
 from django.views.generic import View
 from django.views.generic.base import TemplateResponseMixin, ContextMixin
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, permission_required
 from django.utils.decorators import method_decorator
 from django.shortcuts import redirect, get_object_or_404
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.db.models import Q
 from django.core.urlresolvers import reverse
+from django.views.decorators.csrf import csrf_protect
+from django.http import HttpResponse, HttpResponseForbidden
 
 from . import biz, models, forms
 from eb import biz_config
 from eb import models as sales_models
-from utils import constants
+from utils import constants, common
 import operator
 
 # Create your views here.
 
 
 @method_decorator(login_required(login_url=constants.LOGIN_IN_URL), name='dispatch')
+@method_decorator(permission_required('contract.change_contract', raise_exception=True), name='get')
 class BaseView(View, ContextMixin):
 
     def get_context_data(self, **kwargs):
@@ -26,6 +30,8 @@ class BaseView(View, ContextMixin):
         return context
 
     def get(self, request, *args, **kwargs):
+        if not common.is_human_resources(request.user):
+            return HttpResponseForbidden()
         kwargs.update({
             'request': request
         })
@@ -87,6 +93,7 @@ class ContractChangeView(BaseTemplateView):
             contract = contract_set[0]
         else:
             contract = models.Contract(member=member)
+            contract.contract_no = contract.get_next_contract_no()
         form = forms.ContractForm(instance=contract)
         context.update({
             'member': member,
@@ -97,6 +104,8 @@ class ContractChangeView(BaseTemplateView):
         return context
 
     def get(self, request, *args, **kwargs):
+        if not common.is_human_resources(request.user):
+            return HttpResponseForbidden()
         kwargs.update({
             'request': request
         })
@@ -109,6 +118,8 @@ class ContractChangeView(BaseTemplateView):
         return self.render_to_response(context)
 
     def post(self, request, *args, **kwargs):
+        if not common.is_human_resources(request.user):
+            return HttpResponseForbidden()
         kwargs.update({
             'request': request
         })
@@ -166,3 +177,20 @@ class CertificateView(BaseTemplateView):
             'today': datetime.date.today()
         })
         return context
+
+
+@method_decorator(csrf_protect, name='dispatch')
+class GenerateApiIdView(BaseView):
+    def post(self, request, *args, **kwargs):
+        if common.is_human_resources(request.user):
+            try:
+                member_id = kwargs.get('member_id')
+                member = sales_models.Member.objects.get(pk=member_id)
+                member.id_from_api = biz.get_max_api_id()
+                member.save()
+                d = {'error': 0, 'msg': ''}
+            except Exception as ex:
+                d = {'error': 1, 'msg': unicode(ex)}
+        else:
+            d = {'error': 1, 'msg': u"403: 権限ありません。"}
+        return HttpResponse(json.dumps(d))

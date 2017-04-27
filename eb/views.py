@@ -1684,6 +1684,8 @@ def login_user(request):
             login(request, user)
             if is_first_login:
                 return redirect(reverse('password_change') + "?is_first_login=1")
+            elif common.has_group(user, u"人事"):
+                return redirect(reverse('contract-index'))
             elif next_url:
                 return redirect(next_url)
             else:

@@ -8,8 +8,6 @@
 <script type="text/javascript" src="/static/admin/js/core.js"></script>
 <script type="text/javascript" src="/static/admin/js/admin/RelatedObjectLookups.js"></script>
 {{ form.media }}
-
-<script type="text/javascript" src="/static/contract/js/base.js"></script>
 <script type="text/javascript">
 django.jQuery = $
     function switch_version(obj) {
@@ -25,8 +23,10 @@ django.jQuery = $
 {% block content %}
 <div>
     <div style="margin-bottom: 20px;">
-        <a href="{% url 'contract' contract.pk %}" target="_blank">契約書</a>&nbsp;&nbsp;&nbsp;
-        <a href="{% url 'certificate' member.pk %}" target="_blank">在職証明書</a>
+        {% if contract.pk %}
+            <a href="{% url 'contract' contract.pk %}" target="_blank">契約書</a>&nbsp;&nbsp;&nbsp;
+            <a href="{% url 'certificate' member.pk %}" target="_blank">在職証明書</a>
+        {% endif %}
     </div>
     <div class="flowTop"></div>
     <div class="flowBox">
@@ -49,6 +49,7 @@ django.jQuery = $
                 <th>住所:</th>
                 <td colspan="3">{{ member.address1 }}{{ member.address2 }}</td>
             </tr>
+            {% if contract_set.count > 0 %}
             <tr>
                 <th>バージョン:</th>
                 <td colspan="3">
@@ -59,6 +60,7 @@ django.jQuery = $
                     </select>
                 </td>
             </tr>
+            {% endif %}
         </table>
     </div>
     <div class="flowBottom"></div>
@@ -71,7 +73,7 @@ django.jQuery = $
             <div class="errors">{{ form.errors }}</div>
             <table class="detail">
                 <tr>
-                    <th style="width: 150px;">{{ form.company.label_tag }}</th>
+                    <th style="width: 150px;">{{ form.company.label_tag }}<span class="red">*</span></th>
                     <td>{{ form.company.errors }}{{ form.company }}</td>
                 </tr>
                 <tr>
@@ -81,20 +83,20 @@ django.jQuery = $
                     </td>
                 </tr>
                 <tr>
-                    <th>{{ form.contract_date.label_tag }}</th>
+                    <th>{{ form.contract_date.label_tag }}<span class="red">*</span></th>
                     <td>{{ form.contract_date.errors }}
                         <table class="inner"><tr><td class="nowrap">{{ form.contract_date }}</td></tr></table>
                         <div class="help_text">{{ form.contract_date.help_text }}</div>
                     </td>
                 </tr>
                 <tr>
-                    <th>{{ form.member_type.label_tag }}</th>
+                    <th>{{ form.member_type.label_tag }}<span class="red">*</span></th>
                     <td>{{ form.member_type.errors }}
                         <table class="inner"><tr><td>{{ form.member_type }}</td></tr></table>
                     </td>
                 </tr>
                 <tr>
-                    <th>{{ form.employment_date.label_tag }}</th>
+                    <th>{{ form.employment_date.label_tag }}<span class="red">*</span></th>
                     <td>{{ form.employment_date.errors }}
                         <table class="inner"><tr><td>{{ form.employment_date }}</td></tr></table>
                         <div class="help_text">{{ form.employment_date.help_text }}</div>
@@ -111,7 +113,7 @@ django.jQuery = $
                             <table class="inner" width="200">
                                 <tr>
                                     <td style="border: 0px;">
-                                        {{ form.start_date.label_tag }}
+                                        {{ form.start_date.label_tag }}<span class="red">*</span>
                                         {{ form.start_date }}
                                     </td>
                                 </tr>
@@ -143,11 +145,11 @@ django.jQuery = $
                     <td>{{ form.business_time.errors }}{{ form.business_time }}</td>
                 </tr>
                 <tr>
-                    <th><label>基本給</label></th>
+                    <th><label>基本給</label><span class="red">*</span></th>
                     <td>
                         <table class="inner">
                             <tr>
-                                <td>￥:</td>
+                                <td style="text-align: right;">￥:</td>
                                 <td>{{ form.allowance_base.errors }}{{ form.allowance_base }}</td>
                                 <td style="width: 55px;" class="center">円/月</td>
                                 <td>{{ form.allowance_base_memo }}</td>
@@ -269,7 +271,7 @@ django.jQuery = $
                     <td>{{ form.retire_comment.errors }}{{ form.retire_comment }}</td>
                 </tr>
                 <tr>
-                    <th>{{ form.status.label_tag }}</th>
+                    <th>{{ form.status.label_tag }}<span class="red">*</span></th>
                     <td>{{ form.status.errors }}
                         <table class="inner" width="200"><tr><td>{{ form.status }}</td></tr></table>
                     </td>

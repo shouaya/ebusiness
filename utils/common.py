@@ -19,6 +19,7 @@ import jholiday
 
 from decimal import Decimal
 from django.conf import settings
+from django.contrib.auth.models import Group
 
 
 def get_tz_jp():
@@ -914,6 +915,26 @@ def get_attendance_total_hours(total_hours, attendance_type):
             return int_part
     else:
         return 0
+
+
+def is_human_resources(user):
+    return has_group(user, u"人事")
+
+
+def has_group(user, group_name):
+    """ユーザーが指定にグループに所属しているかどうかをチェックする。
+
+    :param user:
+    :param group_name:
+    :return:
+    """
+    if user.username == 'admin':
+        return True
+    try:
+        group = Group.objects.get(name=group_name)
+        return True if group in user.groups.all() else False
+    except Group.DoesNotExist:
+        return False
 
 
 if __name__ == "__main__":

@@ -38,8 +38,17 @@
                         </td>
                         <td>{{ contract.get_status_display }}</td>
                     {% else %}
-                        <td class="center">{{ member.id_from_api|default:'' }}</td>
-                        <td>{{ member }}</td>
+                        {% if member.id_from_api %}
+                            <td class="center"><a href="{% url 'contract_change' member.id_from_api %}">{{ member.id_from_api|default:'' }}</a></td>
+                            <td><a href="{% url 'contract_change' member.id_from_api %}">{{ member }}</a></td>
+                        {% else %}
+                            <td class="center">
+                                <a href="javascript:gen_api_id('{% url 'gen_api_id' member.pk %}')" onclick="return confirm('ＩＤを作成しますか？')">
+                                    <i class="fa fa-plus" aria-hidden="true"></i>
+                                </a>
+                            </td>
+                            <td>{{ member }}</td>
+                        {% endif %}
                         <td>{{ member.get_member_type_display }}</td>
                         <td></td>
                         <td></td>
