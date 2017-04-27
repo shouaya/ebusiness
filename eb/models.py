@@ -2285,6 +2285,24 @@ class MemberAttendance(models.Model):
         #         return int(cost) / 6
         return 0
 
+    def get_overtime_cost(self):
+        """残業／控除の金額を取得する
+
+        :return:
+        """
+        contract = self.get_contract()
+        if contract:
+            if contract.allowance_time_min <= self.total_hours <= contract.allowance_time_max:
+                return 0
+            elif self.total_hours > contract.allowance_time_max:
+                overtime = self.total_hours - contract.allowance_time_max
+                return int(overtime * contract.allowance_overtime)
+            else:
+                absenteeism = self.total_hours - contract.allowance_time_min
+                return int(absenteeism * contract.allowance_absenteeism)
+        else:
+            return 0
+
     def get_employment_insurance(self):
         """雇用保険を取得する
 
@@ -2296,8 +2314,9 @@ class MemberAttendance(models.Model):
             bonus = float(self.get_bonus())
             allowance = float(self.allowance) if self.allowance else 0
             night_allowance = float(self.get_night_allowance())
+            overtime_cost = self.get_overtime_cost()
             traffic_cost = float(self.traffic_cost) if self.traffic_cost else 0
-            return (cost + bonus + allowance + night_allowance + traffic_cost) * 0.02
+            return (cost + bonus + allowance + night_allowance + overtime_cost + traffic_cost) * 0.02
         else:
             return 0
 
@@ -2313,8 +2332,9 @@ class MemberAttendance(models.Model):
             bonus = float(self.get_bonus())
             allowance = float(self.allowance) if self.allowance else 0
             night_allowance = float(self.get_night_allowance())
+            overtime_cost = self.get_overtime_cost()
             traffic_cost = float(self.traffic_cost) if self.traffic_cost else 0
-            return (cost + bonus + allowance + night_allowance + traffic_cost) * 0.14
+            return (cost + bonus + allowance + night_allowance + overtime_cost + traffic_cost) * 0.14
         else:
             return 0
 
@@ -2328,6 +2348,7 @@ class MemberAttendance(models.Model):
         return sum((self.get_cost(),
                     int(self.allowance) if self.allowance else 0,
                     self.get_night_allowance(),
+                    self.get_overtime_cost(),
                     int(self.traffic_cost) if self.traffic_cost else 0,
                     int(self.expenses) if self.expenses else 0,
                     self.get_employment_insurance(),

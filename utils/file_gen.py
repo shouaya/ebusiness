@@ -1067,7 +1067,7 @@ def generate_attendance_format(user, template_path, project_members):
         if attendance and is_own:
             # 社会保険加入有無
             contract = attendance.get_contract()
-            if contract and contract.endowment_insurance == "2":
+            if contract and contract.endowment_insurance == "1":
                 sheet.cell(row=start_row, column=8).value = u"○"
             # 勤務時間
             sheet.cell(row=start_row, column=13).value = attendance.total_hours
@@ -1109,6 +1109,8 @@ def generate_attendance_format(user, template_path, project_members):
                 sheet.cell(row=start_row, column=23).value = attendance.allowance
                 # 深夜手当
                 sheet.cell(row=start_row, column=24).value = attendance.get_night_allowance()
+                # 残業／控除
+                sheet.cell(row=start_row, column=25).value = attendance.get_overtime_cost()
                 # 交通費(原価)
                 sheet.cell(row=start_row, column=26).value = attendance.traffic_cost
                 # 経費(原価)

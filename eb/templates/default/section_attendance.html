@@ -353,7 +353,8 @@
                                                         {{ attendance.get_night_allowance|default:''|intcomma }}
                                                     {% endif %}
                                                 </td>
-                                                <td class="num col_07"></td>
+                                                <!--残業／控除-->
+                                                <td class="num col_07 {% if attendance.get_overtime_cost < 0 %}red{% endif %}">{{ attendance.get_overtime_cost|default:''|intcomma }}</td>
                                                 <!--交通費-->
                                                 <td class="num col_08">{{ attendance.traffic_cost|default:''|intcomma }}</td>
                                                 <!--経費(原価)-->

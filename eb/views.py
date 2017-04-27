@@ -784,12 +784,13 @@ def section_attendance(request, section_id):
     section = get_object_or_404(models.Section, pk=section_id)
     today = datetime.date.today()
     year = request.GET.get('year', today.year)
-    month = request.GET.get('month', today.month)
+    month = request.GET.get('month', '%02d' % today.month)
     date = datetime.date(int(year), int(month), 20)
     prev_month = common.add_months(datetime.date(int(year), int(month), 1), -1)
     next_month = common.add_months(datetime.date(int(year), int(month), 1), 1)
 
     param_list = common.get_request_params(request.GET)
+    param_list.update({'year': year, 'month': month})
     params = "&".join(["%s=%s" % (key, value) for key, value in param_list.items()]) if param_list else ""
 
     project_members = biz.get_project_members_month_section(section, date)
@@ -1684,7 +1685,7 @@ def login_user(request):
             login(request, user)
             if is_first_login:
                 return redirect(reverse('password_change') + "?is_first_login=1")
-            elif common.has_group(user, u"人事"):
+            elif common.is_human_resources(user):
                 return redirect(reverse('contract-index'))
             elif next_url:
                 return redirect(next_url)
