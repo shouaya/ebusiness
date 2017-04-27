@@ -251,7 +251,8 @@ class Config(models.Model):
 
 
 class BaseModel(models.Model):
-    created_date = models.DateTimeField(auto_now_add=True, auto_now=False, null=True, editable=False, verbose_name=u"作成日時")
+    created_date = models.DateTimeField(auto_now_add=True, auto_now=False, null=True, editable=False,
+                                        verbose_name=u"作成日時")
     updated_date = models.DateTimeField(auto_now=True, null=True, editable=False, verbose_name=u"更新日時")
     is_deleted = models.BooleanField(default=False, editable=False, verbose_name=u"削除フラグ")
     deleted_date = models.DateTimeField(blank=True, null=True, editable=False, verbose_name=u"削除年月日")
@@ -366,7 +367,7 @@ class Company(AbstractCompany):
         return self.get_projects(5)
 
 
-class BankInfo(models.Model):
+class BankInfo(BaseModel):
     company = models.ForeignKey(Company, verbose_name=u"会社")
     bank_name = models.CharField(blank=False, null=False, max_length=20, verbose_name=u"銀行名称")
     branch_no = models.CharField(blank=False, null=False, max_length=3, verbose_name=u"支店番号")
@@ -375,10 +376,6 @@ class BankInfo(models.Model):
                                     verbose_name=u"預金種類")
     account_number = models.CharField(blank=False, null=False, max_length=7, verbose_name=u"口座番号")
     account_holder = models.CharField(blank=True, null=True, max_length=20, verbose_name=u"口座名義")
-    is_deleted = models.BooleanField(default=False, editable=False, verbose_name=u"削除フラグ")
-    deleted_date = models.DateTimeField(blank=True, null=True, editable=False, verbose_name=u"削除年月日")
-
-    objects = PublicManager(is_deleted=False)
 
     class Meta:
         unique_together = ('branch_no', 'account_number')
@@ -386,11 +383,6 @@ class BankInfo(models.Model):
 
     def __unicode__(self):
         return self.bank_name
-
-    def delete(self, using=None, keep_parents=False):
-        self.is_deleted = True
-        self.deleted_date = datetime.datetime.now()
-        self.save()
 
 
 class Subcontractor(AbstractCompany):
@@ -472,7 +464,7 @@ class Subcontractor(AbstractCompany):
         self.save()
 
 
-class Section(models.Model):
+class Section(BaseModel):
     name = models.CharField(blank=False, null=False, max_length=30, verbose_name=u"部署名")
     description = models.CharField(blank=True, null=True, max_length=200, verbose_name=u"概要")
     is_on_sales = models.BooleanField(blank=False, null=False, default=False, verbose_name=u"営業対象")
@@ -480,10 +472,6 @@ class Section(models.Model):
     org_type = models.CharField(blank=False, null=False, max_length=2, choices=constants.CHOICE_ORG_TYPE,
                                 verbose_name=u"組織類別")
     company = models.ForeignKey(Company, blank=False, null=False, verbose_name=u"会社")
-    is_deleted = models.BooleanField(default=False, editable=False, verbose_name=u"削除フラグ")
-    deleted_date = models.DateTimeField(blank=True, null=True, editable=False, verbose_name=u"削除年月日")
-
-    objects = PublicManager(is_deleted=False)
 
     class Meta:
         ordering = ['name']
@@ -546,18 +534,9 @@ class Section(models.Model):
             children.extend(list(org.get_children()))
         return children
 
-    def delete(self, using=None, keep_parents=False):
-        self.is_deleted = True
-        self.deleted_date = datetime.datetime.now()
-        self.save()
 
-
-class SalesOffReason(models.Model):
+class SalesOffReason(BaseModel):
     name = models.CharField(blank=False, null=False, max_length=50, verbose_name=u"理由")
-    is_deleted = models.BooleanField(default=False, editable=False, verbose_name=u"削除フラグ")
-    deleted_date = models.DateTimeField(blank=True, null=True, editable=False, verbose_name=u"削除年月日")
-
-    objects = PublicManager(is_deleted=False)
 
     class Meta:
         verbose_name = verbose_name_plural = u"営業対象外理由"
@@ -565,11 +544,6 @@ class SalesOffReason(models.Model):
 
     def __unicode__(self):
         return self.name
-
-    def delete(self, using=None, keep_parents=False):
-        self.is_deleted = True
-        self.deleted_date = datetime.datetime.now()
-        self.save()
 
 
 class Salesperson(AbstractMember):
@@ -1131,7 +1105,7 @@ class V_Contract(models.Model):
         verbose_name = verbose_name_plural = u"社員契約情報"
 
 
-class MemberSectionPeriod(models.Model):
+class MemberSectionPeriod(BaseModel):
     member = models.ForeignKey(Member, verbose_name=u"社員名")
     division = models.ForeignKey(Section, blank=True, null=True, related_name='memberdivisionperiod_set',
                                  verbose_name=u"事業部")
@@ -1140,10 +1114,6 @@ class MemberSectionPeriod(models.Model):
                                    verbose_name=u"課・グループ")
     start_date = models.DateField(verbose_name=u"開始日")
     end_date = models.DateField(blank=True, null=True, verbose_name=u"終了日")
-    is_deleted = models.BooleanField(default=False, editable=False, verbose_name=u"削除フラグ")
-    deleted_date = models.DateTimeField(blank=True, null=True, editable=False, verbose_name=u"削除年月日")
-
-    objects = PublicManager(is_deleted=False)
 
     class Meta:
         ordering = ['start_date']
@@ -1153,21 +1123,12 @@ class MemberSectionPeriod(models.Model):
         f = u"%s - %s(%s〜%s)"
         return f % (self.member.__unicode__(), self.section.__unicode__(), self.start_date, self.end_date)
 
-    def delete(self, using=None, keep_parents=False):
-        self.is_deleted = True
-        self.deleted_date = datetime.datetime.now()
-        self.save()
 
-
-class MemberSalespersonPeriod(models.Model):
+class MemberSalespersonPeriod(BaseModel):
     member = models.ForeignKey(Member, verbose_name=u"社員名")
     salesperson = models.ForeignKey(Salesperson, verbose_name=u"営業員")
     start_date = models.DateField(verbose_name=u"開始日")
     end_date = models.DateField(blank=True, null=True, verbose_name=u"終了日")
-    is_deleted = models.BooleanField(default=False, editable=False, verbose_name=u"削除フラグ")
-    deleted_date = models.DateTimeField(blank=True, null=True, editable=False, verbose_name=u"削除年月日")
-
-    objects = PublicManager(is_deleted=False)
 
     class Meta:
         ordering = ['start_date']
@@ -1177,21 +1138,12 @@ class MemberSalespersonPeriod(models.Model):
         f = u"%s - %s(%s〜%s)"
         return f % (self.member.__unicode__(), self.salesperson.__unicode__(), self.start_date, self.end_date)
 
-    def delete(self, using=None, keep_parents=False):
-        self.is_deleted = True
-        self.deleted_date = datetime.datetime.now()
-        self.save()
 
-
-class PositionShip(models.Model):
+class PositionShip(BaseModel):
     member = models.ForeignKey(Member, verbose_name=u"社員名")
     position = models.IntegerField(blank=True, null=True, choices=constants.CHOICE_POSITION, verbose_name=u"職位")
     section = models.ForeignKey(Section, verbose_name=u"所属")
     is_part_time = models.BooleanField(default=False, verbose_name=u"兼任")
-    is_deleted = models.BooleanField(default=False, editable=False, verbose_name=u"削除フラグ")
-    deleted_date = models.DateTimeField(blank=True, null=True, editable=False, verbose_name=u"削除年月日")
-
-    objects = PublicManager(is_deleted=False)
 
     class Meta:
         ordering = ['position']
@@ -1199,11 +1151,6 @@ class PositionShip(models.Model):
 
     def __unicode__(self):
         return "%s - %s %s" % (self.get_position_display(), self.member.first_name, self.member.last_name)
-
-    def delete(self, using=None, keep_parents=False):
-        self.is_deleted = True
-        self.deleted_date = datetime.datetime.now()
-        self.save()
 
 
 class Client(AbstractCompany):
@@ -1275,15 +1222,11 @@ class Client(AbstractCompany):
         self.save()
 
 
-class ClientMember(models.Model):
+class ClientMember(BaseModel):
     name = models.CharField(max_length=30, verbose_name=u"名前")
     email = models.EmailField(blank=True, null=True, verbose_name=u"メールアドレス")
     phone = models.CharField(blank=True, null=True, max_length=11, verbose_name=u"電話番号")
     client = models.ForeignKey(Client, verbose_name=u"所属会社")
-    is_deleted = models.BooleanField(default=False, editable=False, verbose_name=u"削除フラグ")
-    deleted_date = models.DateTimeField(blank=True, null=True, editable=False, verbose_name=u"削除年月日")
-
-    objects = PublicManager(is_deleted=False, client__is_deleted=False)
 
     class Meta:
         ordering = ['name']
@@ -1292,18 +1235,9 @@ class ClientMember(models.Model):
     def __unicode__(self):
         return "%s - %s" % (self.client.name, self.name)
 
-    def delete(self, using=None, keep_parents=False):
-        self.is_deleted = True
-        self.deleted_date = datetime.datetime.now()
-        self.save()
 
-
-class Skill(models.Model):
+class Skill(BaseModel):
     name = models.CharField(blank=False, null=False, unique=True, max_length=30, verbose_name=u"名称")
-    is_deleted = models.BooleanField(default=False, editable=False, verbose_name=u"削除フラグ")
-    deleted_date = models.DateTimeField(blank=True, null=True, editable=False, verbose_name=u"削除年月日")
-
-    objects = PublicManager(is_deleted=False)
 
     class Meta:
         ordering = ['name']
@@ -1313,18 +1247,9 @@ class Skill(models.Model):
     def __unicode__(self):
         return self.name
 
-    def delete(self, using=None, keep_parents=False):
-        self.is_deleted = True
-        self.deleted_date = datetime.datetime.now()
-        self.save()
 
-
-class OS(models.Model):
+class OS(BaseModel):
     name = models.CharField(max_length=15, unique=True, verbose_name=u"名称")
-    is_deleted = models.BooleanField(default=False, editable=False, verbose_name=u"削除フラグ")
-    deleted_date = models.DateTimeField(blank=True, null=True, editable=False, verbose_name=u"削除年月日")
-
-    objects = PublicManager(is_deleted=False)
 
     class Meta:
         ordering = ['name']
@@ -1333,11 +1258,6 @@ class OS(models.Model):
 
     def __unicode__(self):
         return self.name
-
-    def delete(self, using=None, keep_parents=False):
-        self.is_deleted = True
-        self.deleted_date = datetime.datetime.now()
-        self.save()
 
 
 class Project(models.Model):
@@ -1641,7 +1561,7 @@ def get_client_order_path(instance, filename):
                                                    filename)
 
 
-class ClientOrder(models.Model):
+class ClientOrder(BaseModel):
     projects = models.ManyToManyField(Project, verbose_name=u"案件")
     name = models.CharField(max_length=50, verbose_name=u"注文書名称")
     start_date = models.DateField(default=common.get_first_day_current_month(), verbose_name=u"開始日")
@@ -1652,10 +1572,6 @@ class ClientOrder(models.Model):
     order_file = models.FileField(blank=True, null=True, upload_to=get_client_order_path, verbose_name=u"注文書")
     member_comma_list = models.CommaSeparatedIntegerField(max_length=255, blank=True, null=True, editable=False,
                                                           verbose_name=u"メンバー主キーのリスト")
-    is_deleted = models.BooleanField(default=False, editable=False, verbose_name=u"削除フラグ")
-    deleted_date = models.DateTimeField(blank=True, null=True, editable=False, verbose_name=u"削除年月日")
-
-    objects = PublicManager(is_deleted=False)
 
     class Meta:
         ordering = ['name', 'start_date', 'end_date']
@@ -1663,11 +1579,6 @@ class ClientOrder(models.Model):
 
     def __unicode__(self):
         return self.name
-
-    def delete(self, using=None, keep_parents=False):
-        self.is_deleted = True
-        self.deleted_date = datetime.datetime.now()
-        self.save()
 
 
 class ProjectRequest(models.Model):
@@ -1892,15 +1803,11 @@ class ProjectActivity(models.Model):
         self.save()
 
 
-class ProjectSkill(models.Model):
+class ProjectSkill(BaseModel):
     project = models.ForeignKey(Project, verbose_name=u"案件")
     skill = models.ForeignKey(Skill, verbose_name=u"スキル")
     period = models.IntegerField(blank=True, null=True, choices=constants.CHOICE_SKILL_TIME, verbose_name=u"経験年数")
     description = models.TextField(blank=True, null=True, verbose_name=u"備考")
-    is_deleted = models.BooleanField(default=False, editable=False, verbose_name=u"削除フラグ")
-    deleted_date = models.DateTimeField(blank=True, null=True, editable=False, verbose_name=u"削除年月日")
-
-    objects = PublicManager(is_deleted=False, project__is_deleted=False)
 
     class Meta:
         verbose_name = verbose_name_plural = u"案件のスキル要求"
@@ -1908,18 +1815,9 @@ class ProjectSkill(models.Model):
     def __unicode__(self):
         return "%s - %s" % (self.project.name, self.skill.name)
 
-    def delete(self, using=None, keep_parents=False):
-        self.is_deleted = True
-        self.deleted_date = datetime.datetime.now()
-        self.save()
 
-
-class ProjectStage(models.Model):
+class ProjectStage(BaseModel):
     name = models.CharField(max_length=15, unique=True, verbose_name=u"作業工程名称")
-    is_deleted = models.BooleanField(default=False, editable=False, verbose_name=u"削除フラグ")
-    deleted_date = models.DateTimeField(blank=True, null=True, editable=False, verbose_name=u"削除年月日")
-
-    objects = PublicManager(is_deleted=False)
 
     class Meta:
         verbose_name = verbose_name_plural = u"作業工程"
@@ -1927,11 +1825,6 @@ class ProjectStage(models.Model):
 
     def __unicode__(self):
         return self.name
-
-    def delete(self, using=None, keep_parents=False):
-        self.is_deleted = True
-        self.deleted_date = datetime.datetime.now()
-        self.save()
 
 
 class ProjectMember(models.Model):
@@ -2140,12 +2033,8 @@ class ProjectMember(models.Model):
         self.save()
 
 
-class ExpensesCategory(models.Model):
+class ExpensesCategory(BaseModel):
     name = models.CharField(max_length=50, verbose_name=u"名称")
-    is_deleted = models.BooleanField(default=False, editable=False, verbose_name=u"削除フラグ")
-    deleted_date = models.DateTimeField(blank=True, null=True, editable=False, verbose_name=u"削除年月日")
-
-    objects = PublicManager(is_deleted=False)
 
     class Meta:
         verbose_name = verbose_name_plural = u"精算分類"
@@ -2154,22 +2043,13 @@ class ExpensesCategory(models.Model):
     def __unicode__(self):
         return self.name
 
-    def delete(self, using=None, keep_parents=False):
-        self.is_deleted = True
-        self.deleted_date = datetime.datetime.now()
-        self.save()
 
-
-class EmployeeExpenses(models.Model):
+class EmployeeExpenses(BaseModel):
     member = models.ForeignKey(Member, verbose_name=u"社員")
     year = models.CharField(max_length=4, default=str(datetime.date.today().year),
                             choices=constants.CHOICE_ATTENDANCE_YEAR, verbose_name=u"対象年")
     month = models.CharField(max_length=2, choices=constants.CHOICE_ATTENDANCE_MONTH, verbose_name=u"対象月")
     advance_amount = models.IntegerField(default=0, verbose_name=u"管理職立替金額")
-    is_deleted = models.BooleanField(default=False, editable=False, verbose_name=u"削除フラグ")
-    deleted_date = models.DateTimeField(blank=True, null=True, editable=False, verbose_name=u"削除年月日")
-
-    objects = PublicManager(is_deleted=False, project_member__is_deleted=False, category__is_deleted=False)
 
     class Meta:
         unique_together = ('member', 'year', 'month')
@@ -2178,21 +2058,14 @@ class EmployeeExpenses(models.Model):
     def __unicode__(self):
         return u"%s %s %s" % (self.member, self.get_year_display(), self.get_month_display())
 
-    def delete(self, using=None, keep_parents=False):
-        self.is_deleted = True
-        self.deleted_date = datetime.datetime.now()
-        self.save()
 
-
-class MemberExpenses(models.Model):
+class MemberExpenses(BaseModel):
     project_member = models.ForeignKey(ProjectMember, verbose_name=u"要員")
     year = models.CharField(max_length=4, default=str(datetime.date.today().year),
                             choices=constants.CHOICE_ATTENDANCE_YEAR, verbose_name=u"対象年")
     month = models.CharField(max_length=2, choices=constants.CHOICE_ATTENDANCE_MONTH, verbose_name=u"対象月")
     category = models.ForeignKey(ExpensesCategory, verbose_name=u"分類")
     price = models.IntegerField(default=0, verbose_name=u"価格")
-    is_deleted = models.BooleanField(default=False, editable=False, verbose_name=u"削除フラグ")
-    deleted_date = models.DateTimeField(blank=True, null=True, editable=False, verbose_name=u"削除年月日")
 
     objects = PublicManager(is_deleted=False, project_member__is_deleted=False, category__is_deleted=False)
 
@@ -2203,13 +2076,8 @@ class MemberExpenses(models.Model):
     def __unicode__(self):
         return u"%s %s %s" % (self.project_member, self.get_year_display(), self.get_month_display())
 
-    def delete(self, using=None, keep_parents=False):
-        self.is_deleted = True
-        self.deleted_date = datetime.datetime.now()
-        self.save()
 
-
-class MemberAttendance(models.Model):
+class MemberAttendance(BaseModel):
     project_member = models.ForeignKey(ProjectMember, verbose_name=u"メンバー")
     year = models.CharField(max_length=4, default=str(datetime.date.today().year),
                             choices=constants.CHOICE_ATTENDANCE_YEAR, verbose_name=u"対象年")
@@ -2234,8 +2102,6 @@ class MemberAttendance(models.Model):
     minus_per_hour = models.IntegerField(default=0, editable=False, verbose_name=u"減（円）")
     price = models.IntegerField(default=0, verbose_name=u"価格")
     comment = models.CharField(blank=True, null=True, max_length=50, verbose_name=u"備考")
-    is_deleted = models.BooleanField(default=False, editable=False, verbose_name=u"削除フラグ")
-    deleted_date = models.DateTimeField(blank=True, null=True, editable=False, verbose_name=u"削除年月日")
 
     objects = PublicManager(is_deleted=False, project_member__is_deleted=False)
 
