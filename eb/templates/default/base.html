@@ -55,9 +55,12 @@
             <div class="header-nav">
                 <ul>
                     <li><a href="{% url 'index' %}">HOME</a>
-                        <!--<ul>
-                            <li><a href="{% url 'flow-index' %}">マイページ</a></li>
-                        </ul>-->
+                        {% if perms.contract.change_contract %}
+                        <ul>
+                            <!--<li><a href="{% url 'flow-index' %}">マイページ</a></li>-->
+                            <li><a href="{% url 'contract-index' %}">契約管理システム</a></li>
+                        </ul>
+                        {% endif %}
                     </li>
                     <li><a href="{% url 'employee_list' %}">要員一覧</a>
                         <ul>

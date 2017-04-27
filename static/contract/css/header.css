@@ -5,6 +5,7 @@ header {
     margin: auto;
     height: 108px;
     background: url(../img/top-bg.jpg) repeat-x;
+    margin-top: 20px;
 }
 
 header h1.title {
@@ -15,4 +16,18 @@ header h1.title {
 
 header h1.title a {
     color: #F63;
+}
+
+header div.nav {
+    position: fixed;
+    top: 0px;
+    background-color: #eeeeee;
+    border-bottom: 3px solid #02669a;
+    height: 20px;
+    width: 100%;
+    padding-left: 10px;
+}
+
+header div.nav a {
+    color: blue;
 }
