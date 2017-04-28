@@ -25,6 +25,7 @@ from django.template import Context, Template
 from django.core.mail import EmailMultiAlternatives, get_connection, SafeMIMEText
 from django.core.mail.message import MIMEBase
 from django.conf import settings
+from django.core.validators import validate_comma_separated_integer_list
 
 
 from utils import common, constants
@@ -66,7 +67,8 @@ class AbstractMember(models.Model):
     join_date = models.DateField(blank=True, null=True, default=timezone.now, verbose_name=u"入社年月日")
     email = models.EmailField(blank=True, null=True, verbose_name=u"会社メールアドレス")
     private_email = models.EmailField(blank=True, null=True, verbose_name=u"個人メールアドレス")
-    post_code = models.CharField(blank=True, null=True, max_length=7, verbose_name=u"郵便番号")
+    post_code = models.CharField(blank=True, null=True, max_length=7, verbose_name=u"郵便番号",
+                                 help_text=u"数値だけを入力してください、例：1230034")
     address1 = models.CharField(blank=True, null=True, max_length=200, verbose_name=u"住所１")
     address2 = models.CharField(blank=True, null=True, max_length=200, verbose_name=u"住所２")
     lat = models.CharField(blank=True, null=True, max_length=25, verbose_name=u"緯度")
@@ -74,7 +76,8 @@ class AbstractMember(models.Model):
     coordinate_update_date = models.DateTimeField(blank=True, null=True, editable=False, verbose_name=u"座標更新日時")
     nearest_station = models.CharField(blank=True, null=True, max_length=15, verbose_name=u"最寄駅")
     years_in_japan = models.IntegerField(blank=True, null=True, verbose_name=u"在日年数")
-    phone = models.CharField(blank=True, null=True, max_length=11, verbose_name=u"電話番号")
+    phone = models.CharField(blank=True, null=True, max_length=11, verbose_name=u"電話番号",
+                             help_text=u"数値だけを入力してください、例：08012345678")
     is_married = models.CharField(blank=True, null=True, max_length=1,
                                   choices=constants.CHOICE_MARRIED, verbose_name=u"婚姻状況")
     company = models.ForeignKey('Company', blank=True, null=True, verbose_name=u"会社")
@@ -86,7 +89,7 @@ class AbstractMember(models.Model):
                                       help_text=u"メール通知時に利用する。EBのメールアドレスを設定すると、"
                                                 u"通知のメールはEBのアドレスに送信する")
     is_retired = models.BooleanField(blank=False, null=False, default=False, verbose_name=u"退職")
-    id_from_api = models.CharField(blank=True, null=True, unique=True, max_length=30, editable=False,
+    id_from_api = models.CharField(blank=True, null=True, unique=True, max_length=30,
                                    verbose_name=u"社員ID", help_text=u"データを導入するために、API側のID")
     eboa_user_id = models.BigIntegerField(blank=True, null=True, unique=True)
     created_date = models.DateTimeField(null=True, auto_now_add=True, editable=False, verbose_name=u"作成日時")
@@ -1045,6 +1048,16 @@ class Member(AbstractMember):
         else:
             return False
 
+    @classmethod
+    def get_max_api_id(cls):
+        with connection.cursor() as cursor:
+            cursor.execute('select max(id_from_api) from eb_member')
+            records = cursor.fetchall()
+        if len(records) > 0:
+            return "%04d" % (int(records[0][0]) + 1)
+        else:
+            return "0001"
+
     def delete(self, using=None, keep_parents=False):
         self.is_deleted = True
         self.deleted_date = datetime.datetime.now()
@@ -1570,8 +1583,9 @@ class ClientOrder(BaseModel):
     order_date = models.DateField(blank=False, null=True, verbose_name=u"注文日")
     bank_info = models.ForeignKey(BankInfo, blank=False, null=True, verbose_name=u"振込先口座")
     order_file = models.FileField(blank=True, null=True, upload_to=get_client_order_path, verbose_name=u"注文書")
-    member_comma_list = models.CommaSeparatedIntegerField(max_length=255, blank=True, null=True, editable=False,
-                                                          verbose_name=u"メンバー主キーのリスト")
+    member_comma_list = models.CharField(max_length=255, blank=True, null=True, editable=False,
+                                         verbose_name=u"メンバー主キーのリスト",
+                                         validators=[validate_comma_separated_integer_list])
 
     class Meta:
         ordering = ['name', 'start_date', 'end_date']

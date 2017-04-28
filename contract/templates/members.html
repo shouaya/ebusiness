@@ -5,6 +5,7 @@
 <form method="get" action="#">
     <input type="text" name="q" value="" style="height: 40px;width: 500px;line-height:30px;font-size:25px">
     <input type="submit" style="height: 40px;width: 100px;line-height:30px;font-size:25px" value="確定">
+    <a href="{% url 'member_add' %}" class="rbutton"><i class="fa fa-user-plus" aria-hidden="true"></i>&nbsp;社員追加</a>
 </form>
 <div>
     <div class="flowTit"></div>
@@ -12,8 +13,11 @@
         <table class="list">
             <thead>
                 <tr>
-                    <th>社員番号</th>
+                    <th>番号</th>
                     <th>社員名前</th>
+                    <th>性別</th>
+                    <th>生年月日</th>
+                    <th>入社時間</th>
                     <th>雇用形態</th>
                     <th>雇用日</th>
                     <th>コスト</th>
@@ -27,9 +31,12 @@
                     {% with contract=member.latest_contract_set|first %}
                     {% if contract %}
                         <td class="center"><a href="{% url 'contract_change' member.id_from_api %}">{{ member.id_from_api|default:'' }}</a></td>
-                        <td><a href="{% url 'contract_change' member.id_from_api %}">{{ member }}</a></td>
+                        <td><a href="{% url 'member_change' member.pk %}">{{ member }}</a></td>
+                        <td>{{ member.get_sex_display|default:'' }}</td>
+                        <td>{{ member.birthday|date:'Y/m/d'|default:'' }}</td>
+                        <td>{{ member.join_date|date:'Y/m/d'|default:'' }}</td>
                         <td>{{ contract.get_member_type_display }}</td>
-                        <td>{{ contract.employment_date }}</td>
+                        <td>{{ contract.employment_date|date:'Y/m/d' }}</td>
                         <td class="num">¥ {{ contract.get_cost|intcomma }}円/月</td>
                         <td class="center">
                             {% if contract.endowment_insurance == '1' %}
@@ -40,15 +47,17 @@
                     {% else %}
                         {% if member.id_from_api %}
                             <td class="center"><a href="{% url 'contract_change' member.id_from_api %}">{{ member.id_from_api|default:'' }}</a></td>
-                            <td><a href="{% url 'contract_change' member.id_from_api %}">{{ member }}</a></td>
                         {% else %}
                             <td class="center">
                                 <a href="javascript:gen_api_id('{% url 'gen_api_id' member.pk %}')" onclick="return confirm('ＩＤを作成しますか？')">
                                     <i class="fa fa-plus" aria-hidden="true"></i>
                                 </a>
                             </td>
-                            <td>{{ member }}</td>
                         {% endif %}
+                        <td><a href="{% url 'member_change' member.pk %}">{{ member }}</a></td>
+                        <td>{{ member.get_sex_display|default:'' }}</td>
+                        <td>{{ member.birthday|date:'Y/m/d'|default:'' }}</td>
+                        <td>{{ member.join_date|date:'Y/m/d'|default:'' }}</td>
                         <td>{{ member.get_member_type_display }}</td>
                         <td></td>
                         <td></td>
@@ -61,7 +70,7 @@
             </tbody>
             <tfoot>
                 <tr>
-                    <td colspan="7">
+                    <td colspan="10">
                         <div class="pagination">
                             <span class="step-links">
                                 {% if members.has_previous %}

@@ -11,6 +11,10 @@ from django.db.models import Q
 from django.core.urlresolvers import reverse
 from django.views.decorators.csrf import csrf_protect
 from django.http import HttpResponse, HttpResponseForbidden
+from django.utils.translation import ugettext as _
+from django.utils.text import get_text_list
+from django.contrib.admin.models import LogEntry, ADDITION, CHANGE
+from django.contrib.contenttypes.models import ContentType
 
 from . import biz, models, forms
 from eb import biz_config
@@ -186,7 +190,7 @@ class GenerateApiIdView(BaseView):
             try:
                 member_id = kwargs.get('member_id')
                 member = sales_models.Member.objects.get(pk=member_id)
-                member.id_from_api = biz.get_max_api_id()
+                member.id_from_api = sales_models.Member.get_max_api_id()
                 member.save()
                 d = {'error': 0, 'msg': ''}
             except Exception as ex:
@@ -194,3 +198,58 @@ class GenerateApiIdView(BaseView):
         else:
             d = {'error': 1, 'msg': u"403: 権限ありません。"}
         return HttpResponse(json.dumps(d))
+
+
+class MemberChangeView(BaseTemplateView):
+    template_name = 'member.html'
+
+    def get_context_data(self, **kwargs):
+        context = super(MemberChangeView, self).get_context_data(**kwargs)
+        member_id = kwargs.get('member_id', None)
+        if member_id:
+            member = get_object_or_404(sales_models.Member, pk=member_id)
+        else:
+            id_from_api = sales_models.Member.get_max_api_id()
+            member = sales_models.Member(id_from_api=id_from_api, employee_id=id_from_api)
+        form = forms.MemberForm(instance=member)
+        context.update({
+            'member': member,
+            'form': form,
+        })
+        return context
+
+    def post(self, request, *args, **kwargs):
+        if not common.is_human_resources(request.user):
+            return HttpResponseForbidden()
+        kwargs.update({
+            'request': request
+        })
+        context = self.get_context_data(**kwargs)
+        old_member = context.get('member')
+        is_add = False if old_member.pk else True
+        form = forms.MemberForm(request.POST, instance=old_member)
+        context.update({
+            'form': form,
+        })
+        if form.is_valid():
+            member = form.save(commit=False)
+            member.save()
+
+            change_message = []
+            if form.changed_data:
+                changed_list = []
+                for field in form.changed_data:
+                    changed_list.append(u"%s(%s→%s)" % common.get_form_changed_value(form, field))
+                change_message.append(_('Changed %s.') % get_text_list(changed_list, _('and')))
+            message = ",".join(change_message) or _('No fields changed.')
+            action_flg = ADDITION if is_add else  CHANGE
+            LogEntry.objects.log_action(request.user.id,
+                                        ContentType.objects.get_for_model(member).pk,
+                                        member.pk,
+                                        unicode(member),
+                                        action_flg,
+                                        change_message=message)
+
+            return redirect(reverse("member_change", args=(member.pk,)))
+        else:
+            return self.render_to_response(context)

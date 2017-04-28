@@ -1,0 +1,127 @@
+{% extends "base_contract.html" %}
+{% load humanize %}
+
+{% block header %}
+<link rel="stylesheet" type="text/css" href="/static/admin/css/base.css" />
+<link rel="stylesheet" type="text/css" href="/static/admin/css/forms.css" />
+<script type="text/javascript" src="/jsi18n/"></script>
+<script type="text/javascript" src="/static/admin/js/core.js"></script>
+<script type="text/javascript" src="/static/admin/js/admin/RelatedObjectLookups.js"></script>
+{{ form.media }}
+<script type="text/javascript">
+    django.jQuery = $
+    function cancel() {
+        window.location = "{% url 'contract-index' %}"
+    }
+
+    function delete_member() {
+        if (confirm("{{ member }}を削除してもよろしいですか？")) {
+            alert('実装されていません。');
+        } else {
+            return;
+        }
+    }
+</script>
+<script type="text/javascript" src="https://ajaxzip3.github.io/ajaxzip3.js"></script>
+{% endblock %}
+
+{% block content %}
+<div>
+    <div class="flowTop"></div>
+    <div class="flowBox">
+        <form method="post" action="#">
+            <div style="display: none;">{% csrf_token %}
+                {{ form.cost }}
+                {{ form.notify_type }}
+            </div>
+            <div class="errors">{{ form.errors }}</div>
+            <table class="detail">
+                <tr>
+                    <th style="width: 150px;">{{ form.id_from_api.label_tag }}<span class="red">*</span></th>
+                    <td colspan="3"><div class="inner">{{ form.id_from_api.errors }}{{ form.id_from_api }}</div></td>
+                </tr>
+                <tr>
+                    <th>{{ form.first_name.label_tag }}<span class="red">*</span></th>
+                    <td>{{ form.first_name.errors }}{{ form.first_name }}</td>
+                    <th style="width: 150px;">{{ form.last_name.label_tag }}<span class="red">*</span></th>
+                    <td>{{ form.last_name.errors }}{{ form.last_name }}</td>
+                </tr>
+                <tr>
+                    <th>{{ form.first_name_ja.label_tag }}</th>
+                    <td>{{ form.first_name_ja.errors }}{{ form.first_name_ja }}</td>
+                    <th>{{ form.last_name_ja.label_tag }}</th>
+                    <td>{{ form.last_name_ja.errors }}{{ form.last_name_ja }}</td>
+                </tr>
+                <tr>
+                    <th>{{ form.member_type.label_tag }}<span class="red">*</span></th>
+                    <td colspan="3"><div class="inner">{{ form.member_type.errors }}{{ form.member_type }}</div></td>
+                </tr>
+                <tr>
+                    <th>{{ form.birthday.label_tag }}<span class="red">*</span></th>
+                    <td colspan="3"><div class="inner">{{ form.birthday.errors }}{{ form.birthday }}</div></td>
+                </tr>
+                <tr>
+                    <th>{{ form.sex.label_tag }}</th>
+                    <td colspan="3"><div class="inner">{{ form.sex.errors }}{{ form.sex }}</div></td>
+                </tr>
+                <tr>
+                    <th>{{ form.join_date.label_tag }}<span class="red">*</span></th>
+                    <td colspan="3"><div class="inner">{{ form.join_date.errors }}{{ form.join_date }}</div></td>
+                </tr>
+                <tr>
+                    <th><label for="id_employee_id">给料王ID:</label><span class="red">*</span></th>
+                    <td colspan="3"><div class="inner">{{ form.employee_id.errors }}{{ form.employee_id }}</div></td>
+                </tr>
+                <tr>
+                    <th>{{ form.post_code.label_tag }}</th>
+                    <td colspan="3">
+                        <div class="inner">{{ form.post_code.errors }}{{ form.post_code }}</div>
+                        <div class="help_text">{{ form.post_code.help_text }}</div>
+                    </td>
+                </tr>
+                <tr>
+                    <th>{{ form.address1.label_tag }}</th>
+                    <td colspan="3">{{ form.address1.errors }}{{ form.address1 }}</td>
+                </tr>
+                <tr>
+                    <th>{{ form.address2.label_tag }}</th>
+                    <td colspan="3">{{ form.address2.errors }}{{ form.address2 }}</td>
+                </tr>
+                <tr>
+                    <th>{{ form.nearest_station.label_tag }}</th>
+                    <td colspan="3"><div class="inner">{{ form.nearest_station.errors }}{{ form.nearest_station }}</div></td>
+                </tr>
+                <tr>
+                    <th>{{ form.phone.label_tag }}</th>
+                    <td colspan="3">
+                        <div class="inner">{{ form.phone.errors }}{{ form.phone }}</div>
+                        <div class="help_text">{{ form.phone.help_text }}</div>
+                    </td>
+                </tr>
+                <tr>
+                    <th>{{ form.section.label_tag }}</th>
+                    <td colspan="3"><div class="inner">{{ form.section.errors }}{{ form.section }}</div></td>
+                </tr>
+                <tr>
+                    <th>{{ form.email.label_tag }}</th>
+                    <td colspan="3">{{ form.email.errors }}{{ form.email }}</td>
+                </tr>
+                <tr>
+                    <th>{{ form.private_email.label_tag }}</th>
+                    <td colspan="3">{{ form.private_email.errors }}{{ form.private_email }}</td>
+                </tr>
+            </table>
+            <div style="margin: auto; margin-top: 30px; margin-bottom: 15px; width: 700px; display: block;">
+                {% if member.pk %}
+                <input type="submit" class="update" value="" />
+                <input type="button" class="delete" onclick="delete_member()" value="" />
+                {% else %}
+                    <input type="submit" class="add" value=""/>
+                {% endif %}
+                <input type="button" class="cancel right" onclick="cancel()" value="">
+            </div>
+        </form>
+    </div>
+    <div class="flowBottom"></div>
+</div>
+{% endblock %}

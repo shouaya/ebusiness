@@ -13,6 +13,31 @@ class BaseForm(forms.ModelForm):
     pass
 
 
+class MemberForm(BaseForm):
+    class Meta:
+        model = models.Member
+        fields = '__all__'
+
+    birthday = forms.DateField(widget=AdminDateWidget, label=u"生年月日")
+    join_date = forms.DateField(widget=AdminDateWidget, label=u"入社年月日")
+    post_code = forms.CharField(max_length=7,
+                                widget=forms.TextInput(
+                                    attrs={'onKeyUp': "AjaxZip3.zip2addr(this,'','address1','address1');"}),
+                                label=u"郵便番号",
+                                help_text=u"数値だけを入力してください、例：1230034",
+                                required=False)
+
+    def __init__(self, *args, **kwargs):
+        super(MemberForm, self).__init__(*args, **kwargs)
+        self.fields['id_from_api'].widget.attrs.update({'readonly': 'readonly'})
+
+    def clean(self):
+        cleaned_data = super(MemberForm, self).clean()
+        if self.instance and not self.instance.pk:
+            cleaned_data["id_from_api"] = models.Member.get_max_api_id()
+        return cleaned_data
+
+
 class ContractForm(BaseForm):
     class Meta:
         model = models.Contract

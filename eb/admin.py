@@ -765,10 +765,10 @@ class ClientAdmin(BaseAdmin):
 
 
 class ClientOrderAdmin(BaseAdmin):
-    list_display = ['name', 'start_date', 'end_date', 'is_deleted']
+    list_display = ['order_no', 'name', 'start_date', 'end_date', 'is_deleted']
     list_filter = ['is_deleted']
     filter_horizontal = ['projects']
-    search_fields = ['name']
+    search_fields = ['order_no', 'name']
     actions = ['delete_objects', 'active_objects']
 
     def get_actions(self, request):

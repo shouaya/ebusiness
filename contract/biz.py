@@ -21,13 +21,3 @@ def get_members():
 def get_latest_contract(member):
     contract_set = member.contract_set.filter(is_deleted=False).order_by('-employment_date', '-contract_no')
     return contract_set
-
-
-def get_max_api_id():
-    with connection.cursor() as cursor:
-        cursor.execute('select max(id_from_api) from eb_member')
-        records = cursor.fetchall()
-    if len(records) > 0:
-        return "%04d" % (int(records[0][0]) + 1)
-    else:
-        return "0001"
