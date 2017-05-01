@@ -309,7 +309,8 @@ def load_section_attendance(file_content, year, month, use_id):
         expenses = expenses if expenses else None
 
         if not project_member_id:
-            messages.append((project_member_id, member_code, member_name, u"ID情報が取れません。"))
+            if member_code or member_name:
+                messages.append((project_member_id, member_code, member_name, u"ID情報が取れません。"))
             continue
         try:
             project_member = models.ProjectMember.objects.get(pk=project_member_id)

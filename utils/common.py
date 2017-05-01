@@ -857,7 +857,7 @@ def get_object_changed_message(obj, field, new_value, changed_list=None):
     :param changed_list:
     :return:
     """
-    verbose_name = obj._meta.get_field_by_name(field)[0].verbose_name
+    verbose_name = obj._meta.get_field(field).verbose_name
     if obj.pk:
         # 更新の場合
         old_value = getattr(obj, field)
