@@ -2044,7 +2044,7 @@ class ProjectMember(models.Model):
             # 基本金額＋残業金額
             d['ITEM_AMOUNT_TOTAL'] = attendance.price if attendance else self.price
         # 備考
-        d['ITEM_COMMENT'] = attendance.comment if attendance else u""
+        d['ITEM_COMMENT'] = attendance.comment if attendance and attendance.comment else u""
         d['ITEM_OTHER'] = u""
 
         return d
