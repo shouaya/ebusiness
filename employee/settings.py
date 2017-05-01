@@ -24,7 +24,7 @@ SECRET_KEY = '@p5sj45=(^$_b=%3^qzs$=tw72j01+6ay076w)6gogwwaj#if7'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['sales', 'localhost', '127.0.0.1', 'sales.e-business.co.jp']
 NUMBER_GROUPING = 3
 
 # Application definition
