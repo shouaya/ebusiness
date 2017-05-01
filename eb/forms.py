@@ -542,10 +542,15 @@ class MemberSectionPeriodForm(forms.ModelForm):
             self.fields['section'].queryset = models.Section.objects.public_filter(
                 is_on_sales=True, org_type='02',
             )
-            self.fields['subsection'].queryset = models.Section.objects.public_filter(
-                is_on_sales=True, org_type='03',
-                parent__pk=instance.section.pk
-            )
+            if instance.section:
+                self.fields['subsection'].queryset = models.Section.objects.public_filter(
+                    is_on_sales=True, org_type='03',
+                    parent__pk=instance.section.pk
+                )
+            else:
+                self.fields['subsection'].queryset = models.Section.objects.public_filter(
+                    is_on_sales=True, org_type='03',
+                )
         else:
             self.fields['division'].queryset = models.Section.objects.public_filter(is_on_sales=True, org_type='01')
             self.fields['section'].queryset = models.Section.objects.public_filter(is_on_sales=True, org_type='02')
@@ -558,6 +563,8 @@ class MemberSectionPeriodForm(forms.ModelForm):
         division = cleaned_data.get('division')
         section = cleaned_data.get('section')
         subsection = cleaned_data.get('subsection')
+        if not division and not section and not subsection:
+            self.add_error('division', u"事業部を選択してください。")
         if end_date and end_date <= start_date:
             self.add_error('end_date', u"終了日は開始日以降に設定してください。")
         if 'section' in self.changed_data and self.instance.pk:

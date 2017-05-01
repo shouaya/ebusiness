@@ -1124,7 +1124,7 @@ class MemberSectionPeriod(BaseModel):
     member = models.ForeignKey(Member, verbose_name=u"社員名")
     division = models.ForeignKey(Section, blank=True, null=True, related_name='memberdivisionperiod_set',
                                  verbose_name=u"事業部")
-    section = models.ForeignKey(Section, verbose_name=u"部署")
+    section = models.ForeignKey(Section, blank=True, null=True, verbose_name=u"部署")
     subsection = models.ForeignKey(Section, blank=True, null=True, related_name='membersubsectionperiod_set',
                                    verbose_name=u"課・グループ")
     start_date = models.DateField(verbose_name=u"開始日")
@@ -1136,7 +1136,13 @@ class MemberSectionPeriod(BaseModel):
 
     def __unicode__(self):
         f = u"%s - %s(%s〜%s)"
-        return f % (self.member.__unicode__(), self.section.__unicode__(), self.start_date, self.end_date)
+        if self.division:
+            organization = unicode(self.division)
+        elif self.section:
+            organization = unicode(self.section)
+        else:
+            organization = unicode(self.subsection)
+        return f % (self.member.__unicode__(), organization, self.start_date, self.end_date)
 
 
 class MemberSalespersonPeriod(BaseModel):
