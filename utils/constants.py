@@ -246,6 +246,9 @@ CHOICE_CONTRACT_STATUS = (('01', u"登録済み"),
                           ('02', u"承認待ち"),
                           ('03', u"承認済み"),
                           ('04', u"廃棄"))
+CHOICE_RECIPIENT_TYPE = (('01', u"宛先"),
+                         ('02', u"ＣＣ"),
+                         ('03', u"ＢＣＣ"))
 
 xlPart = 2
 xlByRows = 1

@@ -992,7 +992,9 @@ class Member(AbstractMember):
         :param date 対象年月
         :return:
         """
-        contract_list = self.contract_set.filter(employment_date__lte=date).order_by('-employment_date', '-contract_no')
+        contract_list = self.contract_set.filter(
+            employment_date__lte=date
+        ).exclude(status='04').order_by('-employment_date', '-contract_no')
         if contract_list.count() > 0:
             return contract_list[0]
         else:

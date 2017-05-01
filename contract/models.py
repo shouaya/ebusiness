@@ -10,7 +10,7 @@ import datetime
 from django.db import models
 from django.utils import timezone
 
-from eb.models import Member, Config, Company
+from eb.models import Member, Config, Company, BatchManage, EmailMultiAlternativesWithEncoding
 from utils import constants
 
 
@@ -145,3 +145,55 @@ class Contract(BaseModel):
     def get_next_contract_no(self):
         today = datetime.date.today()
         return "EB%04d%s" % (int(self.member.id_from_api), today.strftime('%Y%m%d'))
+
+    def save(self, force_insert=False, force_update=False, using=None,
+             update_fields=None):
+        super(Contract, self).save(force_insert, force_update, using, update_fields)
+        # from_email, title, body, html = self.get_formatted_batch(context)
+        # mail_connection = BatchManage.get_custom_connection()
+        # recipient_list = ContractRecipient.get_recipient_list()
+        # cc_list = ContractRecipient.get_cc_list()
+        # bcc_list = ContractRecipient.get_bcc_list()
+        # email = EmailMultiAlternativesWithEncoding(
+        #     subject=title,
+        #     body=body,
+        #     from_email=from_email,
+        #     to=recipient_list,
+        #     cc=cc_list,
+        #     connection=mail_connection
+        # )
+        # if html:
+        #     email.attach_alternative(html, constants.MIME_TYPE_HTML)
+        # if attachments:
+        #     for filename, content, mimetype in attachments:
+        #         email.attach(filename, content, mimetype)
+        # email.send()
+
+
+class ContractRecipient(BaseModel):
+    recipient_type = models.CharField(max_length=2, default='01', choices=constants.CHOICE_RECIPIENT_TYPE,
+                                      verbose_name=u"送信種類")
+    member = models.ForeignKey(Member, blank=True, null=True, verbose_name=u"送信先の社員")
+    email = models.EmailField(blank=True, null=True, verbose_name=u"メールアドレス")
+
+    class Meta:
+        verbose_name = verbose_name_plural = u"契約変更の受信者"
+        db_table = 'eb_contractrecipient'
+
+    def __unicode__(self):
+        if self.member:
+            return unicode(self.member)
+        else:
+            return self.email
+
+    @classmethod
+    def get_recipient_list(cls):
+        return ContractRecipient.objects.public_filter(recipient_type='01')
+
+    @classmethod
+    def get_cc_list(cls):
+        return ContractRecipient.objects.public_filter(recipient_type='02')
+
+    @classmethod
+    def get_bcc_list(cls):
+        return ContractRecipient.objects.public_filter(recipient_type='03')

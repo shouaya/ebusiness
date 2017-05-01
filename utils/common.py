@@ -20,6 +20,7 @@ import jholiday
 from decimal import Decimal
 from django.conf import settings
 from django.contrib.auth.models import Group
+from django.utils import timezone
 
 
 def get_tz_jp():
@@ -49,7 +50,7 @@ def get_last_day_by_month(source_date):
 
 def get_first_day_current_month():
     today = datetime.date.today()
-    return datetime.date(today.year, today.month, 1)
+    return datetime.datetime(today.year, today.month, 1, tzinfo=get_tz_jp()).date()
 
 
 def get_first_day_from_ym(ym):
@@ -71,7 +72,7 @@ def get_last_day_from_ym(ym):
 
 
 def get_last_day_current_month():
-    return get_last_day_by_month(datetime.date.today())
+    return get_last_day_by_month(timezone.now())
 
 
 def get_month_list(start_index=0, end_index=2, start_ym=None):
