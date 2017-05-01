@@ -18,37 +18,41 @@
     <table cellspacing="0" cellpadding="0" class="list">
         <thead>
             <tr>
-                <th>{% create_order_display "名前" "first_name" %}</th>
-                <th>{% create_order_display "案件" "projectmember__project__name" %}</th>
-                <th>開始日</th>
-                <th>終了日</th>
+                <th>{% create_order_display "名前" "member__first_name" %}</th>
+                <th>{% create_order_display "配属開始日" "start_date" %}</th>
+                <th>{% create_order_display "事業部" "division" %}</th>
+                <th>{% create_order_display "部署" "section" %}</th>
+                <th>{% create_order_display "課・グループ" "subsection" %}</th>
                 <th style="width: 80px;"></th>
             </tr>
         </thead>
         <tbody>
-            {% if members %}
-                {% for member in members %}
+            {% if members_period %}
+                {% for member_period in members_period %}
+                    {% with current_project_member=member_period.current_projectmember_set|first %}
                     <tr class="{% cycle 'row1' 'row2' %}
-                               {% ifnotequal member.is_on_sales True %}off_sales{% endifnotequal %}
-                               {% ifequal member.get_project_end_date|default:'' '' %}waiting{% endifequal %}">
+                    {% ifnotequal member_period.member.is_on_sales True %}off_sales{% endifnotequal %}
+                    {% ifequal member_period.member.get_project_end_date|default:'' '' %}waiting{% endifequal %}">
                         <td>
-                            <a href="{% url 'member_detail' member.employee_id %}">
-                                {{ member.first_name }}&nbsp;{{ member.last_name }}
+                            <a href="{% url 'member_detail' member_period.member.employee_id %}">
+                                {{ member_period.member.first_name }}&nbsp;{{ member_period.member.last_name }}
                             </a>
                         </td>
-                        <td>{{ member.get_current_project_member.project }}</td>
-                        <td>{{ member.get_current_project_member.start_date }}</td>
-                        <td>{{ member.get_current_project_member.end_date }}</td>
-                        <td>
-                            {% ifnotequal member.is_on_sales True %}
-                                {{ member.sales_off_reason }}
+                        <td>{{ member_period.start_date|date:'Y-m-d' }}</td>
+                        <td>{{ member_period.division|default:'' }}</td>
+                        <td>{{ member_period.section|default:'' }}</td>
+                        <td>{{ member_period.subsection|default:'' }}</td>
+                        <td>{{ member_period.current_projectmember_set }}
+                            {% ifnotequal member_period.member.is_on_sales True %}
+                                {{ member_period.member.sales_off_reason }}
                             {% else %}
-                                {% ifequal member.get_project_end_date|default:'' '' %}
+                                {% ifequal member_period.member.get_project_end_date|default:'' '' %}
                                     待機
                                 {% endifequal %}
                             {% endifnotequal %}
                         </td>
                     </tr>
+                    {% endwith %}
                 {% endfor %}
             {% else %}
                 <tr class="row2"><td class="center red" colspan="8">メンバーがいません。</td></tr>
@@ -59,13 +63,13 @@
                 <td colspan="8">
                     <div class="pagination">
                         <span class="step-links">
-                            {% if members.has_previous %}
-                                <a href="?page={{ members.previous_page_number }}{{ params }}{{ orders }}">&lt;</a>
+                            {% if members_period.has_previous %}
+                                <a href="?page={{ members_period.previous_page_number }}{{ params }}{{ orders }}">&lt;</a>
                             {% endif %}
 
                             {% if paginator.page_range|length > 1 %}
                                 {% for page in paginator.page_range %}
-                                    {% ifequal page members.number %}
+                                    {% ifequal page members_period.number %}
                                         <span class="current">
                                             {{ page }}
                                         </span>
@@ -75,8 +79,8 @@
                                 {% endfor %}
                             {% endif %}
 
-                            {% if members.has_next %}
-                                <a href="?page={{ members.next_page_number }}{{ params }}{{ orders }}">&gt;</a>
+                            {% if members_period.has_next %}
+                                <a href="?page={{ members_period.next_page_number }}{{ params }}{{ orders }}">&gt;</a>
                             {% endif %}
                             <span>{{ paginator.count }} 件</span>
                         </span>

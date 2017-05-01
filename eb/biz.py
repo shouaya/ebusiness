@@ -226,14 +226,17 @@ def get_project_members_month_section(section, date, user=None):
     # 請求明細情報
     project_request_detail_set = models.ProjectRequestDetail.objects.filter(project_request__year="%04d" % date.year,
                                                                             project_request__month="%02d" % date.month)
+    all_children = section.get_children()
+    org_pk_list = [org.pk for org in all_children]
+    org_pk_list.append(section.pk)
 
     return project_members.filter((Q(member__membersectionperiod__start_date__lte=date) &
                                    Q(member__membersectionperiod__end_date__isnull=date)) |
                                   (Q(member__membersectionperiod__start_date__lte=date) &
                                    Q(member__membersectionperiod__end_date__gte=date)),
-                                  Q(member__membersectionperiod__division=section) |
-                                  Q(member__membersectionperiod__section=section) |
-                                  Q(member__membersectionperiod__subsection=section),
+                                  Q(member__membersectionperiod__division__in=org_pk_list) |
+                                  Q(member__membersectionperiod__section__in=org_pk_list) |
+                                  Q(member__membersectionperiod__subsection__in=org_pk_list),
                                   member__membersectionperiod__is_deleted=False).distinct().prefetch_related(
         Prefetch('member'),
         Prefetch('memberattendance_set', queryset=current_attendance_set, to_attr='current_attendance_set'),

@@ -537,6 +537,30 @@ class Section(BaseModel):
             children.extend(list(org.get_children()))
         return children
 
+    def get_members_period(self):
+        """当該部署に所属メンバーを取得する、子部署も含む。
+
+        :return:
+        """
+        today = timezone.now().date()
+        all_children = self.get_children()
+        org_pk_list = [org.pk for org in all_children]
+        org_pk_list.append(self.pk)
+        projectmember_set = ProjectMember.objects.filter(start_date__lte=today,
+                                                         end_date__gte=today)
+        org_period_list = MemberSectionPeriod.objects.filter(
+            Q(division__in=org_pk_list) |
+            Q(section__in=org_pk_list) |
+            Q(subsection__in=org_pk_list),
+            Q(end_date__gte=today) | Q(end_date__isnull=True),
+            start_date__lte=today,
+            member__is_retired=False,
+            member__is_deleted=False
+        ).select_related('member').prefetch_related(
+            Prefetch('member__projectmember_set', queryset=projectmember_set, to_attr='current_projectmember_set'),
+        )
+        return org_period_list
+
 
 class SalesOffReason(BaseModel):
     name = models.CharField(blank=False, null=False, max_length=50, verbose_name=u"理由")

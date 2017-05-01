@@ -725,18 +725,11 @@ class SectionListView(BaseTemplateView):
 
     def get(self, request, *args, **kwargs):
         sections = biz.get_on_sales_top_org()
-        section_count_list = []
-        total_count = 0
-        for section in sections:
-            count = biz.get_members_section(section).count()
-            total_count += count
-            section_count_list.append((section, count))
 
         context = self.get_context_data()
         context.update({
             'title': u'部署情報一覧 | %s' % constants.NAME_SYSTEM,
-            'sections': section_count_list,
-            'total_count': total_count,
+            'sections': sections,
         })
         return self.render_to_response(context)
 
@@ -747,29 +740,29 @@ class SectionDetailView(BaseTemplateView):
     def get(self, request, *args, **kwargs):
         section_id = kwargs.get('section_id', 0)
         section = get_object_or_404(models.Section, pk=section_id)
-        all_members = biz.get_members_section(section)
+        all_members_period = section.get_members_period()
 
         o = request.GET.get('o', None)
-        dict_order = common.get_ordering_dict(o, ['first_name', 'projectmember__project__name'])
+        dict_order = common.get_ordering_dict(o, ['member__first_name', 'start_date', 'division', 'section', 'subsection'])
         order_list = common.get_ordering_list(o)
 
         if order_list:
-            all_members = all_members.order_by(*order_list)
+            all_members_period = all_members_period.order_by(*order_list)
 
-        paginator = Paginator(all_members, biz_config.get_page_size())
+        paginator = Paginator(all_members_period, biz_config.get_page_size())
         page = request.GET.get('page')
         try:
-            members = paginator.page(page)
+            members_period = paginator.page(page)
         except PageNotAnInteger:
-            members = paginator.page(1)
+            members_period = paginator.page(1)
         except EmptyPage:
-            members = paginator.page(paginator.num_pages)
+            members_period = paginator.page(paginator.num_pages)
 
         context = self.get_context_data()
         context.update({
             'title': u'%s | 部署 | %s' % (section.name, constants.NAME_SYSTEM),
             'section': section,
-            'members': members,
+            'members_period': members_period,
             'dict_order': dict_order,
             'paginator': paginator,
             'year_list': biz.get_year_list(),
