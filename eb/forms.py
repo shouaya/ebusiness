@@ -27,8 +27,8 @@ class EncryptField(Widget):
     def __init__(self, attrs=None):
         super(EncryptField, self).__init__(attrs)
 
-    def render(self, name, value, attrs=None):
-        final_attrs = self.build_attrs(attrs, name=name)
+    def render(self, name, value, attrs=None, renderer=None):
+        final_attrs = self.build_attrs(attrs)
         return format_html('<span{}>******</span>', flatatt(final_attrs))
 
 
@@ -37,16 +37,10 @@ class SearchSelect(forms.Select):
         self.clsModel = clsModel
         super(SearchSelect, self).__init__(attrs, choices)
 
-    def render(self, name, value, attrs=None, choices=()):
-        if value is None:
-            value = ''
-        final_attrs = self.build_attrs(attrs, name=name)
+    def render(self, name, value, attrs=None, renderer=None):
         output = ['<div class="related-widget-wrapper">']
-        output.extend([format_html('<select{}>', flatatt(final_attrs))])
-        options = self.render_options(choices, [value])
-        if options:
-            output.append(options)
-        output.append('</select>')
+        html = super(SearchSelect, self).render(name, value, attrs, renderer)
+        output.append(html)
 
         from django.contrib import admin
         related_url = reverse(
