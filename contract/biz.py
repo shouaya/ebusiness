@@ -5,7 +5,6 @@ Created on 2017/04/24
 @author: Yang Wanjun
 """
 from django.db.models import Prefetch
-from django.db import connection
 from eb import models as sales_models
 from . import models
 

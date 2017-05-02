@@ -16,6 +16,7 @@ from utils import common
 from eb import models
 from . import biz_config
 from eboa import models as eboa_models
+from contract import models as contract_models
 
 
 def get_batch_manage(name):
@@ -207,6 +208,26 @@ def get_members_section(section):
     return get_members_by_section(all_members, section.id)
 
 
+def get_business_partner_members():
+    """BPメンバーを取得する
+
+    :return:
+    """
+    queryset = models.Member.objects.public_filter(
+        subcontractor__isnull=False
+    ).select_related('subcontractor').order_by('subcontractor')
+    return queryset
+
+
+def get_business_partner_members_with_contract():
+    queryset = get_business_partner_members()
+    contract_set = contract_models.BpContract.objects.public_all().order_by('-start_date')
+
+    return queryset.prefetch_related(
+        Prefetch('bpcontract_set', queryset=contract_set, to_attr='latest_contract_set'),
+    )
+
+
 def get_project_members_month_section(section, date, user=None):
     """該当する日付に指定された部署に配属される案件メンバーを取得する。
 
@@ -393,7 +414,7 @@ def get_order_no(user):
             prefix = user.salesperson.first_name_en[0]
 
     order_no = "EB{0:04d}{1:02d}{2:02d}{3}".format(today.year, today.month, today.day, prefix)
-    max_order_no = models.SubcontractorOrder.objects.public_filter(order_no__startswith=order_no)\
+    max_order_no = models.BpMemberOrder.objects.public_filter(order_no__startswith=order_no)\
         .aggregate(Max('order_no'))
     max_order_no = max_order_no.get('order_no__max')
     if max_order_no:
@@ -411,6 +432,97 @@ def get_user_profile(user):
     if hasattr(user, 'salesperson'):
         return user.salesperson
     return None
+
+
+def generate_bp_order_data(project_member, year, month, user):
+    """ＢＰ注文書を作成するためのデータを取得する。
+
+    :param project_member:
+    :param year:
+    :param month:
+    :param user:
+    :return:
+    """
+    company = get_company()
+    first_day = datetime.date(int(year), int(month), 1)
+    last_day = common.get_last_day_by_month(first_day)
+    contract = project_member.member.get_contract(last_day)
+    data = {'DETAIL': {}}
+    # 発行年月日
+    date = datetime.date.today()
+    data['DETAIL']['PUBLISH_DATE'] = common.to_wareki(date)
+    # 下請け会社名
+    data['DETAIL']['SUBCONTRACTOR_NAME'] = project_member.member.subcontractor.name
+    # 委託業務責任者（乙）
+    data['DETAIL']['SUBCONTRACTOR_MASTER'] = project_member.member.subcontractor.president
+    # 作成者
+    salesperson = get_user_profile(user)
+    data['DETAIL']['AUTHOR_FIRST_NAME'] = salesperson.first_name if salesperson else ''
+    # 会社名
+    data['DETAIL']['COMPANY_NAME'] = company.name
+    # 本社郵便番号
+    data['DETAIL']['POST_CODE'] = common.get_full_postcode(company.post_code)
+    # 本社電話番号
+    data['DETAIL']['TEL'] = company.tel
+    # 代表取締役
+    member = get_master()
+    data['DETAIL']['MASTER'] = u"%s %s" % (member.first_name, member.last_name) if member else ""
+    # 本社住所
+    data['DETAIL']['ADDRESS1'] = company.address1
+    data['DETAIL']['ADDRESS2'] = company.address2
+    # 業務名称
+    data['DETAIL']['PROJECT_NAME'] = project_member.project.name
+    # 作業期間
+    data['DETAIL']['START_DATE'] = common.to_wareki(first_day)
+    data['DETAIL']['END_DATE'] = common.to_wareki(last_day)
+    # 作業責任者
+    data['DETAIL']['MEMBER_NAME'] = unicode(project_member.member)
+    # 基本給
+    allowance_base = humanize.intcomma(contract.allowance_base) if contract else ''
+    allowance_base_memo = u"(%s)" % contract.allowance_base_memo if contract.allowance_base_memo else ''
+    if contract.is_hourly_pay:
+        data['DETAIL']['ALLOWANCE_BASE'] = u"時間単価：\\%s/h %s" % (allowance_base, allowance_base_memo)
+    else:
+        data['DETAIL']['ALLOWANCE_BASE'] = u"月額基本料金：\\%s円/月 %s" % (allowance_base, allowance_base_memo)
+    if not contract.is_fixed_cost():
+        # 超過単価
+        args = (allowance_base, contract.allowance_time_max, contract.allowance_overtime)
+        data['DETAIL']['ALLOWANCE_OVERTIME'] = u"超過単価：\\%s/%sh=\\%s/h" % args
+        # 不足単価
+        args = (allowance_base, contract.allowance_time_min, contract.allowance_absenteeism)
+        data['DETAIL']['ALLOWANCE_ABSENTEEISM'] = u"不足単価：\\%s/%sh=\\%s/h" % args
+        # 基準時間
+        args = (contract.allowance_time_min, contract.allowance_time_max)
+        data['DETAIL']['ALLOWANCE_BASE_TIME'] = u"※基準時間：%s～%sh/月" % args
+    # 作業場所
+    data['DETAIL']['LOCATION'] = project_member.project.address if project_member.project.address else u"弊社指定場所"
+    # 納入物件
+    data['DETAIL']['DELIVERABLE'] = u"月別作業報告書"
+    # 支払条件
+    data['DETAIL']['PAY_CONDITION1'] = u"作業報告書査収による毎月末締め、翌々月末日に現金振込"
+    data['DETAIL']['PAY_CONDITION2'] = u"①   途中入退場の場合は日割計算する。"
+    data['DETAIL']['PAY_CONDITION3'] = u"②   時間単位30分。"
+    data['DETAIL']['PAY_CONDITION4'] = u"③   休憩時間は顧客就業時間に準ずる。"
+    data['DETAIL']['PAY_CONDITION5'] = u"④   請求書は毎月作業実績表（現場の承認印）を添付の上、翌月5日迄に送付する。"
+    data['DETAIL']['PAY_CONDITION6'] = u"⑤   終了期日に変更が生じた場合は、別途協議する。"
+
+    # 注文情報を追加する
+    try:
+        order = models.BpMemberOrder.objects.get(project_member=project_member,
+                                                 year=year,
+                                                 month="%02d" % int(month))
+        data['DETAIL']['ORDER_NO'] = order.order_no
+        order.updated_user = user
+    except ObjectDoesNotExist:
+        data['DETAIL']['ORDER_NO'] = get_order_no(user)
+        order = models.BpMemberOrder(project_member=project_member,
+                                     subcontractor=project_member.member.subcontractor,
+                                     order_no=data['DETAIL']['ORDER_NO'],
+                                     year=year,
+                                     month="%02d" % int(month))
+        order.created_user = user
+    order.save()
+    return data
 
 
 def generate_order_data(company, subcontractor, user, ym):

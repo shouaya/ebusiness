@@ -215,7 +215,7 @@ class EbSubcontractor(eb_models.Subcontractor):
         verbose_name = verbose_name_plural = u"協力会社"
 
 
-class EbSubcontractororder(eb_models.SubcontractorOrder):
+class EbSubcontractororder(eb_models.BpMemberOrder):
     objects = DelManager()
 
     class Meta:

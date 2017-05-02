@@ -885,10 +885,10 @@ def generate_order(company, data):
 
         return path
     else:
-        return generate_order_linux(company, data)
+        return generate_order_linux(data)
 
 
-def generate_order_linux(company, data):
+def generate_order_linux(data):
     order_no = data['DETAIL']['ORDER_NO']
     partner_name = data['DETAIL']['SUBCONTRACTOR_NAME']
     path = common.get_order_file_path(order_no, partner_name, '201704')
@@ -904,7 +904,7 @@ def generate_order_linux(company, data):
                                     'font_size': 20,})
     sheet.merge_range('D3:F3', u"注　文　書", title_format)
     # 注文番号
-    sheet.write_string('G1', u"請求番号: %s" % order_no)
+    sheet.write_string('G1', u"注文番号: %s" % order_no)
     # 発行年月日
     sheet.write_string('G2', data['DETAIL']['PUBLISH_DATE'])
     sheet.write_string('A4', u"（乙）")
@@ -918,28 +918,58 @@ def generate_order_linux(company, data):
     sheet.write_string('F8', data['DETAIL']['ADDRESS2'])
     # 本社電話番号
     sheet.write_string('F9', "TEL:%s  FAX:03-6809-3238" % data['DETAIL']['TEL'])
-    # 作成者
-    sheet.write_string('G11', u"作成者")
 
-    sheet.write_string('A16', u"下記の通り注文致しますので、ご了承の上、折り返し注文請書をご送付下さい。")
     cell_format1 = book.add_format({'align': 'center',
                                     'valign': 'vcenter',
                                     'border': 1,
                                     'font_size': 10.5})
-    sheet.merge_range('A17:B17', u"作業期間", cell_format1)
-    sheet.merge_range('C17:I17', u"%s ～ %s" % (data['DETAIL']['START_DATE'], data['DETAIL']['END_DATE']), cell_format1)
+    # 作成者
+    sheet.write_string('G11', u"作成者")
+    sheet.merge_range('G12:G14', '', cell_format1)
 
-    sheet.merge_range('A18:B18', u"委託業務責任者（甲）", cell_format1)
-    sheet.merge_range('C18:E18', data['DETAIL']['MASTER'],  )
-    sheet.merge_range('F18:G18', u"連絡窓口担当者（甲）", cell_format1)
-    sheet.merge_range('H18:I18', u"", cell_format1)
+    sheet.write_string('A16', u"下記の通り注文致しますので、ご了承の上、折り返し注文請書をご送付下さい。")
+    sheet.merge_range('A17:B17', u"業務名称", cell_format1)
+    sheet.merge_range('C17:I17', data['DETAIL']['PROJECT_NAME'],  cell_format1)
+    sheet.merge_range('A18:B18', u"作業期間", cell_format1)
+    sheet.merge_range('C18:I18', u"%s ～ %s" % (data['DETAIL']['START_DATE'], data['DETAIL']['END_DATE']), cell_format1)
 
-    sheet.merge_range('A19:B19', u"委託業務責任者（乙）", cell_format1)
-    sheet.merge_range('C19:E19', data['DETAIL']['SUBCONTRACTOR_MASTER'], cell_format1)
-    sheet.merge_range('F19:G19', u"連絡窓口担当者（乙）", cell_format1)
+    sheet.merge_range('A19:B19', u"委託業務責任者（甲）", cell_format1)
+    sheet.merge_range('C19:E19', data['DETAIL']['MASTER'],  cell_format1)
+    sheet.merge_range('F19:G19', u"連絡窓口担当者（甲）", cell_format1)
     sheet.merge_range('H19:I19', u"", cell_format1)
 
-    sheet.merge_range('A20:B26', u"業務委託料金")
+    sheet.merge_range('A20:B20', u"委託業務責任者（乙）", cell_format1)
+    sheet.merge_range('C20:E20', data['DETAIL']['SUBCONTRACTOR_MASTER'], cell_format1)
+    sheet.merge_range('F20:G20', u"連絡窓口担当者（乙）", cell_format1)
+    sheet.merge_range('H20:I20', u"", cell_format1)
+
+    sheet.merge_range('A21:B21', u"作業責任者", cell_format1)
+    sheet.merge_range('C21:I21', data['DETAIL']['MEMBER_NAME'], cell_format1)
+
+    sheet.merge_range('A22:B27', u"業務委託料金", cell_format1)
+    text_list = list()
+    text_list.append(data['DETAIL']['ALLOWANCE_BASE'])
+    if 'ALLOWANCE_OVERTIME' in data['DETAIL']:
+        text_list.append(data['DETAIL']['ALLOWANCE_OVERTIME'])
+    if 'ALLOWANCE_ABSENTEEISM' in data['DETAIL']:
+        text_list.append(data['DETAIL']['ALLOWANCE_ABSENTEEISM'])
+    if 'ALLOWANCE_BASE_TIME' in data['DETAIL']:
+        text_list.append(data['DETAIL']['ALLOWANCE_BASE_TIME'])
+    sheet.merge_range('C22:I27', u"\r\n".join(text_list), cell_format1)
+
+    sheet.merge_range('A28:B28', u"作業場所", cell_format1)
+    sheet.merge_range('C28:I28', data['DETAIL']['LOCATION'], cell_format1)
+
+    sheet.merge_range('A29:B29', u"納入物件", cell_format1)
+    sheet.merge_range('C29:I29', data['DETAIL']['DELIVERABLE'], cell_format1)
+
+    sheet.merge_range('A30:B35', u"支払条件", cell_format1)
+    sheet.merge_range('C30:I30', data['DETAIL']['PAY_CONDITION1'], cell_format1)
+    sheet.merge_range('C31:I31', data['DETAIL']['PAY_CONDITION2'], cell_format1)
+    sheet.merge_range('C32:I32', data['DETAIL']['PAY_CONDITION3'], cell_format1)
+    sheet.merge_range('C33:I33', data['DETAIL']['PAY_CONDITION4'], cell_format1)
+    sheet.merge_range('C34:I34', data['DETAIL']['PAY_CONDITION5'], cell_format1)
+    sheet.merge_range('C35:I35', data['DETAIL']['PAY_CONDITION6'], cell_format1)
 
     book.close()
     return path

@@ -53,6 +53,9 @@ class BaseView(View, ContextMixin):
         return context
 
     def get(self, request, *args, **kwargs):
+        kwargs.update({
+            'request': request
+        })
         context = self.get_context_data(**kwargs)
         return self.render_to_response(context)
 
@@ -1217,7 +1220,7 @@ class RecommendedProjectsView(BaseTemplateView):
         return self.render_to_response(context)
 
 
-@method_decorator(permission_required('eb.view_subcontractor', raise_exception=True), name='dispatch')
+@method_decorator(permission_required('eb.view_subcontractor', raise_exception=True), name='get')
 class SubcontractorListView(BaseTemplateView):
     template_name = 'default/subcontractor_list.html'
 
@@ -1257,7 +1260,7 @@ class SubcontractorListView(BaseTemplateView):
         return self.render_to_response(context)
 
 
-@method_decorator(permission_required('eb.view_subcontractor', raise_exception=True), name='dispatch')
+@method_decorator(permission_required('eb.view_subcontractor', raise_exception=True), name='get')
 class SubcontractorDetailView(BaseTemplateView):
     template_name = 'default/subcontractor_detail.html'
 
@@ -1294,7 +1297,7 @@ class SubcontractorDetailView(BaseTemplateView):
         return self.render_to_response(context)
 
 
-@method_decorator(permission_required('eb.view_subcontractor', raise_exception=True), name='dispatch')
+@method_decorator(permission_required('eb.view_subcontractor', raise_exception=True), name='get')
 class SubcontractorMembersView(BaseTemplateView):
     template_name = 'default/subcontractor_members.html'
 
@@ -1406,6 +1409,53 @@ class SubcontractorMembersView(BaseTemplateView):
             return HttpResponse(template.render(context, request))
 
 
+@method_decorator(permission_required('eb.view_subcontractor', raise_exception=True), name='get')
+class BusinessPartnerMembersView(BaseTemplateView):
+    template_name = 'default/business_partner_members.html'
+
+    def get_context_data(self, **kwargs):
+        context = super(BusinessPartnerMembersView, self).get_context_data(**kwargs)
+        request = kwargs.get('request')
+        param_list = common.get_request_params(request.GET)
+        params = "&".join(["%s=%s" % (key, value) for key, value in param_list.items()]) if param_list else ""
+
+        all_members = biz.get_business_partner_members_with_contract()
+        if param_list:
+            all_members = all_members.filter(**param_list)
+
+        paginator = Paginator(all_members, biz_config.get_page_size())
+        page = request.GET.get('page')
+        try:
+            members = paginator.page(page)
+        except PageNotAnInteger:
+            members = paginator.page(1)
+        except EmptyPage:
+            members = paginator.page(paginator.num_pages)
+
+        context.update({
+            'members': members,
+            'paginator': paginator,
+            'params': "&" + params if params else "",
+        })
+        return context
+
+
+class BpMemberOrdersView(BaseTemplateView):
+    template_name = 'default/bp_member_orders.html'
+
+    def get_context_data(self, **kwargs):
+        context = super(BpMemberOrdersView, self).get_context_data(**kwargs)
+        request = kwargs.get('request')
+        member_id = kwargs.get('member_id')
+        member = get_object_or_404(models.Member, pk=member_id)
+        project_members = member.projectmember_set.public_filter(is_deleted=False)
+        context.update({
+            'member': member,
+            'project_members': project_members,
+        })
+        return context
+
+
 @login_required(login_url='/eb/login/')
 @csrf_protect
 def upload_resume(request):
@@ -1488,7 +1538,25 @@ class DownloadSubcontractorOrderView(BaseView):
             return HttpResponse(u"<script>alert('%s');window.close();</script>" % (ex.message,))
 
 
-@method_decorator(permission_required('eb.generate_request', raise_exception=True), name='dispatch')
+class DownloadBpMemberOrder(BaseView):
+
+    def get(self, request, *args, **kwargs):
+        project_member_id = kwargs.get('project_member_id')
+        project_member = get_object_or_404(models.ProjectMember, pk=project_member_id)
+        year = kwargs.get('year')
+        month = kwargs.get('month')
+        try:
+            data = biz.generate_bp_order_data(project_member, year, month, request.user)
+            path = file_gen.generate_order(company=None, data=data)
+            filename = os.path.basename(path)
+            response = HttpResponse(open(path, 'rb'), content_type="application/excel")
+            response['Content-Disposition'] = "filename=" + urllib.quote(filename.encode('UTF-8'))
+            return response
+        except Exception as ex:
+            return HttpResponse(u"<script>alert('%s');window.close();</script>" % unicode(ex))
+
+
+@method_decorator(permission_required('eb.generate_request', raise_exception=True), name='get')
 class DownloadProjectRequestView(BaseTemplateView):
 
     def get(self, request, *args, **kwargs):

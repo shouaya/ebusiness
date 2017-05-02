@@ -16,7 +16,7 @@ from django.core.urlresolvers import reverse
 from django.utils.translation import ugettext_lazy as _
 from django.utils.functional import cached_property
 
-from utils import constants
+from utils import constants, common
 
 REG_POST_CODE = r"^\d{7}$"
 REG_UPPER_CAMEL = r"^([A-Z][a-z]+)+$"
@@ -334,9 +334,9 @@ class ProjectMemberFormset(forms.BaseInlineFormSet):
             if len(dates) > 1:
                 for i, period in enumerate(dates):
                     start_date, end_date = period
-                    if is_cross_date(dates, start_date, i):
+                    if common.is_cross_date(dates, start_date, i):
                         raise forms.ValidationError(u"メンバー%sの開始日が重複している。" % (member.__unicode__(),))
-                    if end_date and is_cross_date(dates, end_date, i):
+                    if end_date and common.is_cross_date(dates, end_date, i):
                         raise forms.ValidationError(u"メンバー%sの終了日が重複している。" % (member.__unicode__(),))
 
 
@@ -625,9 +625,9 @@ class MemberSectionPeriodFormset(forms.BaseInlineFormSet):
             dates.sort(key=lambda date: date[0])
             for i, period in enumerate(dates):
                 start_date, end_date = period
-                if is_cross_date(dates, start_date, i):
+                if common.is_cross_date(dates, start_date, i):
                     raise forms.ValidationError(u"部署期間の開始日が重複している。")
-                if end_date and is_cross_date(dates, end_date, i):
+                if end_date and common.is_cross_date(dates, end_date, i):
                     raise forms.ValidationError(u"部署期間の終了日が重複している。")
 
 
@@ -665,7 +665,7 @@ class MemberSalespersonPeriodFormset(forms.BaseInlineFormSet):
             dates.sort(key=lambda date: date[0])
             for i, period in enumerate(dates):
                 start_date, end_date = period
-                if is_cross_date(dates, start_date, i):
+                if common.is_cross_date(dates, start_date, i):
                     raise forms.ValidationError(u"営業員期間の開始日が重複している。")
                 if end_date and is_cross_date(dates, end_date, i):
                     raise forms.ValidationError(u"営業員期間の終了日が重複している。")
@@ -704,15 +704,3 @@ class ConfigForm(forms.ModelForm):
             elif instance.name and instance.name.find('mail_body') > 0:
                 self.fields['value'] = forms.CharField(widget=forms.Textarea(attrs={'style': 'width: 610px;'}),
                                                        required=True, label=u"設定値")
-
-
-def is_cross_date(dates, d, index):
-    for j, p in enumerate(dates):
-        d1, d2 = p
-        if j == index:
-            continue
-        if d2 is not None and d1 <= d <= d2:
-            return True
-        elif d2 is None and d1 <= d:
-            return True
-    return False

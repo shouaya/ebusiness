@@ -10,7 +10,7 @@ import datetime
 from django.db import models
 from django.utils import timezone
 
-from eb.models import Member, Config, Company, BatchManage, EmailMultiAlternativesWithEncoding
+from eb.models import Member, Config, Company, Subcontractor, BatchManage, EmailMultiAlternativesWithEncoding
 from utils import constants
 
 
@@ -197,3 +197,32 @@ class ContractRecipient(BaseModel):
     @classmethod
     def get_bcc_list(cls):
         return ContractRecipient.objects.public_filter(recipient_type='03')
+
+
+class BpContract(BaseModel):
+    member = models.ForeignKey(Member, editable=False, verbose_name=u"社員")
+    company = models.ForeignKey(Subcontractor, verbose_name=u"雇用会社")
+    start_date = models.DateField(verbose_name=u"雇用開始日")
+    end_date = models.DateField(blank=True, null=True, verbose_name=u"雇用終了日")
+    is_hourly_pay = models.BooleanField(default=False, verbose_name=u"時給")
+    allowance_base = models.IntegerField(verbose_name=u"基本給")
+    allowance_base_memo = models.CharField(max_length=255, blank=True, null=True, default=u"税金抜き",
+                                           verbose_name=u"基本給メモ")
+    allowance_time_min = models.IntegerField(default=160, verbose_name=u"時間下限", help_text=u"足りないなら欠勤となる")
+    allowance_time_max = models.IntegerField(default=200, verbose_name=u"時間上限", help_text=u"超えたら残業となる")
+    allowance_overtime = models.IntegerField(default=0, verbose_name=u"残業手当")
+    allowance_absenteeism = models.IntegerField(default=0, verbose_name=u"欠勤手当")
+    allowance_other = models.IntegerField(default=0, verbose_name=u"その他手当")
+    allowance_other_memo = models.CharField(max_length=255, blank=True, null=True, verbose_name=u"その他手当メモ")
+    comment = models.TextField(blank=True, null=True,  verbose_name=u"備考")
+
+    class Meta:
+        ordering = ['company', 'member', 'start_date']
+        verbose_name = verbose_name_plural = u"ＢＰ契約"
+        db_table = 'eb_bp_contract'
+
+    def __unicode__(self):
+        return u"%s(%s)" % (unicode(self.member), self.start_date)
+
+    def is_fixed_cost(self):
+        return self.allowance_time_min == self.allowance_time_max == self.allowance_overtime == self.allowance_absenteeism

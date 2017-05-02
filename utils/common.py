@@ -938,6 +938,31 @@ def has_group(user, group_name):
         return False
 
 
+def is_cross_date(dates, d, index):
+    for j, p in enumerate(dates):
+        d1, d2 = p
+        if j == index:
+            continue
+        if d2 is not None and d1 <= d <= d2:
+            return True
+        elif d2 is None and d1 <= d:
+            return True
+    return False
+
+
+def to_wareki(date):
+    if 1926 <= date.year <= 1988:
+        prefix = u"昭和"
+        years = date.year - 1925
+    elif 1989 <= date.year:
+        prefix = u"平成"
+        years = date.year - 1988
+    else:
+        prefix = ''
+        years = date.year
+    return u"%s%s年%02d月%02d日" % (prefix, years, date.month, date.day)
+
+
 if __name__ == "__main__":
     for i in range(1, 10):
         print u'2016年%02d月' % (i,), get_business_days(2016, i)

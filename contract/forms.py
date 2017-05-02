@@ -7,6 +7,7 @@ Created on 2017/04/24
 from django import forms
 from django.contrib.admin.widgets import AdminDateWidget
 from . import models
+from utils import common
 
 
 class BaseForm(forms.ModelForm):
@@ -36,6 +37,17 @@ class MemberForm(BaseForm):
         if self.instance and not self.instance.pk:
             cleaned_data["id_from_api"] = models.Member.get_max_api_id()
         return cleaned_data
+
+
+class ContractMemberForm(BaseForm):
+    class Meta:
+        model = models.Member
+        fields = ('employee_id', 'first_name', 'last_name', 'member_type', 'subcontractor', 'is_on_sales', 'is_retired')
+
+    def __init__(self, *args, **kwargs):
+        super(ContractMemberForm, self).__init__(*args, **kwargs)
+        for key in self.fields.keys():
+            self.fields[key].widget.attrs.update({'readonly': 'readonly'})
 
 
 class ContractForm(BaseForm):
@@ -71,3 +83,46 @@ class ContractForm(BaseForm):
     employment_date = forms.DateField(widget=AdminDateWidget, label=u"雇用日")
     start_date = forms.DateField(widget=AdminDateWidget, label=u"雇用開始日")
     end_date = forms.DateField(widget=AdminDateWidget, label=u"雇用終了日", required=False)
+
+
+class BpContractForm(BaseForm):
+    class Meta:
+        model = models.BpContract
+        exclude = ('company',)
+
+    def __init__(self, *args, **kwargs):
+        super(BpContractForm, self).__init__(*args, **kwargs)
+        for name in ('allowance_base_memo', 'allowance_other_memo'):
+            self.fields[name].widget.attrs.update({'style': 'width: 100px;'})
+        self.fields['comment'].widget.attrs.update({'rows': '1', 'style': 'width: 100px;'})
+
+    def clean(self):
+        cleaned_data = super(BpContractForm, self).clean()
+        member = cleaned_data.get('member', None)
+        company = cleaned_data.get('company', None)
+        if not company and member and self.instance:
+            self.instance.company = member.subcontractor
+
+
+class BpContractFormset(forms.BaseInlineFormSet):
+    def clean(self):
+        count = 0
+        dates = []
+        for form in self.forms:
+            try:
+                if form.cleaned_data:
+                    start_date = form.cleaned_data.get("start_date")
+                    end_date = form.cleaned_data.get("end_date")
+                    if start_date:
+                        dates.append((start_date, end_date))
+                        count += 1
+            except AttributeError:
+                pass
+        if count > 1:
+            dates.sort(key=lambda date: date[0])
+            for i, period in enumerate(dates):
+                start_date, end_date = period
+                if common.is_cross_date(dates, start_date, i):
+                    raise forms.ValidationError(u"契約期間の開始日が重複している。")
+                if end_date and common.is_cross_date(dates, end_date, i):
+                    raise forms.ValidationError(u"契約期間の終了日が重複している。")

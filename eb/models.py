@@ -1016,13 +1016,20 @@ class Member(AbstractMember):
         :param date 対象年月
         :return:
         """
+        contract = None
         contract_list = self.contract_set.filter(
             employment_date__lte=date
         ).exclude(status='04').order_by('-employment_date', '-contract_no')
         if contract_list.count() > 0:
-            return contract_list[0]
+            contract = contract_list[0]
         else:
-            return None
+            contract_list = self.bpcontract_set.filter(
+                start_date__lte=date,
+                is_deleted=False,
+            ).order_by('-start_date')
+            if contract_list.count() > 0:
+                contract = contract_list[0]
+        return contract
 
     def is_belong_to(self, user, date):
         if user.is_superuser:
@@ -2073,6 +2080,21 @@ class ProjectMember(models.Model):
 
         return d
 
+    def get_bp_member_orders(self):
+        if not self.start_date or not self.end_date:
+            return [(None, None, None)]
+        orders = []
+        max_months = self.end_date.year * 12 + self.end_date.month
+        min_months = self.start_date.year * 12 + self.start_date.month
+        for i in range(max_months - min_months, -1, -1):
+            date = common.add_months(self.start_date, i)
+            try:
+                order = BpMemberOrder.objects.get(project_member=self, year=date.year, month='%02d' % date.month)
+            except (ObjectDoesNotExist, MultipleObjectsReturned):
+                order = None
+            orders.append((date.year, date.month, order))
+        return orders
+
     def delete(self, using=None, keep_parents=False):
         self.is_deleted = True
         self.deleted_date = datetime.datetime.now()
@@ -2339,7 +2361,8 @@ class MemberAttendance(BaseModel):
         super(MemberAttendance, self).save(force_insert, force_update, using, update_fields)
 
 
-class SubcontractorOrder(BaseModel):
+class BpMemberOrder(BaseModel):
+    project_member = models.ForeignKey(ProjectMember, verbose_name=u"案件メンバー")
     subcontractor = models.ForeignKey(Subcontractor, verbose_name=u"協力会社")
     order_no = models.CharField(max_length=14, unique=True, verbose_name=u"注文番号")
     year = models.CharField(max_length=4, default=str(datetime.date.today().year),
@@ -2354,7 +2377,7 @@ class SubcontractorOrder(BaseModel):
         return self.order_no
 
     class Meta:
-        unique_together = ('subcontractor', 'year', 'month')
+        unique_together = ('project_member', 'year', 'month')
         verbose_name = verbose_name_plural = u"ＢＰ註文書"
 
 

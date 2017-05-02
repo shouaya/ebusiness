@@ -1,0 +1,63 @@
+{% extends theme|add:"/base.html" %}
+{% load humanize %}
+{% load sales_templates %}
+
+{% block header %}
+    <script type="text/javascript">
+        window.onload = function() {
+        };
+    </script>
+{% endblock %}
+
+{% block content %}
+    <div class="dashboard">
+        <div class="dashboard-title">ＢＰメンバー注文情報</div>
+        <form>
+            <a href="{% url 'contract:eb_member_change' member.pk %}?from=portal&_popup=1" class="button" target="_blank">編集</a>
+        </form>
+    </div>
+    <table class="detail" cellpadding="0" cellspacing="0">
+        <tr>
+            <th>名前</th>
+            <td>{{ member }}</td>
+            <th>協力会社</th>
+            <td>{{ member.subcontractor }}</td>
+        </tr>
+    </table>
+    <table class="list" cellpadding="0" cellspacing="0">
+        <thead>
+            <tr>
+                <th>案件</th>
+                <th>開始日</th>
+                <th>終了日</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for project_member in project_members %}
+                <tr class="row1">
+                    <td>
+                        <a href="{% url 'project_detail' project_member.project.pk %}" title="{{ project_member.project }}">
+                            {{ project_member.project }}
+                        </a>
+                    </td>
+                    <td>{{ project_member.start_date }}</td>
+                    <td>{{ project_member.end_date }}</td>
+                </tr>
+                {% for year, month, order in project_member.get_bp_member_orders %}
+                    <tr class="row2">
+                        <td>{{ year }}年{{ month|stringformat:"02d" }}月</td>
+                        <td class="center">{{ order|default:'' }}</td>
+                        <td class="center"><a href="{% url 'download_bp_order' project_member.pk year month|stringformat:'02d' %}" target="_blank">注文書作成</a></td>
+                    </tr>
+                {% endfor %}
+            {% endfor %}
+        </tbody>
+        <tfoot>
+            <tr>
+                <th>案件</th>
+                <th>開始日</th>
+                <th>終了日</th>
+            </tr>
+        </tfoot>
+    </table>
+{% endblock %}

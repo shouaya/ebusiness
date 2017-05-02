@@ -33,6 +33,8 @@ download_patterns = [
         name='download_project_request'),
     url(r'^subcontractor_order/(?P<subcontractor_id>[0-9]+).html$', views.DownloadSubcontractorOrderView.as_view(),
         name='download_subcontractor_order'),
+    url(r'^bp_order/(?P<project_member_id>[0-9]+)/(?P<year>[0-9]{4})/(?P<month>[0-9]{2})\.html$',
+        views.DownloadBpMemberOrder.as_view(), name='download_bp_order'),
     url(r'^project_client_order/$', views.DownloadClientOrderView.as_view(), name='download_client_order'),
     url(r'^project_quotation/(?P<project_id>[0-9]+).html$', views.DownloadProjectQuotationView.as_view(),
         name='download_project_quotation'),
@@ -64,6 +66,8 @@ subcontractor_patterns = [
         name='subcontractor_detail'),
     url(r'^members/(?P<subcontractor_id>[0-9]+).html$', views.SubcontractorMembersView.as_view(),
         name='subcontractor_members'),
+    url(r'^members.html$', views.BusinessPartnerMembersView.as_view(), name='business_partner_members'),
+    url(r'^(?P<member_id>[0-9]+)/order_info\.html$', views.BpMemberOrdersView.as_view(), name='bp_member_orders'),
 ]
 
 project_patterns = [

@@ -1,0 +1,80 @@
+{% extends theme|add:"/base.html" %}
+{% load humanize %}
+{% load sales_templates %}
+
+{% block header %}
+    <script type="text/javascript">
+        window.onload = function() {
+            init_select("first_name__icontains");
+            init_select("last_name__icontains");
+            init_select("subcontractor__name__icontains");
+        };
+    </script>
+{% endblock %}
+
+{% block content %}
+    <div class="dashboard">
+        <div class="dashboard-title">ＢＰメンバー一覧</div>
+        <form action="" method="get">
+            <span>姓: </span><input type="text" id="first_name__icontains" name="first_name__icontains" style="width: 50px;"/>
+            <span>名: </span><input type="text" id="last_name__icontains" name="last_name__icontains" style="width: 50px;"/>
+            <span>協力会社: </span><input type="text" id="subcontractor__name__icontains" name="subcontractor__name__icontains" style="width: 150px;"/>
+            <input type="submit" value="Filter" />
+            <a href="{{ request.path }}">クリア</a>
+        </form>
+    </div>
+    <table class="list" cellspacing="0" cellpadding="0">
+        <thead>
+            <tr>
+                <th>名前</th>
+                <th>協力会社</th>
+                <th>開始日</th>
+                <th>終了日</th>
+                <th>基本給</th>
+                <th>基準時間</th>
+                <th>超過単価</th>
+                <th>不足単価</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for member in members %}
+            {% with contract=member.latest_contract_set|first %}
+                <tr class="{% cycle 'row1' 'row2' %}">
+                    <td><a href="{% url 'bp_member_orders' member.pk %}">{{ member }}</a></td>
+                    <td>{{ member.subcontractor }}</td>
+                    {% if contract %}
+                    <td>{{ contract.start_date|date:'Y-m-d' }}</td>
+                    <td>{{ contract.end_date|date:'Y-m-d'|default:'' }}</td>
+                    <td class="num">￥{{ contract.allowance_base|intcomma }}&nbsp;
+                        {% if contract.is_hourly_pay %}
+                            円/時
+                        {% else %}
+                            円/月
+                        {% endif %}
+                    </td>
+                    <td>{{ contract.allowance_time_min }}～{{ contract.allowance_time_max }}</td>
+                    <td class="num">{{ contract.allowance_overtime|intcomma }}</td>
+                    <td class="num">{{ contract.allowance_absenteeism|intcomma }}</td>
+                    {% else %}
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    {% endif %}
+                    <td class="center"><a href="{% url 'contract:eb_member_change' member.pk %}?from=portal&_popup=1" target="_blank">編集</a></td>
+                </tr>
+            {% endwith %}
+            {% endfor %}
+        </tbody>
+        <tfoot>
+            <tr>
+                <td colspan="9">
+                    {% paging members %}
+                </td>
+            </tr>
+        </tfoot>
+    </table>
+{% endblock %}

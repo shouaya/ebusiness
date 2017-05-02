@@ -4,14 +4,29 @@ Created on 2017/04/24
 
 @author: Yang Wanjun
 """
+from django.http import HttpResponse
 from django.contrib import admin
 from django.utils.translation import ugettext as _
 from django.utils.text import get_text_list
 from django.utils.encoding import force_text
 
 from utils import common
-from . import models
+from . import models, forms
+from eb import models as sales_models
 # Register your models here.
+
+
+def get_full_name(obj):
+    return "%s %s" % (obj.first_name, obj.last_name)
+get_full_name.short_description = u"名前"
+get_full_name.admin_order_field = "first_name"
+
+
+class BpContractInline(admin.TabularInline):
+    model = models.BpContract
+    form = forms.BpContractForm
+    formset = forms.BpContractFormset
+    extra = 0
 
 
 class BaseAdmin(admin.ModelAdmin):
@@ -56,10 +71,43 @@ class BaseAdmin(admin.ModelAdmin):
         change_message = ' '.join(change_message)
         return change_message or _('No fields changed.')
 
+    def response_change(self, request, obj):
+        if request.GET.get('from') == "portal":
+            return HttpResponse('''
+               <script type="text/javascript">
+                  window.close();
+               </script>''')
+        else:
+            response = super(BaseAdmin, self).response_change(request, obj)
+            return response
+
+    def response_add(self, request, obj, post_url_continue=None):
+        if request.GET.get('from') == "portal":
+            return HttpResponse('''
+               <script type="text/javascript">
+                  window.close();
+               </script>''')
+        else:
+            response = super(BaseAdmin, self).response_add(request, obj)
+            return response
+
 
 class ContractAdmin(BaseAdmin):
     list_display = ['member', 'contract_no', 'member_type', 'start_date', 'end_date']
     search_fields = ('member__first_name', 'member__last_name', 'contract_no')
+
+
+class MemberAdmin(BaseAdmin):
+    form = forms.ContractMemberForm
+    list_display = (get_full_name,)
+    search_fields = ['first_name', 'last_name', 'employee_id', 'subcontractor']
+    inlines = (BpContractInline,)
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
 
 
 class ContractAdminSite(admin.AdminSite):
@@ -69,3 +117,5 @@ class ContractAdminSite(admin.AdminSite):
 
 contract_admin_site = ContractAdminSite(name='contract')
 contract_admin_site.register(models.Contract, ContractAdmin)
+
+contract_admin_site.register(sales_models.Member, MemberAdmin)
