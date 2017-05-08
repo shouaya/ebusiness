@@ -1,0 +1,273 @@
+{% extends theme|add:"/base.html" %}
+{% load humanize %}
+{% load sales_templates %}
+
+{% block header %}
+    <script type="text/javascript">
+        window.onload = function() {
+        };
+    </script>
+{% endblock %}
+
+{% block content %}
+    <div class="dashboard">
+        <div class="dashboard-title">ＢＰメンバー注文情報</div>
+        <form>
+        </form>
+        <table class="order" cellpadding="0" cellspacing="0" style="width: 948px;">
+            {% if error_message %}
+            <tr>
+                <td class="center red">{{ error_message }}</td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="9" style="text-align: right;">
+                    <u>注文番号：
+                        {% if data %}
+                            {{ data.DETAIL.ORDER_NO }}
+                        {% else %}
+                            {{ bp_order.order_no }}
+                        {% endif %}
+                    </u>
+                </td>
+            </tr>
+            <tr>
+                <td colspan="9" style="text-align: right;">
+                    <u>
+                        {% if data %}
+                            {{ data.DETAIL.PUBLISH_DATE }}
+                        {% else %}
+                            {{ bp_order.bpmemberorderheading.publish_date }}
+                        {% endif %}
+                    </u>
+                </td>
+            </tr>
+            <tr>
+                <td colspan="9" class="center" style="font-size: 24px;">
+                    <b>注&nbsp;&nbsp;文&nbsp;&nbsp;書</b>
+                </td>
+            </tr>
+            <tr>
+                <td colspan="9">
+                    （乙）
+                </td>
+            </tr>
+            <tr>
+                <td colspan="9">
+                    <u>
+                        {% if data %}
+                            {{ data.DETAIL.SUBCONTRACTOR_NAME }}
+                        {% else %}
+                            {{ bp_order.bpmemberorderheading.subcontractor_name }}
+                        {% endif %}&nbsp;&nbsp;
+                    </u>
+                    御中
+                </td>
+            </tr>
+            <tr>
+                <td colspan="5"></td>
+                <td colspan="4">
+                    （甲）
+                </td>
+            </tr>
+            <tr>
+                <td colspan="5"></td>
+                <td colspan="4">
+                    {% if data %}
+                        {{ data.DETAIL.COMPANY_NAME }}
+                    {% else %}
+                        {{ bp_order.bpmemberorderheading.company_name }}
+                    {% endif %}
+                </td>
+            </tr>
+            <tr>
+                <td colspan="5"></td>
+                <td colspan="4">
+                    {% if data %}
+                        {{ data.DETAIL.ADDRESS1 }}
+                    {% else %}
+                        {{ bp_order.bpmemberorderheading.company_address1 }}
+                    {% endif %}
+                </td>
+            </tr>
+            <tr>
+                <td colspan="5"></td>
+                <td colspan="4">
+                    {% if data %}
+                        {{ data.DETAIL.ADDRESS2 }}
+                    {% else %}
+                        {{ bp_order.bpmemberorderheading.company_address2 }}
+                    {% endif %}
+                </td>
+            </tr>
+            <tr>
+                <td colspan="5"></td>
+                <td colspan="4">
+                    TEL:
+                    {% if data %}
+                        {{ data.DETAIL.TEL }}
+                    {% else %}
+                        {{ bp_order.bpmemberorderheading.tel }}
+                    {% endif %}&nbsp;&nbsp;
+                    FAX:03-6809-3238
+                </td>
+            </tr>
+            <tr><td colspan="9">&nbsp;</td></tr>
+            <tr><td colspan="9">&nbsp;</td></tr>
+            <tr><td colspan="9">&nbsp;</td></tr>
+            <tr><td colspan="9">&nbsp;</td></tr>
+            <tr><td colspan="9">&nbsp;</td></tr>
+            <tr><td colspan="9">&nbsp;</td></tr>
+            <tr>
+                <td colspan="9">下記の通り注文致しますので、ご了承の上、折り返し注文請書をご送付下さい。</td>
+            </tr>
+            <tr>
+                <td colspan="2" class="center left top">業務名称</td>
+                <td colspan="7" class="left top border_right">
+                    {% if data %}
+                        {{ data.DETAIL.PROJECT_NAME }}
+                    {% else %}
+                        {{ bp_order.bpmemberorderheading.project_name }}
+                    {% endif %}
+                </td>
+            </tr>
+            <tr>
+                <td colspan="2" class="center left top">作業期間</td>
+                <td colspan="7" class="left top border_right">
+                    {% if data %}
+                        {{ data.DETAIL.START_DATE }} ～ {{ data.DETAIL.END_DATE }}
+                    {% else %}
+                        {{ bp_order.bpmemberorderheading.start_date }} ～ {{ bp_order.bpmemberorderheading.end_date }}
+                    {% endif %}
+                </td>
+            </tr>
+            <tr>
+                <td colspan="2" class="center left top">委託業務責任者（甲）</td>
+                <td colspan="3" class="left top">
+                    {% if data %}
+                        {{ data.DETAIL.MASTER }}
+                    {% else %}
+                        {{ bp_order.bpmemberorderheading.master }}
+                    {% endif %}
+                </td>
+                <td colspan="2" class="center left top">連絡窓口担当者（甲）</td>
+                <td colspan="2" class="left top border_right">
+                    {% if data %}
+                        {{ data.DETAIL.MIDDLEMAN }}
+                    {% else %}
+                        {{ bp_order.bpmemberorderheading.middleman }}
+                    {% endif %}
+                </td>
+            </tr>
+            <tr>
+                <td colspan="2" class="center left top">委託業務責任者（乙）</td>
+                <td colspan="3" class="left top">
+                    {% if data %}
+                        {{ data.DETAIL.SUBCONTRACTOR_MASTER }}
+                    {% else %}
+                        {{ bp_order.bpmemberorderheading.subcontractor_master }}
+                    {% endif %}
+                </td>
+                <td colspan="2" class="center left top">連絡窓口担当者（乙）</td>
+                <td colspan="2" class="left top border_right">
+                    {% if data %}
+                        {{ data.DETAIL.SUBCONTRACTOR_MIDDLEMAN }}
+                    {% else %}
+                        {{ bp_order.bpmemberorderheading.subcontractor_middleman }}
+                    {% endif %}
+                </td>
+            </tr>
+            <tr>
+                <td colspan="2" class="center left top">作業責任者</td>
+                <td colspan="7" class="left top border_right">
+                    {% if data %}
+                        {{ data.DETAIL.MEMBER_NAME }}
+                    {% else %}
+                        {{ bp_order.bpmemberorderheading.member_name }}
+                    {% endif %}
+                </td>
+            </tr>
+            <tr>
+                <td colspan="2" class="center left top">業務委託料金</td>
+                <td colspan="7" class="left top border_right">
+                    {% if data %}
+                        {% if data.DETAIL.IS_HOURLY_PAY %}
+                            <br/><br/>
+                            時間単価：\{{ data.DETAIL.ALLOWANCE_BASE }}円/h&nbsp;&nbsp;({{ data.DETAIL.ALLOWANCE_BASE_MEMO }})
+                            <br/><br/>作業報告書に基づく稼動実費精算とする。<br/>
+                        {% elif data.DETAIL.IS_FIXED_COST %}
+                            <br/><br/>
+                            月額基本料金：\{{ data.DETAIL.ALLOWANCE_BASE }}円/月&nbsp;&nbsp;(固定)
+                            <br/><br/><br/>
+                        {% else %}
+                            月額基本料金：\{{ data.DETAIL.ALLOWANCE_BASE }}円/月&nbsp;&nbsp;{{ data.DETAIL.ALLOWANCE_BASE_MEMO }}
+                            超過単価：\{{ data.DETAIL.ALLOWANCE_BASE }}/{{ data.DETAIL.ALLOWANCE_TIME_MAX }}h=\{{ data.DETAIL.ALLOWANCE_OVERTIME }}/h<br/>
+                            不足単価：\{{ data.DETAIL.ALLOWANCE_BASE }}/{{ data.DETAIL.ALLOWANCE_TIME_MIN }}h=\{{ data.DETAIL.ALLOWANCE_ABSENTEEISM }}/h<br/>
+                            ※基準時間：{{ data.DETAIL.ALLOWANCE_TIME_MIN }}～{{ data.DETAIL.ALLOWANCE_TIME_MAX }}h/月<br/>
+                            {{ data.DETAIL.COMMENT }}<br/>
+                            作業報告書に基づく稼動実費精算とする。
+                        {% endif %}
+                    {% else %}
+                        {% if bp_order.bpmemberorderheading.is_hourly_pay %}
+                            <br/><br/>
+                            時間単価：\{{ bp_order.bpmemberorderheading.allowance_base }}円/h&nbsp;&nbsp;({{ bp_order.bpmemberorderheading.allowance_base_memo }})
+                            <br/><br/>作業報告書に基づく稼動実費精算とする。<br/>
+                        {% elif bp_order.bpmemberorderheading.is_fixed_cost %}
+                            <br/><br/>
+                            月額基本料金：\{{ bp_order.bpmemberorderheading.allowance_base }}円/月&nbsp;&nbsp;(固定)
+                            <br/><br/><br/>
+                        {% else %}
+                            月額基本料金：\{{ bp_order.bpmemberorderheading.allowance_base }}円/月　　{{ bp_order.bpmemberorderheading.allowance_base_memo }}<br/>
+                            超過単価：\{{ bp_order.bpmemberorderheading.allowance_base }}/{{ bp_order.bpmemberorderheading.allowance_time_max }}h=\{{ data.DETAIL.allowance_overtime }}/h<br/>
+                            不足単価：\{{ bp_order.bpmemberorderheading.allowance_base }}/{{ bp_order.bpmemberorderheading.allowance_time_min }}h=\{{ bp_order.bpmemberorderheading.allowance_absenteeism }}/h<br/>
+                            ※基準時間：{{ bp_order.bpmemberorderheading.allowance_time_min }}～{{ bp_order.bpmemberorderheading.allowance_time_max }}h/月<br/>
+                            {{ bp_order.bpmemberorderheading.comment }}<br/>
+                            作業報告書に基づく稼動実費精算とする。
+                        {% endif %}
+                    {% endif %}
+                    <br/>
+                </td>
+            </tr>
+            <tr>
+                <td colspan="2" class="center left top">作業場所</td>
+                <td colspan="7" class="left top border_right">
+                    {% if data %}
+                        {{ data.DETAIL.LOCATION }}
+                    {% else %}
+                        {{ bp_order.bpmemberorderheading.location }}
+                    {% endif %}
+                </td>
+            </tr>
+            <tr>
+                <td colspan="2" class="center left top">納入物件</td>
+                <td colspan="7" class="left top border_right">月別作業報告書</td>
+            </tr>
+            <tr>
+                <td colspan="2" class="center left top">支払条件</td>
+                <td colspan="7" class="left top border_right">
+                    作業報告書査収による毎月末締め、翌々月15日に現金振込<br/>
+                    ① 時間単位30分。<br/>
+                    ② 休憩時間は顧客就業時間に準ずる。<br/>
+                    ③ 請求書は毎月作業実績表（現場の承認印）を添付の上、翌月5日迄に送付する。<br/>
+                    ④ 延長/中止の場合には、両者協議の上、継続検討を行うものとする。<br/>
+                    ⑤ 著しく勤怠不良の場合は、協議の上で減額する。<br/>
+                    ⑥ 振込手数料は受託者負担とさせて頂きます。<br/>
+                </td>
+            </tr>
+            <tr>
+                <td colspan="9" class="top">
+                    〈契約条項〉<br/>
+                    １．本作業に関わる著作権は、甲に一切帰属するものとする。<br/>
+                    ２．乙は、本作業にて知り得た知識・企業秘密・ノウハウその他の情報（本作業自体を含め）、一切乙以外の外部に漏洩しないものとする。<br/>
+                    ３．顧客の都合によりこの注文書の業務が中断もしくは終了した場合は、その時点で、当該注文は解除され発注の効力を失う。<br/>
+                    <br/>
+                    <br/>
+                    <br/>
+                    <br/>
+                    <br/>
+                </td>
+            </tr>
+            {% endif %}
+        </table>
+    </div>
+{% endblock %}

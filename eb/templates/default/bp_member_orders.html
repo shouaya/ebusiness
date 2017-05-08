@@ -21,15 +21,19 @@
             <th>名前</th>
             <td>{{ member }}</td>
             <th>協力会社</th>
-            <td>{{ member.subcontractor }}</td>
+            <td>{{ member.subcontractor }}
+                <a style="font-size: 9px; float: right;" target="_blank"
+                   href="{% url 'admin:eb_subcontractor_change' member.subcontractor.pk %}?from=portal&_popup=1">編集
+                </a>
+            </td>
         </tr>
     </table>
     <table class="list" cellpadding="0" cellspacing="0">
         <thead>
             <tr>
-                <th>案件</th>
-                <th>開始日</th>
-                <th>終了日</th>
+                <th>案件／対象年月</th>
+                <th>開始日／注文番号</th>
+                <th>終了日／操作</th>
             </tr>
         </thead>
         <tbody>
@@ -46,17 +50,33 @@
                 {% for year, month, order in project_member.get_bp_member_orders %}
                     <tr class="row2">
                         <td>{{ year }}年{{ month|stringformat:"02d" }}月</td>
-                        <td class="center">{{ order|default:'' }}</td>
-                        <td class="center"><a href="{% url 'download_bp_order' project_member.pk year month|stringformat:'02d' %}" target="_blank">注文書作成</a></td>
+                        <td class="center">
+                            {% if order %}
+                                <a href="{% url 'bp_member_order' order.pk %}">{{ order.order_no }}</a>
+                            {% else %}
+                                <a href="{% url 'bp_member_order_preview' project_member.pk year month|stringformat:'02d' %}" target="_blank">プレビュー</a>
+                            {% endif %}
+                        </td>
+                        <td class="center">
+                            {% if order %}
+                                <a href="{% url 'download_bp_order' project_member.pk year month|stringformat:'02d' %}?overwrite=1" target="_blank">
+                                    ダウンロード</a>&nbsp;|&nbsp;
+                                <a href="{% url 'download_bp_order' project_member.pk year month|stringformat:'02d' %}" target="_blank"
+                                   onclick="return confirm('既に作成済みなので、上書きしてもよろしいですか？')">
+                                    再作成</a>
+                            {% else %}
+                                <a href="{% url 'download_bp_order' project_member.pk year month|stringformat:'02d' %}" target="_blank">注文書新規作成</a>
+                            {% endif %}
+                        </td>
                     </tr>
                 {% endfor %}
             {% endfor %}
         </tbody>
         <tfoot>
             <tr>
-                <th>案件</th>
-                <th>開始日</th>
-                <th>終了日</th>
+                <th>案件／対象年月</th>
+                <th>開始日／注文番号</th>
+                <th>終了日／操作</th>
             </tr>
         </tfoot>
     </table>

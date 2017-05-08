@@ -437,6 +437,36 @@ section table.request td.align_left {
     padding-left: 3px;
 }
 
+section table.order {
+    border: 1px solid black;
+    margin: 20px auto;
+    margin-top: -10px;
+    font-size: 10pt;
+    font-family: "ＭＳ Ｐゴシック";
+    padding: 0px;
+    table-layout: fixed;
+}
+
+section table.order td {
+    padding: 5px 10px;
+}
+
+section table.order td.top {
+    border-top: 1px solid #000;
+}
+
+section table.order td.left {
+    border-left: 1px solid #000;
+}
+
+section table.order td.border_right {
+    border-right: 1px solid #000;
+}
+
+section table.order td.bottom {
+    border-bottom: 1px solid #000;
+}
+
 /* 一括案件 */
 section .lump_project {
     background-color: yellow;

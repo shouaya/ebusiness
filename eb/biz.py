@@ -12,7 +12,7 @@ from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
 from django.contrib.humanize.templatetags import humanize
 from django.utils import timezone
 
-from utils import common
+from utils import common, errors, constants
 from eb import models
 from . import biz_config
 from eboa import models as eboa_models
@@ -402,28 +402,6 @@ def get_activities_incoming():
     return activities[:5]
 
 
-def get_order_no(user):
-    """注文番号を取得する。
-
-    :param user ログインしているユーザ
-    """
-    prefix = '-'
-    today = datetime.date.today()
-    if hasattr(user, 'salesperson'):
-        if user.salesperson.first_name_en:
-            prefix = user.salesperson.first_name_en[0]
-
-    order_no = "EB{0:04d}{1:02d}{2:02d}{3}".format(today.year, today.month, today.day, prefix)
-    max_order_no = models.BpMemberOrder.objects.public_filter(order_no__startswith=order_no)\
-        .aggregate(Max('order_no'))
-    max_order_no = max_order_no.get('order_no__max')
-    if max_order_no:
-        index = int(max_order_no[-2:]) + 1
-    else:
-        index = 1
-    return "{0}{1:02d}".format(order_no, index)
-
-
 def get_user_profile(user):
     """ログインしているユーザの詳細情報を取得する。
 
@@ -434,20 +412,24 @@ def get_user_profile(user):
     return None
 
 
-def generate_bp_order_data(project_member, year, month, user):
+def generate_bp_order_data(project_member, year, month, contract, user, bp_order):
     """ＢＰ注文書を作成するためのデータを取得する。
 
     :param project_member:
     :param year:
     :param month:
+    :param contract:
     :param user:
+    :param bp_order:
     :return:
     """
+    if not contract:
+        raise errors.CustomException(constants.ERROR_BP_NO_CONTRACT)
     company = get_company()
     first_day = datetime.date(int(year), int(month), 1)
     last_day = common.get_last_day_by_month(first_day)
-    contract = project_member.member.get_contract(last_day)
     data = {'DETAIL': {}}
+    data['DETAIL']['YM'] = '%04d%02d' % (int(year), int(month))
     # 発行年月日
     date = datetime.date.today()
     data['DETAIL']['PUBLISH_DATE'] = common.to_wareki(date)
@@ -455,9 +437,14 @@ def generate_bp_order_data(project_member, year, month, user):
     data['DETAIL']['SUBCONTRACTOR_NAME'] = project_member.member.subcontractor.name
     # 委託業務責任者（乙）
     data['DETAIL']['SUBCONTRACTOR_MASTER'] = project_member.member.subcontractor.president
+    # 連絡窓口担当者（甲）
+    salesperson = project_member.member.get_salesperson(datetime.date(int(year), int(month), 20))
+    data['DETAIL']['MIDDLEMAN'] = unicode(salesperson) if salesperson else ''
+    # 連絡窓口担当者（乙）
+    data['DETAIL']['SUBCONTRACTOR_MIDDLEMAN'] = project_member.member.subcontractor.middleman
     # 作成者
-    salesperson = get_user_profile(user)
-    data['DETAIL']['AUTHOR_FIRST_NAME'] = salesperson.first_name if salesperson else ''
+    create_user = get_user_profile(user)
+    data['DETAIL']['AUTHOR_FIRST_NAME'] = create_user.first_name if create_user else ''
     # 会社名
     data['DETAIL']['COMPANY_NAME'] = company.name
     # 本社郵便番号
@@ -465,8 +452,7 @@ def generate_bp_order_data(project_member, year, month, user):
     # 本社電話番号
     data['DETAIL']['TEL'] = company.tel
     # 代表取締役
-    member = get_master()
-    data['DETAIL']['MASTER'] = u"%s %s" % (member.first_name, member.last_name) if member else ""
+    data['DETAIL']['MASTER'] = company.president if company.president else ""
     # 本社住所
     data['DETAIL']['ADDRESS1'] = company.address1
     data['DETAIL']['ADDRESS2'] = company.address2
@@ -477,51 +463,31 @@ def generate_bp_order_data(project_member, year, month, user):
     data['DETAIL']['END_DATE'] = common.to_wareki(last_day)
     # 作業責任者
     data['DETAIL']['MEMBER_NAME'] = unicode(project_member.member)
+    # 時給
+    data['DETAIL']['IS_HOURLY_PAY'] = contract.is_hourly_pay
     # 基本給
     allowance_base = humanize.intcomma(contract.allowance_base) if contract else ''
-    allowance_base_memo = u"(%s)" % contract.allowance_base_memo if contract.allowance_base_memo else ''
-    if contract.is_hourly_pay:
-        data['DETAIL']['ALLOWANCE_BASE'] = u"時間単価：\\%s/h %s" % (allowance_base, allowance_base_memo)
-    else:
-        data['DETAIL']['ALLOWANCE_BASE'] = u"月額基本料金：\\%s円/月 %s" % (allowance_base, allowance_base_memo)
+    allowance_base_memo = contract.allowance_base_memo if contract.allowance_base_memo else ''
+    data['DETAIL']['ALLOWANCE_BASE'] = allowance_base
+    data['DETAIL']['ALLOWANCE_BASE_MEMO'] = allowance_base_memo
+    # 固定
+    data['DETAIL']['IS_FIXED_COST'] = contract.is_fixed_cost()
     if not contract.is_fixed_cost():
         # 超過単価
-        args = (allowance_base, contract.allowance_time_max, contract.allowance_overtime)
-        data['DETAIL']['ALLOWANCE_OVERTIME'] = u"超過単価：\\%s/%sh=\\%s/h" % args
+        allowance_overtime = humanize.intcomma(contract.allowance_overtime) if contract else ''
+        data['DETAIL']['ALLOWANCE_OVERTIME'] = allowance_overtime
         # 不足単価
-        args = (allowance_base, contract.allowance_time_min, contract.allowance_absenteeism)
-        data['DETAIL']['ALLOWANCE_ABSENTEEISM'] = u"不足単価：\\%s/%sh=\\%s/h" % args
+        allowance_absenteeism = humanize.intcomma(contract.allowance_absenteeism) if contract else ''
+        data['DETAIL']['ALLOWANCE_ABSENTEEISM'] = allowance_absenteeism
         # 基準時間
-        args = (contract.allowance_time_min, contract.allowance_time_max)
-        data['DETAIL']['ALLOWANCE_BASE_TIME'] = u"※基準時間：%s～%sh/月" % args
+        data['DETAIL']['ALLOWANCE_TIME_MIN'] = unicode(contract.allowance_time_min)
+        data['DETAIL']['ALLOWANCE_TIME_MAX'] = unicode(contract.allowance_time_max)
+    # 追記コメント
+    data['DETAIL']['COMMENT'] = contract.comment
     # 作業場所
     data['DETAIL']['LOCATION'] = project_member.project.address if project_member.project.address else u"弊社指定場所"
-    # 納入物件
-    data['DETAIL']['DELIVERABLE'] = u"月別作業報告書"
-    # 支払条件
-    data['DETAIL']['PAY_CONDITION1'] = u"作業報告書査収による毎月末締め、翌々月末日に現金振込"
-    data['DETAIL']['PAY_CONDITION2'] = u"①   途中入退場の場合は日割計算する。"
-    data['DETAIL']['PAY_CONDITION3'] = u"②   時間単位30分。"
-    data['DETAIL']['PAY_CONDITION4'] = u"③   休憩時間は顧客就業時間に準ずる。"
-    data['DETAIL']['PAY_CONDITION5'] = u"④   請求書は毎月作業実績表（現場の承認印）を添付の上、翌月5日迄に送付する。"
-    data['DETAIL']['PAY_CONDITION6'] = u"⑤   終了期日に変更が生じた場合は、別途協議する。"
 
-    # 注文情報を追加する
-    try:
-        order = models.BpMemberOrder.objects.get(project_member=project_member,
-                                                 year=year,
-                                                 month="%02d" % int(month))
-        data['DETAIL']['ORDER_NO'] = order.order_no
-        order.updated_user = user
-    except ObjectDoesNotExist:
-        data['DETAIL']['ORDER_NO'] = get_order_no(user)
-        order = models.BpMemberOrder(project_member=project_member,
-                                     subcontractor=project_member.member.subcontractor,
-                                     order_no=data['DETAIL']['ORDER_NO'],
-                                     year=year,
-                                     month="%02d" % int(month))
-        order.created_user = user
-    order.save()
+    data['DETAIL']['ORDER_NO'] = bp_order.order_no
     return data
 
 
@@ -579,21 +545,6 @@ def generate_order_data(company, subcontractor, user, ym):
                         })
     data['MEMBERS'] = members
 
-    # 注文情報を追加する
-    try:
-        order = models.SubcontractorOrder.objects.get(subcontractor=subcontractor,
-                                                      year=str(first_day.year),
-                                                      month="%02d" % (first_day.month,))
-        data['DETAIL']['ORDER_NO'] = order.order_no
-        order.updated_user = user
-    except ObjectDoesNotExist:
-        data['DETAIL']['ORDER_NO'] = get_order_no(user)
-        order = models.SubcontractorOrder(subcontractor=subcontractor,
-                                          order_no=data['DETAIL']['ORDER_NO'],
-                                          year=str(first_day.year),
-                                          month="%02d" % (first_day.month,))
-        order.created_user = user
-    order.save()
     return data
 
 

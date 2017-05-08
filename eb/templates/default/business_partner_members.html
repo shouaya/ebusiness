@@ -44,25 +44,31 @@
                     <td><a href="{% url 'bp_member_orders' member.pk %}">{{ member }}</a></td>
                     <td>{{ member.subcontractor }}</td>
                     {% if contract %}
-                    <td>{{ contract.start_date|date:'Y-m-d' }}</td>
-                    <td>{{ contract.end_date|date:'Y-m-d'|default:'' }}</td>
-                    <td class="num">￥{{ contract.allowance_base|intcomma }}&nbsp;
+                        <td>{{ contract.start_date|date:'Y-m-d' }}</td>
+                        <td>{{ contract.end_date|date:'Y-m-d'|default:'' }}</td>
+                        <td class="num">￥{{ contract.allowance_base|intcomma }}&nbsp;
+                            {% if contract.is_hourly_pay %}
+                                円/時
+                            {% else %}
+                                円/月
+                            {% endif %}
+                        </td>
                         {% if contract.is_hourly_pay %}
-                            円/時
+                            <td colspan="3" class="center">時給</td>
+                        {% elif contract.is_fixed_cost %}
+                            <td colspan="3" class="center">固定</td>
                         {% else %}
-                            円/月
+                            <td>{{ contract.allowance_time_min }}～{{ contract.allowance_time_max }}</td>
+                            <td class="num">{{ contract.allowance_overtime|intcomma }}</td>
+                            <td class="num">{{ contract.allowance_absenteeism|intcomma }}</td>
                         {% endif %}
-                    </td>
-                    <td>{{ contract.allowance_time_min }}～{{ contract.allowance_time_max }}</td>
-                    <td class="num">{{ contract.allowance_overtime|intcomma }}</td>
-                    <td class="num">{{ contract.allowance_absenteeism|intcomma }}</td>
                     {% else %}
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
                     {% endif %}
                     <td class="center"><a href="{% url 'contract:eb_member_change' member.pk %}?from=portal&_popup=1" target="_blank">編集</a></td>
                 </tr>

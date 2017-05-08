@@ -1445,14 +1445,46 @@ class BpMemberOrdersView(BaseTemplateView):
 
     def get_context_data(self, **kwargs):
         context = super(BpMemberOrdersView, self).get_context_data(**kwargs)
-        request = kwargs.get('request')
         member_id = kwargs.get('member_id')
         member = get_object_or_404(models.Member, pk=member_id)
-        project_members = member.projectmember_set.public_filter(is_deleted=False)
+        project_members = member.projectmember_set.public_filter(is_deleted=False).order_by('-start_date')
         context.update({
             'member': member,
             'project_members': project_members,
         })
+        return context
+
+
+class BpMemberOrderDetailView(BaseTemplateView):
+    template_name = 'default/bp_member_order.html'
+
+    def get_context_data(self, **kwargs):
+        context = super(BpMemberOrderDetailView, self).get_context_data(**kwargs)
+        request = kwargs.get('request')
+        preview = kwargs.get('preview', False)
+        if preview:
+            project_member_id = kwargs.get('project_member_id')
+            project_member = get_object_or_404(models.ProjectMember, pk=project_member_id)
+            year = kwargs.get('year')
+            month = kwargs.get('month')
+            bp_order = models.BpMemberOrder.get_next_bp_order(project_member, year, month)
+            error_message = u""
+            try:
+                contract = project_member.member.get_contract(datetime.date(int(year), int(month), 20))
+                data = biz.generate_bp_order_data(project_member, year, month, contract, request.user, bp_order)
+            except Exception as ex:
+                data = None
+                error_message = ex.message if ex.message else unicode(ex)
+            context.update({
+                'data': data,
+                'error_message': error_message,
+            })
+        else:
+            order_id = kwargs.get('order_id')
+            bp_order = get_object_or_404(models.BpMemberOrder, pk=order_id)
+            context.update({
+                'bp_order': bp_order,
+            })
         return context
 
 
@@ -1546,14 +1578,43 @@ class DownloadBpMemberOrder(BaseView):
         year = kwargs.get('year')
         month = kwargs.get('month')
         try:
-            data = biz.generate_bp_order_data(project_member, year, month, request.user)
-            path = file_gen.generate_order(company=None, data=data)
-            filename = os.path.basename(path)
+            bp_order = models.BpMemberOrder.get_next_bp_order(project_member, year, month)
+            overwrite = request.GET.get("overwrite", None)
+            if overwrite:
+                path = os.path.join(settings.GENERATED_FILES_ROOT, "partner_order",
+                                    '%04d%02d' % (int(year), int(month)),
+                                    bp_order.filename if bp_order.filename else 'None')
+                if not os.path.exists(path):
+                    # ファイルが存在しない場合、エラーとする。
+                    raise errors.FileNotExistException(constants.ERROR_BP_ORDER_FILE_NOT_EXISTS)
+                filename = bp_order.filename
+            else:
+                contract = project_member.member.get_contract(datetime.date(int(year), int(month), 20))
+                data = biz.generate_bp_order_data(project_member, year, month, contract, request.user, bp_order)
+                template_path = common.get_template_order_path(contract)
+                path = file_gen.generate_order(data=data, template_path=template_path)
+                filename = os.path.basename(path)
+                if not bp_order.pk:
+                    bp_order.created_user = request.user
+                    action_flag = ADDITION
+                else:
+                    action_flag = CHANGE
+                bp_order.updated_user = request.user
+                bp_order.filename = filename
+                bp_order.save(data=data)
+                LogEntry.objects.log_action(request.user.id,
+                                            ContentType.objects.get_for_model(bp_order).pk,
+                                            bp_order.pk,
+                                            unicode(bp_order),
+                                            action_flag,
+                                            u'追加しました。' if action_flag == ADDITION else u'再作成しました。')
             response = HttpResponse(open(path, 'rb'), content_type="application/excel")
             response['Content-Disposition'] = "filename=" + urllib.quote(filename.encode('UTF-8'))
             return response
         except Exception as ex:
-            return HttpResponse(u"<script>alert('%s');window.close();</script>" % unicode(ex))
+            return HttpResponse(
+                u"<script>alert('%s');window.close();</script>" % ex.message if ex.message else unicode(ex)
+            )
 
 
 @method_decorator(permission_required('eb.generate_request', raise_exception=True), name='get')

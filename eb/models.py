@@ -395,6 +395,7 @@ class Subcontractor(AbstractCompany):
                                      choices=constants.CHOICE_PAYMENT_MONTH, verbose_name=u"支払いサイト")
     payment_day = models.CharField(blank=True, null=True, max_length=2, choices=constants.CHOICE_PAYMENT_DAY,
                                    default='99', verbose_name=u"支払日")
+    middleman = models.CharField(blank=True, null=True, max_length=30, verbose_name=u"連絡窓口担当者")
     comment = models.TextField(blank=True, null=True, verbose_name=u"備考")
     is_deleted = models.BooleanField(default=False, editable=False, verbose_name=u"削除フラグ")
     deleted_date = models.DateTimeField(blank=True, null=True, editable=False, verbose_name=u"削除年月日")
@@ -448,10 +449,7 @@ class Subcontractor(AbstractCompany):
         ret_value = []
         for year, month in common.get_year_month_list(self.get_start_date(), self.get_end_date()):
             first_day = datetime.date(int(year), int(month), 1)
-            try:
-                subcontractor_order = SubcontractorOrder.objects.get(subcontractor=self, year=year, month=month)
-            except ObjectDoesNotExist:
-                subcontractor_order = None
+            subcontractor_order = None
             members = self.get_members_by_month(first_day)
             bp_members = BpMemberOrderInfo.objects.public_filter(member__in=members, year=year, month=month)
             if members.count() > 0 and members.count() == bp_members.count():
@@ -804,7 +802,8 @@ class Member(AbstractMember):
         if not date:
             date = datetime.date.today()
         results = self.membersalespersonperiod_set.filter((Q(start_date__lte=date) & Q(end_date__isnull=True)) |
-                                                          (Q(start_date__lte=date) & Q(end_date__gte=date)))
+                                                          (Q(start_date__lte=date) & Q(end_date__gte=date)),
+                                                          is_deleted=False)
         if results.count() > 0:
             return results[0].salesperson
         return None
@@ -1017,11 +1016,12 @@ class Member(AbstractMember):
         :return:
         """
         contract = None
-        contract_list = self.contract_set.filter(
-            employment_date__lte=date
-        ).exclude(status='04').order_by('-employment_date', '-contract_no')
-        if contract_list.count() > 0:
-            contract = contract_list[0]
+        if self.member_type != 4:
+            contract_list = self.contract_set.filter(
+                employment_date__lte=date
+            ).exclude(status='04').order_by('-employment_date', '-contract_no')
+            if contract_list.count() > 0:
+                contract = contract_list[0]
         else:
             contract_list = self.bpcontract_set.filter(
                 start_date__lte=date,
@@ -2086,8 +2086,12 @@ class ProjectMember(models.Model):
         orders = []
         max_months = self.end_date.year * 12 + self.end_date.month
         min_months = self.start_date.year * 12 + self.start_date.month
+        today = datetime.date.today()
         for i in range(max_months - min_months, -1, -1):
             date = common.add_months(self.start_date, i)
+            if (today.year * 12 + today.month) < (date.year * 12 + date.month):
+                # 来月以降だったら、表示する必要ないので、スキップする。
+                continue
             try:
                 order = BpMemberOrder.objects.get(project_member=self, year=date.year, month='%02d' % date.month)
             except (ObjectDoesNotExist, MultipleObjectsReturned):
@@ -2368,17 +2372,134 @@ class BpMemberOrder(BaseModel):
     year = models.CharField(max_length=4, default=str(datetime.date.today().year),
                             choices=constants.CHOICE_ATTENDANCE_YEAR, verbose_name=u"対象年")
     month = models.CharField(max_length=2, choices=constants.CHOICE_ATTENDANCE_MONTH, verbose_name=u"対象月")
+    filename = models.CharField(max_length=255, blank=True, null=True, verbose_name=u"注文書ファイル名")
     created_user = models.ForeignKey(User, related_name='created_orders', null=True,
                                      editable=False, verbose_name=u"作成者")
     updated_user = models.ForeignKey(User, related_name='updated_orders', null=True,
                                      editable=False, verbose_name=u"更新者")
 
-    def __unicode__(self):
-        return self.order_no
-
     class Meta:
         unique_together = ('project_member', 'year', 'month')
         verbose_name = verbose_name_plural = u"ＢＰ註文書"
+
+    def __unicode__(self):
+        return u"%s(%s)" % (unicode(self.project_member.member), self.order_no)
+
+    @classmethod
+    def get_next_bp_order(cls, project_member, year, month):
+        """指定メンバー、年月によって、注文情報を取得する。
+
+        :param project_member:
+        :param year:
+        :param month:
+        :return:
+        """
+        try:
+            order = BpMemberOrder.objects.get(project_member=project_member,
+                                              year=year,
+                                              month="%02d" % int(month))
+        except ObjectDoesNotExist:
+            salesperson = project_member.member.get_salesperson(datetime.date(int(year), int(month), 20))
+            order = BpMemberOrder(project_member=project_member,
+                                  subcontractor=project_member.member.subcontractor,
+                                  order_no=BpMemberOrder.get_next_order_no(salesperson),
+                                  year=year,
+                                  month="%02d" % int(month))
+        return order
+
+    @classmethod
+    def get_next_order_no(cls, member):
+        """注文番号を取得する。
+
+        :param member ログインしているユーザ
+        """
+        prefix = '-'
+        today = datetime.date.today()
+        if member and member.first_name_en:
+            prefix = member.first_name_en[0].upper()
+
+        order_no = "EB{0:04d}{1:02d}{2:02d}{3}".format(today.year, today.month, today.day, prefix)
+        max_order_no = BpMemberOrder.objects.public_filter(order_no__startswith=order_no)\
+            .aggregate(Max('order_no'))
+        max_order_no = max_order_no.get('order_no__max')
+        if max_order_no:
+            index = int(max_order_no[-2:]) + 1
+        else:
+            index = 1
+        return "{0}{1:02d}".format(order_no, index)
+
+    def save(self, force_insert=False, force_update=False, using=None,
+             update_fields=None, data=None):
+        super(BpMemberOrder, self).save(force_insert, force_update, using, update_fields)
+        # 注文書作成時、注文に関する全ての情報を履歴として保存する。
+        if data:
+            # 既存のデータを全部消す。
+            if hasattr(self, 'bpmemberorderheading'):
+                self.bpmemberorderheading.delete()
+            heading = BpMemberOrderHeading(bp_order=self,
+                                           publish_date=data['DETAIL'].get('PUBLISH_DATE', None),
+                                           subcontractor_name=data['DETAIL'].get('SUBCONTRACTOR_NAME', None),
+                                           company_address1=data['DETAIL'].get('ADDRESS1', None),
+                                           company_address2=data['DETAIL'].get('ADDRESS2', None),
+                                           company_name=data['DETAIL'].get('COMPANY_NAME', None),
+                                           company_tel=data['DETAIL'].get('TEL', None),
+                                           project_name=data['DETAIL'].get('PROJECT_NAME', None),
+                                           start_date=data['DETAIL'].get('START_DATE', None),
+                                           end_date=data['DETAIL'].get('END_DATE', None),
+                                           master=data['DETAIL'].get('MASTER', None),
+                                           middleman=data['DETAIL'].get('MIDDLEMAN', None),
+                                           subcontractor_master=data['DETAIL'].get('SUBCONTRACTOR_MASTER', None),
+                                           subcontractor_middleman=data['DETAIL'].get('SUBCONTRACTOR_MIDDLEMAN', None),
+                                           member_name=data['DETAIL'].get('MEMBER_NAME', None),
+                                           location=data['DETAIL'].get('LOCATION', None),
+                                           is_hourly_pay=data['DETAIL'].get('IS_HOURLY_PAY', None),
+                                           is_fixed_cost=data['DETAIL'].get('IS_FIXED_COST', None),
+                                           allowance_base=data['DETAIL'].get('ALLOWANCE_BASE', None),
+                                           allowance_base_memo=data['DETAIL'].get('ALLOWANCE_BASE_MEMO', None),
+                                           allowance_time_min=data['DETAIL'].get('ALLOWANCE_TIME_MIN', None),
+                                           allowance_time_max=data['DETAIL'].get('ALLOWANCE_TIME_MAX', None),
+                                           allowance_overtime=data['DETAIL'].get('ALLOWANCE_OVERTIME', None),
+                                           allowance_absenteeism=data['DETAIL'].get('ALLOWANCE_ABSENTEEISM', None),
+                                           comment=data['DETAIL'].get('COMMENT', None),
+                                           )
+            heading.save()
+
+
+class BpMemberOrderHeading(models.Model):
+    bp_order = models.OneToOneField(BpMemberOrder, verbose_name=u"ＢＰ注文書")
+    publish_date = models.CharField(max_length=200, verbose_name=u"発行年月日")
+    subcontractor_name = models.CharField(blank=True, null=True, max_length=50, verbose_name=u"下請け会社名")
+    company_address1 = models.CharField(blank=True, null=True, max_length=200, verbose_name=u"本社住所１")
+    company_address2 = models.CharField(blank=True, null=True, max_length=200, verbose_name=u"本社住所２")
+    company_name = models.CharField(blank=True, null=True, max_length=30, verbose_name=u"会社名")
+    company_tel = models.CharField(blank=True, null=True, max_length=15, verbose_name=u"お客様電話番号")
+    project_name = models.CharField(blank=True, null=True, max_length=50, verbose_name=u"業務名称")
+    start_date = models.CharField(blank=True, null=True, max_length=20, verbose_name=u"作業開始日")
+    end_date = models.CharField(blank=True, null=True, max_length=20, verbose_name=u"作業終了日")
+    master = models.CharField(blank=True, null=True, max_length=30, verbose_name=u"委託業務責任者（甲）")
+    middleman = models.CharField(blank=True, null=True, max_length=30, verbose_name=u"連絡窓口担当者（甲）")
+    subcontractor_master = models.CharField(blank=True, null=True, max_length=30, verbose_name=u"委託業務責任者（乙）")
+    subcontractor_middleman = models.CharField(blank=True, null=True, max_length=30,
+                                               verbose_name=u"連絡窓口担当者（乙）")
+    member_name = models.CharField(blank=True, null=True, max_length=30, verbose_name=u"作業責任者")
+    location = models.CharField(blank=True, null=True, max_length=200, verbose_name=u"作業場所")
+    is_hourly_pay = models.BooleanField(default=False, verbose_name=u"時給")
+    is_fixed_cost = models.BooleanField(default=False, verbose_name=u"固定")
+    allowance_base = models.CharField(blank=True, null=True, max_length=20, verbose_name=u"基本給")
+    allowance_base_memo = models.CharField(blank=True, null=True, max_length=255, verbose_name=u"基本給メモ")
+    allowance_time_min = models.CharField(blank=True, null=True, max_length=20, verbose_name=u"時間下限")
+    allowance_time_max = models.CharField(blank=True, null=True, max_length=20, verbose_name=u"時間上限")
+    allowance_overtime = models.CharField(blank=True, null=True, max_length=20, verbose_name=u"残業手当")
+    allowance_absenteeism = models.CharField(blank=True, null=True, max_length=20, verbose_name=u"欠勤手当")
+    allowance_other = models.CharField(blank=True, null=True, max_length=20, verbose_name=u"その他手当")
+    allowance_other_memo = models.CharField(blank=True, null=True, max_length=255, verbose_name=u"その他手当メモ")
+    comment = models.TextField(blank=True, null=True, verbose_name=u"備考")
+
+    class Meta:
+        verbose_name = verbose_name_plural = u"ＢＰ註文書見出し"
+
+    def __unicode__(self):
+        return unicode(self.bp_order)
 
 
 class BpMemberOrderInfo(BaseModel):

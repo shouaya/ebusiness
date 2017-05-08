@@ -14,7 +14,7 @@ import xlsxwriter
 import StringIO
 import math
 
-import constants
+import constants, errors
 import jholiday
 
 from decimal import Decimal
@@ -719,6 +719,18 @@ def get_order_file_path(order_no, client_name, ym):
     if not os.path.exists(path):
         os.makedirs(path)
     return os.path.join(path, filename).decode('UTF-8')
+
+
+def get_template_order_path(contract):
+    if not contract:
+        raise errors.CustomException(constants.ERROR_BP_NO_CONTRACT)
+    if contract.is_hourly_pay:
+        path = os.path.join(settings.MEDIA_ROOT, 'eb_order', 'eb_order_hourly.xlsx')
+    elif contract.is_fixed_cost():
+        path = os.path.join(settings.MEDIA_ROOT, 'eb_order', 'eb_order_fixed.xlsx')
+    else:
+        path = os.path.join(settings.MEDIA_ROOT, 'eb_order', 'eb_order.xlsx')
+    return path
 
 
 def delete_temp_files(path):

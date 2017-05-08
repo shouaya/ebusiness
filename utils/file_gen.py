@@ -11,6 +11,7 @@ import StringIO
 import xlsxwriter
 import openpyxl as px
 from openpyxl.writer.excel import save_virtual_workbook
+from openpyxl.styles import Font
 
 try:
     import pythoncom
@@ -845,22 +846,21 @@ def get_replace_labels_position(sheet, start_row, start_col, row_span):
     return labels
 
 
-def generate_order(company, data):
+def generate_order(data, template_path):
     """註文書を生成する。
 
-    :param company 発注元会社
     :param data 註文書の出力データ
+    :param template_path: テンプレートのパス
     :return エクセルのバイナリー
     """
     if is_win32:
         # テンプレートを取得する
-        order_file = company.order_file
-        if not order_file or not os.path.exists(order_file.path):
+        if not template_path or not os.path.exists(template_path):
             raise errors.FileNotExistException(constants.ERROR_TEMPLATE_NOT_EXISTS)
 
         pythoncom.CoInitializeEx(pythoncom.COINIT_MULTITHREADED)
         # 新しいエクセルを作成する。
-        template_book = get_excel_template(order_file.path)
+        template_book = get_excel_template(template_path)
         template_sheet = template_book.Worksheets(1)
         book = get_new_book()
         cnt = book.Sheets.Count
@@ -874,7 +874,7 @@ def generate_order(company, data):
         for i in range(cnt, 0, -1):
             book.Worksheets(i).Delete()
 
-        file_folder = os.path.join(os.path.dirname(order_file.path), "temp")
+        file_folder = os.path.join(os.path.dirname(template_path), "temp")
         if not os.path.exists(file_folder):
             os.mkdir(file_folder)
         file_name = "tmp_%s_%s.xls" % (constants.DOWNLOAD_ORDER, datetime.datetime.now().strftime("%Y%m%d_%H%M%S%f"))
@@ -885,93 +885,33 @@ def generate_order(company, data):
 
         return path
     else:
-        return generate_order_linux(data)
+        return generate_order_linux(data, template_path)
 
 
-def generate_order_linux(data):
+def generate_order_linux(data, template_path):
+    """openpyxlを利用してＢＰ注文書を作成する。
+
+    :param data:
+    :param template_path:
+    :return:
+    """
+    book = px.load_workbook(template_path)
+    sheet = book.get_sheet_by_name('Sheet1')
+
     order_no = data['DETAIL']['ORDER_NO']
     partner_name = data['DETAIL']['SUBCONTRACTOR_NAME']
-    path = common.get_order_file_path(order_no, partner_name, '201704')
-    book = xlsxwriter.Workbook(path)
-    sheet = book.add_worksheet()
-    sheet.set_default_row(18)
-    sheet.set_column('A:I', 10.3)
+    path = common.get_order_file_path(order_no, partner_name, data['DETAIL']['YM'])
 
-    # タイトル設定
-    title_format = book.add_format({'bold': True,
-                                    'align': 'center',
-                                    'valign': 'vcenter',
-                                    'font_size': 20,})
-    sheet.merge_range('D3:F3', u"注　文　書", title_format)
-    # 注文番号
-    sheet.write_string('G1', u"注文番号: %s" % order_no)
-    # 発行年月日
-    sheet.write_string('G2', data['DETAIL']['PUBLISH_DATE'])
-    sheet.write_string('A4', u"（乙）")
-    # 協力会社名
-    sheet.write_string('A5', u"%s御中" % data['DETAIL']['SUBCONTRACTOR_NAME'])
-    sheet.write_string('F5', u"（甲）")
-    # 会社名
-    sheet.write_string('F6', data['DETAIL']['COMPANY_NAME'])
-    # 本社住所
-    sheet.write_string('F7', data['DETAIL']['ADDRESS1'])
-    sheet.write_string('F8', data['DETAIL']['ADDRESS2'])
-    # 本社電話番号
-    sheet.write_string('F9', "TEL:%s  FAX:03-6809-3238" % data['DETAIL']['TEL'])
+    for row in sheet.iter_rows():
+        for cell in row:
+            if cell.value and isinstance(cell.value, basestring):
+                replaced_string = get_openpyxl_replaced_string(cell.value, data['DETAIL'])
+                if replaced_string is not None:
+                    if cell.value.find('{$ORDER_NO$}') >= 0 or cell.value.find('{$PUBLISH_DATE$}') >= 0:
+                        cell.font = Font(name=u"ＭＳ 明朝", underline="single")
+                    cell.value = replaced_string
 
-    cell_format1 = book.add_format({'align': 'center',
-                                    'valign': 'vcenter',
-                                    'border': 1,
-                                    'font_size': 10.5})
-    # 作成者
-    sheet.write_string('G11', u"作成者")
-    sheet.merge_range('G12:G14', '', cell_format1)
-
-    sheet.write_string('A16', u"下記の通り注文致しますので、ご了承の上、折り返し注文請書をご送付下さい。")
-    sheet.merge_range('A17:B17', u"業務名称", cell_format1)
-    sheet.merge_range('C17:I17', data['DETAIL']['PROJECT_NAME'],  cell_format1)
-    sheet.merge_range('A18:B18', u"作業期間", cell_format1)
-    sheet.merge_range('C18:I18', u"%s ～ %s" % (data['DETAIL']['START_DATE'], data['DETAIL']['END_DATE']), cell_format1)
-
-    sheet.merge_range('A19:B19', u"委託業務責任者（甲）", cell_format1)
-    sheet.merge_range('C19:E19', data['DETAIL']['MASTER'],  cell_format1)
-    sheet.merge_range('F19:G19', u"連絡窓口担当者（甲）", cell_format1)
-    sheet.merge_range('H19:I19', u"", cell_format1)
-
-    sheet.merge_range('A20:B20', u"委託業務責任者（乙）", cell_format1)
-    sheet.merge_range('C20:E20', data['DETAIL']['SUBCONTRACTOR_MASTER'], cell_format1)
-    sheet.merge_range('F20:G20', u"連絡窓口担当者（乙）", cell_format1)
-    sheet.merge_range('H20:I20', u"", cell_format1)
-
-    sheet.merge_range('A21:B21', u"作業責任者", cell_format1)
-    sheet.merge_range('C21:I21', data['DETAIL']['MEMBER_NAME'], cell_format1)
-
-    sheet.merge_range('A22:B27', u"業務委託料金", cell_format1)
-    text_list = list()
-    text_list.append(data['DETAIL']['ALLOWANCE_BASE'])
-    if 'ALLOWANCE_OVERTIME' in data['DETAIL']:
-        text_list.append(data['DETAIL']['ALLOWANCE_OVERTIME'])
-    if 'ALLOWANCE_ABSENTEEISM' in data['DETAIL']:
-        text_list.append(data['DETAIL']['ALLOWANCE_ABSENTEEISM'])
-    if 'ALLOWANCE_BASE_TIME' in data['DETAIL']:
-        text_list.append(data['DETAIL']['ALLOWANCE_BASE_TIME'])
-    sheet.merge_range('C22:I27', u"\r\n".join(text_list), cell_format1)
-
-    sheet.merge_range('A28:B28', u"作業場所", cell_format1)
-    sheet.merge_range('C28:I28', data['DETAIL']['LOCATION'], cell_format1)
-
-    sheet.merge_range('A29:B29', u"納入物件", cell_format1)
-    sheet.merge_range('C29:I29', data['DETAIL']['DELIVERABLE'], cell_format1)
-
-    sheet.merge_range('A30:B35', u"支払条件", cell_format1)
-    sheet.merge_range('C30:I30', data['DETAIL']['PAY_CONDITION1'], cell_format1)
-    sheet.merge_range('C31:I31', data['DETAIL']['PAY_CONDITION2'], cell_format1)
-    sheet.merge_range('C32:I32', data['DETAIL']['PAY_CONDITION3'], cell_format1)
-    sheet.merge_range('C33:I33', data['DETAIL']['PAY_CONDITION4'], cell_format1)
-    sheet.merge_range('C34:I34', data['DETAIL']['PAY_CONDITION5'], cell_format1)
-    sheet.merge_range('C35:I35', data['DETAIL']['PAY_CONDITION6'], cell_format1)
-
-    book.close()
+    book.save(path)
     return path
 
 
@@ -1208,3 +1148,21 @@ def set_openpyxl_styles(ws, cell_range, start_row):
                 elif col_index in dict_formulae:
                     formulae = dict_formulae[col_index].format(start_row + row_index)
                     cell.value = formulae
+
+
+def get_openpyxl_replaced_string(str_format, data):
+    """openpyxlを利用して、置換文字列を置換する。
+
+    :param str_format: {$XXXX$}を含む文字列
+    :param data:
+    :return:
+    """
+    match_list = re.findall(ur"\{\$[A-Z_0-9]+\$\}", str_format)
+    if match_list:
+        replaced_string = str_format
+        for replace_item in match_list:
+            replace_value = data.get(replace_item[2:-2], '')
+            replaced_string = replaced_string.replace(replace_item, replace_value if replace_value else '')
+        return replaced_string
+    else:
+        return None
