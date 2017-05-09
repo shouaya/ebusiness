@@ -1037,7 +1037,7 @@ def generate_attendance_format(user, template_path, project_members):
         if attendance and is_own:
             # 社会保険加入有無
             contract = attendance.get_contract()
-            if contract and contract.endowment_insurance == "1":
+            if contract and hasattr(contract, 'endowment_insurance') and contract.endowment_insurance == "1":
                 sheet.cell(row=start_row, column=8).value = u"○"
             # 勤務時間
             sheet.cell(row=start_row, column=13).value = attendance.total_hours
