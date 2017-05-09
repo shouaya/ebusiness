@@ -217,8 +217,13 @@
                             <br/><br/><br/>
                         {% else %}
                             月額基本料金：\{{ data.DETAIL.ALLOWANCE_BASE }}円/月&nbsp;&nbsp;{{ data.DETAIL.ALLOWANCE_BASE_MEMO }}<br/>
-                            超過単価：\{{ data.DETAIL.ALLOWANCE_BASE }}/{{ data.DETAIL.ALLOWANCE_TIME_MAX }}h=\{{ data.DETAIL.ALLOWANCE_OVERTIME }}/h<br/>
-                            不足単価：\{{ data.DETAIL.ALLOWANCE_BASE }}/{{ data.DETAIL.ALLOWANCE_TIME_MIN }}h=\{{ data.DETAIL.ALLOWANCE_ABSENTEEISM }}/h<br/>
+                            {% if data.DETAIL.IS_SHOW_FORMULA %}
+                                超過単価：\{{ data.DETAIL.ALLOWANCE_BASE }}/{{ data.DETAIL.ALLOWANCE_TIME_MAX }}h=\{{ data.DETAIL.ALLOWANCE_OVERTIME }}/h<br/>
+                                不足単価：\{{ data.DETAIL.ALLOWANCE_BASE }}/{{ data.DETAIL.ALLOWANCE_TIME_MIN }}h=\{{ data.DETAIL.ALLOWANCE_ABSENTEEISM }}/h<br/>
+                            {% else %}
+                                &nbsp;<br/>
+                                &nbsp;<br/>
+                            {% endif %}
                             ※基準時間：{{ data.DETAIL.ALLOWANCE_TIME_MIN }}～{{ data.DETAIL.ALLOWANCE_TIME_MAX }}h/月<br/>
                             {{ data.DETAIL.COMMENT }}<br/>
                             作業報告書に基づく稼動実費精算とする。

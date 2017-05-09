@@ -996,7 +996,6 @@ class Member(AbstractMember):
             return contract.get_cost()
         else:
             return 0
-        # return int(self.cost) if self.cost else 0
 
     def get_latest_contract(self):
         """最新の契約情報を取得する

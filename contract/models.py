@@ -205,6 +205,8 @@ class BpContract(BaseModel):
     start_date = models.DateField(verbose_name=u"雇用開始日")
     end_date = models.DateField(blank=True, null=True, verbose_name=u"雇用終了日")
     is_hourly_pay = models.BooleanField(default=False, verbose_name=u"時給")
+    is_show_formula = models.BooleanField(default=True, verbose_name=u"計算式",
+                                          help_text=u"注文書に超過単価と不足単価の計算式を表示するか")
     allowance_base = models.IntegerField(verbose_name=u"基本給")
     allowance_base_memo = models.CharField(max_length=255, blank=True, null=True, default=u"税金抜き",
                                            verbose_name=u"基本給メモ")
@@ -234,3 +236,7 @@ class BpContract(BaseModel):
         """
         cost = self.allowance_base + self.allowance_other
         return cost
+
+    @property
+    def endowment_insurance(self):
+        return '0'
