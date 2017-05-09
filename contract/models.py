@@ -226,3 +226,11 @@ class BpContract(BaseModel):
 
     def is_fixed_cost(self):
         return self.allowance_time_min == self.allowance_time_max == self.allowance_overtime == self.allowance_absenteeism
+
+    def get_cost(self):
+        """コストを取得する
+
+        :return:
+        """
+        cost = self.allowance_base + self.allowance_other
+        return cost

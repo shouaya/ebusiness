@@ -473,7 +473,7 @@ def generate_bp_order_data(project_member, year, month, contract, user, bp_order
     # 時給
     data['DETAIL']['IS_HOURLY_PAY'] = contract.is_hourly_pay
     # 基本給
-    allowance_base = humanize.intcomma(contract.allowance_base) if contract else ''
+    allowance_base = humanize.intcomma(contract.allowance_base + contract.allowance_other) if contract else ''
     allowance_base_memo = contract.allowance_base_memo if contract.allowance_base_memo else ''
     data['DETAIL']['ALLOWANCE_BASE'] = allowance_base
     data['DETAIL']['ALLOWANCE_BASE_MEMO'] = allowance_base_memo

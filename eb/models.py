@@ -991,9 +991,6 @@ class Member(AbstractMember):
 
         :return:
         """
-        if self.member_type == 4:
-            # 他者技術者の場合
-            return int(self.cost) if self.cost else 0
         contract = self.get_contract(date)
         if contract:
             return contract.get_cost()
