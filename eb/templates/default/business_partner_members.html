@@ -8,6 +8,8 @@
             init_select("first_name__icontains");
             init_select("last_name__icontains");
             init_select("subcontractor__name__icontains");
+            init_select("is_retired");
+            init_select("salesperson");
         };
     </script>
 {% endblock %}
@@ -19,10 +21,17 @@
             <span>姓: </span><input type="text" id="first_name__icontains" name="first_name__icontains" style="width: 50px;"/>
             <span>名: </span><input type="text" id="last_name__icontains" name="last_name__icontains" style="width: 50px;"/>
             <span>協力会社: </span><input type="text" id="subcontractor__name__icontains" name="subcontractor__name__icontains" style="width: 150px;"/>
-            <select name="is_retired">
+            <select id="is_retired" name="is_retired">
                 <option value="">すべて</option>
                 <option value="1">退職</option>
                 <option value="0">未退職</option>
+            </select>
+            <label for="salesperson">営業員:</label>
+            <select id="salesperson" name="salesperson">
+                <option value="">すべて</option>
+                {% for sales in salesperson_list %}
+                    <option value="{{ sales.pk }}">{{ sales }}</option>
+                {% endfor %}
             </select>
             <input type="submit" value="Filter" />
             <a href="{{ request.path }}">クリア</a>
@@ -33,6 +42,7 @@
             <tr>
                 <th>名前</th>
                 <th>協力会社</th>
+                <th>営業員</th>
                 <th>開始日</th>
                 <th>終了日</th>
                 <th>基本給</th>
@@ -45,10 +55,11 @@
         </thead>
         <tbody>
             {% for member in members %}
-            {% with contract=member.latest_contract_set|first %}
+            {% with contract=member.latest_contract_set|first salesperson_period=member.current_salesperson_period|first %}
                 <tr class="{% cycle 'row1' 'row2' %} {% if member.is_retired %}expired{% endif %}">
                     <td><a href="{% url 'bp_member_orders' member.pk %}">{{ member }}</a></td>
                     <td>{{ member.subcontractor }}</td>
+                    <td>{{ salesperson_period.salesperson }}</td>
                     {% if contract %}
                         <td>{{ contract.start_date|date:'Y-m-d' }}</td>
                         <td>{{ contract.end_date|date:'Y-m-d'|default:'' }}</td>
@@ -86,7 +97,7 @@
         </tbody>
         <tfoot>
             <tr>
-                <td colspan="10">
+                <td colspan="11">
                     {% paging members %}
                 </td>
             </tr>

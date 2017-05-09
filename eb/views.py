@@ -1416,12 +1416,19 @@ class BusinessPartnerMembersView(BaseTemplateView):
     def get_context_data(self, **kwargs):
         context = super(BusinessPartnerMembersView, self).get_context_data(**kwargs)
         request = kwargs.get('request')
+        salesperson_id = request.GET.get('salesperson', None)
+
         param_list = common.get_request_params(request.GET)
         params = "&".join(["%s=%s" % (key, value) for key, value in param_list.items()]) if param_list else ""
+
+        if 'salesperson' in param_list:
+            del param_list['salesperson']
 
         all_members = biz.get_business_partner_members_with_contract()
         if param_list:
             all_members = all_members.filter(**param_list)
+        if salesperson_id:
+            all_members = biz.get_members_by_salesperson(all_members, salesperson_id)
 
         paginator = Paginator(all_members, biz_config.get_page_size())
         page = request.GET.get('page')
@@ -1434,6 +1441,7 @@ class BusinessPartnerMembersView(BaseTemplateView):
 
         context.update({
             'members': members,
+            'salesperson_list': models.Salesperson.objects.public_all(),
             'paginator': paginator,
             'params': "&" + params if params else "",
         })

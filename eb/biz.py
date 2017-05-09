@@ -213,10 +213,17 @@ def get_business_partner_members():
 
     :return:
     """
+    today = datetime.date.today()
+    # 現在所属の営業員を取得
+    sales_set = models.MemberSalespersonPeriod.objects.filter((Q(start_date__lte=today) & Q(end_date__isnull=True)) |
+                                                              (Q(start_date__lte=today) & Q(end_date__gte=today)))
+
     queryset = models.Member.objects.filter(
         subcontractor__isnull=False
     ).select_related('subcontractor').order_by('subcontractor')
-    return queryset
+    return queryset.prefetch_related(
+        Prefetch('membersalespersonperiod_set', queryset=sales_set, to_attr='current_salesperson_period'),
+    )
 
 
 def get_business_partner_members_with_contract():
