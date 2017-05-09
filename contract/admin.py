@@ -31,6 +31,10 @@ class BpContractInline(admin.TabularInline):
 
 class BaseAdmin(admin.ModelAdmin):
 
+    class Media:
+        js = ('/static/admin/js/jquery-2.1.4.min.js',
+              '/static/admin/js/base.js')
+
     def get_actions(self, request):
         actions = super(BaseAdmin, self).get_actions(request)
         if 'delete_selected' in actions:

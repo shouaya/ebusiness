@@ -33,7 +33,8 @@
             <tr>
                 <th>案件／対象年月</th>
                 <th>開始日／注文番号</th>
-                <th>終了日／操作</th>
+                <th>終了日／注文書</th>
+                <th>注文請書</th>
             </tr>
         </thead>
         <tbody>
@@ -46,6 +47,7 @@
                     </td>
                     <td>{{ project_member.start_date }}</td>
                     <td>{{ project_member.end_date }}</td>
+                    <td></td>
                 </tr>
                 {% for year, month, order in project_member.get_bp_member_orders %}
                     <tr class="row2">
@@ -57,17 +59,23 @@
                                 <a href="{% url 'bp_member_order_preview' project_member.pk year month|stringformat:'02d' %}" target="_blank">プレビュー</a>
                             {% endif %}
                         </td>
-                        <td class="center">
-                            {% if order %}
+                        {% if order %}
+                            <td class="center">
                                 <a href="{% url 'download_bp_order' project_member.pk year month|stringformat:'02d' %}?overwrite=1" target="_blank">
                                     ダウンロード</a>&nbsp;|&nbsp;
                                 <a href="{% url 'download_bp_order' project_member.pk year month|stringformat:'02d' %}" target="_blank"
                                    onclick="return confirm('既に作成済みなので、上書きしてもよろしいですか？')">
                                     再作成</a>
+                            </td>
+                            <td class="center">
+                                注文請書
+                            </td>
                             {% else %}
+                            <td class="center">
                                 <a href="{% url 'download_bp_order' project_member.pk year month|stringformat:'02d' %}" target="_blank">注文書新規作成</a>
-                            {% endif %}
-                        </td>
+                            </td>
+                            <td></td>
+                        {% endif %}
                     </tr>
                 {% endfor %}
             {% endfor %}
@@ -77,6 +85,7 @@
                 <th>案件／対象年月</th>
                 <th>開始日／注文番号</th>
                 <th>終了日／操作</th>
+                <th>注文請書</th>
             </tr>
         </tfoot>
     </table>

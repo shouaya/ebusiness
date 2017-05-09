@@ -94,6 +94,21 @@ class BpContractForm(BaseForm):
         super(BpContractForm, self).__init__(*args, **kwargs)
         for name in ('allowance_base_memo', 'allowance_other_memo'):
             self.fields[name].widget.attrs.update({'style': 'width: 100px;'})
+        self.fields['allowance_base'].widget.attrs.update({
+            'onblur': 'calculate_plus_minus(this, "allowance_base", '
+                      '"allowance_time_min", "allowance_time_max", '
+                      '"allowance_absenteeism", "allowance_overtime")'
+        })
+        self.fields['allowance_time_min'].widget.attrs.update({
+            'onblur': 'calculate_minus_from_min_hour(this, "allowance_base", '
+                      '"allowance_time_min", "allowance_time_max", '
+                      '"allowance_absenteeism", "allowance_overtime")'
+        })
+        self.fields['allowance_time_max'].widget.attrs.update({
+            'onblur': 'calculate_plus_from_max_hour(this, "allowance_base", '
+                      '"allowance_time_min", "allowance_time_max", '
+                      '"allowance_absenteeism", "allowance_overtime")'
+        })
         self.fields['comment'].widget.attrs.update({'rows': '1', 'style': 'width: 100px;'})
 
     def clean(self):

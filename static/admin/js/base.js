@@ -329,3 +329,70 @@ function musk() {
 function unmask() {
 
 }
+
+function calculate_plus_minus(obj, name_base, name_min, name_max, name_minus, name_plus) {
+    if (obj.id == "id_" + name_base) {
+        price = parseFloat($("#id_" + name_base).val());
+        min_hours = parseFloat($("#id_" + name_min).val());
+        max_hours = parseFloat($("#id_" + name_max).val());
+        plus_per_hour = Math.round(price / max_hours);
+        minus_per_hour = Math.round(price / min_hours);
+        $("#id_" + name_plus).val(plus_per_hour);
+        $("#id_" + name_minus).val(minus_per_hour);
+    } else {
+        // Inlineの場合
+        row_id = $(obj).parent().parent().attr("id");
+        price = parseFloat($(obj).val());
+        obj_min_hour = $("#id_" + row_id + "-" + name_min);
+        obj_max_hour = $("#id_" + row_id + "-" + name_max);
+        obj_plus = $("#id_" + row_id + "-" + name_plus);
+        obj_minus = $("#id_" + row_id + "-" + name_minus);
+        min_hours = parseFloat(obj_min_hour.val());
+        max_hours = parseFloat(obj_max_hour.val());
+
+        plus_per_hour = Math.round(price / max_hours);
+        minus_per_hour = Math.round(price / min_hours);
+        obj_plus.val(plus_per_hour);
+        obj_minus.val(minus_per_hour);
+    }
+}
+
+function calculate_minus_from_min_hour(obj, name_base, name_min, name_max, name_minus, name_plus) {
+    if (obj.id == "id_" + name_min) {
+        price = parseFloat($("#id_" + name_base).val());
+        min_hours = parseFloat($("#id_" + name_min).val());
+        minus_per_hour = Math.round(price / min_hours);
+        $("#id_" + name_minus).val(minus_per_hour);
+    } else {
+        // Inlineの場合
+        row_id = $(obj).parent().parent().attr("id");
+        obj_price = $("#id_" + row_id + "-" + name_base);
+        obj_min_hour = $("#id_" + row_id + "-" + name_min);
+        obj_minus = $("#id_" + row_id + "-" + name_minus);
+        price = parseFloat(obj_price.val());
+        min_hours = parseFloat(obj_min_hour.val());
+
+        minus_per_hour = Math.round(price / min_hours);
+        obj_minus.val(minus_per_hour);
+    }
+}
+
+function calculate_plus_from_max_hour(obj, name_base, name_min, name_max, name_minus, name_plus) {
+    if (obj.id == "id_" + name_max) {
+        price = parseFloat($("#id_" + name_base).val());
+        max_hours = parseFloat($("#id_" + name_max).val());
+        plus_per_hour = Math.round(price / max_hours);
+        $("#id_" + name_plus).val(plus_per_hour);
+    } else {
+        // Inlineの場合
+        row_id = $(obj).parent().parent().attr("id");
+        obj_price = $("#id_" + row_id + "-" + name_base);
+        obj_max_hour = $("#id_" + row_id + "-" + name_max);
+        obj_plus = $("#id_" + row_id + "-" + name_plus);
+        price = parseFloat(obj_price.val());
+        max_hours = parseFloat(obj_max_hour.val());
+
+        plus_per_hour = Math.round(price / max_hours);
+        obj_plus.val(plus_per_hour);
+    }
+}
