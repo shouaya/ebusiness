@@ -213,7 +213,7 @@ def get_business_partner_members():
 
     :return:
     """
-    queryset = models.Member.objects.public_filter(
+    queryset = models.Member.objects.filter(
         subcontractor__isnull=False
     ).select_related('subcontractor').order_by('subcontractor')
     return queryset
