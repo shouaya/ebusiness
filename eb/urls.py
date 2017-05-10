@@ -61,7 +61,7 @@ turnover_patterns = [
 ]
 
 subcontractor_patterns = [
-    url(r'^list.html$', views.SubcontractorListView.as_view(), name='subcontractor_list'),
+    # url(r'^list.html$', views.SubcontractorListView.as_view(), name='subcontractor_list'),
     url(r'^detail/(?P<subcontractor_id>[0-9]+).html$', views.SubcontractorDetailView.as_view(),
         name='subcontractor_detail'),
     url(r'^members/(?P<subcontractor_id>[0-9]+).html$', views.SubcontractorMembersView.as_view(),

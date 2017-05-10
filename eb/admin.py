@@ -1293,15 +1293,9 @@ class ConfigAdmin(BaseAdmin):
     list_display_links = ('name',)
 
 
-class BpMemberOrderInfoAdmin(BaseAdmin):
-    form = forms.BpMemberOrderInfoForm
+class BpMemberOrderInfoAdmin(ReadonlyAdmin):
     list_display = ('member', get_bp_member_order_company_name, 'year', 'month', 'cost')
     search_fields = ('member__first_name', 'member__last_name', 'member__subcontractor__name')
-
-    def get_form(self, request, obj=None, **kwargs):
-        form = super(BpMemberOrderInfoAdmin, self).get_form(request, obj, **kwargs)
-        form.base_fields['member'].queryset = models.Member.objects.public_filter(member_type=4)
-        return form
 
 
 NEW_USERNAME_LENGTH = 50

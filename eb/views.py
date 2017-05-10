@@ -1411,7 +1411,7 @@ class SubcontractorMembersView(BaseTemplateView):
 
 @method_decorator(permission_required('eb.view_subcontractor', raise_exception=True), name='get')
 class BusinessPartnerMembersView(BaseTemplateView):
-    template_name = 'default/business_partner_members.html'
+    template_name = 'default/bp_member_list.html'
 
     def get_context_data(self, **kwargs):
         context = super(BusinessPartnerMembersView, self).get_context_data(**kwargs)
