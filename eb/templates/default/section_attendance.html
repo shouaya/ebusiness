@@ -349,9 +349,7 @@
                                                 {% endif %}
                                                 <!--深夜手当-->
                                                 <td class="num col_06">
-                                                    {% if project_member.member.member_type == 2 %}
-                                                        {{ attendance.get_night_allowance|default:''|intcomma }}
-                                                    {% endif %}
+                                                    {{ attendance.get_night_allowance|default:''|intcomma }}
                                                 </td>
                                                 <!--残業／控除-->
                                                 <td class="num col_07 {% if attendance.get_overtime_cost < 0 %}red{% endif %}">{{ attendance.get_overtime_cost|default:''|intcomma }}</td>
