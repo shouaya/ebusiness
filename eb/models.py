@@ -2231,8 +2231,13 @@ class MemberAttendance(BaseModel):
 
         :return:
         """
-        date = datetime.datetime(int(self.year), int(self.month), 1, tzinfo=common.get_tz_utc())
-        return self.project_member.member.get_cost(date)
+        contract = self.get_contract()
+        if contract:
+            if contract.is_hourly_pay:
+                return contract.get_cost() * self.total_hours
+            else:
+                return contract.get_cost()
+        return 0
 
     def get_bonus(self):
         """ボーナスを取得する。
@@ -2241,10 +2246,6 @@ class MemberAttendance(BaseModel):
 
         :return:
         """
-        # cost = self.get_cost()
-        # if cost:
-        #     if self.project_member.member.member_type == 1:
-        #         return int(cost) / 6
         return 0
 
     def get_overtime_cost(self):
