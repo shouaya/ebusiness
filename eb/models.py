@@ -2213,8 +2213,12 @@ class MemberAttendance(BaseModel):
 
         :return:
         """
-        if self.night_days and self.night_days > 0 and self.project_member.member.member_type == 2:
-            return int(self.night_days) * 3000
+        contract = self.get_contract()
+        if self.night_days and self.night_days > 0:
+            if contract and contract.member_type in (1, 2):
+                return int(self.night_days) * 3000
+            else:
+                return 0
         else:
             return 0
 

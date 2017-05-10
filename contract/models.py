@@ -239,4 +239,16 @@ class BpContract(BaseModel):
 
     @property
     def endowment_insurance(self):
+        """他者技術者の場合、保険なし
+
+        :return:
+        """
         return '0'
+
+    @property
+    def member_type(self):
+        """固定で他者技術者
+
+        :return:
+        """
+        return 4
