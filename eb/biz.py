@@ -495,6 +495,12 @@ def generate_bp_order_data(project_member, year, month, contract, user, bp_order
     data['DETAIL']['COMMENT'] = contract.comment
     # 作業場所
     data['DETAIL']['LOCATION'] = project_member.project.address if project_member.project.address else u"弊社指定場所"
+    # 納入物件
+    data['DETAIL']['DELIVERY_PROPERTIES'] = models.Config.get_bp_order_delivery_properties()
+    # 支払条件
+    data['DETAIL']['PAYMENT_CONDITION'] = models.Config.get_bp_order_payment_condition()
+    # 契約条項
+    data['DETAIL']['CONTRACT_ITEMS'] = models.Config.get_bp_order_contract_items()
 
     data['DETAIL']['ORDER_NO'] = bp_order.order_no
     return data

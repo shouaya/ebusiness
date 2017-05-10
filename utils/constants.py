@@ -46,6 +46,7 @@ CONFIG_SERVICE_CONTRACT = 'service_contract'
 CONFIG_SALES_SYSTEM_NAME = 'sales_system_name'
 # 契約設定
 CONFIG_GROUP_CONTRACT = 'contract'
+CONFIG_GROUP_BP_ORDER = 'bp_order'
 CONFIG_EMPLOYMENT_PERIOD_COMMENT = 'employment_period_comment'
 CONFIG_BUSINESS_ADDRESS = 'employment_business_address'
 CONFIG_BUSINESS_TIME = 'business_time'
@@ -57,6 +58,9 @@ CONFIG_PAID_VACATION_COMMENT = 'paid_vacation_comment'
 CONFIG_NO_PAID_VACATION_COMMENT = 'no_paid_vacation_comment'
 CONFIG_RETIRE_COMMENT = 'retire_comment'
 CONFIG_CONTRACT_COMMENT = 'contract_comment'
+CONFIG_BP_ORDER_DELIVERY_PROPERTIES = 'delivery_properties'
+CONFIG_BP_ORDER_PAYMENT_CONDITION = 'payment_condition'
+CONFIG_BP_ORDER_CONTRACT_ITEMS = 'contract_items'
 
 MARK_POST_CODE = u"〒"
 

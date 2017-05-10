@@ -163,7 +163,7 @@ class Config(models.Model):
             c = Config.objects.get(name=config_name)
             return c.value
         except ObjectDoesNotExist:
-            if default_value:
+            if default_value is not None:
                 c = Config(group=group_name, name=config_name, value=default_value)
                 c.save()
             return default_value
@@ -251,6 +251,30 @@ class Config(models.Model):
     def get_contract_comment():
         default = u"上記以外の雇用条件については、就業規則の定めることによる。"
         return Config.get(constants.CONFIG_CONTRACT_COMMENT, default, group_name=constants.CONFIG_GROUP_CONTRACT)
+
+    @staticmethod
+    def get_bp_order_delivery_properties():
+        """ＢＰ注文書の納入物件
+
+        :return:
+        """
+        return Config.get(constants.CONFIG_BP_ORDER_DELIVERY_PROPERTIES, '', group_name=constants.CONFIG_GROUP_BP_ORDER)
+
+    @staticmethod
+    def get_bp_order_payment_condition():
+        """ＢＰ注文書の支払条件
+
+        :return:
+        """
+        return Config.get(constants.CONFIG_BP_ORDER_PAYMENT_CONDITION, '', group_name=constants.CONFIG_GROUP_BP_ORDER)
+
+    @staticmethod
+    def get_bp_order_contract_items():
+        """ＢＰ注文書の契約条項
+
+        :return:
+        """
+        return Config.get(constants.CONFIG_BP_ORDER_CONTRACT_ITEMS, '', group_name=constants.CONFIG_GROUP_BP_ORDER)
 
 
 class BaseModel(models.Model):
