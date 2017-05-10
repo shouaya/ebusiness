@@ -722,13 +722,24 @@ def get_order_file_path(order_no, client_name, ym):
 
 
 def get_template_order_path(contract):
+    """注文書のテンプレートパスを取得する
+
+    :param contract:
+    :return:
+    """
     if not contract:
         raise errors.CustomException(constants.ERROR_BP_NO_CONTRACT)
     if contract.is_hourly_pay:
+        # 時給
         path = os.path.join(settings.MEDIA_ROOT, 'eb_order', 'eb_order_hourly.xlsx')
     elif contract.is_fixed_cost():
+        # 固定給料
         path = os.path.join(settings.MEDIA_ROOT, 'eb_order', 'eb_order_fixed.xlsx')
+    elif contract.is_show_formula is False:
+        # 計算式を隠す
+        path = os.path.join(settings.MEDIA_ROOT, 'eb_order', 'eb_order_hide_formula.xlsx')
     else:
+        # 既定
         path = os.path.join(settings.MEDIA_ROOT, 'eb_order', 'eb_order.xlsx')
     return path
 
