@@ -395,9 +395,7 @@
                                                 {% endif %}
                                                 <!--深夜手当-->
                                                 <td class="num col_06">
-                                                    {% if project_member.member.member_type == 2 %}
-                                                        {{ attendance.get_night_allowance|default:''|intcomma }}
-                                                    {% endif %}
+                                                    {{ attendance.get_night_allowance|default:''|intcomma }}
                                                 </td>
                                                 <td class="num col_07"></td>
                                                 <!--交通費-->

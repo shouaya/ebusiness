@@ -2902,7 +2902,7 @@ class EmailMultiAlternativesWithEncoding(EmailMultiAlternatives):
         return attachment
 
 
-def get_sales_members():
+def get_all_members():
     """現在の営業対象のメンバーを取得する。
 
     加入日は現在以前、かつ所属部署は営業対象部署になっている
@@ -2910,8 +2910,8 @@ def get_sales_members():
     :return: MemberのQueryset
     """
     today = datetime.date.today()
-    query_set = Member.objects.public_filter(Q(join_date__isnull=True) | Q(join_date__lte=today),
-                                             membersectionperiod__section__is_on_sales=True).distinct()
+    query_set = Member.objects.filter(Q(join_date__isnull=True) | Q(join_date__lte=today),
+                                      membersectionperiod__section__is_on_sales=True).distinct()
     # 現在所属の部署を取得
     section_set = MemberSectionPeriod.objects.filter((Q(start_date__lte=today) & Q(end_date__isnull=True)) |
                                                      (Q(start_date__lte=today) & Q(end_date__gte=today)))
@@ -2933,6 +2933,10 @@ def get_sales_members():
                           "   and pm.is_deleted = 0 "
                           "   and pm.status = 1",
     })
+
+
+def get_sales_members():
+    return get_all_members().filter(is_retired=False)
 
 
 def get_on_sales_members():

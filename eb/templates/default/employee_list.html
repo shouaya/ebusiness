@@ -1,5 +1,6 @@
 {% extends theme|add:"/base.html" %}
 {% load order_by_tag %}
+{% load sales_templates %}
 
 {% block header %}
     <script type="text/javascript">
@@ -112,7 +113,7 @@
         <tbody>
             {% if members %}
                 {% for member in members %}
-                    <tr class="{% cycle 'row1' 'row2' %}">
+                    <tr class="{% cycle 'row1' 'row2' %} {% if member.is_retired %}expired{% endif %}">
                         <td>
                             <a href="{% url 'member_detail' member.employee_id %}">
                                 {{ member.first_name }}&nbsp;{{ member.last_name }}
@@ -124,37 +125,41 @@
                         <td>{{ section_period.subsection|default:'' }}</td>
                         {% endwith %}
                         <td>{{ member.subcontractor|default:"" }}</td>
-                        <td class="center">
-                            {% if member.last_end_date|date:"Y-m-d" > ymd %}
-                                <a href="?status=working{{ params }}"><img width="12px" src="/static/{{ theme }}/img/icon-normal.png"/></a>
-                            {% else %}
-                                <a href="?status=waiting{{ params }}"><img width="12px" src="/static/{{ theme }}/img/icon-warn.png"/></a>
-                            {% endif %}
-                        </td>
-                        <td>
-                            {% if page_type == "members_in_coming" %}
-                                {{ member.join_date }}
-                            {% else %}
+                        {% if member.is_retired %}
+                            <td colspan="4">退職</td>
+                        {% else %}
+                            <td class="center">
                                 {% if member.last_end_date|date:"Y-m-d" > ymd %}
-                                    {{ member.last_end_date|date:"Y-m-d" }}
+                                    <a href="?status=working{{ params }}"><img width="12px" src="/static/{{ theme }}/img/icon-normal.png"/></a>
+                                {% else %}
+                                    <a href="?status=waiting{{ params }}"><img width="12px" src="/static/{{ theme }}/img/icon-warn.png"/></a>
                                 {% endif %}
-                            {% endif %}
-                        </td>
-                        <td>
-                            {% for salesperson_period in member.current_salesperson_period %}
-                                <a href="?salesperson={{ salesperson_period.salesperson.pk }}">
-                                    {{ salesperson_period.salesperson }}</a>
-                            {% endfor %}
-                        </td>
-                        <td class="center">
-                            {% if page_type == "off_sales" %}
-                                {{ member.sales_off_reason }}
-                            {% else %}
-                                {% ifequal member.get_business_status "未提案" %}
-                                    <a href="{% url 'recommended_project' member.employee_id %}">推薦された案件</a>
-                                {% endifequal %}
-                            {% endif %}
-                        </td>
+                            </td>
+                            <td>
+                                {% if page_type == "members_in_coming" %}
+                                    {{ member.join_date }}
+                                {% else %}
+                                    {% if member.last_end_date|date:"Y-m-d" > ymd %}
+                                        {{ member.last_end_date|date:"Y-m-d" }}
+                                    {% endif %}
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% for salesperson_period in member.current_salesperson_period %}
+                                    <a href="?salesperson={{ salesperson_period.salesperson.pk }}">
+                                        {{ salesperson_period.salesperson }}</a>
+                                {% endfor %}
+                            </td>
+                            <td class="center">
+                                {% if page_type == "off_sales" %}
+                                    {{ member.sales_off_reason }}
+                                {% else %}
+                                    {% ifequal member.get_business_status "未提案" %}
+                                        <a href="{% url 'recommended_project' member.employee_id %}">推薦された案件</a>
+                                    {% endifequal %}
+                                {% endif %}
+                            </td>
+                        {% endif %}
                         <td class="center"><a href="{% url 'admin:eb_member_change' member.pk %}?from=portal&_popup=1" target="_blank">編集</a></td>
                     </tr>
                 {% endfor %}
@@ -165,30 +170,7 @@
         <tfoot>
             <tr>
                 <td colspan="10">
-                    <div class="pagination">
-                        <span class="step-links">
-                            {% if members.has_previous %}
-                                <a href="?page={{ members.previous_page_number }}{{ params }}{{ orders }}">&lt;</a>
-                            {% endif %}
-
-                            {% if paginator.page_range|length > 1 %}
-                                {% for page in paginator.page_range %}
-                                    {% ifequal page members.number %}
-                                        <span class="current">
-                                            {{ page }}
-                                        </span>
-                                    {% else %}
-                                        <a href="?page={{ page }}{{ params }}{{ orders }}">{{ page }}</a>
-                                    {% endifequal %}
-                                {% endfor %}
-                            {% endif %}
-
-                            {% if members.has_next %}
-                                <a href="?page={{ members.next_page_number }}{{ params }}{{ orders }}">&gt;</a>
-                            {% endif %}
-                            <span>{{ paginator.count }} 件</span>
-                        </span>
-                    </div>
+                    {% paging members %}
                 </td>
             </tr>
         </tfoot>

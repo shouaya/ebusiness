@@ -161,7 +161,7 @@ class MemberListView(BaseTemplateView):
         elif status == "off_sales":
             all_members = models.get_off_sales_members()
         else:
-            all_members = models.get_sales_members()
+            all_members = models.get_all_members()
 
         param_list = common.get_request_params(request.GET)
         params = "&".join(["%s=%s" % (key, value) for key, value in param_list.items()]) if param_list else ""
