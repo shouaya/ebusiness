@@ -36,7 +36,7 @@ class GeneratePagingTag(template.Node):
             nodes.append(u'<div class="pagination">')
             nodes.append(u'<span class="step-links">')
             if page_object.has_previous():
-                nodes.append(u'<a href="?page={0}{1}{2}">&lt;</a>'.format(page_object.previous_page_number, params, orders))
+                nodes.append(u'<a href="?page={0}{1}{2}">&lt;</a>'.format(page_object.previous_page_number(), params, orders))
             if len(paginator.page_range) > 1:
                 for page in paginator.page_range:
                     if page == page_object.number:
@@ -44,7 +44,7 @@ class GeneratePagingTag(template.Node):
                     else:
                         nodes.append(u'<a href="?page={0}{1}{2}">{0}</a>'.format(page, params, orders))
             if page_object.has_next():
-                nodes.append(u'<a href="?page={0}{1}{2}">&gt;</a>'.format(page_object.next_page_number, params, orders))
+                nodes.append(u'<a href="?page={0}{1}{2}">&gt;</a>'.format(page_object.next_page_number(), params, orders))
             nodes.append(u'&nbsp;<span>{0} 件</span>'.format(paginator.count))
             nodes.append(u'</span>')
             nodes.append(u'</div>')
