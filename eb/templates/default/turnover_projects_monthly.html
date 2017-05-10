@@ -23,7 +23,7 @@
                 {% for turnover in turnover_details %}
                     <tr class="{% cycle 'row1' 'row2' %}">
                         <td>
-                            <a href="{% url 'turnover_members_monthly' ym %}?project_request__project__name__contains={{ turnover.project.name|urlencode }}">{{ turnover.project }}</a>
+                            <a href="{% url 'turnover_members_monthly' ym %}?project_request__project__name__exact={{ turnover.project.name|urlencode }}">{{ turnover.project }}</a>
                         </td>
                         <td style="text-align: right">{{ turnover.attendance_amount|intcomma }}</td>
                         <td style="text-align: right">{{ turnover.tax_amount|intcomma }}</td>

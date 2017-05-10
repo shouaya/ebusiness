@@ -9,8 +9,8 @@
             init_select("project_member__member__last_name__contains");
             init_select("member_section__pk");
             init_select_name("member_section__pk", "member_section__name");
-            init_select("project_request__project__name__contains");
-            init_select("project_request__projectrequestheading__client__name__contains");
+            init_select("project_request__project__name__icontains");
+            init_select("project_request__projectrequestheading__client__name__icontains");
             init_select("salesperson__pk");
 
             params = GetQueryString();
@@ -34,8 +34,8 @@
                     <option value="{{ section.pk }}">{{ section.name }}</option>
                 {% endfor %}
             </select>
-            <span>案件: </span><input type="text" id="project_request__project__name__contains" name="project_request__project__name__contains" style="width: 150px;"/>
-            <span>関連会社: </span><input type="text" id="project_request__projectrequestheading__client__name__contains" name="project_request__projectrequestheading__client__name__contains" style="width: 150px;"/>
+            <span>案件: </span><input type="text" id="project_request__project__name__icontains" name="project_request__project__name__icontains" style="width: 150px;"/>
+            <span>関連会社: </span><input type="text" id="project_request__projectrequestheading__client__name__icontains" name="project_request__projectrequestheading__client__name__icontains" style="width: 150px;"/>
             <span>営業：</span>
             <select id="salesperson__pk" name="salesperson__pk">
                 <option value="">すべて</option>
