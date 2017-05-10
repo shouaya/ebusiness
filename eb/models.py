@@ -2279,7 +2279,7 @@ class MemberAttendance(BaseModel):
             night_allowance = float(self.get_night_allowance())
             overtime_cost = self.get_overtime_cost()
             traffic_cost = float(self.traffic_cost) if self.traffic_cost else 0
-            return (cost + bonus + allowance + night_allowance + overtime_cost + traffic_cost) * 0.02
+            return (cost + bonus + allowance + night_allowance + overtime_cost + traffic_cost) * 0.01
         else:
             return 0
 
@@ -2487,6 +2487,9 @@ class BpMemberOrder(BaseModel):
                                            allowance_overtime=data['DETAIL'].get('ALLOWANCE_OVERTIME', None),
                                            allowance_absenteeism=data['DETAIL'].get('ALLOWANCE_ABSENTEEISM', None),
                                            comment=data['DETAIL'].get('COMMENT', None),
+                                           delivery_properties_comment=data['DETAIL'].get('DELIVERY_PROPERTIES', None),
+                                           payment_condition_comments=data['DETAIL'].get('PAYMENT_CONDITION', None),
+                                           contract_items_comments=data['DETAIL'].get('CONTRACT_ITEMS', None),
                                            )
             heading.save()
 
@@ -2520,6 +2523,9 @@ class BpMemberOrderHeading(models.Model):
     allowance_other = models.CharField(blank=True, null=True, max_length=20, verbose_name=u"その他手当")
     allowance_other_memo = models.CharField(blank=True, null=True, max_length=255, verbose_name=u"その他手当メモ")
     comment = models.TextField(blank=True, null=True, verbose_name=u"備考")
+    delivery_properties_comment = models.CharField(blank=True, null=True, max_length=255, verbose_name=u"納入物件")
+    payment_condition_comments = models.TextField(blank=True, null=True, verbose_name=u"支払条件")
+    contract_items_comments = models.TextField(blank=True, null=True, verbose_name=u"契約条項")
 
     class Meta:
         verbose_name = verbose_name_plural = u"ＢＰ註文書見出し"
@@ -2903,12 +2909,6 @@ class EmailMultiAlternativesWithEncoding(EmailMultiAlternatives):
 
 
 def get_all_members():
-    """現在の営業対象のメンバーを取得する。
-
-    加入日は現在以前、かつ所属部署は営業対象部署になっている
-
-    :return: MemberのQueryset
-    """
     today = datetime.date.today()
     query_set = Member.objects.filter(Q(join_date__isnull=True) | Q(join_date__lte=today),
                                       membersectionperiod__section__is_on_sales=True).distinct()
@@ -2936,6 +2936,12 @@ def get_all_members():
 
 
 def get_sales_members():
+    """現在の営業対象のメンバーを取得する。
+
+    加入日は現在以前、かつ所属部署は営業対象部署になっている
+
+    :return: MemberのQueryset
+    """
     return get_all_members().filter(is_retired=False)
 
 

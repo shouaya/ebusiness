@@ -10,11 +10,11 @@
 {% endblock %}
 
 {% block content %}
-    <div class="dashboard">
+    <div class="dashboard print">
         <div class="dashboard-title">ＢＰメンバー注文情報</div>
         <form>
         </form>
-        <table class="order" cellpadding="0" cellspacing="0" style="width: 948px;">
+        <table class="order print" cellpadding="0" cellspacing="0" style="width: 948px;">
             {% if error_message %}
             <tr>
                 <td class="center red">{{ error_message }}</td>
@@ -239,7 +239,7 @@
                             <br/><br/><br/>
                         {% else %}
                             月額基本料金：\{{ bp_order.bpmemberorderheading.allowance_base }}円/月　　{{ bp_order.bpmemberorderheading.allowance_base_memo }}<br/>
-                            超過単価：\{{ bp_order.bpmemberorderheading.allowance_base }}/{{ bp_order.bpmemberorderheading.allowance_time_max }}h=\{{ data.DETAIL.allowance_overtime }}/h<br/>
+                            超過単価：\{{ bp_order.bpmemberorderheading.allowance_base }}/{{ bp_order.bpmemberorderheading.allowance_time_max }}h=\{{ bp_order.bpmemberorderheading.allowance_overtime }}/h<br/>
                             不足単価：\{{ bp_order.bpmemberorderheading.allowance_base }}/{{ bp_order.bpmemberorderheading.allowance_time_min }}h=\{{ bp_order.bpmemberorderheading.allowance_absenteeism }}/h<br/>
                             ※基準時間：{{ bp_order.bpmemberorderheading.allowance_time_min }}～{{ bp_order.bpmemberorderheading.allowance_time_max }}h/月<br/>
                             {{ bp_order.bpmemberorderheading.comment }}<br/>
@@ -261,31 +261,31 @@
             </tr>
             <tr>
                 <td colspan="2" class="center left top">納入物件</td>
-                <td colspan="7" class="left top border_right">月別作業報告書</td>
+                <td colspan="7" class="left top border_right">
+                    {% if data %}
+                        {{ data.DETAIL.DELIVERY_PROPERTIES }}
+                    {% else %}
+                        {{ bp_order.bpmemberorderheading.delivery_properties_comment }}
+                    {% endif %}
+                </td>
             </tr>
             <tr>
                 <td colspan="2" class="center left top">支払条件</td>
                 <td colspan="7" class="left top border_right">
-                    作業報告書査収による毎月末締め、翌々月15日に現金振込<br/>
-                    ① 時間単位30分。<br/>
-                    ② 休憩時間は顧客就業時間に準ずる。<br/>
-                    ③ 請求書は毎月作業実績表（現場の承認印）を添付の上、翌月5日迄に送付する。<br/>
-                    ④ 延長/中止の場合には、両者協議の上、継続検討を行うものとする。<br/>
-                    ⑤ 著しく勤怠不良の場合は、協議の上で減額する。<br/>
-                    ⑥ 振込手数料は受託者負担とさせて頂きます。<br/>
+                    {% if data %}
+                        <pre style="min-height: 135px;">{{ data.DETAIL.PAYMENT_CONDITION }}</pre>
+                    {% else %}
+                        <pre style="min-height: 135px;">{{ bp_order.bpmemberorderheading.payment_condition_comments }}</pre>
+                    {% endif %}
                 </td>
             </tr>
             <tr>
                 <td colspan="9" class="top">
-                    〈契約条項〉<br/>
-                    １．本作業に関わる著作権は、甲に一切帰属するものとする。<br/>
-                    ２．乙は、本作業にて知り得た知識・企業秘密・ノウハウその他の情報（本作業自体を含め）、一切乙以外の外部に漏洩しないものとする。<br/>
-                    ３．顧客の都合によりこの注文書の業務が中断もしくは終了した場合は、その時点で、当該注文は解除され発注の効力を失う。<br/>
-                    <br/>
-                    <br/>
-                    <br/>
-                    <br/>
-                    <br/>
+                    {% if data %}
+                        <pre style="min-height: 170px;">{{ data.DETAIL.CONTRACT_ITEMS }}</pre>
+                    {% else %}
+                        <pre style="min-height: 170px;">{{ bp_order.bpmemberorderheading.contract_items_comments }}</pre>
+                    {% endif %}
                 </td>
             </tr>
             {% endif %}
