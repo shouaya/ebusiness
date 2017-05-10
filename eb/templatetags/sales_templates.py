@@ -45,7 +45,7 @@ class GeneratePagingTag(template.Node):
                         nodes.append(u'<a href="?page={0}{1}{2}">{0}</a>'.format(page, params, orders))
             if page_object.has_next():
                 nodes.append(u'<a href="?page={0}{1}{2}">&gt;</a>'.format(page_object.next_page_number, params, orders))
-            nodes.append(u'<span>{0} 件</span>'.format(paginator.count))
+            nodes.append(u'&nbsp;<span>{0} 件</span>'.format(paginator.count))
             nodes.append(u'</span>')
             nodes.append(u'</div>')
             html = "".join(nodes)

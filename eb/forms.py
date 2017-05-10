@@ -704,3 +704,6 @@ class ConfigForm(forms.ModelForm):
             elif instance.name and instance.name.find('mail_body') > 0:
                 self.fields['value'] = forms.CharField(widget=forms.Textarea(attrs={'style': 'width: 610px;'}),
                                                        required=True, label=u"設定値")
+            elif instance.group and instance.group in ('contract', 'bp_order'):
+                self.fields['value'] = forms.CharField(widget=forms.Textarea(attrs={'style': 'width: 610px;'}),
+                                                       required=True, label=u"設定値")
