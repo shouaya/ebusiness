@@ -475,6 +475,11 @@ section .lump_project {
     background-color: yellow;
 }
 
+/* 待機案件 */
+section .reserve_project {
+    background-color: #e48ca6;
+}
+
 /* 請求書作成済み */
 section .project_requested {
     background-color: lightgray;

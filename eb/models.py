@@ -1355,7 +1355,8 @@ class Project(models.Model):
                                     help_text=u"该项目会作为请求书中備考栏中的值。")
     is_hourly_pay = models.BooleanField(default=False, verbose_name=u"時給",
                                         help_text=u"选中后将会无视人员的单价与增减等信息，计算请求时会将总时间乘以时薪。")
-    # is_reserve = models.BooleanField(default=False, verbose_name=u"待機案件フラグ")
+    is_reserve = models.BooleanField(default=False, verbose_name=u"待機案件フラグ",
+                                     help_text=u"バーチャル案件です、コストなどを算出ために非稼働メンバーをこの案件にアサインすればいい。")
     client = models.ForeignKey(Client, null=True, verbose_name=u"関連会社")
     boss = models.ForeignKey(ClientMember, blank=True, null=True, related_name="boss_set", verbose_name=u"案件責任者")
     middleman = models.ForeignKey(ClientMember, blank=True, null=True,
@@ -2125,6 +2126,24 @@ class ProjectMember(models.Model):
         self.save()
 
 
+# class ProjectMemberPrice(BaseModel):
+#     project_member = models.ForeignKey(ProjectMember, verbose_name=u"案件メンバー")
+#     start_date = models.DateField(verbose_name=u"開始日")
+#     end_date = models.DateField(blank=True, null=True, verbose_name=u"終了日")
+#     is_hourly_pay = models.BooleanField(default=False, verbose_name=u"時給")
+#     price = models.IntegerField(default=0, verbose_name=u"単価")
+#     min_hours = models.DecimalField(max_digits=5, decimal_places=2, default=160, verbose_name=u"基準時間")
+#     max_hours = models.DecimalField(max_digits=5, decimal_places=2, default=180, verbose_name=u"最大時間")
+#     plus_per_hour = models.IntegerField(default=0, verbose_name=u"増（円）")
+#     minus_per_hour = models.IntegerField(default=0, verbose_name=u"減（円）")
+#
+#     class Meta:
+#         verbose_name = verbose_name_plural = u"案件メンバー単価"
+#
+#     def __unicode__(self):
+#         return u"%s(%s)" % (unicode(self.project_member), self.start_date)
+
+
 class ExpensesCategory(BaseModel):
     name = models.CharField(max_length=50, verbose_name=u"名称")
 
@@ -2257,6 +2276,9 @@ class MemberAttendance(BaseModel):
         if contract:
             if contract.allowance_time_min <= self.total_hours <= contract.allowance_time_max:
                 return 0
+            elif self.project_member.project.is_reserve:
+                # 待機案件の場合、残業と欠勤を計算する必要がない。
+                return 0
             elif self.total_hours > contract.allowance_time_max:
                 overtime = self.total_hours - contract.allowance_time_max
                 return int(overtime * contract.allowance_overtime)
@@ -2279,7 +2301,7 @@ class MemberAttendance(BaseModel):
             night_allowance = float(self.get_night_allowance())
             overtime_cost = self.get_overtime_cost()
             traffic_cost = float(self.traffic_cost) if self.traffic_cost else 0
-            return (cost + bonus + allowance + night_allowance + overtime_cost + traffic_cost) * 0.01
+            return int((cost + bonus + allowance + night_allowance + overtime_cost + traffic_cost) * 0.01)
         else:
             return 0
 
@@ -2298,7 +2320,7 @@ class MemberAttendance(BaseModel):
             night_allowance = float(self.get_night_allowance())
             overtime_cost = self.get_overtime_cost()
             traffic_cost = float(self.traffic_cost) if self.traffic_cost else 0
-            return (cost + bonus + allowance + night_allowance + overtime_cost + traffic_cost) * 0.14
+            return int((cost + bonus + allowance + night_allowance + overtime_cost + traffic_cost) * 0.14)
         else:
             return 0
 
@@ -2331,6 +2353,8 @@ class MemberAttendance(BaseModel):
             return total_price - self.get_all_cost()
         elif self.project_member.project.is_lump:
             return self.project_member.project.lump_amount - self.get_all_cost()
+        elif self.project_member.project.is_reserve:
+            return 0 - self.get_all_cost()
         else:
             return None
 

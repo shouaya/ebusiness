@@ -141,6 +141,10 @@ class ProjectForm(forms.ModelForm):
         is_lump = cleaned_data.get("is_lump")
         lump_amount = cleaned_data.get("lump_amount")
         status = cleaned_data.get('status')
+        is_reserve = cleaned_data.get('is_reserve')
+        if is_reserve and not self.instance.pk:
+            if models.Project.objects.public_filter(is_reserve=True).count() > 0:
+                self.add_error('is_reserve', u"待機案件は既に作成済みです。")
         if is_lump:
             if not lump_amount or lump_amount <= 0:
                 self.add_error('lump_amount', u"一括の場合、一括金額を入力してください。")
@@ -338,6 +342,21 @@ class ProjectMemberFormset(forms.BaseInlineFormSet):
                         raise forms.ValidationError(u"メンバー%sの開始日が重複している。" % (member.__unicode__(),))
                     if end_date and common.is_cross_date(dates, end_date, i):
                         raise forms.ValidationError(u"メンバー%sの終了日が重複している。" % (member.__unicode__(),))
+
+
+# class ProjectMemberPriceForm(forms.ModelForm):
+#     class Meta:
+#         model = models.ProjectMemberPrice
+#         fields = '__all__'
+#
+#     def __init__(self, *args, **kwargs):
+#         self.request = kwargs.pop('request', None)
+#         self.encrypt_fields = ('price', 'min_hours', 'max_hours', 'plus_per_hour', 'minus_per_hour')
+#         self.is_encrypted = False
+#         super(ProjectMemberPriceForm, self).__init__(*args, **kwargs)
+#
+#         self.fields['min_hours'].widget.attrs.update({'style': 'width: 60px;'})
+#         self.fields['max_hours'].widget.attrs.update({'style': 'width: 60px;'})
 
 
 class MemberAttendanceForm(forms.ModelForm):

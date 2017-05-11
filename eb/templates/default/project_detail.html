@@ -325,7 +325,10 @@
             {% else %}
             <td></td>
             {% endif %}
-            <td colspan="2"></td>
+            <th>待機案件</th>
+            <td class="{%if project.is_reserve %}reserve_project{% endif %}">
+                待機案件
+            </td>
         </tr>
     </table>
     <div class="dashboard">

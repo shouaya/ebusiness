@@ -91,6 +91,12 @@ class ProjectMemberInline(admin.TabularInline):
         return queryset.filter(member__is_retired=False, member__is_deleted=False).order_by('end_date', 'start_date')
 
 
+# class ProjectMemberPriceInline(admin.TabularInline):
+#     model = models.ProjectMemberPrice
+#     form = forms.ProjectMemberPriceForm
+#     extra = 0
+
+
 class EmployeeExpensesInline(admin.TabularInline):
     model = models.EmployeeExpenses
     extra = 0
@@ -645,7 +651,7 @@ class ProjectAdmin(BaseAdmin):
     form = forms.ProjectForm
     list_display = ['name', 'client', 'start_date', 'end_date', 'status', 'salesperson', 'is_deleted']
     list_display_links = ['name']
-    list_filter = ['status', 'salesperson', 'is_deleted']
+    list_filter = ['status', 'salesperson', 'is_reserve', 'is_deleted']
     search_fields = ['name', 'client__name']
     inlines = (ProjectSkillInline, ProjectMemberInline)
     actions = ['delete_objects', 'active_objects']
@@ -907,6 +913,14 @@ class ProjectMemberAdmin(BaseAdmin):
         if 'delete_selected' in actions:
             del actions['delete_selected']
         return actions
+
+    # def _create_formsets(self, request, obj, change):
+    #     formsets, inline_instances = super(ProjectMemberAdmin, self)._create_formsets(request, obj, change)
+    #     for fm in formsets:
+    #         if fm.model == models.ProjectMemberPrice:
+    #             fm.form.base_fields['min_hours'].initial = obj.project.min_hours
+    #             fm.form.base_fields['max_hours'].initial = obj.project.max_hours
+    #     return formsets, inline_instances
 
     def display_project_client(self, obj):
         return obj.project.client.name

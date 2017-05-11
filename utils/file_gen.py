@@ -1072,7 +1072,7 @@ def generate_attendance_format(user, template_path, project_members):
                 # 売上（経費）
                 sheet.cell(row=start_row, column=21).value = 0
 
-            if request_detail or project_member.project.is_lump:
+            if request_detail or project_member.project.is_lump or project_member.project.is_reserve:
                 # 月給
                 sheet.cell(row=start_row, column=22).value = attendance.get_cost()
                 # 手当

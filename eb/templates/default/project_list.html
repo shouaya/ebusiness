@@ -67,7 +67,7 @@
         <tbody>
             {% if projects %}
                 {% for project in projects %}
-                    <tr class="{% cycle 'row1' 'row2' %} {% if project.status == 5 %}finished{% endif %}">
+                    <tr class="{% cycle 'row1' 'row2' %} {% if project.status == 5 %}finished{% endif %} {%if project.is_reserve %}reserve_project{% endif %}">
                         <td {% if project.is_lump %}class="lump_project"{% endif %}>
                             <div style="width: 320px; overflow: hidden; white-space: nowrap;">
                                 <a href="{% url 'project_detail' project.pk %}" title="{{ project.name }}">
