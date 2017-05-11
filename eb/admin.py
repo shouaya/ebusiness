@@ -686,6 +686,7 @@ class ProjectAdmin(BaseAdmin):
         if obj and obj.client:
             form.base_fields['boss'].queryset = models.ClientMember.objects.filter(client=obj.client)
             form.base_fields['middleman'].queryset = models.ClientMember.objects.filter(client=obj.client)
+        form.base_fields['department'].queryset = models.Section.objects.filter(is_on_sales=True)
         return form
 
     def save_related(self, request, form, formsets, change):

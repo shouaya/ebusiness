@@ -1356,12 +1356,15 @@ class Project(models.Model):
     is_hourly_pay = models.BooleanField(default=False, verbose_name=u"時給",
                                         help_text=u"选中后将会无视人员的单价与增减等信息，计算请求时会将总时间乘以时薪。")
     is_reserve = models.BooleanField(default=False, verbose_name=u"待機案件フラグ",
-                                     help_text=u"バーチャル案件です、コストなどを算出ために非稼働メンバーをこの案件にアサインすればいい。")
+                                     help_text=u"バーチャル案件です、コストなどを算出ために非稼働メンバーを"
+                                               u"この案件にアサインすればいい。")
     client = models.ForeignKey(Client, null=True, verbose_name=u"関連会社")
     boss = models.ForeignKey(ClientMember, blank=True, null=True, related_name="boss_set", verbose_name=u"案件責任者")
     middleman = models.ForeignKey(ClientMember, blank=True, null=True,
                                   related_name="middleman_set", verbose_name=u"案件連絡者")
     salesperson = models.ForeignKey(Salesperson, blank=True, null=True, verbose_name=u"営業員")
+    department = models.ForeignKey(Section, blank=True, null=True, verbose_name=u"所属部署",
+                                   help_text=u"一括案件で、メンバーアサインしていない場合を設定する。")
     members = models.ManyToManyField(Member, through='ProjectMember', blank=True)
     insert_date = models.DateTimeField(blank=True, null=True, auto_now_add=True, editable=False,
                                        verbose_name=u"追加日時")
