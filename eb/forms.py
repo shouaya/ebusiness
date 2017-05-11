@@ -686,7 +686,7 @@ class MemberSalespersonPeriodFormset(forms.BaseInlineFormSet):
                 start_date, end_date = period
                 if common.is_cross_date(dates, start_date, i):
                     raise forms.ValidationError(u"営業員期間の開始日が重複している。")
-                if end_date and is_cross_date(dates, end_date, i):
+                if end_date and common.is_cross_date(dates, end_date, i):
                     raise forms.ValidationError(u"営業員期間の終了日が重複している。")
 
 
