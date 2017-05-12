@@ -187,6 +187,12 @@ class BaseAdmin(admin.ModelAdmin):
               '/static/admin/js/select_filter.js',
               '/static/admin/js/base.js')
 
+    def get_actions(self, request):
+        actions = super(BaseAdmin, self).get_actions(request)
+        if 'delete_selected' in actions:
+            del actions['delete_selected']
+        return actions
+
     def construct_change_message(self, request, form, formsets, add=False):
         """
         Construct a change message from a changed object.
@@ -345,7 +351,6 @@ class CompanyAdmin(BaseAdmin):
 class BankInfoAdmin(BaseAdmin):
 
     list_display = ['bank_name', 'is_deleted']
-    actions = ['delete_objects', 'active_objects']
 
     def get_form(self, request, obj=None, **kwargs):
         form = super(BankInfoAdmin, self).get_form(request, obj, **kwargs)
@@ -354,33 +359,12 @@ class BankInfoAdmin(BaseAdmin):
             form.base_fields['company'].initial = company
         return form
 
-    def delete_objects(self, request, queryset):
-        cnt = 0
-        for obj in queryset:
-            if not obj.is_deleted:
-                obj.delete()
-                cnt += 1
-        self.message_user(request,  str(cnt) + u"件選択された対象が削除されました。")
-
-    def active_objects(self, request, queryset):
-        cnt = 0
-        for obj in queryset:
-            if obj.is_deleted:
-                obj.is_deleted = False
-                obj.save()
-                cnt += 1
-        self.message_user(request,  str(cnt) + u"件選択された対象が復活しました。")
-
-    delete_objects.short_description = u"選択されたレコードを削除する。"
-    active_objects.short_description = u"選択されたレコードを復活する。"
-
 
 class SectionAdmin(BaseAdmin):
 
     form = forms.SectionForm
     list_display = ['name', 'parent', 'org_type', 'is_on_sales', 'is_deleted']
     list_filter = ['is_on_sales', 'is_deleted']
-    actions = ['delete_objects', 'active_objects']
     inlines = (PositionShipInline,)
 
     def get_form(self, request, obj=None, **kwargs):
@@ -389,32 +373,6 @@ class SectionAdmin(BaseAdmin):
         if company:
             form.base_fields['company'].initial = company
         return form
-
-    def get_actions(self, request):
-        actions = super(SectionAdmin, self).get_actions(request)
-        if 'delete_selected' in actions:
-            del actions['delete_selected']
-        return actions
-
-    def delete_objects(self, request, queryset):
-        cnt = 0
-        for obj in queryset:
-            if not obj.is_deleted:
-                obj.delete()
-                cnt += 1
-        self.message_user(request,  str(cnt) + u"件選択された対象が削除されました。")
-
-    def active_objects(self, request, queryset):
-        cnt = 0
-        for obj in queryset:
-            if obj.is_deleted:
-                obj.is_deleted = False
-                obj.save()
-                cnt += 1
-        self.message_user(request,  str(cnt) + u"件選択された対象が復活しました。")
-
-    delete_objects.short_description = u"選択されたレコードを削除する。"
-    active_objects.short_description = u"選択されたレコードを復活する。"
 
 
 class SalesOffReasonAdmin(BaseAdmin):
@@ -431,7 +389,7 @@ class MemberAdmin(BaseAdmin):
                    'is_retired', 'is_deleted']
     search_fields = ['first_name', 'last_name', 'employee_id']
     inlines = (DegreeInline, MemberSectionPeriodInline, MemberSalespersonPeriodInline, EmployeeExpensesInline)
-    actions = ['create_users', 'delete_objects', 'active_objects', 'member_retire']
+    actions = ['create_users', 'member_retire']
     fieldsets = (
         (None, {'fields': ('employee_id',
                            ('first_name', 'last_name'),
@@ -449,12 +407,6 @@ class MemberAdmin(BaseAdmin):
         (u"勤務情報", {'fields': ['member_type', 'ranking', 'join_date', 'email', 'notify_type', 'section', 'company',
                               'subcontractor', 'is_on_sales', 'sales_off_reason', 'is_retired']})
     )
-
-    def get_actions(self, request):
-        actions = super(MemberAdmin, self).get_actions(request)
-        if 'delete_selected' in actions:
-            del actions['delete_selected']
-        return actions
 
     def is_user_created(self, obj):
         return obj.user is not None
@@ -506,29 +458,10 @@ class MemberAdmin(BaseAdmin):
             self.fieldsets[2][1]['fields'].insert(-3, 'is_individual_pay')
         return super(MemberAdmin, self).add_view(request, form_url, extra_context)
 
-    def delete_objects(self, request, queryset):
-        cnt = 0
-        for obj in queryset:
-            if not obj.is_deleted:
-                obj.delete()
-                cnt += 1
-        self.message_user(request,  str(cnt) + u"件選択された対象が削除されました。")
-
-    def active_objects(self, request, queryset):
-        cnt = 0
-        for obj in queryset:
-            if obj.is_deleted:
-                obj.is_deleted = False
-                obj.save()
-                cnt += 1
-        self.message_user(request,  str(cnt) + u"件選択された対象が復活しました。")
-
     def member_retire(self, request, queryset):
         cnt = queryset.update(is_retired=True)
         self.message_user(request,  str(cnt) + u"件選択されたメンバーが退職しました。")
 
-    delete_objects.short_description = u"選択されたレコードを削除する。"
-    active_objects.short_description = u"選択されたレコードを復活する。"
     member_retire.short_description = u"選択されたメンバーを退職する"
 
     def create_users(self, request, queryset):
@@ -580,13 +513,7 @@ class SalespersonAdmin(BaseAdmin):
                      'country', 'graduate_date', 'phone', 'japanese_description', 'certificate', 'comment')}),
         (u"勤務情報", {'fields': ('member_type', 'email', 'notify_type', 'section', 'company', 'is_retired')})
     )
-    actions = ['create_users', 'delete_objects', 'active_objects']
-
-    def get_actions(self, request):
-        actions = super(SalespersonAdmin, self).get_actions(request)
-        if 'delete_selected' in actions:
-            del actions['delete_selected']
-        return actions
+    actions = ['create_users']
 
     def get_form(self, request, obj=None, **kwargs):
         form = super(SalespersonAdmin, self).get_form(request, obj, **kwargs)
@@ -626,26 +553,6 @@ class SalespersonAdmin(BaseAdmin):
     is_user_created.boolean = True
     create_users.short_description = u"ユーザを作成する"
 
-    def delete_objects(self, request, queryset):
-        cnt = 0
-        for obj in queryset:
-            if not obj.is_deleted:
-                obj.delete()
-                cnt += 1
-        self.message_user(request,  str(cnt) + u"件選択された対象が削除されました。")
-
-    def active_objects(self, request, queryset):
-        cnt = 0
-        for obj in queryset:
-            if obj.is_deleted:
-                obj.is_deleted = False
-                obj.save()
-                cnt += 1
-        self.message_user(request,  str(cnt) + u"件選択された対象が復活しました。")
-
-    delete_objects.short_description = u"選択されたレコードを削除する。"
-    active_objects.short_description = u"選択されたレコードを復活する。"
-
 
 class ProjectAdmin(BaseAdmin):
     form = forms.ProjectForm
@@ -654,7 +561,6 @@ class ProjectAdmin(BaseAdmin):
     list_filter = ['status', 'salesperson', 'is_reserve', 'is_deleted']
     search_fields = ['name', 'client__name']
     inlines = (ProjectSkillInline, ProjectMemberInline)
-    actions = ['delete_objects', 'active_objects']
 
     class Media:
         js = ('/static/admin/js/ready.js',)
@@ -674,12 +580,6 @@ class ProjectAdmin(BaseAdmin):
         inline_admin_formsets = super(ProjectAdmin, self).get_inline_formsets(request, formsets, inline_instances, obj)
 
         return inline_admin_formsets
-
-    def get_actions(self, request):
-        actions = super(ProjectAdmin, self).get_actions(request)
-        if 'delete_selected' in actions:
-            del actions['delete_selected']
-        return actions
 
     def get_form(self, request, obj=None, **kwargs):
         form = super(ProjectAdmin, self).get_form(request, obj, **kwargs)
@@ -706,26 +606,6 @@ class ProjectAdmin(BaseAdmin):
             project.end_date = max_end_date
             project.save()
 
-    def delete_objects(self, request, queryset):
-        cnt = 0
-        for obj in queryset:
-            if not obj.is_deleted:
-                obj.delete()
-                cnt += 1
-        self.message_user(request,  str(cnt) + u"件選択された対象が削除されました。")
-
-    def active_objects(self, request, queryset):
-        cnt = 0
-        for obj in queryset:
-            if obj.is_deleted:
-                obj.is_deleted = False
-                obj.save()
-                cnt += 1
-        self.message_user(request,  str(cnt) + u"件選択された対象が復活しました。")
-
-    delete_objects.short_description = u"選択されたレコードを削除する。"
-    active_objects.short_description = u"選択されたレコードを復活する。"
-
 
 class ClientAdmin(BaseAdmin):
 
@@ -733,7 +613,6 @@ class ClientAdmin(BaseAdmin):
 
     list_display = ['name', 'is_request_uploaded', 'is_deleted']
     list_filter = ['is_deleted']
-    actions = ['delete_objects', 'active_objects']
 
     def is_request_uploaded(self, obj):
         if obj.request_file and os.path.exists(obj.request_file.path):
@@ -744,45 +623,12 @@ class ClientAdmin(BaseAdmin):
     is_request_uploaded.short_description = u"請求書テンプレート"
     is_request_uploaded.boolean = True
 
-    def get_actions(self, request):
-        actions = super(ClientAdmin, self).get_actions(request)
-        if 'delete_selected' in actions:
-            del actions['delete_selected']
-        return actions
-
-    def delete_objects(self, request, queryset):
-        cnt = 0
-        for obj in queryset:
-            if not obj.is_deleted:
-                obj.delete()
-                cnt += 1
-        self.message_user(request,  str(cnt) + u"件選択された対象が削除されました。")
-
-    def active_objects(self, request, queryset):
-        cnt = 0
-        for obj in queryset:
-            if obj.is_deleted:
-                obj.is_deleted = False
-                obj.save()
-                cnt += 1
-        self.message_user(request,  str(cnt) + u"件選択された対象が復活しました。")
-
-    delete_objects.short_description = u"選択されたレコードを削除する。"
-    active_objects.short_description = u"選択されたレコードを復活する。"
-
 
 class ClientOrderAdmin(BaseAdmin):
     list_display = ['order_no', 'name', 'start_date', 'end_date', 'is_deleted']
     list_filter = ['is_deleted']
     filter_horizontal = ['projects']
     search_fields = ['order_no', 'name']
-    actions = ['delete_objects', 'active_objects']
-
-    def get_actions(self, request):
-        actions = super(ClientOrderAdmin, self).get_actions(request)
-        if 'delete_selected' in actions:
-            del actions['delete_selected']
-        return actions
 
     def get_form(self, request, obj=None, **kwargs):
         form = super(ClientOrderAdmin, self).get_form(request, obj, **kwargs)
@@ -801,26 +647,6 @@ class ClientOrderAdmin(BaseAdmin):
             form.base_fields['bank_info'].initial = banks[0]
         return form
 
-    def delete_objects(self, request, queryset):
-        cnt = 0
-        for obj in queryset:
-            if not obj.is_deleted:
-                obj.delete()
-                cnt += 1
-        self.message_user(request,  str(cnt) + u"件選択された対象が削除されました。")
-
-    def active_objects(self, request, queryset):
-        cnt = 0
-        for obj in queryset:
-            if obj.is_deleted:
-                obj.is_deleted = False
-                obj.save()
-                cnt += 1
-        self.message_user(request,  str(cnt) + u"件選択された対象が復活しました。")
-
-    delete_objects.short_description = u"選択されたレコードを削除する。"
-    active_objects.short_description = u"選択されたレコードを復活する。"
-
 
 class SubcontractorAdmin(BaseAdmin):
 
@@ -828,33 +654,6 @@ class SubcontractorAdmin(BaseAdmin):
 
     list_display = ['name', 'is_deleted']
     list_filter = ['is_deleted']
-    actions = ['delete_objects', 'active_objects']
-
-    def get_actions(self, request):
-        actions = super(SubcontractorAdmin, self).get_actions(request)
-        if 'delete_selected' in actions:
-            del actions['delete_selected']
-        return actions
-
-    def delete_objects(self, request, queryset):
-        cnt = 0
-        for obj in queryset:
-            if not obj.is_deleted:
-                obj.delete()
-                cnt += 1
-        self.message_user(request,  str(cnt) + u"件選択された対象が削除されました。")
-
-    def active_objects(self, request, queryset):
-        cnt = 0
-        for obj in queryset:
-            if obj.is_deleted:
-                obj.is_deleted = False
-                obj.save()
-                cnt += 1
-        self.message_user(request,  str(cnt) + u"件選択された対象が復活しました。")
-
-    delete_objects.short_description = u"選択されたレコードを削除する。"
-    active_objects.short_description = u"選択されたレコードを復活する。"
 
 
 class ClientMemberAdmin(BaseAdmin):
@@ -862,38 +661,11 @@ class ClientMemberAdmin(BaseAdmin):
     list_display = ['name', 'email', 'client', 'is_deleted']
     list_filter = ['is_deleted']
     search_fields = ['name']
-    actions = ['delete_objects', 'active_objects']
 
     class Media:
         js = ('/static/admin/js/jquery-2.1.4.min.js',
               '/static/admin/js/filterlist.js',
               '/static/admin/js/select_filter.js')
-
-    def get_actions(self, request):
-        actions = super(ClientMemberAdmin, self).get_actions(request)
-        if 'delete_selected' in actions:
-            del actions['delete_selected']
-        return actions
-
-    def delete_objects(self, request, queryset):
-        cnt = 0
-        for obj in queryset:
-            if not obj.is_deleted:
-                obj.delete()
-                cnt += 1
-        self.message_user(request,  str(cnt) + u"件選択された対象が削除されました。")
-
-    def active_objects(self, request, queryset):
-        cnt = 0
-        for obj in queryset:
-            if obj.is_deleted:
-                obj.is_deleted = False
-                obj.save()
-                cnt += 1
-        self.message_user(request,  str(cnt) + u"件選択された対象が復活しました。")
-
-    delete_objects.short_description = u"選択されたレコードを削除する。"
-    active_objects.short_description = u"選択されたレコードを復活する。"
 
 
 class ProjectMemberAdmin(BaseAdmin):
@@ -907,21 +679,6 @@ class ProjectMemberAdmin(BaseAdmin):
     list_display_links = ['member']
     list_filter = ['status', 'is_deleted']
     inlines = (MemberAttendanceInline, MemberExpensesInline)
-    actions = ['delete_objects', 'active_objects']
-
-    def get_actions(self, request):
-        actions = super(ProjectMemberAdmin, self).get_actions(request)
-        if 'delete_selected' in actions:
-            del actions['delete_selected']
-        return actions
-
-    # def _create_formsets(self, request, obj, change):
-    #     formsets, inline_instances = super(ProjectMemberAdmin, self)._create_formsets(request, obj, change)
-    #     for fm in formsets:
-    #         if fm.model == models.ProjectMemberPrice:
-    #             fm.form.base_fields['min_hours'].initial = obj.project.min_hours
-    #             fm.form.base_fields['max_hours'].initial = obj.project.max_hours
-    #     return formsets, inline_instances
 
     def display_project_client(self, obj):
         return obj.project.client.name
@@ -932,35 +689,6 @@ class ProjectMemberAdmin(BaseAdmin):
     display_project_client.admin_order_field = 'project__client'
     display_eboa_user_id.short_description = u"EBOA連携ID"
     display_eboa_user_id.admin_order_field = 'member__eboa_user_id'
-
-    def delete_objects(self, request, queryset):
-        cnt = 0
-        for obj in queryset:
-            if not obj.is_deleted:
-                obj.delete()
-                cnt += 1
-        self.message_user(request,  str(cnt) + u"件選択された対象が削除されました。")
-
-    def active_objects(self, request, queryset):
-        cnt = 0
-        for obj in queryset:
-            if obj.is_deleted:
-                obj.is_deleted = False
-                obj.save()
-                cnt += 1
-        self.message_user(request,  str(cnt) + u"件選択された対象が復活しました。")
-
-    delete_objects.short_description = u"選択されたレコードを削除する。"
-    active_objects.short_description = u"選択されたレコードを復活する。"
-
-    # def change_view(self, request, object_id, form_url='', extra_context=None):
-    #     project_member = models.ProjectMember.objects.get(pk=object_id)
-    #     if project_member.member.is_belong_to(request.user, datetime.date.today()):
-    #         try:
-    #             self.fieldsets[2][1]['fields'].remove('cost')
-    #         except ValueError:
-    #             pass
-    #     return super(ProjectMemberAdmin, self).change_view(request, object_id, form_url, extra_context)
 
     def get_form(self, request, obj=None, **kwargs):
         form = super(ProjectMemberAdmin, self).get_form(request, obj, **kwargs)
@@ -998,12 +726,6 @@ class ProjectRequestAdmin(ReadonlyAdmin):
     def has_add_permission(self, request):
         return False
 
-    def get_actions(self, request):
-        actions = super(ProjectRequestAdmin, self).get_actions(request)
-        if 'delete_selected' in actions:
-            del actions['delete_selected']
-        return actions
-
 
 class ProjectRequestHeadingAdmin(ReadonlyAdmin):
     list_display = ['get_request_no', 'get_project_name']
@@ -1024,12 +746,6 @@ class ProjectRequestHeadingAdmin(ReadonlyAdmin):
 
     def has_add_permission(self, request):
         return False
-
-    def get_actions(self, request):
-        actions = super(ProjectRequestHeadingAdmin, self).get_actions(request)
-        if 'delete_selected' in actions:
-            del actions['delete_selected']
-        return actions
 
 
 class ProjectRequestDetailAdmin(ReadonlyAdmin):
@@ -1053,12 +769,6 @@ class ProjectRequestDetailAdmin(ReadonlyAdmin):
     def has_add_permission(self, request):
         return False
 
-    def get_actions(self, request):
-        actions = super(ProjectRequestDetailAdmin, self).get_actions(request)
-        if 'delete_selected' in actions:
-            del actions['delete_selected']
-        return actions
-
 
 class MemberAttendanceAdmin(ReadonlyAdmin):
     list_display = ('project_member', 'year', 'month', 'total_hours')
@@ -1070,15 +780,8 @@ class ProjectActivityAdmin(BaseAdmin):
     list_display = ['project', 'name', 'open_date', 'address', 'get_client_members', 'get_salesperson', 'is_deleted']
     list_filter = ['is_deleted']
     list_display_links = ['name']
-    actions = ['delete_objects', 'active_objects']
 
     filter_horizontal = ['client_members', 'salesperson', 'members']
-
-    def get_actions(self, request):
-        actions = super(ProjectActivityAdmin, self).get_actions(request)
-        if 'delete_selected' in actions:
-            del actions['delete_selected']
-        return actions
 
     def get_form(self, request, obj=None, **kwargs):
         form = super(ProjectActivityAdmin, self).get_form(request, obj, **kwargs)
@@ -1108,26 +811,6 @@ class ProjectActivityAdmin(BaseAdmin):
             names.append(u"%s %s" % (salesperson.first_name, salesperson.last_name))
         return ", ".join(names)
 
-    def delete_objects(self, request, queryset):
-        cnt = 0
-        for obj in queryset:
-            if not obj.is_deleted:
-                obj.delete()
-                cnt += 1
-        self.message_user(request,  str(cnt) + u"件選択された対象が削除されました。")
-
-    def active_objects(self, request, queryset):
-        cnt = 0
-        for obj in queryset:
-            if obj.is_deleted:
-                obj.is_deleted = False
-                obj.save()
-                cnt += 1
-        self.message_user(request,  str(cnt) + u"件選択された対象が復活しました。")
-
-    delete_objects.short_description = u"選択されたレコードを削除する。"
-    active_objects.short_description = u"選択されたレコードを復活する。"
-
     get_client_members.short_description = u"参加しているお客様"
     get_salesperson.short_description = u"参加している営業員"
 
@@ -1140,71 +823,17 @@ class PositionShipAdmin(BaseAdmin):
 
     list_display = ['position', 'member', 'section', 'is_deleted']
     list_filter = ['is_deleted']
-    actions = ['delete_objects', 'active_objects']
-
-    def get_actions(self, request):
-        actions = super(PositionShipAdmin, self).get_actions(request)
-        if 'delete_selected' in actions:
-            del actions['delete_selected']
-        return actions
 
     def get_form(self, request, obj=None, **kwargs):
         form = super(PositionShipAdmin, self).get_form(request, obj, **kwargs)
         form.base_fields['section'].queryset = models.Section.objects.public_filter(is_on_sales=True)
         return form
 
-    def delete_objects(self, request, queryset):
-        cnt = 0
-        for obj in queryset:
-            if not obj.is_deleted:
-                obj.delete()
-                cnt += 1
-        self.message_user(request,  str(cnt) + u"件選択された対象が削除されました。")
-
-    def active_objects(self, request, queryset):
-        cnt = 0
-        for obj in queryset:
-            if obj.is_deleted:
-                obj.is_deleted = False
-                obj.save()
-                cnt += 1
-        self.message_user(request,  str(cnt) + u"件選択された対象が復活しました。")
-
-    delete_objects.short_description = u"選択されたレコードを削除する。"
-    active_objects.short_description = u"選択されたレコードを復活する。"
-
 
 class HistoryProjectAdmin(BaseAdmin):
     list_display = ['name', 'member', 'is_deleted']
     list_filter = ['is_deleted']
     filter_horizontal = ['os', 'skill', 'stages']
-    actions = ['delete_objects', 'active_objects']
-
-    def get_actions(self, request):
-        actions = super(HistoryProjectAdmin, self).get_actions(request)
-        if 'delete_selected' in actions:
-            del actions['delete_selected']
-        return actions
-
-    def delete_objects(self, request, queryset):
-        cnt = 0
-        for obj in queryset:
-            if not obj.is_deleted:
-                obj.delete()
-                cnt += 1
-        self.message_user(request,  str(cnt) + u"件選択された対象が削除されました。")
-
-    def active_objects(self, request, queryset):
-        cnt = 0
-        for obj in queryset:
-            if obj.is_deleted:
-                obj.is_deleted = False
-                obj.save()
-                cnt += 1
-        self.message_user(request,  str(cnt) + u"件選択された対象が復活しました。")
-
-    delete_objects.short_description = u"選択されたレコードを削除する。"
-    active_objects.short_description = u"選択されたレコードを復活する。"
 
 
 class IssueAdmin(BaseAdmin):
@@ -1237,12 +866,6 @@ class CustomUserAdmin(UserAdmin):
 
     def has_delete_permission(self, request, obj=None):
         return False
-
-    def get_actions(self, request):
-        actions = super(CustomUserAdmin, self).get_actions(request)
-        if 'delete_selected' in actions:
-            del actions['delete_selected']
-        return actions
 
 
 class LogEntryAdmin(ReadonlyAdmin):
@@ -1283,23 +906,11 @@ class LogEntryAdmin(ReadonlyAdmin):
     get_change_message.short_description = u"変更メッセージ"
     get_change_message.admin_order_field = 'change_message'
 
-    def get_actions(self, request):
-        actions = super(LogEntryAdmin, self).get_actions(request)
-        if 'delete_selected' in actions:
-            del actions['delete_selected']
-        return actions
-
 
 class BatchManageAdmin(BaseAdmin):
     list_display = ['name', 'title', 'cron_tab', 'is_active', 'mail_title', 'is_deleted']
     list_filter = ['is_active', 'is_deleted']
     inlines = (BatchCarbonCopyInline,)
-
-    def get_actions(self, request):
-        actions = super(BatchManageAdmin, self).get_actions(request)
-        if 'delete_selected' in actions:
-            del actions['delete_selected']
-        return actions
 
 
 class ConfigAdmin(BaseAdmin):
