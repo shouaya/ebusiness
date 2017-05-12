@@ -1146,7 +1146,8 @@ def generate_members_cost(user, members):
         sheet.cell(row=row, column=5).value = unicode(section_period.division) if section_period else ''
         sheet.cell(row=row, column=6).value = unicode(section_period.section) if section_period else ''
         sheet.cell(row=row, column=7).value = unicode(section_period.subsection) if section_period else ''
-        sheet.cell(row=row, column=8).value = unicode(section_period.subsection.get_chief().first()) if section_period else ''
+        sheet.cell(row=row, column=8).value = unicode(section_period.subsection.get_chief().first()) \
+            if section_period and section_period.subsection else ''
         sheet.cell(row=row, column=9).value = unicode(member.subcontractor) if member.subcontractor else ''
         sheet.cell(row=row, column=10).value = member.get_ranking_display()
         if is_own:

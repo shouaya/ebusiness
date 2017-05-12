@@ -8,6 +8,7 @@ from eb import models
 
 from django.db.models import Sum
 from django.db.models.functions import Concat
+from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
 
 
 def turnover_company_year():
@@ -126,7 +127,11 @@ def salesperson_turnover_monthly(ym):
     salesperson_turnover = []
     for turnover_detail in turnover_details:
         d = dict()
-        d['salesperson'] = models.Salesperson.objects.get(pk=turnover_detail['salesperson'])
+        try:
+            salesperson = models.Salesperson.objects.get(pk=turnover_detail['salesperson'])
+        except ObjectDoesNotExist:
+            salesperson = None
+        d['salesperson'] = salesperson
         d['cost_amount'] = turnover_detail['cost_amount']
         d['attendance_amount'] = turnover_detail['attendance_amount']
         d['attendance_tex'] = int(d['attendance_amount'] * 0.08)
