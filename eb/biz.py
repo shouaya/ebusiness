@@ -258,19 +258,46 @@ def get_project_members_month_section(section, date, user=None):
     org_pk_list = [org.pk for org in all_children]
     org_pk_list.append(section.pk)
 
-    return project_members.filter((Q(member__membersectionperiod__start_date__lte=date) &
-                                   Q(member__membersectionperiod__end_date__isnull=date)) |
-                                  (Q(member__membersectionperiod__start_date__lte=date) &
-                                   Q(member__membersectionperiod__end_date__gte=date)),
-                                  Q(member__membersectionperiod__division__in=org_pk_list) |
-                                  Q(member__membersectionperiod__section__in=org_pk_list) |
-                                  Q(member__membersectionperiod__subsection__in=org_pk_list),
-                                  member__membersectionperiod__is_deleted=False).distinct().prefetch_related(
+    queryset = project_members.filter((Q(member__membersectionperiod__start_date__lte=date) &
+                                       Q(member__membersectionperiod__end_date__isnull=date)) |
+                                      (Q(member__membersectionperiod__start_date__lte=date) &
+                                       Q(member__membersectionperiod__end_date__gte=date)),
+                                      Q(member__membersectionperiod__division__in=org_pk_list) |
+                                      Q(member__membersectionperiod__section__in=org_pk_list) |
+                                      Q(member__membersectionperiod__subsection__in=org_pk_list),
+                                      member__membersectionperiod__is_deleted=False).distinct().prefetch_related(
         Prefetch('member'),
+        Prefetch('project'),
         Prefetch('memberattendance_set', queryset=current_attendance_set, to_attr='current_attendance_set'),
         Prefetch('memberattendance_set', queryset=prev_attendance_set, to_attr='prev_attendance_set'),
         Prefetch('projectrequestdetail_set', queryset=project_request_detail_set, to_attr='project_request_detail_set'),
     )
+    # 待機案件
+    first_day = common.get_first_day_by_month(date)
+    last_day = common.get_last_day_by_month(date)
+    queryset2 = models.ProjectMember.objects.public_filter(end_date__gte=first_day,
+                                                           start_date__lte=last_day,
+                                                           project__status=4,
+                                                           status=2,
+                                                           project__is_reserve=True,
+                                                           project__department__in=org_pk_list
+                                                           ).distinct().prefetch_related(
+        Prefetch('member'),
+        Prefetch('project'),
+    )
+
+    return queryset | queryset2
+
+
+def get_lump_projects_by_section(section, date):
+    all_children = section.get_children()
+    all_children = list(all_children)
+    all_children.append(section)
+    queryset = models.Project.objects.public_filter(is_lump=True,
+                                                    department__in=list(all_children),
+                                                    start_date__lte=date,
+                                                    end_date__gte=date)
+    return queryset
 
 
 def get_subcontractor_project_members_month(date):

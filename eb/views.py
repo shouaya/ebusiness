@@ -790,6 +790,7 @@ def section_attendance(request, section_id):
     params = "&".join(["%s=%s" % (key, value) for key, value in param_list.items()]) if param_list else ""
 
     project_members = biz.get_project_members_month_section(section, date)
+    lump_projects = biz.get_lump_projects_by_section(section, date)
 
     o = request.GET.get('o', None)
     dict_order = common.get_ordering_dict(o, ['member__first_name', 'member__employee_id',
@@ -815,6 +816,10 @@ def section_attendance(request, section_id):
                 if project_member.id == project_member_id:
                     msg = msg_content
                     break
+        if not project_member.current_attendance_set:
+            # 出勤情報がない場合、例えば待機案件のメンバーなど。
+            project_member.current_attendance_set = [models.MemberAttendance(project_member=project_member,
+                                                                             year=year, month=month)]
         all_project_members.append((project_member, project_member.member.is_belong_to(request.user, date), msg))
 
     context = get_base_context()
@@ -822,6 +827,7 @@ def section_attendance(request, section_id):
         'title': u'出勤 | %s年%s月 | %s | %s' % (year, month, section.name, constants.NAME_SYSTEM),
         'section': section,
         'project_members': all_project_members,
+        'lump_projects': lump_projects,
         'dict_order': dict_order,
         'params': "&" + params if params else "",
         'year': year,
@@ -1702,7 +1708,7 @@ class DownloadSectionAttendance(BaseView):
         batch = biz.get_batch_manage(constants.BATCH_SEND_ATTENDANCE_FORMAT)
         project_members = biz.get_project_members_month_section(section, datetime.date(int(year), int(month), 20))
         filename = constants.NAME_SECTION_ATTENDANCE % (section.name, int(year), int(month))
-        output = file_gen.generate_attendance_format(request.user, batch.attachment1.path, project_members)
+        output = file_gen.generate_attendance_format(request.user, batch.attachment1.path, project_members, year, month)
         response = HttpResponse(output, content_type="application/ms-excel")
         response['Content-Disposition'] = "filename=" + urllib.quote(filename.encode('utf-8')) + ".xlsx"
         return response

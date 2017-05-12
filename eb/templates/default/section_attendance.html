@@ -386,9 +386,9 @@
                                                 <td class="num col_03">0</td>
                                             {% else %}
                                                 <!--売上-->
-                                                <td class="num"></td>
-                                                <td class="num"></td>
-                                                <td class="num"></td>
+                                                <td class="num">0</td>
+                                                <td class="num">0</td>
+                                                <td class="num">0</td>
                                             {% endif %}
                                             <td class="num col_04 {% if repeated %}crossed{% endif %}">{{ attendance.get_cost|intcomma }}</td>
                                             {% if attendance.allowance %}
@@ -420,6 +420,52 @@
                                 {% endif %}
                             </tr>
                         {% endfor %}
+                        <!--
+                        {% for project in lump_projects %}
+                            <tr>
+                                <td>{{ forloop.counter|add:project_members.count }}</td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td title="{{ project }}"
+                                    {% if project.is_lump %}class="lump_project"{% endif %}>
+                                    <div style="width: 160px; overflow: hidden; white-space: nowrap;">
+                                        <a href="{% url 'project_detail' project.pk %}">
+                                        {% if project.is_lump %}【一括】{% endif %}{{ project }}
+                                        </a>
+                                    </div>
+                                </td>
+                                <td title="{{ project.client }}">
+                                    <div style="width: 120px; overflow: hidden; white-space: nowrap;">
+                                        {{ project.client }}
+                                    </div>
+                                </td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td class="num col_01">{{ project.lump_amount|default:''|floatformat:0|intcomma }}</td>
+                                <td class="num col_02">{{ project.lump_amount|default:''|floatformat:0|intcomma }}</td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td class="num col_13">{{ project.lump_amount|default:''|floatformat:0|intcomma }}</td>
+                            </tr>
+                        {% endfor %}
+                        -->
                     {% else %}
                         <tr class="row2"><td class="center red" colspan="29">メンバーがいません。</td></tr>
                     {% endif %}

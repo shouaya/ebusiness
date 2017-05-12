@@ -23,6 +23,7 @@ except:
 import constants
 import common
 import errors
+from eb import models
 
 
 def generate_resume(member):
@@ -984,12 +985,14 @@ def replace_excel_list(sheet, items, range_start='ITERATOR_START', range_end='IT
         print ex.message
 
 
-def generate_attendance_format(user, template_path, project_members):
+def generate_attendance_format(user, template_path, project_members, year=None, month=None):
     """出勤情報をダウンロードする
 
     :param user: ログインユーザー
     :param template_path: テンプレートの格納場所
     :param project_members: 案件メンバー
+    :param year:
+    :param month:
     :return: エクセルのバイナリ
     """
     book = px.load_workbook(template_path)
@@ -1029,6 +1032,10 @@ def generate_attendance_format(user, template_path, project_members):
         # 出勤情報取得
         if len(project_member.current_attendance_set) == 1:
             attendance = project_member.current_attendance_set[0]
+            date = datetime.date(int(attendance.year), int(attendance.month), 20)
+            is_own = project_member.member.is_belong_to(user, date)
+        elif project_member.project.is_reserve:
+            attendance = models.MemberAttendance(project_member=project_member, year=year, month=month)
             date = datetime.date(int(attendance.year), int(attendance.month), 20)
             is_own = project_member.member.is_belong_to(user, date)
         else:

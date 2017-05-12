@@ -327,7 +327,9 @@
             {% endif %}
             <th>待機案件</th>
             <td class="{%if project.is_reserve %}reserve_project{% endif %}">
-                待機案件
+                {%if project.is_reserve %}
+                    待機案件
+                {% endif %}
             </td>
         </tr>
     </table>

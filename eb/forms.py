@@ -142,9 +142,13 @@ class ProjectForm(forms.ModelForm):
         lump_amount = cleaned_data.get("lump_amount")
         status = cleaned_data.get('status')
         is_reserve = cleaned_data.get('is_reserve')
-        if is_reserve and not self.instance.pk:
-            if models.Project.objects.public_filter(is_reserve=True).count() > 0:
-                self.add_error('is_reserve', u"待機案件は既に作成済みです。")
+        department = cleaned_data.get('department')
+        if is_reserve and not department:
+            self.add_error('department', u"待機案件フラグを設定したら、所属部署も設定する必要があります。")
+        if is_reserve and department and not self.instance.pk:
+            # 追加の場合
+            if models.Project.objects.public_filter(is_reserve=True, department=department).count() > 0:
+                self.add_error('is_reserve', u"当該部署の待機案件はすでに作成済みです。")
         if is_lump:
             if not lump_amount or lump_amount <= 0:
                 self.add_error('lump_amount', u"一括の場合、一括金額を入力してください。")
