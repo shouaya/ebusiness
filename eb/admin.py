@@ -446,7 +446,7 @@ class MemberAdmin(BaseAdmin):
                      ('address1', 'address2'), 'nearest_station',
                      'country', 'graduate_date', 'phone', 'japanese_description',
                      'certificate', 'skill_description', 'comment')}),
-        (u"勤務情報", {'fields': ['member_type', 'join_date', 'email', 'notify_type', 'section', 'company',
+        (u"勤務情報", {'fields': ['member_type', 'ranking', 'join_date', 'email', 'notify_type', 'section', 'company',
                               'subcontractor', 'is_on_sales', 'sales_off_reason', 'is_retired']})
     )
 

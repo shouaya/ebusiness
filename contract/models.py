@@ -202,6 +202,7 @@ class ContractRecipient(BaseModel):
 class BpContract(BaseModel):
     member = models.ForeignKey(Member, editable=False, verbose_name=u"社員")
     company = models.ForeignKey(Subcontractor, verbose_name=u"雇用会社")
+    member_type = models.IntegerField(default=4, choices=constants.CHOICE_MEMBER_TYPE, verbose_name=u"雇用形態")
     start_date = models.DateField(verbose_name=u"雇用開始日")
     end_date = models.DateField(blank=True, null=True, verbose_name=u"雇用終了日")
     is_hourly_pay = models.BooleanField(default=False, verbose_name=u"時給")
@@ -244,11 +245,3 @@ class BpContract(BaseModel):
         :return:
         """
         return '0'
-
-    @property
-    def member_type(self):
-        """固定で他者技術者
-
-        :return:
-        """
-        return 4

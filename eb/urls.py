@@ -20,6 +20,7 @@ member_patterns = [
     url(r'^change_list.html$', views.MemberChangeListView.as_view(), name='change_list'),
     url(r'^project_list/(?P<employee_id>[^,/]+).html$', views.MemberProjectsView.as_view(),
         name='member_project_list'),
+    url(r'^cost_list\.html$', views.MemberCostListView.as_view(), name='member_cost_list'),
 ]
 
 section_patterns = [
@@ -43,6 +44,7 @@ download_patterns = [
         views.DownloadSectionAttendance.as_view(),
         name='download_section_attendance'),
     url(r'^member/list/eboa_info.html$', eboa_views.download_eboa_members, name='download_eboa_members'),
+    url(r'^member/cost_list.html$', views.DownloadMembersCostView.as_view(), name='download_members_cost'),
 ]
 
 turnover_patterns = [

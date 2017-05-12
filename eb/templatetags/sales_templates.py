@@ -4,6 +4,7 @@ Created on 2017/05/02
 
 @author: Yang Wanjun
 """
+import datetime
 from django import template
 
 register = template.Library()
@@ -50,3 +51,9 @@ class GeneratePagingTag(template.Node):
             nodes.append(u'</div>')
             html = "".join(nodes)
         return html
+
+
+@register.simple_tag()
+def is_belong_to(user, member, year, month, *args, **kwargs):
+    date = datetime.date(int(year), int(month), 1)
+    return member.is_belong_to(user, date)

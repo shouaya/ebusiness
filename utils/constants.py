@@ -25,6 +25,7 @@ NAME_BUSINESS_PLAN = u"%02d月営業企画"
 NAME_MEMBER_LIST = u"最新要員一覧"
 NAME_RESUME = u"EB履歴書_%s_%s"
 NAME_SECTION_ATTENDANCE = u"勤怠情報_%s_%04d年%02d月"
+NAME_MEMBERS_COST = u"要員コスト一覧_%s"
 
 BATCH_MEMBER_STATUS = 'member_status'
 BATCH_SYNC_MEMBERS = 'sync_members'
@@ -256,6 +257,18 @@ CHOICE_CONTRACT_STATUS = (('01', u"登録済み"),
 CHOICE_RECIPIENT_TYPE = (('01', u"宛先"),
                          ('02', u"ＣＣ"),
                          ('03', u"ＢＣＣ"))
+CHOICE_MEMBER_RANK = (('01', u"グループ長"),
+                      ('02', u"副グループ長"),
+                      ('11', u"PM"),
+                      ('21', u"PL1"),
+                      ('22', u"PL2"),
+                      ('31', u"SE1"),
+                      ('32', u"SE2"),
+                      ('33', u"SE3"),
+                      ('41', u"PG1"),
+                      ('42', u"PG2"),
+                      ('43', u"PG3"),
+                      )
 
 xlPart = 2
 xlByRows = 1

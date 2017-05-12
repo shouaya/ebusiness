@@ -1,0 +1,119 @@
+{% extends theme|add:"/base.html" %}
+{% load order_by_tag %}
+{% load sales_templates %}
+{% load humanize %}
+
+{% block header %}
+    <script type="text/javascript">
+        window.onload = function() {
+            init_select("section");
+        };
+    </script>
+{% endblock %}
+
+{% block content %}
+{% now "Y" as current_year %}
+{% now "m" as current_month %}
+    <div class="dashboard">
+        <div class="dashboard-title">{{ title }}</div>
+        <form action="" method="get">
+            <span>部署：</span>
+            <select id="section" name="section">
+                <option value="">すべて</option>
+                {% for section in sections %}
+                    {% if section.children.count == 0 %}
+                        <option value="{{ section.pk }}">{{ section.name }}</option>
+                    {% else %}
+                        <option class="group" value="{{ section.pk }}">{{ section }}</option>
+                        {% for sec1 in section.children.all %}
+                            {% if sec1.children.count == 0 %}
+                                <option value="{{ sec1.pk }}">&nbsp;&nbsp;&nbsp;&nbsp;{{ sec1 }}</option>
+                            {% else %}
+                                <option class="group" value="{{ sec1.pk }}">&nbsp;&nbsp;&nbsp;&nbsp;{{ sec1 }}</option>
+                                {% if sec1.children.count > 0 %}
+                                    {% for sec2 in sec1.children.all %}
+                                        <option value="{{ sec2.pk }}">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{ sec2 }}</option>
+                                    {% endfor %}
+                                {% endif %}
+                            {% endif %}
+                        {% endfor %}
+                    {% endif %}
+                {% endfor %}
+            </select>
+            <input type="submit" value="Filter" />
+            <a href="{{ request.path }}">クリア</a>
+            <a href="{% url 'download_members_cost' %}?{{ params }}" target="_blank" class="button"><i class="fa fa-download" aria-hidden="true"></i> ダウンロード</a>
+        </form>
+    </div>
+    <table class="list" cellpadding="0" cellspacing="0">
+        <thead>
+            <tr>
+                <th>{% create_order_display "給料王ＩＤ" "" %}</th>
+                <th>{% create_order_display "名前" "" %}</th>
+                <th>{% create_order_display "契約形態" "" %}</th>
+                <th>{% create_order_display "メールアドレス" "" %}</th>
+                <th>事業部</th>
+                <th>部署</th>
+                <th>課・グループ</th>
+                <th>課長</th>
+                <th>{% create_order_display "協力会社" "" %}</th>
+                <th>{% create_order_display "ランク" "" %}</th>
+                <th>{% create_order_display "月給" "" %}</th>
+                <th>{% create_order_display "保険" "" %}</th>
+                <th>{% create_order_display "残業" "" %}</th>
+                <th>{% create_order_display "欠勤" "" %}</th>
+                <th>{% create_order_display "案件" "" %}</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% if members %}
+                {% for member in members %}
+                    {% with contract=member.get_current_contract %}
+                    {% is_belong_to request.user member current_year current_month as is_own %}
+                    <tr class="{% cycle 'row1' 'row2' %}">
+                        <td>
+                            {% if contract.member_type == 1 or contract.member_type == 2 %}
+                                {{ member.employee_id }}
+                            {% endif %}
+                        </td>
+                        <td><a href="{% url 'member_detail' member.employee_id %}">{{ member }}</a></td>
+                        <td>{{ contract.get_member_type_display }}</td>
+                        <td><div style="width: 100px; overflow: hidden; white-space: nowrap;">{{ member.email|default:'' }}</div></td>
+                        {% with section_period=member.current_section_period|first %}
+                        <td>{{ section_period.division|default:'' }}</td>
+                        <td>{{ section_period.section|default:'' }}</td>
+                        <td>{{ section_period.subsection|default:'' }}</td>
+                        <td>{{ section_period.subsection.get_chief.first|default:'' }}<</td>
+                        {% endwith %}
+                        <td><div style="width: 100px; overflow: hidden; white-space: nowrap;">{{ member.subcontractor|default:"" }}</div></td>
+                        <td>{{ member.get_ranking_display|default:'' }}</td>
+                        {% if is_own %}
+                            <td class="num">{{ contract.get_cost|intcomma }}</td>
+                            <td class="center">
+                                {% if contract.endowment_insurance == "1" %}○{% endif %}
+                            </td>
+                            <td class="num">{{ contract.allowance_overtime|intcomma }}</td>
+                            <td class="num">{{ contract.allowance_absenteeism|intcomma }}</td>
+                        {% else %}
+                            <td>****</td>
+                            <td>****</td>
+                            <td>****</td>
+                            <td>****</td>
+                        {% endif %}
+                        <td><div style="width: 100px; overflow: hidden; white-space: nowrap;">{{ member.get_current_project_member.project }}</div></td>
+                    </tr>
+                    {% endwith %}
+                {% endfor %}
+            {% else %}
+                <tr class="row2"><td class="center red" colspan="10">該当する要員がいません。</td></tr>
+            {% endif %}
+        </tbody>
+        <tfoot>
+            <tr>
+                <td colspan="15">
+                    {% paging members %}
+                </td>
+            </tr>
+        </tfoot>
+    </table>
+{% endblock %}

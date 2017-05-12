@@ -216,6 +216,40 @@ class MemberListView(BaseTemplateView):
 
 
 @method_decorator(permission_required('eb.view_member', raise_exception=True), name='get')
+class MemberCostListView(BaseTemplateView):
+    template_name = 'default/member_cost_list.html'
+
+    def get_context_data(self, **kwargs):
+        context = super(MemberCostListView, self).get_context_data(**kwargs)
+        request = kwargs.get('request')
+        section_id = request.GET.get('section', None)
+        param_list = common.get_request_params(request.GET)
+        params = "&".join(["%s=%s" % (key, value) for key, value in param_list.items()]) if param_list else ""
+
+        all_members = models.get_sales_members()
+        if section_id:
+            all_members = biz.get_members_by_section(all_members, section_id)
+
+        paginator = Paginator(all_members, biz_config.get_page_size())
+        page = request.GET.get('page')
+        try:
+            members = paginator.page(page)
+        except PageNotAnInteger:
+            members = paginator.page(1)
+        except EmptyPage:
+            members = paginator.page(paginator.num_pages)
+
+        context.update({
+            'title': u'要員コスト一覧 | %s' % constants.NAME_SYSTEM,
+            'sections': biz.get_on_sales_top_org(),
+            'members': members,
+            'paginator': paginator,
+            'params': "&" + params if params else "",
+        })
+        return context
+
+
+@method_decorator(permission_required('eb.view_member', raise_exception=True), name='get')
 class MemberDetailView(BaseTemplateView):
     template_name = 'default/member_detail.html'
 
@@ -1709,6 +1743,21 @@ class DownloadSectionAttendance(BaseView):
         project_members = biz.get_project_members_month_section(section, datetime.date(int(year), int(month), 20))
         filename = constants.NAME_SECTION_ATTENDANCE % (section.name, int(year), int(month))
         output = file_gen.generate_attendance_format(request.user, batch.attachment1.path, project_members, year, month)
+        response = HttpResponse(output, content_type="application/ms-excel")
+        response['Content-Disposition'] = "filename=" + urllib.quote(filename.encode('utf-8')) + ".xlsx"
+        return response
+
+
+class DownloadMembersCostView(BaseView):
+
+    def get(self, request, *args, **kwargs):
+        section_id = request.GET.get('section', None)
+        all_members = models.get_sales_members()
+        if section_id:
+            all_members = biz.get_members_by_section(all_members, section_id)
+        now = datetime.datetime.now()
+        filename = constants.NAME_MEMBERS_COST % now.strftime('%Y%m%d')
+        output = file_gen.generate_members_cost(request.user, all_members)
         response = HttpResponse(output, content_type="application/ms-excel")
         response['Content-Disposition'] = "filename=" + urllib.quote(filename.encode('utf-8')) + ".xlsx"
         return response

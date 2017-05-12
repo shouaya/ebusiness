@@ -754,6 +754,8 @@ class Member(AbstractMember):
     section = models.ForeignKey('Section', blank=True, null=True, verbose_name=u"部署",
                                 help_text=u"開発メンバーなど営業必要な方はしたの「社員の部署期間」のほうで設定してください、"
                                           u"ここで設定できるのは管理部、総務部などの営業対象外のかたです。")
+    ranking = models.CharField(blank=True, null=True, max_length=2, choices=constants.CHOICE_MEMBER_RANK,
+                               verbose_name=u"ランク")
     salesperson = models.ForeignKey(Salesperson, blank=True, null=True, verbose_name=u"営業員")
     is_individual_pay = models.BooleanField(default=False, verbose_name=u"個別精算")
     subcontractor = models.ForeignKey(Subcontractor, blank=True, null=True, verbose_name=u"協力会社")
@@ -1028,6 +1030,9 @@ class Member(AbstractMember):
         """
         today = datetime.date.today()
         return self.get_contract(today)
+
+    def get_current_contract(self):
+        return self.get_contract(datetime.date.today())
 
     def get_contract(self, date):
         """指定日付の契約情報を取得する。
@@ -1907,8 +1912,8 @@ class ProjectStage(BaseModel):
 class ProjectMember(models.Model):
     project = models.ForeignKey(Project, verbose_name=u'案件名称')
     member = models.ForeignKey(Member, verbose_name=u"名前")
-    start_date = models.DateField(blank=True, null=True, verbose_name=u"開始日")
-    end_date = models.DateField(blank=True, null=True, verbose_name=u"終了日")
+    start_date = models.DateField(blank=False, null=True, verbose_name=u"開始日")
+    end_date = models.DateField(blank=False, null=True, verbose_name=u"終了日")
     price = models.IntegerField(default=0, verbose_name=u"単価")
     min_hours = models.DecimalField(max_digits=5, decimal_places=2, default=160, verbose_name=u"基準時間")
     max_hours = models.DecimalField(max_digits=5, decimal_places=2, default=180, verbose_name=u"最大時間")
