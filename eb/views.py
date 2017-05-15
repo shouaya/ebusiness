@@ -80,6 +80,7 @@ class IndexView(BaseTemplateView):
 
     def get(self, request, *args, **kwargs):
         now = datetime.date.today()
+        prev_month = common.add_months(now, -1)
         next_month = common.add_months(now, 1)
         next_2_months = common.add_months(now, 2)
         filter_list = {'current_ym': now.strftime('%Y%m'),
@@ -92,9 +93,9 @@ class IndexView(BaseTemplateView):
         member_in_coming = biz.get_members_in_coming()
         off_sales_members_count = models.get_off_sales_members().count()
 
-        current_month = models.get_release_current_month()
-        next_month = models.get_release_next_month()
-        next_2_month = models.get_release_next_2_month()
+        release_current_month = models.get_release_current_month()
+        release_next_month = models.get_release_next_month()
+        release_next_2_month = models.get_release_next_2_month()
 
         subcontractor_sales_member_count = biz.get_subcontractor_sales_members().count()
         subcontractor_working_member_count = biz.get_subcontractor_working_members().count()
@@ -120,14 +121,22 @@ class IndexView(BaseTemplateView):
         context.update({
             'title': 'Home | %s' % constants.NAME_SYSTEM,
             'filter_list': filter_list,
+            'member_count_prev_month': models.get_on_sales_members(prev_month).count(),
+            'working_member_count_prev_month': models.get_working_members(prev_month).count(),
+            'waiting_member_count_prev_month': models.get_waiting_members(prev_month).count(),
+            'off_sales_members_count_prev_month': models.get_off_sales_members(prev_month).count(),
             'member_count': member_count,
             'working_member_count': working_members.count(),
             'waiting_member_count': waiting_members.count(),
             'members_in_coming_count': member_in_coming.count(),
             'off_sales_members_count': off_sales_members_count,
-            'current_month_count': current_month.count(),
-            'next_month_count': next_month.count(),
-            'next_2_month_count': next_2_month.count(),
+            'member_count_next_month': models.get_on_sales_members(next_month).count(),
+            'working_member_count_next_month': models.get_working_members(next_month).count(),
+            'waiting_member_count_next_month': models.get_waiting_members(next_month).count(),
+            'off_sales_members_count_next_month': models.get_off_sales_members(next_month).count(),
+            'release_current_month_count': release_current_month.count(),
+            'release_next_month_count': release_next_month.count(),
+            'release_next_2_month_count': release_next_2_month.count(),
             'subcontractor_sales_member_count': subcontractor_sales_member_count,
             'subcontractor_working_member_count': subcontractor_working_member_count,
             'subcontractor_waiting_member_count': subcontractor_waiting_member_count,
@@ -148,18 +157,50 @@ class MemberListView(BaseTemplateView):
     template_name = 'default/employee_list.html'
 
     def get(self, request, *args, **kwargs):
+        date = datetime.date.today()
+        prev_month = common.add_months(date, -1)
+        next_month = common.add_months(date, 1)
         status = request.GET.get('status', None)
         section_id = request.GET.get('section', None)
         salesperson_id = request.GET.get('salesperson', None)
         q = request.GET.get('q', None)
+        month_type = 'current'
         if status == "sales":
             all_members = models.get_on_sales_members()
+            month_type = 'current'
         elif status == "working":
             all_members = models.get_working_members()
+            month_type = 'current'
         elif status == "waiting":
             all_members = models.get_waiting_members()
+            month_type = 'current'
         elif status == "off_sales":
             all_members = models.get_off_sales_members()
+            month_type = 'current'
+        elif status == "sales_prev":
+            all_members = models.get_on_sales_members(prev_month)
+            month_type = 'prev'
+        elif status == "working_prev":
+            all_members = models.get_working_members(prev_month)
+            month_type = 'prev'
+        elif status == "waiting_prev":
+            all_members = models.get_waiting_members(prev_month)
+            month_type = 'prev'
+        elif status == "off_sales_prev":
+            all_members = models.get_off_sales_members(prev_month)
+            month_type = 'prev'
+        elif status == "sales_next":
+            all_members = models.get_on_sales_members(next_month)
+            month_type = 'next'
+        elif status == "working_next":
+            all_members = models.get_working_members(next_month)
+            month_type = 'next'
+        elif status == "waiting_next":
+            all_members = models.get_waiting_members(next_month)
+            month_type = 'next'
+        elif status == "off_sales_next":
+            all_members = models.get_off_sales_members(next_month)
+            month_type = 'next'
         else:
             all_members = models.get_all_members()
 
@@ -203,6 +244,7 @@ class MemberListView(BaseTemplateView):
         context = self.get_context_data()
         context.update({
             'title': u'要員一覧 | %s' % constants.NAME_SYSTEM,
+            'month_type': month_type,
             'members': members,
             'sections': biz.get_on_sales_top_org(),
             'salesperson': models.Salesperson.objects.public_all(),
@@ -780,7 +822,8 @@ class SectionDetailView(BaseTemplateView):
         all_members_period = section.get_members_period()
 
         o = request.GET.get('o', None)
-        dict_order = common.get_ordering_dict(o, ['member__first_name', 'start_date', 'division', 'section', 'subsection'])
+        dict_order = common.get_ordering_dict(o, ['member__first_name', 'start_date',
+                                                  'division', 'section', 'subsection'])
         order_list = common.get_ordering_list(o)
 
         if order_list:

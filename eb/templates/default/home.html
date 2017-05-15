@@ -160,6 +160,21 @@
         <div class="dashboard-title">社員状況</div>
         <table cellspacing="0" cellpadding="0">
             <tr class="row1">
+                <td colspan="10" class="subtitle">社員稼働状況（先月）：</td>
+            </tr>
+            <tr class="row2">
+                <th>社員数(営業対象内):</th>
+                <td class="num"><a href="{% url 'employee_list' %}?status=sales_prev"> {{ member_count_prev_month }}</a></td>
+                <th>稼働中人数:</th>
+                <td class="num"><a href="{% url 'employee_list' %}?status=working_prev"> {{ working_member_count_prev_month }}</a></td>
+                <th>待機中人数:</th>
+                <td class="num"><a href="{% url 'employee_list' %}?status=waiting_prev" class="red">{{ waiting_member_count_prev_month }}</a></td>
+                <th>営業対象外:</th>
+                <td class="num"><a href="{% url 'employee_list' %}?status=off_sales_prev">{{ off_sales_members_count_prev_month }}</a></td>
+                <th></th>
+                <td class="num"></td>
+            </tr>
+            <tr class="row1">
                 <td colspan="10" class="subtitle">社員稼働状況（今月）：</td>
             </tr>
             <tr class="row2">
@@ -175,21 +190,36 @@
                 <td class="num"><a href="{% url 'members_in_coming' %}">{{ members_in_coming_count }}</a></td>
             </tr>
             <tr class="row1">
+                <td colspan="10" class="subtitle">社員稼働状況（来月）：</td>
+            </tr>
+            <tr class="row2">
+                <th>社員数(営業対象内):</th>
+                <td class="num"><a href="{% url 'employee_list' %}?status=sales_next"> {{ member_count_next_month }}</a></td>
+                <th>稼働中人数:</th>
+                <td class="num"><a href="{% url 'employee_list' %}?status=working_next"> {{ working_member_count_next_month }}</a></td>
+                <th>待機中人数:</th>
+                <td class="num"><a href="{% url 'employee_list' %}?status=waiting_next" class="red">{{ waiting_member_count_next_month }}</a></td>
+                <th>営業対象外:</th>
+                <td class="num"><a href="{% url 'employee_list' %}?status=off_sales_next">{{ off_sales_members_count_next_month }}</a></td>
+                <th></th>
+                <td class="num"></td>
+            </tr>
+            <tr class="row1">
                 <td colspan="10" class="subtitle">社員リリース状況：</td>
             </tr>
             <tr class="row2">
                 <th>今月リリース:</th>
                 <td class="num">
                     <a href="{% url 'release_list' filter_list.current_ym %}"
-                       class="red">{{ current_month_count }}</a></td>
+                       class="red">{{ release_current_month_count }}</a></td>
                 <th>来月リリース:</th>
                 <td class="num">
                     <a href="{% url 'release_list' filter_list.next_ym %}">
-                        {{ next_month_count }}</a></td>
+                        {{ release_next_month_count }}</a></td>
                 <th>再来月リリース:</th>
                 <td class="num">
                     <a href="{% url 'release_list' filter_list.next_2_ym %}">
-                        {{ next_2_month_count }}</a></td>
+                        {{ release_next_2_month_count }}</a></td>
             </tr>
         </table>
     </div>

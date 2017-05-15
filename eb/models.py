@@ -2966,16 +2966,17 @@ class EmailMultiAlternativesWithEncoding(EmailMultiAlternatives):
         return attachment
 
 
-def get_all_members():
-    today = datetime.date.today()
-    query_set = Member.objects.filter(Q(join_date__isnull=True) | Q(join_date__lte=today),
+def get_all_members(date=None):
+    if date is None:
+        date = datetime.date.today()
+    query_set = Member.objects.filter(Q(join_date__isnull=True) | Q(join_date__lte=date),
                                       membersectionperiod__section__is_on_sales=True).distinct()
     # 現在所属の部署を取得
-    section_set = MemberSectionPeriod.objects.filter((Q(start_date__lte=today) & Q(end_date__isnull=True)) |
-                                                     (Q(start_date__lte=today) & Q(end_date__gte=today)))
+    section_set = MemberSectionPeriod.objects.filter((Q(start_date__lte=date) & Q(end_date__isnull=True)) |
+                                                     (Q(start_date__lte=date) & Q(end_date__gte=date)))
     # 現在所属の営業員を取得
-    salesperson_set = MemberSalespersonPeriod.objects.filter((Q(start_date__lte=today) & Q(end_date__isnull=True)) |
-                                                             (Q(start_date__lte=today) & Q(end_date__gte=today)))
+    salesperson_set = MemberSalespersonPeriod.objects.filter((Q(start_date__lte=date) & Q(end_date__isnull=True)) |
+                                                             (Q(start_date__lte=date) & Q(end_date__gte=date)))
     return query_set.prefetch_related(
         Prefetch('membersectionperiod_set', queryset=section_set, to_attr='current_section_period'),
         Prefetch('membersalespersonperiod_set', queryset=salesperson_set, to_attr='current_salesperson_period'),
@@ -2993,35 +2994,35 @@ def get_all_members():
     })
 
 
-def get_sales_members():
+def get_sales_members(date=None):
     """現在の営業対象のメンバーを取得する。
 
     加入日は現在以前、かつ所属部署は営業対象部署になっている
 
     :return: MemberのQueryset
     """
-    return get_all_members().filter(is_retired=False)
+    return get_all_members(date).filter(is_retired=False)
 
 
-def get_on_sales_members():
+def get_on_sales_members(date=None):
     """現在の営業対象のメンバーを取得する。
 
     加入日は現在以前、かつ所属部署は営業対象部署、かつ該当社員は営業対象中になっている
 
     :return: MemberのQueryset
     """
-    query_set = get_sales_members().filter(is_on_sales=True)
+    query_set = get_sales_members(date).filter(is_on_sales=True)
     return query_set
 
 
-def get_off_sales_members():
+def get_off_sales_members(date=None):
     """現在の営業対象外のメンバーを取得する。
 
     加入日は現在以前、かつ所属部署は営業対象部署、かつ該当社員は営業対象外になっている
 
     :return: MemberのQueryset
     """
-    query_set = get_sales_members().filter(is_on_sales=False)
+    query_set = get_sales_members(date).filter(is_on_sales=False)
     return query_set
 
 
@@ -3038,20 +3039,21 @@ def get_working_members(date=None):
     else:
         first_day = common.get_first_day_by_month(date)
         last_day = common.get_last_day_by_month(date)
-    members = get_on_sales_members().filter(projectmember__start_date__lte=last_day,
-                                            projectmember__end_date__gte=first_day,
-                                            projectmember__is_deleted=False,
-                                            projectmember__status=2).distinct()
+    members = get_on_sales_members(date).filter(projectmember__start_date__lte=last_day,
+                                                projectmember__end_date__gte=first_day,
+                                                projectmember__is_deleted=False,
+                                                projectmember__status=2).distinct()
     return members
 
 
-def get_waiting_members():
+def get_waiting_members(date=None):
     """現在待機中のメンバーを取得する
 
+    :param date: 対象年月
     :return: MemberのQueryset
     """
-    working_members = get_working_members()
-    return get_on_sales_members().exclude(pk__in=working_members)
+    working_members = get_working_members(date)
+    return get_on_sales_members(date).exclude(pk__in=working_members)
 
 
 def get_project_members_by_month(date):
