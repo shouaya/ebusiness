@@ -80,7 +80,7 @@ class AbstractMember(models.Model):
                              help_text=u"数値だけを入力してください、例：08012345678")
     is_married = models.CharField(blank=True, null=True, max_length=1,
                                   choices=constants.CHOICE_MARRIED, verbose_name=u"婚姻状況")
-    company = models.ForeignKey('Company', blank=True, null=True, verbose_name=u"会社")
+    company = models.ForeignKey('Company', blank=True, null=True, on_delete=models.PROTECT, verbose_name=u"会社")
     japanese_description = models.TextField(blank=True, null=True, verbose_name=u"日本語能力の説明")
     certificate = models.TextField(blank=True, null=True, verbose_name=u"資格の説明")
     skill_description = models.TextField(blank=True, null=True, verbose_name=u"得意")
@@ -395,7 +395,7 @@ class Company(AbstractCompany):
 
 
 class BankInfo(BaseModel):
-    company = models.ForeignKey(Company, verbose_name=u"会社")
+    company = models.ForeignKey(Company, on_delete=models.PROTECT, verbose_name=u"会社")
     bank_name = models.CharField(blank=False, null=False, max_length=20, verbose_name=u"銀行名称")
     branch_no = models.CharField(blank=False, null=False, max_length=3, verbose_name=u"支店番号")
     branch_name = models.CharField(blank=False, null=False, max_length=20, verbose_name=u"支店名称")
@@ -493,10 +493,11 @@ class Section(BaseModel):
     name = models.CharField(blank=False, null=False, max_length=30, verbose_name=u"部署名")
     description = models.CharField(blank=True, null=True, max_length=200, verbose_name=u"概要")
     is_on_sales = models.BooleanField(blank=False, null=False, default=False, verbose_name=u"営業対象")
-    parent = models.ForeignKey("self", related_name='children', blank=True, null=True, verbose_name=u"親組織")
+    parent = models.ForeignKey("self", related_name='children', blank=True, null=True, on_delete=models.PROTECT,
+                               verbose_name=u"親組織")
     org_type = models.CharField(blank=False, null=False, max_length=2, choices=constants.CHOICE_ORG_TYPE,
                                 verbose_name=u"組織類別")
-    company = models.ForeignKey(Company, blank=False, null=False, verbose_name=u"会社")
+    company = models.ForeignKey(Company, blank=False, null=False, on_delete=models.PROTECT, verbose_name=u"会社")
 
     class Meta:
         ordering = ['name']
@@ -598,7 +599,7 @@ class SalesOffReason(BaseModel):
 class Salesperson(AbstractMember):
 
     user = models.OneToOneField(User, blank=True, null=True)
-    section = models.ForeignKey('Section', blank=False, null=True, verbose_name=u"部署")
+    section = models.ForeignKey('Section', blank=False, null=True, on_delete=models.PROTECT, verbose_name=u"部署")
     member_type = models.IntegerField(default=5, choices=constants.CHOICE_SALESPERSON_TYPE, verbose_name=u"社員区分")
     is_deleted = models.BooleanField(default=False, editable=False, verbose_name=u"削除フラグ")
     deleted_date = models.DateTimeField(blank=True, null=True, editable=False, verbose_name=u"削除年月日")
@@ -751,16 +752,18 @@ class Salesperson(AbstractMember):
 class Member(AbstractMember):
     user = models.OneToOneField(User, blank=True, null=True)
     member_type = models.IntegerField(default=0, choices=constants.CHOICE_MEMBER_TYPE, verbose_name=u"社員区分")
-    section = models.ForeignKey('Section', blank=True, null=True, verbose_name=u"部署",
+    section = models.ForeignKey('Section', blank=True, null=True, verbose_name=u"部署", on_delete=models.PROTECT,
                                 help_text=u"開発メンバーなど営業必要な方はしたの「社員の部署期間」のほうで設定してください、"
                                           u"ここで設定できるのは管理部、総務部などの営業対象外のかたです。")
     ranking = models.CharField(blank=True, null=True, max_length=2, choices=constants.CHOICE_MEMBER_RANK,
                                verbose_name=u"ランク")
-    salesperson = models.ForeignKey(Salesperson, blank=True, null=True, verbose_name=u"営業員")
+    salesperson = models.ForeignKey(Salesperson, blank=True, null=True, on_delete=models.PROTECT, verbose_name=u"営業員")
     is_individual_pay = models.BooleanField(default=False, verbose_name=u"個別精算")
-    subcontractor = models.ForeignKey(Subcontractor, blank=True, null=True, verbose_name=u"協力会社")
+    subcontractor = models.ForeignKey(Subcontractor, blank=True, null=True, on_delete=models.PROTECT,
+                                      verbose_name=u"協力会社")
     is_on_sales = models.BooleanField(blank=False, null=False, default=True, verbose_name=u"営業対象")
-    sales_off_reason = models.ForeignKey(SalesOffReason, blank=True, null=True, verbose_name=u"営業対象外理由")
+    sales_off_reason = models.ForeignKey(SalesOffReason, blank=True, null=True, on_delete=models.PROTECT,
+                                         verbose_name=u"営業対象外理由")
     cost = models.IntegerField(null=False, default=0, verbose_name=u"コスト")
     is_deleted = models.BooleanField(default=False, editable=False, verbose_name=u"削除フラグ")
     deleted_date = models.DateTimeField(blank=True, null=True, editable=False, verbose_name=u"削除年月日")
@@ -1177,11 +1180,13 @@ class V_Contract(models.Model):
 
 
 class MemberSectionPeriod(BaseModel):
-    member = models.ForeignKey(Member, verbose_name=u"社員名")
-    division = models.ForeignKey(Section, blank=True, null=True, related_name='memberdivisionperiod_set',
+    member = models.ForeignKey(Member, on_delete=models.PROTECT, verbose_name=u"社員名")
+    division = models.ForeignKey(Section, on_delete=models.PROTECT, blank=True, null=True,
+                                 related_name='memberdivisionperiod_set',
                                  verbose_name=u"事業部")
-    section = models.ForeignKey(Section, blank=True, null=True, verbose_name=u"部署")
-    subsection = models.ForeignKey(Section, blank=True, null=True, related_name='membersubsectionperiod_set',
+    section = models.ForeignKey(Section, blank=True, null=True, on_delete=models.PROTECT, verbose_name=u"部署")
+    subsection = models.ForeignKey(Section, blank=True, null=True, on_delete=models.PROTECT,
+                                   related_name='membersubsectionperiod_set',
                                    verbose_name=u"課・グループ")
     start_date = models.DateField(verbose_name=u"開始日")
     end_date = models.DateField(blank=True, null=True, verbose_name=u"終了日")
@@ -1202,8 +1207,8 @@ class MemberSectionPeriod(BaseModel):
 
 
 class MemberSalespersonPeriod(BaseModel):
-    member = models.ForeignKey(Member, verbose_name=u"社員名")
-    salesperson = models.ForeignKey(Salesperson, verbose_name=u"営業員")
+    member = models.ForeignKey(Member, on_delete=models.PROTECT, verbose_name=u"社員名")
+    salesperson = models.ForeignKey(Salesperson, on_delete=models.PROTECT, verbose_name=u"営業員")
     start_date = models.DateField(verbose_name=u"開始日")
     end_date = models.DateField(blank=True, null=True, verbose_name=u"終了日")
 
@@ -1217,9 +1222,9 @@ class MemberSalespersonPeriod(BaseModel):
 
 
 class PositionShip(BaseModel):
-    member = models.ForeignKey(Member, verbose_name=u"社員名")
+    member = models.ForeignKey(Member, on_delete=models.PROTECT, verbose_name=u"社員名")
     position = models.IntegerField(blank=True, null=True, choices=constants.CHOICE_POSITION, verbose_name=u"職位")
-    section = models.ForeignKey(Section, verbose_name=u"所属")
+    section = models.ForeignKey(Section, on_delete=models.PROTECT, verbose_name=u"所属")
     is_part_time = models.BooleanField(default=False, verbose_name=u"兼任")
 
     class Meta:
@@ -1245,7 +1250,7 @@ class Client(AbstractCompany):
                                     verbose_name=u"小数の処理区分")
     remark = models.TextField(blank=True, null=True, verbose_name=u"評価")
     comment = models.TextField(blank=True, null=True, verbose_name=u"備考")
-    salesperson = models.ForeignKey(Salesperson, blank=True, null=True, verbose_name=u"営業担当")
+    salesperson = models.ForeignKey(Salesperson, blank=True, null=True, on_delete=models.PROTECT, verbose_name=u"営業担当")
     quotation_file = models.FileField(blank=True, null=True, upload_to="./quotation",
                                       verbose_name=u"見積書テンプレート")
     request_file = models.FileField(blank=True, null=True, upload_to="./request", verbose_name=u"請求書テンプレート",
@@ -1303,7 +1308,7 @@ class ClientMember(BaseModel):
     name = models.CharField(max_length=30, verbose_name=u"名前")
     email = models.EmailField(blank=True, null=True, verbose_name=u"メールアドレス")
     phone = models.CharField(blank=True, null=True, max_length=11, verbose_name=u"電話番号")
-    client = models.ForeignKey(Client, verbose_name=u"所属会社")
+    client = models.ForeignKey(Client, on_delete=models.PROTECT, verbose_name=u"所属会社")
 
     class Meta:
         ordering = ['name']
@@ -1363,12 +1368,13 @@ class Project(models.Model):
     is_reserve = models.BooleanField(default=False, verbose_name=u"待機案件フラグ",
                                      help_text=u"バーチャル案件です、コストなどを算出ために非稼働メンバーを"
                                                u"この案件にアサインすればいい。")
-    client = models.ForeignKey(Client, null=True, verbose_name=u"関連会社")
-    boss = models.ForeignKey(ClientMember, blank=True, null=True, related_name="boss_set", verbose_name=u"案件責任者")
-    middleman = models.ForeignKey(ClientMember, blank=True, null=True,
+    client = models.ForeignKey(Client, null=True, on_delete=models.PROTECT, verbose_name=u"関連会社")
+    boss = models.ForeignKey(ClientMember, blank=True, null=True, related_name="boss_set", on_delete=models.PROTECT,
+                             verbose_name=u"案件責任者")
+    middleman = models.ForeignKey(ClientMember, blank=True, null=True, on_delete=models.PROTECT,
                                   related_name="middleman_set", verbose_name=u"案件連絡者")
-    salesperson = models.ForeignKey(Salesperson, blank=True, null=True, verbose_name=u"営業員")
-    department = models.ForeignKey(Section, blank=True, null=True, verbose_name=u"所属部署",
+    salesperson = models.ForeignKey(Salesperson, blank=True, null=True, on_delete=models.PROTECT, verbose_name=u"営業員")
+    department = models.ForeignKey(Section, blank=True, null=True, verbose_name=u"所属部署", on_delete=models.PROTECT,
                                    help_text=u"一括案件で、メンバーアサインしていない場合を設定する。")
     members = models.ManyToManyField(Member, through='ProjectMember', blank=True)
     insert_date = models.DateTimeField(blank=True, null=True, auto_now_add=True, editable=False,
@@ -1649,7 +1655,7 @@ class ClientOrder(BaseModel):
     end_date = models.DateField(default=common.get_last_day_current_month(), verbose_name=u"終了日")
     order_no = models.CharField(max_length=20, verbose_name=u"注文番号")
     order_date = models.DateField(blank=False, null=True, verbose_name=u"注文日")
-    bank_info = models.ForeignKey(BankInfo, blank=False, null=True, verbose_name=u"振込先口座")
+    bank_info = models.ForeignKey(BankInfo, blank=False, null=True, on_delete=models.PROTECT, verbose_name=u"振込先口座")
     order_file = models.FileField(blank=True, null=True, upload_to=get_client_order_path, verbose_name=u"注文書")
     member_comma_list = models.CharField(max_length=255, blank=True, null=True, editable=False,
                                          verbose_name=u"メンバー主キーのリスト",
@@ -1664,8 +1670,8 @@ class ClientOrder(BaseModel):
 
 
 class ProjectRequest(models.Model):
-    project = models.ForeignKey(Project, verbose_name=u"案件")
-    client_order = models.ForeignKey(ClientOrder, blank=True, null=True, verbose_name=u"注文書")
+    project = models.ForeignKey(Project, on_delete=models.PROTECT, verbose_name=u"案件")
+    client_order = models.ForeignKey(ClientOrder, blank=True, null=True, on_delete=models.PROTECT, verbose_name=u"注文書")
     year = models.CharField(max_length=4, default=str(datetime.date.today().year),
                             choices=constants.CHOICE_ATTENDANCE_YEAR, verbose_name=u"対象年")
     month = models.CharField(max_length=2, choices=constants.CHOICE_ATTENDANCE_MONTH, verbose_name=u"対象月")
@@ -1676,10 +1682,10 @@ class ProjectRequest(models.Model):
     tax_amount = models.IntegerField(default=0, verbose_name=u"税金")
     expenses_amount = models.IntegerField(default=0, verbose_name=u"精算金額")
     filename = models.CharField(max_length=255, blank=True, null=True, verbose_name=u"請求書ファイル名")
-    created_user = models.ForeignKey(User, related_name='created_requests', null=True,
+    created_user = models.ForeignKey(User, related_name='created_requests', null=True, on_delete=models.PROTECT,
                                      editable=False, verbose_name=u"作成者")
     created_date = models.DateTimeField(null=True, auto_now_add=True, editable=False, verbose_name=u"作成日時")
-    updated_user = models.ForeignKey(User, related_name='updated_requests', null=True,
+    updated_user = models.ForeignKey(User, related_name='updated_requests', null=True, on_delete=models.PROTECT,
                                      editable=False, verbose_name=u"更新者")
     updated_date = models.DateTimeField(null=True, auto_now=True, editable=False, verbose_name=u"更新日時")
 
@@ -1769,7 +1775,7 @@ class ProjectRequestHeading(models.Model):
     lump_amount = models.BigIntegerField(default=0, blank=True, null=True, verbose_name=u"一括金額")
     lump_comment = models.CharField(blank=True, null=True, max_length=200, verbose_name=u"一括の備考")
     is_hourly_pay = models.BooleanField(default=False, verbose_name=u"時給")
-    client = models.ForeignKey(Client, null=True, verbose_name=u"関連会社")
+    client = models.ForeignKey(Client, null=True, on_delete=models.PROTECT, verbose_name=u"関連会社")
     client_post_code = models.CharField(blank=True, null=True, max_length=8, verbose_name=u"お客様郵便番号")
     client_address = models.CharField(blank=True, null=True, max_length=200, verbose_name=u"お客様住所１")
     client_tel = models.CharField(blank=True, null=True, max_length=15, verbose_name=u"お客様電話番号")
@@ -1786,7 +1792,7 @@ class ProjectRequestHeading(models.Model):
     company_name = models.CharField(blank=True, null=True, max_length=30, verbose_name=u"会社名")
     company_tel = models.CharField(blank=True, null=True, max_length=15, verbose_name=u"お客様電話番号")
     company_master = models.CharField(blank=True, null=True, max_length=30, verbose_name=u"代表取締役")
-    bank = models.ForeignKey(BankInfo, blank=True, null=True, verbose_name=u"口座")
+    bank = models.ForeignKey(BankInfo, blank=True, null=True, on_delete=models.PROTECT, verbose_name=u"口座")
     bank_name = models.CharField(blank=True, null=True, max_length=20, verbose_name=u"銀行名称")
     branch_no = models.CharField(blank=True, null=True, max_length=3, verbose_name=u"支店番号")
     branch_name = models.CharField(blank=True, null=True, max_length=20, verbose_name=u"支店名称")
@@ -1801,12 +1807,12 @@ class ProjectRequestHeading(models.Model):
 
 
 class ProjectRequestDetail(models.Model):
-    project_request = models.ForeignKey(ProjectRequest, verbose_name=u"請求書")
-    project_member = models.ForeignKey('ProjectMember', verbose_name=u"メンバー")
+    project_request = models.ForeignKey(ProjectRequest, on_delete=models.PROTECT, verbose_name=u"請求書")
+    project_member = models.ForeignKey('ProjectMember', on_delete=models.PROTECT, verbose_name=u"メンバー")
     member_section = models.ForeignKey(Section, verbose_name=u"部署")
     member_type = models.IntegerField(default=0, choices=constants.CHOICE_MEMBER_TYPE, verbose_name=u"社員区分")
-    salesperson = models.ForeignKey(Salesperson, blank=True, null=True, verbose_name=u"営業員")
-    subcontractor = models.ForeignKey(Subcontractor, blank=True, null=True, verbose_name=u"協力会社")
+    salesperson = models.ForeignKey(Salesperson, blank=True, null=True, on_delete=models.PROTECT, verbose_name=u"営業員")
+    subcontractor = models.ForeignKey(Subcontractor, blank=True, null=True, on_delete=models.PROTECT, verbose_name=u"協力会社")
     cost = models.IntegerField(default=0, verbose_name=u"コスト")
     no = models.IntegerField(verbose_name=u"番号")
     hourly_pay = models.IntegerField(default=0, verbose_name=u"時給")
@@ -1858,7 +1864,7 @@ class ProjectRequestDetail(models.Model):
 
 
 class ProjectActivity(models.Model):
-    project = models.ForeignKey(Project, verbose_name=u"案件")
+    project = models.ForeignKey(Project, on_delete=models.PROTECT, verbose_name=u"案件")
     name = models.CharField(max_length=30, verbose_name=u"活動名称")
     open_date = models.DateTimeField(default=timezone.now, verbose_name=u"開催日時")
     address = models.CharField(max_length=255, verbose_name=u"活動場所")
@@ -1886,8 +1892,8 @@ class ProjectActivity(models.Model):
 
 
 class ProjectSkill(BaseModel):
-    project = models.ForeignKey(Project, verbose_name=u"案件")
-    skill = models.ForeignKey(Skill, verbose_name=u"スキル")
+    project = models.ForeignKey(Project, on_delete=models.PROTECT, verbose_name=u"案件")
+    skill = models.ForeignKey(Skill, on_delete=models.PROTECT, verbose_name=u"スキル")
     period = models.IntegerField(blank=True, null=True, choices=constants.CHOICE_SKILL_TIME, verbose_name=u"経験年数")
     description = models.TextField(blank=True, null=True, verbose_name=u"備考")
 
@@ -1910,8 +1916,8 @@ class ProjectStage(BaseModel):
 
 
 class ProjectMember(models.Model):
-    project = models.ForeignKey(Project, verbose_name=u'案件名称')
-    member = models.ForeignKey(Member, verbose_name=u"名前")
+    project = models.ForeignKey(Project, on_delete=models.PROTECT, verbose_name=u'案件名称')
+    member = models.ForeignKey(Member, on_delete=models.PROTECT, verbose_name=u"名前")
     start_date = models.DateField(blank=False, null=True, verbose_name=u"開始日")
     end_date = models.DateField(blank=False, null=True, verbose_name=u"終了日")
     price = models.IntegerField(default=0, verbose_name=u"単価")
@@ -2164,7 +2170,7 @@ class ExpensesCategory(BaseModel):
 
 
 class EmployeeExpenses(BaseModel):
-    member = models.ForeignKey(Member, verbose_name=u"社員")
+    member = models.ForeignKey(Member, on_delete=models.PROTECT, verbose_name=u"社員")
     year = models.CharField(max_length=4, default=str(datetime.date.today().year),
                             choices=constants.CHOICE_ATTENDANCE_YEAR, verbose_name=u"対象年")
     month = models.CharField(max_length=2, choices=constants.CHOICE_ATTENDANCE_MONTH, verbose_name=u"対象月")
@@ -2179,11 +2185,11 @@ class EmployeeExpenses(BaseModel):
 
 
 class MemberExpenses(BaseModel):
-    project_member = models.ForeignKey(ProjectMember, verbose_name=u"要員")
+    project_member = models.ForeignKey(ProjectMember, on_delete=models.PROTECT, verbose_name=u"要員")
     year = models.CharField(max_length=4, default=str(datetime.date.today().year),
                             choices=constants.CHOICE_ATTENDANCE_YEAR, verbose_name=u"対象年")
     month = models.CharField(max_length=2, choices=constants.CHOICE_ATTENDANCE_MONTH, verbose_name=u"対象月")
-    category = models.ForeignKey(ExpensesCategory, verbose_name=u"分類")
+    category = models.ForeignKey(ExpensesCategory, on_delete=models.PROTECT, verbose_name=u"分類")
     price = models.IntegerField(default=0, verbose_name=u"価格")
 
     objects = PublicManager(is_deleted=False, project_member__is_deleted=False, category__is_deleted=False)
@@ -2197,7 +2203,7 @@ class MemberExpenses(BaseModel):
 
 
 class MemberAttendance(BaseModel):
-    project_member = models.ForeignKey(ProjectMember, verbose_name=u"メンバー")
+    project_member = models.ForeignKey(ProjectMember, on_delete=models.PROTECT, verbose_name=u"メンバー")
     year = models.CharField(max_length=4, default=str(datetime.date.today().year),
                             choices=constants.CHOICE_ATTENDANCE_YEAR, verbose_name=u"対象年")
     month = models.CharField(max_length=2, choices=constants.CHOICE_ATTENDANCE_MONTH, verbose_name=u"対象月")
@@ -2424,16 +2430,16 @@ class MemberAttendance(BaseModel):
 
 
 class BpMemberOrder(BaseModel):
-    project_member = models.ForeignKey(ProjectMember, verbose_name=u"案件メンバー")
-    subcontractor = models.ForeignKey(Subcontractor, verbose_name=u"協力会社")
+    project_member = models.ForeignKey(ProjectMember, on_delete=models.PROTECT, verbose_name=u"案件メンバー")
+    subcontractor = models.ForeignKey(Subcontractor, on_delete=models.PROTECT, verbose_name=u"協力会社")
     order_no = models.CharField(max_length=14, unique=True, verbose_name=u"注文番号")
     year = models.CharField(max_length=4, default=str(datetime.date.today().year),
                             choices=constants.CHOICE_ATTENDANCE_YEAR, verbose_name=u"対象年")
     month = models.CharField(max_length=2, choices=constants.CHOICE_ATTENDANCE_MONTH, verbose_name=u"対象月")
     filename = models.CharField(max_length=255, blank=True, null=True, verbose_name=u"注文書ファイル名")
-    created_user = models.ForeignKey(User, related_name='created_orders', null=True,
+    created_user = models.ForeignKey(User, related_name='created_orders', null=True, on_delete=models.PROTECT,
                                      editable=False, verbose_name=u"作成者")
-    updated_user = models.ForeignKey(User, related_name='updated_orders', null=True,
+    updated_user = models.ForeignKey(User, related_name='updated_orders', null=True, on_delete=models.PROTECT,
                                      editable=False, verbose_name=u"更新者")
 
     class Meta:
@@ -2567,7 +2573,7 @@ class BpMemberOrderHeading(models.Model):
 
 
 class BpMemberOrderInfo(BaseModel):
-    member = models.ForeignKey(Member, verbose_name=u"協力社員")
+    member = models.ForeignKey(Member, on_delete=models.PROTECT, verbose_name=u"協力社員")
     year = models.CharField(max_length=4, default=str(datetime.date.today().year),
                             choices=constants.CHOICE_ATTENDANCE_YEAR, verbose_name=u"対象年")
     month = models.CharField(max_length=2, choices=constants.CHOICE_ATTENDANCE_MONTH, verbose_name=u"対象月")
@@ -2588,7 +2594,7 @@ class BpMemberOrderInfo(BaseModel):
 
 
 class Degree(BaseModel):
-    member = models.ForeignKey(Member, verbose_name=u"社員")
+    member = models.ForeignKey(Member, on_delete=models.PROTECT, verbose_name=u"社員")
     start_date = models.DateField(verbose_name=u"入学日")
     end_date = models.DateField(verbose_name=u"卒業日")
     description = models.CharField(blank=True, null=True, max_length=255, verbose_name=u"学校名称/学部/専門/学位")
@@ -2599,7 +2605,7 @@ class Degree(BaseModel):
 
 class HistoryProject(BaseModel):
     name = models.CharField(max_length=50, verbose_name=u"案件名称")
-    member = models.ForeignKey(Member, verbose_name=u"名前")
+    member = models.ForeignKey(Member, on_delete=models.PROTECT, verbose_name=u"名前")
     location = models.CharField(max_length=20, blank=True, null=True, verbose_name=u"作業場所")
     description = models.TextField(blank=True, null=True, verbose_name=u"案件概要")
     start_date = models.DateField(blank=True, null=True, verbose_name=u"開始日")
@@ -2681,13 +2687,16 @@ class Issue(BaseModel):
     title = models.CharField(max_length=30, verbose_name=u"タイトル")
     level = models.PositiveSmallIntegerField(choices=constants.CHOICE_ISSUE_LEVEL, default=1, verbose_name=u"優先度")
     content = models.TextField(verbose_name=u"内容")
-    created_user = models.ForeignKey(User, related_name='created_issue_set', editable=False, verbose_name=u"作成者")
+    created_user = models.ForeignKey(User, related_name='created_issue_set', editable=False,
+                                     on_delete=models.PROTECT, verbose_name=u"作成者")
     present_user = models.ForeignKey(User, blank=False, null=True, related_name='present_issue_set',
+                                     on_delete=models.PROTECT,
                                      verbose_name=u"提出者")
     status = models.CharField(max_length=1, default=1, choices=constants.CHOICE_ISSUE_STATUS,
                               verbose_name=u"ステータス")
     limit_date = models.DateField(blank=True, null=True, verbose_name=u"期限日")
     resolve_user = models.ForeignKey(User, related_name='resolve_issue_set', blank=True, null=True,
+                                     on_delete=models.PROTECT,
                                      verbose_name=u"担当者")
     planned_end_date = models.DateField(blank=True, null=True, verbose_name=u"予定完了日")
     really_end_date = models.DateField(blank=True, null=True, verbose_name=u"実際完了日")
@@ -2894,9 +2903,10 @@ class BatchManage(BaseModel):
 
 
 class BatchCarbonCopy(BaseModel):
-    batch = models.ForeignKey(BatchManage, verbose_name=u"バッチ名")
-    member = models.ForeignKey(Member, blank=True, null=True, verbose_name=u"ＣＣ先の社員")
-    salesperson = models.ForeignKey(Salesperson, blank=True, null=True, verbose_name=u"ＣＣ先の営業員")
+    batch = models.ForeignKey(BatchManage, on_delete=models.PROTECT, verbose_name=u"バッチ名")
+    member = models.ForeignKey(Member, blank=True, null=True, on_delete=models.PROTECT, verbose_name=u"ＣＣ先の社員")
+    salesperson = models.ForeignKey(Salesperson, blank=True, null=True, on_delete=models.PROTECT,
+                                    verbose_name=u"ＣＣ先の営業員")
     email = models.EmailField(blank=True, null=True, verbose_name=u"メールアドレス")
 
     class Meta:
