@@ -8,7 +8,7 @@ import re
 import xlrd
 import datetime
 
-from django.core.exceptions import ObjectDoesNotExist
+from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
 from django.db.models import Max
 from django.contrib.admin.models import LogEntry, ADDITION, CHANGE
 from django.contrib.contenttypes.models import ContentType
@@ -413,6 +413,28 @@ def load_section_attendance(file_content, year, month, use_id):
             change_message = (get_text_list(changed_list, _('and')) if changed_list else '') + _('Added.')
 
         attendance.save()
+        # 客先立替金は精算リストに追加する。
+        if attendance.advances_paid_client:
+            try:
+                models.MemberExpenses.objects.get(project_member=attendance.project_member,
+                                                  year=attendance.year, month=attendance.month,
+                                                  price=attendance.advances_paid_client)
+            except ObjectDoesNotExist:
+                category = models.Config.get_default_expenses_category()
+                if category:
+                    # 既定の精算分類が設定された場合
+                    expenses = models.MemberExpenses(project_member=attendance.project_member,
+                                                     year=attendance.year, month=attendance.month,
+                                                     category=category, price=attendance.advances_paid_client)
+                    expenses.save()
+                    LogEntry.objects.log_action(user_id=use_id,
+                                                content_type_id=ContentType.objects.get_for_model(expenses).pk,
+                                                object_id=expenses.pk,
+                                                object_repr=unicode(expenses),
+                                                action_flag=ADDITION,
+                                                change_message=u"【データ導入】追加されました。")
+            except MultipleObjectsReturned:
+                pass
         if change_message:
             LogEntry.objects.log_action(user_id=use_id,
                                         content_type_id=ContentType.objects.get_for_model(attendance).pk,

@@ -313,6 +313,7 @@
                                         {{ project_member.member }}
                                     </a>
                                 </td>
+                                <!--所在部署-->
                                 <td>{{ project_member.section_name }}</td>
                                 <td>
                                     <div style="width: 120px; overflow: hidden; white-space: nowrap;">
@@ -356,7 +357,8 @@
                                                 SES
                                             {% endif %}
                                         </td>
-                                        <td class="num {% if project_request_detail %}project_requested{% endif %}">{{ attendance.total_hours }}</td>
+                                        <!--勤務時間-->
+                                        <td class="num {% if project_request_detail %}project_requested{% endif %}">{{ attendance.total_hours|default:'' }}</td>
                                         <td class="num {% if project_request_detail %}project_requested{% endif %}">{{ attendance.total_days|default:'' }}</td>
                                         <td class="num {% if project_request_detail %}project_requested{% endif %}">{{ attendance.night_days|default:'' }}</td>
                                         <td class="num {% if project_request_detail %}project_requested{% endif %}">{{ attendance.advances_paid_client|default:''|intcomma }}</td>

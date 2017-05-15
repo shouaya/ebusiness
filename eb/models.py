@@ -276,6 +276,22 @@ class Config(models.Model):
         """
         return Config.get(constants.CONFIG_BP_ORDER_CONTRACT_ITEMS, '', group_name=constants.CONFIG_GROUP_BP_ORDER)
 
+    @staticmethod
+    def get_default_expenses_category():
+        """出勤情報アップロード時、客先立替金を精算リストに追加するために、既定の分類を取得する
+
+        :return:
+        """
+        expenses_id = Config.get(constants.CONFIG_DEFAULT_EXPENSES_ID)
+        if expenses_id:
+            try:
+                expenses = ExpensesCategory.objects.get(pk=expenses_id)
+            except (ObjectDoesNotExist, MultipleObjectsReturned):
+                expenses = None
+            return expenses
+        else:
+            return None
+
 
 class BaseModel(models.Model):
     created_date = models.DateTimeField(auto_now_add=True, auto_now=False, null=True, editable=False,
@@ -2159,7 +2175,7 @@ class ProjectMember(models.Model):
 
 
 class ExpensesCategory(BaseModel):
-    name = models.CharField(max_length=50, verbose_name=u"名称")
+    name = models.CharField(max_length=50, unique=True, verbose_name=u"名称")
 
     class Meta:
         verbose_name = verbose_name_plural = u"精算分類"
@@ -2190,7 +2206,7 @@ class MemberExpenses(BaseModel):
                             choices=constants.CHOICE_ATTENDANCE_YEAR, verbose_name=u"対象年")
     month = models.CharField(max_length=2, choices=constants.CHOICE_ATTENDANCE_MONTH, verbose_name=u"対象月")
     category = models.ForeignKey(ExpensesCategory, on_delete=models.PROTECT, verbose_name=u"分類")
-    price = models.IntegerField(default=0, verbose_name=u"価格")
+    price = models.IntegerField(default=0, verbose_name=u"金額")
 
     objects = PublicManager(is_deleted=False, project_member__is_deleted=False, category__is_deleted=False)
 

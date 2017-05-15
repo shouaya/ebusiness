@@ -62,6 +62,7 @@ CONFIG_CONTRACT_COMMENT = 'contract_comment'
 CONFIG_BP_ORDER_DELIVERY_PROPERTIES = 'delivery_properties'
 CONFIG_BP_ORDER_PAYMENT_CONDITION = 'payment_condition'
 CONFIG_BP_ORDER_CONTRACT_ITEMS = 'contract_items'
+CONFIG_DEFAULT_EXPENSES_ID = 'default_expenses_category_id'
 
 MARK_POST_CODE = u"〒"
 
@@ -294,7 +295,7 @@ POS_ATTENDANCE_COL_EXPENSES = 26                    # 経費(原価)
 
 FORMAT_ATTENDANCE_TITLE1 = (u"",
                             u"No",
-                            u"社員\nID",
+                            u"ID",
                             u"基本データ",
                             u"",
                             u"",
