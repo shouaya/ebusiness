@@ -896,7 +896,8 @@ def section_attendance(request, section_id):
         if not project_member.current_attendance_set:
             # 出勤情報がない場合、例えば待機案件のメンバーなど。
             project_member.current_attendance_set = [models.MemberAttendance(project_member=project_member,
-                                                                             year=year, month=month)]
+                                                                             year=year, month=month,
+                                                                             total_hours=0)]
         all_project_members.append((project_member, project_member.member.is_belong_to(request.user, date), msg))
 
     context = get_base_context()

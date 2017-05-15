@@ -172,7 +172,7 @@ def clients_turnover_yearly2(year):
     :param year: 対象年
     :return:
     """
-    ym_start = '%s04' % year,
+    ym_start = '%s04' % year
     ym_end = '%s03' % (int(year) + 1)
 
     turnover_details = models.ProjectRequest.objects.order_by().annotate(ym=Concat('year', 'month')).filter(
