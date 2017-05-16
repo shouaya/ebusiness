@@ -1,0 +1,14 @@
+{% extends theme|add:"/base.html" %}
+{% load humanize %}
+
+{% block header %}
+{% endblock %}
+
+{% block content %}
+    <div class="dashboard">
+        <div class="dashboard-title">{{ client }} の 売上分析</div>
+    </div>
+    <div>
+        <img src="{% url 'download_client_turnover_chart' client.pk %}">
+    </div>
+{% endblock %}
