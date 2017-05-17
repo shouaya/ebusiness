@@ -45,6 +45,9 @@ download_patterns = [
         name='download_section_attendance'),
     url(r'^member/list/eboa_info.html$', eboa_views.download_eboa_members, name='download_eboa_members'),
     url(r'^member/cost_list.html$', views.DownloadMembersCostView.as_view(), name='download_members_cost'),
+    # image
+    url(r'^turnover_chart/client/(?P<client_id>[0-9]+)\.html$', views.DownloadClientTurnoverChartView.as_view(),
+        name='download_client_turnover_chart')
 ]
 
 turnover_patterns = [
@@ -60,6 +63,8 @@ turnover_patterns = [
         name='turnover_clients_monthly'),
     url(r'^client/(?P<client_id>[0-9]+)/(?P<ym>[0-9]{6}).html$', views.TurnoverClientMonthlyView.as_view(),
         name='turnover_client_monthly'),
+    url(r'^client/(?P<client_id>[0-9]+)/(?P<year>[0-9]{4}).html$', views.TurnoverClientYearlyView.as_view(),
+        name='turnover_client_yearly'),
 ]
 
 subcontractor_patterns = [

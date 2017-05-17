@@ -22,7 +22,7 @@
             {% if clients_turnover %}
                 {% for client_turnover in clients_turnover %}
                     <tr class="{% cycle 'row1' 'row2' %}">
-                        <td>{{ client_turnover.client.name }}</td>
+                        <td><a href="{% url 'turnover_client_yearly' client_turnover.client.pk year %}">{{ client_turnover.client.name }}</a></td>
                         <td style="text-align: right">{{ client_turnover.attendance_amount|intcomma }}</td>
                         <td style="text-align: right">{{ client_turnover.attendance_tex|intcomma }}</td>
                         <td style="text-align: right">{{ client_turnover.expenses_amount|intcomma }}</td>

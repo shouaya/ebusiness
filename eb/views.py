@@ -1175,6 +1175,24 @@ class TurnoverClientMonthlyView(BaseTemplateView):
         return self.render_to_response(context)
 
 
+@method_decorator(permission_required('eb.view_turnover', raise_exception=True), name='get')
+class TurnoverClientYearlyView(BaseTemplateView):
+    template_name = 'default/turnover_client_yearly.html'
+
+    def get_context_data(self, **kwargs):
+        context = super(TurnoverClientYearlyView, self).get_context_data(**kwargs)
+        client_id = kwargs.get('client_id', 0)
+        year = kwargs.get('year')
+        client = get_object_or_404(models.Client, pk=client_id)
+
+        context.update({
+            'title': u"%s の売上分析" % unicode(client),
+            'year': year,
+            'client': client,
+        })
+        return context
+
+
 @method_decorator(permission_required('eb.view_member', raise_exception=True), name='get')
 class ReleaseListCurrentView(BaseTemplateView):
     template_name = 'default/release_list.html'
@@ -1641,6 +1659,16 @@ class DownloadClientOrderView(BaseView):
                 response = HttpResponse(open(path, 'rb'), content_type="application/excel")
                 response['Content-Disposition'] = "filename=" + urllib.quote(filename.encode("utf8"))
                 return response
+
+
+class DownloadClientTurnoverChartView(BaseView):
+
+    def get(self, request, *args, **kwargs):
+        client_id = kwargs.get('client_id', 0)
+        client = get_object_or_404(models.Client, pk=client_id)
+        img_data = biz_turnover.client_turnover_monthly(client)
+        response = HttpResponse(img_data, content_type="image/png")
+        return response
 
 
 class DownloadSubcontractorOrderView(BaseView):
