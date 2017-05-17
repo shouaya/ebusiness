@@ -5,11 +5,11 @@ Created on 2016/06/02
 @author: Yang Wanjun
 """
 from __future__ import unicode_literals
-import pandas as pd
-import StringIO
-import matplotlib.pyplot as plt
-from matplotlib.font_manager import FontProperties
-from matplotlib.ticker import FuncFormatter
+# import pandas as pd
+# import StringIO
+# import matplotlib.pyplot as plt
+# from matplotlib.font_manager import FontProperties
+# from matplotlib.ticker import FuncFormatter
 
 from eb import models
 
@@ -208,68 +208,69 @@ def clients_turnover_yearly2(year):
 
 
 def client_turnover_monthly(client):
-    df = pd.read_sql("select r.year"
-                     "     , r.month"
-                     "     , r.amount"
-                     "     , r.expenses_amount"
-                     "     , r.tax_amount"
-                     "     , r.turnover_amount"
-                     "     , (select count(1) "
-                     "          from eb_projectmember pm2 "
-                     "		 where pm2.id in (select project_member_id "
-                     "                            from eb_projectrequestdetail d "
-                     "						   where d.project_request_id=r.id)"
-                     "	   ) as member_count"
-                     "  from eb_projectrequest r "
-                     "  join eb_projectrequestheading h on r.id = h.project_request_id"
-                     "  join eb_project p on p.id = r.project_id"
-                     " where h.client_id = %s" % client.pk, connection)
-    grouped = df.groupby(['year', 'month'])
-    sum_df = grouped.sum()
-    # fp = FontProperties(fname=r'c:\Windows\Fonts\arial.ttf')
-    fig, axes = plt.subplots(nrows=2, ncols=1, figsize=(11, 5))
-    turnover_df = pd.DataFrame(sum_df, columns=['turnover_amount', 'tax_amount', 'expenses_amount'])
-    turnover_df.rename(columns={'turnover_amount': '売上（税抜）', 'tax_amount': '税金', 'expenses_amount': '精算'}, inplace=True)
-    turnover_df.plot(ax=axes[0], kind='bar', stacked=True)
-    # axes[0].set_title("売上（税別）", fontdict={'fontproperties':fp})
-    sum_df['member_count'].plot(ax=axes[1], kind='bar')
-
-    def x_ax_format(x, p):
-        index = turnover_df.index.values[x]
-        return '%s/%s' % (index[0][2:], index[1])
-
-    def y_ax_format(y, p):
-        if y >= 1000000:
-            return '%0dM円' % (y / 1000000)
-        elif y >= 1000:
-            return '%0dK円' % (y / 1000)
-        elif y == 0:
-            return '0円'
-        else:
-            return y
-    axes[0].set_xlabel('売上')
-    axes[0].grid(alpha=0.3)
-    axes[0].get_xaxis().set_major_formatter(FuncFormatter(x_ax_format))
-    axes[0].get_yaxis().set_major_formatter(FuncFormatter(y_ax_format))
-    axes[1].set_xlabel('人数')
-    axes[1].grid(alpha=0.3)
-    axes[1].get_xaxis().set_major_formatter(FuncFormatter(x_ax_format))
-    axes[1].get_yaxis().set_major_formatter(FuncFormatter(lambda x, p: '%d人' % x))
-    for ax in axes:
-        for tick in ax.get_xticklabels():
-            tick.set_rotation(30)
-
-    for i, v in enumerate(sum_df['amount']):
-        axes[0].text(i, v + 1, '%sK' % (humanize.intcomma(int(round(v / 1000)))), color='black', fontsize=8)
-    for i, v in enumerate(sum_df['member_count']):
-        axes[1].text(i, v, str(v), color='black', fontsize=8)
-
-    plt.tight_layout()
-
-    img_data = StringIO.StringIO()
-    plt.savefig(img_data, format='png')
-    img_data.seek(0)
-    return img_data
+    # df = pd.read_sql("select r.year"
+    #                  "     , r.month"
+    #                  "     , r.amount"
+    #                  "     , r.expenses_amount"
+    #                  "     , r.tax_amount"
+    #                  "     , r.turnover_amount"
+    #                  "     , (select count(1) "
+    #                  "          from eb_projectmember pm2 "
+    #                  "		 where pm2.id in (select project_member_id "
+    #                  "                            from eb_projectrequestdetail d "
+    #                  "						   where d.project_request_id=r.id)"
+    #                  "	   ) as member_count"
+    #                  "  from eb_projectrequest r "
+    #                  "  join eb_projectrequestheading h on r.id = h.project_request_id"
+    #                  "  join eb_project p on p.id = r.project_id"
+    #                  " where h.client_id = %s" % client.pk, connection)
+    # grouped = df.groupby(['year', 'month'])
+    # sum_df = grouped.sum()
+    # # fp = FontProperties(fname=r'c:\Windows\Fonts\arial.ttf')
+    # fig, axes = plt.subplots(nrows=2, ncols=1, figsize=(11, 5))
+    # turnover_df = pd.DataFrame(sum_df, columns=['turnover_amount', 'tax_amount', 'expenses_amount'])
+    # turnover_df.rename(columns={'turnover_amount': '売上（税抜）', 'tax_amount': '税金', 'expenses_amount': '精算'}, inplace=True)
+    # turnover_df.plot(ax=axes[0], kind='bar', stacked=True)
+    # # axes[0].set_title("売上（税別）", fontdict={'fontproperties':fp})
+    # sum_df['member_count'].plot(ax=axes[1], kind='bar')
+    #
+    # def x_ax_format(x, p):
+    #     index = turnover_df.index.values[x]
+    #     return '%s/%s' % (index[0][2:], index[1])
+    #
+    # def y_ax_format(y, p):
+    #     if y >= 1000000:
+    #         return '%0dM円' % (y / 1000000)
+    #     elif y >= 1000:
+    #         return '%0dK円' % (y / 1000)
+    #     elif y == 0:
+    #         return '0円'
+    #     else:
+    #         return y
+    # axes[0].set_xlabel('売上')
+    # axes[0].grid(alpha=0.3)
+    # axes[0].get_xaxis().set_major_formatter(FuncFormatter(x_ax_format))
+    # axes[0].get_yaxis().set_major_formatter(FuncFormatter(y_ax_format))
+    # axes[1].set_xlabel('人数')
+    # axes[1].grid(alpha=0.3)
+    # axes[1].get_xaxis().set_major_formatter(FuncFormatter(x_ax_format))
+    # axes[1].get_yaxis().set_major_formatter(FuncFormatter(lambda x, p: '%d人' % x))
+    # for ax in axes:
+    #     for tick in ax.get_xticklabels():
+    #         tick.set_rotation(30)
+    #
+    # for i, v in enumerate(sum_df['amount']):
+    #     axes[0].text(i, v + 1, '%sK' % (humanize.intcomma(int(round(v / 1000)))), color='black', fontsize=8)
+    # for i, v in enumerate(sum_df['member_count']):
+    #     axes[1].text(i, v, str(v), color='black', fontsize=8)
+    #
+    # plt.tight_layout()
+    #
+    # img_data = StringIO.StringIO()
+    # plt.savefig(img_data, format='png')
+    # img_data.seek(0)
+    # return img_data
+    return None
 
 
 def clients_turnover_monthly(ym):
