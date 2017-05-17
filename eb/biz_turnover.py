@@ -15,8 +15,8 @@ from eb import models
 from django.db.models import Sum
 from django.db.models.functions import Concat
 from django.core.exceptions import ObjectDoesNotExist
-from django.db import connection
-from django.contrib.humanize.templatetags import humanize
+# from django.db import connection
+# from django.contrib.humanize.templatetags import humanize
 
 
 def turnover_company_year():
@@ -206,7 +206,7 @@ def clients_turnover_yearly2(year):
     return clients_turnover
 
 
-def client_turnover_monthly(client):
+def client_turnover_monthly(client=None):
     # df = pd.read_sql("select r.year"
     #                  "     , r.month"
     #                  "     , r.amount"
@@ -228,7 +228,8 @@ def client_turnover_monthly(client):
     # # fp = FontProperties(fname=r'c:\Windows\Fonts\arial.ttf')
     # fig, axes = plt.subplots(nrows=2, ncols=1, figsize=(11, 5))
     # turnover_df = pd.DataFrame(sum_df, columns=['turnover_amount', 'tax_amount', 'expenses_amount'])
-    # turnover_df.rename(columns={'turnover_amount': '売上（税抜）', 'tax_amount': '税金', 'expenses_amount': '精算'}, inplace=True)
+    # turnover_df.rename(columns={'turnover_amount': '売上（税抜）', 'tax_amount': '税金', 'expenses_amount': '精算'},
+    #  inplace=True)
     # turnover_df.plot(ax=axes[0], kind='bar', stacked=True)
     # # axes[0].set_title("売上（税別）", fontdict={'fontproperties':fp})
     # sum_df['member_count'].plot(ax=axes[1], kind='bar')
