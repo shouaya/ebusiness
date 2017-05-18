@@ -45,9 +45,13 @@ download_patterns = [
         name='download_section_attendance'),
     url(r'^member/list/eboa_info.html$', eboa_views.download_eboa_members, name='download_eboa_members'),
     url(r'^member/cost_list.html$', views.DownloadMembersCostView.as_view(), name='download_members_cost'),
-    # image
-    url(r'^turnover_chart/client/(?P<client_id>[0-9]+)\.html$', views.DownloadClientTurnoverChartView.as_view(),
-        name='download_client_turnover_chart')
+]
+
+image_patterns = [
+    url(r'^turnover_chart/client/(?P<client_id>[0-9]+)\.html$', views.ImageClientTurnoverChartView.as_view(),
+        name='image_client_turnover_chart'),
+    url(r'^turnover_chart/clients/(?P<year>[0-9]{4})/(?P<month>[0-9]{2})\.html$',
+        views.ImageClientsTurnoverMonthlyView.as_view(), name='image_clients_turnover_monthly'),
 ]
 
 turnover_patterns = [
@@ -59,11 +63,11 @@ turnover_patterns = [
         name='turnover_members_monthly'),
     url(r'^clients/(?P<year>[0-9]{4}).html$', views.TurnoverClientsYearlyView.as_view(),
         name='turnover_clients_yearly'),
-    url(r'^clients/(?P<ym>[0-9]{6}).html$', views.TurnoverClientsMonthlyView.as_view(),
+    url(r'^clients/(?P<year>[0-9]{4})/(?P<month>[0-9]{2})\.html$', views.TurnoverClientsMonthlyView.as_view(),
         name='turnover_clients_monthly'),
     url(r'^client/(?P<client_id>[0-9]+)/(?P<ym>[0-9]{6}).html$', views.TurnoverClientMonthlyView.as_view(),
         name='turnover_client_monthly'),
-    url(r'^client/(?P<client_id>[0-9]+)/(?P<year>[0-9]{4}).html$', views.TurnoverClientYearlyView.as_view(),
+    url(r'^client/(?P<client_id>[0-9]+)/history.html$', views.TurnoverClientYearlyView.as_view(),
         name='turnover_client_yearly'),
 ]
 
@@ -108,6 +112,7 @@ urlpatterns = [
     url(r'^subcontractor/', include(subcontractor_patterns)),
     url(r'^turnover/', include(turnover_patterns)),
     url(r'^download/', include(download_patterns)),
+    url(r'^image/', include(image_patterns)),
     url(r'^issues.html$', views.IssueListView.as_view(), name='issues'),
     url(r'^issue/(?P<issue_id>[0-9]+).html$', views.IssueDetailView.as_view(), name='issue_detail'),
     url(r'^history.html$', views.HistoryView.as_view(), name='history'),

@@ -226,12 +226,10 @@ def client_turnover_monthly(client):
                      " where h.client_id = %s" % client.pk, connection)
     grouped = df.groupby(['year', 'month'])
     sum_df = grouped.sum()
-    # fp = FontProperties(fname=r'c:\Windows\Fonts\arial.ttf')
     fig, axes = plt.subplots(nrows=2, ncols=1, figsize=(11, 5))
     turnover_df = pd.DataFrame(sum_df, columns=['turnover_amount', 'tax_amount', 'expenses_amount'])
     turnover_df.rename(columns={'turnover_amount': '売上（税抜）', 'tax_amount': '税金', 'expenses_amount': '精算'}, inplace=True)
     turnover_df.plot(ax=axes[0], kind='bar', stacked=True)
-    # axes[0].set_title("売上（税別）", fontdict={'fontproperties':fp})
     sum_df['member_count'].plot(ax=axes[1], kind='bar')
 
     def x_ax_format(x, p):
@@ -272,14 +270,15 @@ def client_turnover_monthly(client):
     return img_data
 
 
-def clients_turnover_monthly(ym):
+def clients_turnover_monthly(year, month):
     """営業員別の売上を取得する。
 
-    :param ym: 対象年月
+    :param year: 対象年月
+    :param month:
     :return:
     """
-    turnover_details = models.ProjectRequest.objects.order_by().filter(year=ym[:4],
-                                                                       month=ym[4:],
+    turnover_details = models.ProjectRequest.objects.order_by().filter(year=year,
+                                                                       month=month,
                                                                        projectrequestheading__client__isnull=False). \
         values('projectrequestheading__client').annotate(attendance_amount=Sum('turnover_amount'),
                                                          tax_amount=Sum('tax_amount'),
@@ -296,6 +295,38 @@ def clients_turnover_monthly(ym):
         d['all_amount'] = turnover_detail['all_amount']
         clients_turnover.append(d)
     return clients_turnover
+
+
+def clients_turnover_monthly_pie_plot(year, month):
+    """営業員別の売上を取得する。
+
+    :param year: 対象年月
+    :param month:
+    :return:
+    """
+    queryset = models.ProjectRequest.objects.order_by().filter(
+        year=year,
+        month=month,
+        projectrequestheading__client__isnull=False
+    ).values('projectrequestheading__client').annotate(
+        turnover_amount=Sum('turnover_amount'),
+    ).order_by('projectrequestheading__client').distinct()
+    df = pd.DataFrame(list(queryset.values('projectrequestheading__client__pk',
+                                           'projectrequestheading__client__name',
+                                           'turnover_amount')))
+    df.set_index('projectrequestheading__client__name')
+    percent = 100. * df.turnover_amount / df.turnover_amount.sum()
+    labels = [name if per >= 3 else '' for name, per in zip(df.projectrequestheading__client__name, percent)]
+    ax = plt.subplot()
+    pd.Series(list(df.turnover_amount), name='').plot.pie(ax=ax, labels=labels, autopct='%.1f%%')
+    ax.set_title("%s年%s月 お客様別売上（税別）分配図" % (year, month))
+    plt.tight_layout()
+
+    img_data = StringIO.StringIO()
+    plt.savefig(img_data, format='png', bbox_inches='tight')
+    img_data.seek(0)
+    plt.close()
+    return img_data
 
 
 def turnover_client_monthly(client_id, ym):

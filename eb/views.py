@@ -1125,9 +1125,9 @@ class TurnoverClientsMonthlyView(BaseTemplateView):
     template_name = 'default/turnover_clients_monthly.html'
 
     def get(self, request, *args, **kwargs):
-        ym = kwargs.get('ym', None)
-        clients_turnover = biz_turnover.clients_turnover_monthly(ym)
-
+        year = kwargs.get('year', None)
+        month = kwargs.get('month', None)
+        clients_turnover = biz_turnover.clients_turnover_monthly(year, month)
         summary = {'attendance_amount': 0, 'expenses_amount': 0,
                    'attendance_tex': 0, 'all_amount': 0}
         for item in clients_turnover:
@@ -1135,13 +1135,18 @@ class TurnoverClientsMonthlyView(BaseTemplateView):
             summary['attendance_tex'] += item['attendance_tex']
             summary['expenses_amount'] += item['expenses_amount']
             summary['all_amount'] += item['attendance_amount'] + item['attendance_tex'] + item['expenses_amount']
+        max_attendance_amount = max([d['attendance_amount'] for d in clients_turnover])
+        for item in clients_turnover:
+            item['per'] = '%.1f%%' % ((item['attendance_amount'] / float(max_attendance_amount)) * 100)
 
         context = self.get_context_data()
         context.update({
-            'title': u'%s年%s月のお客様別売上情報 | %s' % (ym[:4], ym[4:], constants.NAME_SYSTEM),
+            'title': u'%s年%s月のお客様別売上情報 | %s' % (year, month, constants.NAME_SYSTEM),
             'clients_turnover': clients_turnover,
-            'ym': ym,
             'summary': summary,
+            'year': year,
+            'month': month,
+            'ym': year + month,
         })
         return self.render_to_response(context)
 
@@ -1182,12 +1187,10 @@ class TurnoverClientYearlyView(BaseTemplateView):
     def get_context_data(self, **kwargs):
         context = super(TurnoverClientYearlyView, self).get_context_data(**kwargs)
         client_id = kwargs.get('client_id', 0)
-        year = kwargs.get('year')
         client = get_object_or_404(models.Client, pk=client_id)
 
         context.update({
             'title': u"%s の売上分析" % unicode(client),
-            'year': year,
             'client': client,
         })
         return context
@@ -1661,16 +1664,6 @@ class DownloadClientOrderView(BaseView):
                 return response
 
 
-class DownloadClientTurnoverChartView(BaseView):
-
-    def get(self, request, *args, **kwargs):
-        client_id = kwargs.get('client_id', 0)
-        client = get_object_or_404(models.Client, pk=client_id)
-        img_data = biz_turnover.client_turnover_monthly(client)
-        response = HttpResponse(img_data, content_type="image/png")
-        return response
-
-
 class DownloadSubcontractorOrderView(BaseView):
 
     def get(self, request, *args, **kwargs):
@@ -1832,6 +1825,26 @@ class DownloadMembersCostView(BaseView):
         output = file_gen.generate_members_cost(request.user, all_members)
         response = HttpResponse(output, content_type="application/ms-excel")
         response['Content-Disposition'] = "filename=" + urllib.quote(filename.encode('utf-8')) + ".xlsx"
+        return response
+
+
+class ImageClientTurnoverChartView(BaseView):
+
+    def get(self, request, *args, **kwargs):
+        client_id = kwargs.get('client_id', 0)
+        client = get_object_or_404(models.Client, pk=client_id)
+        img_data = biz_turnover.client_turnover_monthly(client)
+        response = HttpResponse(img_data, content_type="image/png")
+        return response
+
+
+class ImageClientsTurnoverMonthlyView(BaseView):
+
+    def get(self, request, *args, **kwargs):
+        year = kwargs.get('year', None)
+        month = kwargs.get('month', None)
+        img_data = biz_turnover.clients_turnover_monthly_pie_plot(year, month)
+        response = HttpResponse(img_data, content_type="image/png")
         return response
 
 

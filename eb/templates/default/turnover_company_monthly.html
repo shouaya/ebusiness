@@ -88,7 +88,7 @@
                 <td style="text-align: right;">{{ turnover.tax_amount|intcomma }}</td>
                 <td style="text-align: right;">{{ turnover.expenses_amount|intcomma }}</td>
                 <td style="text-align: right;">{{ turnover.amount__sum|intcomma }}</td>
-                <td class="center"><a href="{% url 'turnover_clients_monthly' turnover.ym %}">お客様別詳細</a></td>
+                <td class="center"><a href="{% url 'turnover_clients_monthly' turnover.year turnover.month %}">お客様別詳細</a></td>
             </tr>
             {% endfor %}
         </tbody>

@@ -9,6 +9,6 @@
         <div class="dashboard-title">{{ client }} の 売上分析</div>
     </div>
     <div>
-        <img src="{% url 'download_client_turnover_chart' client.pk %}">
+        <img src="{% url 'image_client_turnover_chart' client.pk %}">
     </div>
 {% endblock %}

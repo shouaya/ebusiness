@@ -1,5 +1,6 @@
 {% extends theme|add:"/base.html" %}
 {% load humanize %}
+{% load order_by_tag %}
 
 {% block header %}
 {% endblock %}
@@ -7,15 +8,19 @@
 {% block content %}
     <div class="dashboard">
         <div class="dashboard-title">{{ ym }} のお客様別の売上情報</div>
+        <div class="center">
+            <img src="{% url 'image_clients_turnover_monthly' year month %}">
+        </div>
     </div>
     <table class="list" cellpadding="0" cellspacing="0">
         <thead>
             <tr>
-                <th>お客様名称</th>
-                <th>売上（税別）</th>
-                <th>税金</th>
-                <th>精算</th>
-                <th>合計</th>
+                <th>{% create_order_display "お客様名称" "" %}</th>
+                <th>{% create_order_display "履歴" "" %}</th>
+                <th>{% create_order_display "売上（税別）" "" %}</th>
+                <th>{% create_order_display "税金" "" %}</th>
+                <th>{% create_order_display "精算" "" %}</th>
+                <th>{% create_order_display "合計" "" %}</th>
             </tr>
         </thead>
         <tbody>
@@ -25,7 +30,10 @@
                         <td>
                             <a href="{% url 'turnover_client_monthly' client_turnover.client.pk ym %}">{{ client_turnover.client.name }}</a>
                         </td>
-                        <td style="text-align: right">{{ client_turnover.attendance_amount|intcomma }}</td>
+                        <td class="center"><a href="{% url 'turnover_client_yearly' client_turnover.client.pk %}"><i class="fa fa-history" aria-hidden="true"></i></a></td>
+                        <td style="text-align: right; background: linear-gradient(90deg, transparent 0%, transparent 0.0%, #9adaaf 0.0%, #9adaaf {{ client_turnover.per }}, transparent {{ client_turnover.per }})">
+                            {{ client_turnover.attendance_amount|intcomma }}
+                        </td>
                         <td style="text-align: right">{{ client_turnover.attendance_tex|intcomma }}</td>
                         <td style="text-align: right">{{ client_turnover.expenses_amount|intcomma }}</td>
                         <td style="text-align: right">{{ client_turnover.all_amount|intcomma }}</td>
@@ -38,6 +46,7 @@
         <tfoot>
             <tr>
                 <td>{{ clients_turnover|length }} 件</td>
+                <td></td>
                 <td style="text-align: right"> {{ summary.attendance_amount|intcomma }}</td>
                 <td style="text-align: right"> {{ summary.attendance_tex|intcomma }}</td>
                 <td style="text-align: right"> {{ summary.expenses_amount|intcomma }}</td>
