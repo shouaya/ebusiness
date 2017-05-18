@@ -52,6 +52,8 @@ image_patterns = [
         name='image_client_turnover_chart'),
     url(r'^turnover_chart/clients/(?P<year>[0-9]{4})/(?P<month>[0-9]{2})\.html$',
         views.ImageClientsTurnoverMonthlyView.as_view(), name='image_clients_turnover_monthly'),
+    url(r'^clients/(?P<year>[0-9]{4}).html$', views.ImageTurnoverClientsYearlyView.as_view(),
+        name='image_turnover_clients_yearly_area_plot'),
 ]
 
 turnover_patterns = [

@@ -5,8 +5,17 @@
 {% endblock %}
 
 {% block content %}
-    <div class="dashboard">
-        <div class="dashboard-title">{{ year }} 年のお客様別の売上情報</div>
+    <div class="dashboard print">
+        <div class="dashboard-title">
+            {% if data_type == "1" %}
+                {{ year }}年01月～{{ year }}年12月のお客様別の売上情報
+            {% else %}
+                {{ year }}年04月～{{ year|add:'1' }}年03月お客様別の売上情報
+            {% endif %}
+        </div>
+        <!--<div class="center print">-->
+            <!--<img src="{% url 'image_turnover_clients_yearly_area_plot' year %}?data_type={{ data_type }}">-->
+        <!--</div>-->
     </div>
     <table class="list" cellpadding="0" cellspacing="0">
         <thead>

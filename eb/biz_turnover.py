@@ -9,13 +9,14 @@ import StringIO
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.ticker import FuncFormatter
+import matplotlib.patches as mpatches
 import pandas as pd
 
 from eb import models
 
 from django.db.models import Sum
 from django.db.models.functions import Concat
-from django.core.exceptions import ObjectDoesNotExist
+from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
 from django.db import connection
 from django.contrib.humanize.templatetags import humanize
 
@@ -150,39 +151,19 @@ def salesperson_turnover_monthly(ym):
     return salesperson_turnover
 
 
-def clients_turnover_yearly(year):
+def clients_turnover_yearly(year, data_type=1):
     """お客様別の年間売上を取得する。
 
     :param year: 対象年
+    :param data_type: 1の場合はxx年01月～xx年12月、2の場合はxx年04月～xx年03月
     :return:
     """
-    turnover_details = models.ProjectRequest.objects.order_by().filter(year=year,
-                                                                       projectrequestheading__client__isnull=False). \
-        values('projectrequestheading__client').annotate(attendance_amount=Sum('turnover_amount'),
-                                                         tax_amount=Sum('tax_amount'),
-                                                         expenses_amount=Sum('expenses_amount'),
-                                                         all_amount=Sum('amount')).\
-        order_by('projectrequestheading__client').distinct()
-    clients_turnover = []
-    for turnover_detail in turnover_details:
-        d = dict()
-        d['client'] = models.Client.objects.get(pk=turnover_detail['projectrequestheading__client'])
-        d['attendance_amount'] = turnover_detail['attendance_amount']
-        d['attendance_tex'] = turnover_detail['tax_amount']
-        d['expenses_amount'] = turnover_detail['expenses_amount']
-        d['all_amount'] = turnover_detail['all_amount']
-        clients_turnover.append(d)
-    return clients_turnover
-
-
-def clients_turnover_yearly2(year):
-    """お客様別の年間売上を取得する。
-
-    :param year: 対象年
-    :return:
-    """
-    ym_start = '%s04' % year
-    ym_end = '%s03' % (int(year) + 1)
+    if data_type == 1:
+        ym_start = '%s01' % year
+        ym_end = '%s12' % year
+    else:
+        ym_start = '%s04' % year
+        ym_end = '%s03' % (int(year) + 1)
 
     turnover_details = models.ProjectRequest.objects.order_by().annotate(ym=Concat('year', 'month')).filter(
         ym__gte=ym_start,
@@ -205,6 +186,85 @@ def clients_turnover_yearly2(year):
         d['all_amount'] = turnover_detail['all_amount']
         clients_turnover.append(d)
     return clients_turnover
+
+
+def clients_turnover_yearly_area_plot(year, data_type=1):
+    if data_type == 1:
+        ym_start = '%s01' % year
+        ym_end = '%s12' % year
+    else:
+        ym_start = '%s04' % year
+        ym_end = '%s03' % (int(year) + 1)
+
+    client_queryset = models.ProjectRequest.objects.order_by().annotate(ym=Concat('year', 'month')).filter(
+        ym__gte=ym_start,
+        ym__lte=ym_end,
+        projectrequestheading__client__isnull=False,
+        projectrequestheading__isnull=False
+    ).values(
+        'projectrequestheading__client__pk',
+        'projectrequestheading__client__name'
+    ).order_by('projectrequestheading__client__name').distinct()
+
+    data = {}
+    for client in client_queryset:
+        ym_turnover_list = models.ProjectRequest.objects.order_by().annotate(ym=Concat('year', 'month')).filter(
+            ym__gte=ym_start,
+            ym__lte=ym_end,
+            projectrequestheading__client__pk=client.get('projectrequestheading__client__pk'),
+        ).values('year', 'month').annotate(
+            turnover_amount=Sum('turnover_amount'),
+        ).order_by('year', 'month').distinct()
+
+        name = client.get('projectrequestheading__client__name')
+        data[name] = []
+        for date in pd.date_range(ym_start + '01', periods=12, freq='M'):
+            try:
+                amount_dict = ym_turnover_list.get(year=str(date.year), month='%02d' % date.month)
+                amount = amount_dict.get('turnover_amount')
+            except (ObjectDoesNotExist, MultipleObjectsReturned):
+                amount = 0
+            data[name].append(amount)
+
+    ax = plt.subplot()
+    df = pd.DataFrame(data, index=pd.date_range(ym_start + '01', periods=12, freq='M'))
+    # colors = []
+    # legend_colors = []
+    # for i, label in enumerate(df.columns):
+    #     c = "#%06x" % (0xffffff - (100000 * i))
+    #     colors.append(c)
+    df.plot.area(ax=ax, figsize=(12, 5))
+
+    def y_ax_format(y, p):
+        if y >= 1000000:
+            return '%0dM円' % (y / 1000000)
+        elif y >= 1000:
+            return '%0dK円' % (y / 1000)
+        elif y == 0:
+            return '0円'
+        else:
+            return y
+    ax.get_yaxis().set_major_formatter(FuncFormatter(y_ax_format))
+    ax.grid(alpha=0.3)
+    ax.legend().remove()
+    # plt.legend([mpatches.Patch(color='#377EB8'),
+    #             mpatches.Patch(color='#55BA87'),
+    #             mpatches.Patch(color='#7E1137')],
+    #            list(df.columns))
+    # prev_sum = 0
+    # for i, label in enumerate(df.columns):
+    #     loc_x = df[label].argmax()
+    #     if i == 0:
+    #         loc_y = df[label][loc_x]
+    #     else:
+    #         loc_y = prev_sum + df[label][loc_x]
+    #     prev_sum += df[label][loc_x]
+    #     ax.text(loc_x, loc_y, label)
+    img_data = StringIO.StringIO()
+    plt.savefig(img_data, format='png', bbox_inches='tight')
+    img_data.seek(0)
+    plt.close()
+    return img_data
 
 
 def client_turnover_monthly(client):
@@ -267,6 +327,7 @@ def client_turnover_monthly(client):
     img_data = StringIO.StringIO()
     plt.savefig(img_data, format='png')
     img_data.seek(0)
+    plt.close()
     return img_data
 
 
@@ -318,8 +379,8 @@ def clients_turnover_monthly_pie_plot(year, month):
     percent = 100. * df.turnover_amount / df.turnover_amount.sum()
     labels = [name if per >= 3 else '' for name, per in zip(df.projectrequestheading__client__name, percent)]
     ax = plt.subplot()
-    pd.Series(list(df.turnover_amount), name='').plot.pie(ax=ax, labels=labels, autopct='%.1f%%')
-    ax.set_title("%s年%s月 お客様別売上（税別）分配図" % (year, month))
+    pd.Series(list(df.turnover_amount), name='').plot.pie(ax=ax, labels=labels, autopct='%.1f%%', figsize=(7, 4.5))
+    ax.set_title("%s年%s月 お客様別売上（税抜）分配図" % (year, month))
     plt.tight_layout()
 
     img_data = StringIO.StringIO()

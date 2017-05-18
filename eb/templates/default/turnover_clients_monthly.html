@@ -6,9 +6,9 @@
 {% endblock %}
 
 {% block content %}
-    <div class="dashboard">
+    <div class="dashboard print">
         <div class="dashboard-title">{{ ym }} のお客様別の売上情報</div>
-        <div class="center">
+        <div class="center print">
             <img src="{% url 'image_clients_turnover_monthly' year month %}">
         </div>
     </div>
@@ -17,7 +17,7 @@
             <tr>
                 <th>{% create_order_display "お客様名称" "" %}</th>
                 <th>{% create_order_display "履歴" "" %}</th>
-                <th>{% create_order_display "売上（税別）" "" %}</th>
+                <th>{% create_order_display "売上（税抜）" "" %}</th>
                 <th>{% create_order_display "税金" "" %}</th>
                 <th>{% create_order_display "精算" "" %}</th>
                 <th>{% create_order_display "合計" "" %}</th>

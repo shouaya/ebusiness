@@ -1008,7 +1008,7 @@ class TurnoverChartsMonthlyView(BaseTemplateView):
         salesperson_expenses_amount_list = [item['expenses_amount'] for item in salesperson_turnover]
         salesperson_name_list = ["'" + item['salesperson'].__unicode__() + "'" for item in salesperson_turnover]
 
-        clients_turnover = biz_turnover.clients_turnover_monthly(ym)
+        clients_turnover = biz_turnover.clients_turnover_monthly(ym[:4], ym[4:])
         clients_attendance_amount_list = [item['attendance_amount'] for item in clients_turnover]
         clients_attendance_tex_list = [item['attendance_tex'] for item in clients_turnover]
         clients_expenses_amount_list = [item['expenses_amount'] for item in clients_turnover]
@@ -1096,9 +1096,9 @@ class TurnoverClientsYearlyView(BaseTemplateView):
 
     def get(self, request, *args, **kwargs):
         year = kwargs.get('year', None)
-        data_type = request.GET.get('data_type', None)
+        data_type = request.GET.get('data_type', "1")
         if data_type == '2':
-            clients_turnover = biz_turnover.clients_turnover_yearly2(year)
+            clients_turnover = biz_turnover.clients_turnover_yearly(year, data_type=2)
         else:
             clients_turnover = biz_turnover.clients_turnover_yearly(year)
 
@@ -1114,6 +1114,7 @@ class TurnoverClientsYearlyView(BaseTemplateView):
         context.update({
             'title': u'%s年のお客様別売上情報 | %s' % (year, constants.NAME_SYSTEM),
             'clients_turnover': clients_turnover,
+            'data_type': data_type,
             'year': year,
             'summary': summary,
         })
@@ -1844,6 +1845,20 @@ class ImageClientsTurnoverMonthlyView(BaseView):
         year = kwargs.get('year', None)
         month = kwargs.get('month', None)
         img_data = biz_turnover.clients_turnover_monthly_pie_plot(year, month)
+        response = HttpResponse(img_data, content_type="image/png")
+        return response
+
+
+class ImageTurnoverClientsYearlyView(BaseView):
+
+    def get(self, request, *args, **kwargs):
+        year = kwargs.get('year', None)
+        data_type = request.GET.get('data_type', None)
+        if data_type == '2':
+            img_data = biz_turnover.clients_turnover_yearly_area_plot(year, data_type=2)
+        else:
+            img_data = biz_turnover.clients_turnover_yearly_area_plot(year)
+
         response = HttpResponse(img_data, content_type="image/png")
         return response
 
