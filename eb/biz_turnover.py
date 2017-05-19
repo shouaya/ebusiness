@@ -368,7 +368,7 @@ def clients_turnover_monthly_pie_plot(year, month):
     other_sum = series.iloc[11:].sum()
     series = series.iloc[:11]
     series.set_value('その他%d社' % other_cnt, other_sum)
-    series.plot.pie(ax=ax, labels=series.index, autopct='%.1f%%', pctdistance=0.8, figsize=(7, 4.5), startangle=45)
+    series.plot.pie(ax=ax, labels=series.index, autopct='%.1f%%', pctdistance=0.8, figsize=(7, 4.5), startangle=60)
     ax.set_title("%s年%s月 お客様別売上（税抜）分配図" % (year, month))
     plt.tight_layout()
 

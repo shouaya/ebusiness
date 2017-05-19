@@ -21,7 +21,7 @@
         <thead>
             <tr>
                 <th>お客様名称</th>
-                <th>売上（税別）</th>
+                <th>売上（税抜）</th>
                 <th>税金</th>
                 <th>精算</th>
                 <th>合計</th>
@@ -32,7 +32,9 @@
                 {% for client_turnover in clients_turnover %}
                     <tr class="{% cycle 'row1' 'row2' %}">
                         <td><a href="{% url 'turnover_client_yearly' client_turnover.client.pk %}">{{ client_turnover.client.name }}</a></td>
-                        <td style="text-align: right">{{ client_turnover.attendance_amount|intcomma }}</td>
+                        <td style="text-align: right; background: linear-gradient(90deg, transparent 0%, transparent 0.0%, #9adaaf 0.0%, #9adaaf {{ client_turnover.per }}, transparent {{ client_turnover.per }})">
+                            {{ client_turnover.attendance_amount|intcomma }}
+                        </td>
                         <td style="text-align: right">{{ client_turnover.attendance_tex|intcomma }}</td>
                         <td style="text-align: right">{{ client_turnover.expenses_amount|intcomma }}</td>
                         <td style="text-align: right">{{ client_turnover.all_amount|intcomma }}</td>

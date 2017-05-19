@@ -1109,6 +1109,9 @@ class TurnoverClientsYearlyView(BaseTemplateView):
             summary['attendance_tex'] += item['attendance_tex']
             summary['expenses_amount'] += item['expenses_amount']
             summary['all_amount'] += item['attendance_amount'] + item['attendance_tex'] + item['expenses_amount']
+        max_attendance_amount = max([d['attendance_amount'] for d in clients_turnover])
+        for item in clients_turnover:
+            item['per'] = '%.1f%%' % ((item['attendance_amount'] / float(max_attendance_amount)) * 100)
 
         context = self.get_context_data()
         context.update({
