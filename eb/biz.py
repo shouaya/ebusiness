@@ -5,12 +5,16 @@ Created on 2016/01/12
 @author: Yang Wanjun
 """
 import datetime
+import uuid
+import qrcode
+import StringIO
 
 from django.db.models import Q, Max, Prefetch
 from django.contrib.auth.models import User
 from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
 from django.contrib.humanize.templatetags import humanize
 from django.utils import timezone
+from django.core.urlresolvers import reverse
 
 from utils import common, errors, constants
 from eb import models
@@ -822,3 +826,15 @@ def is_first_login(user):
         return False
     except MultipleObjectsReturned:
         return False
+
+
+def gen_qr_code(url_schema, domain):
+    uid = uuid.uuid4()
+    # url = domain + reverse('login_qr') + "?uid=" + str(uid)
+    url = "%s://%s%s?uid=%s" % (url_schema, domain, reverse('login_qr'), str(uid))
+    img = qrcode.make(url)
+    output = StringIO.StringIO()
+    img.save(output, "PNG")
+    contents = output.getvalue().encode("base64")
+    output.close()
+    return contents

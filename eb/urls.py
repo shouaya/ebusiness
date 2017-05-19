@@ -121,7 +121,8 @@ urlpatterns = [
     url(r"^batch_list.html", views.BatchListView.as_view(), name="batch_list"),
     url(r"^batch/(?P<name>[A-Za-z0-9_-]+).log$", views.BatchLogView.as_view(), name="batch_log"),
     url(r"^upload_file.html$", views.upload_resume, name="upload_file"),
-    url(r'^login/$', views.login_user, name='login'),
+    url(r'^login/$', views.login_user, {'qr': False}, name='login'),
+    url(r'^login_qr/$', views.login_user, {'qr': True}, name='login_qr'),
     url(r'^logout/$', views.logout_view, name='logout_view'),
     url(r'^accounts/password/change/$', views.password_change, name='password_change'),
 ]

@@ -1956,17 +1956,26 @@ class BatchLogView(BaseView):
         return HttpResponse(log)
 
 
-def login_user(request):
+def login_user(request, qr=False):
     logout(request)
-    username = password = ''
-    if request.POST:
-        username = request.POST.get('username')
-        password = request.POST.get('password')
-        next_url = request.POST.get('next')
+    img_base64 = None
+    if qr:
+        if request.POST:
+            next_url = request.POST.get('next')
+        else:
+            next_url = request.GET.get('next')
+            img_base64 = biz.gen_qr_code(request.META.get('wsgi.url_scheme'), request.META.get('HTTP_HOST'))
+        user = None
     else:
-        next_url = request.GET.get('next')
+        username = password = ''
+        if request.POST:
+            username = request.POST.get('username')
+            password = request.POST.get('password')
+            next_url = request.POST.get('next')
+        else:
+            next_url = request.GET.get('next')
+        user = authenticate(username=username, password=password)
 
-    user = authenticate(username=username, password=password)
     if user is not None:
         if user.is_active:
             is_first_login = biz.is_first_login(user)
@@ -1981,7 +1990,11 @@ def login_user(request):
                 return redirect('index')
 
     context = get_base_context()
-    context.update({'next': next_url})
+    context.update({
+        'next': next_url,
+        'qr': qr,
+        'img_base64': img_base64,
+    })
 
     template = loader.get_template('default/login.html')
     return HttpResponse(template.render(context, request))

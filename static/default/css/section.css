@@ -350,7 +350,9 @@ section .errorlist {
 
 section div#change_password,
 section div#login {
-    width: 400px;
+    min-width: 400px;
+    max-width: 560px;
+    min-height: 200px;
     margin: 150px auto;
     border: 1px solid gray;
     background-color: #fff;

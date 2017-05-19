@@ -13,38 +13,47 @@
 <body>
     <section>
         <div id="login">
-            <table>
-                <tr>
-                    <td valign="top">
-                        <img class="logo" src="/static/logo.gif" />
-                    </td>
-                    <td>
-                        <form class="form-horizontal" name="LoginForm" action="/eb/login/" method="post">
-                        {% csrf_token %}
-                        {% if next %}
-                            <input type="hidden" name="next" value="{{ next }}" />
-                        {% endif %}
-                        <div class="control-group">
-                            <label class="control-label" for="username">ユーザー名：</label>
-                            <div class="controls">
-                                <input type="text" id="username" name="username"  placeholder="Username">
+            <div {% if qr %}style="float: left;"{% endif %}>
+                <table style="margin: 10px auto;">
+                    <tr>
+                        <td valign="top">
+                            <img class="logo" src="/static/logo.gif" />
+                        </td>
+                        <td>
+                            <form class="form-horizontal" name="LoginForm" action="/eb/login/" method="post">
+                            {% csrf_token %}
+                            {% if next %}
+                                <input type="hidden" name="next" value="{{ next }}" />
+                            {% endif %}
+                            <div class="control-group">
+                                <label class="control-label" for="username">ユーザー名：</label>
+                                <div class="controls">
+                                    <input type="text" id="username" name="username"  placeholder="Username">
+                                </div>
                             </div>
-                        </div>
-                        <div class="control-group">
-                            <label class="control-label" for="password">パスワード：</label>
-                            <div class="controls">
-                                <input type="password" name="password" id="password" placeholder="Password">
+                            <div class="control-group">
+                                <label class="control-label" for="password">パスワード：</label>
+                                <div class="controls">
+                                    <input type="password" name="password" id="password" placeholder="Password">
+                                </div>
                             </div>
-                        </div>
-                        <div class="control-group">
-                            <div class="controls">
-                                <button type="submit" class="btn">Login</button>
+                            <div class="control-group">
+                                <div class="controls">
+                                    <button type="submit" class="btn">Login</button>
+                                </div>
                             </div>
-                        </div>
-                        </form>
-                    </td>
-                </tr>
-            </table>
+                            </form>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+            {% if qr %}
+            <div style="float: right;">
+                <img style="width: 200px; margin-top: 0px;" src="data:image/png;base64,{{ img_base64 }}"/>
+                <div class="center">微信でスキャンしてください</div>
+            </div>
+            {% endif %}
+            <div style="clear: both;"></div>
         </div>
     </section>
 </body>
