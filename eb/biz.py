@@ -6,7 +6,6 @@ Created on 2016/01/12
 """
 import datetime
 import uuid
-import qrcode
 import StringIO
 
 from django.db.models import Q, Max, Prefetch
@@ -829,6 +828,7 @@ def is_first_login(user):
 
 
 def gen_qr_code(url_schema, domain):
+    import qrcode
     uid = uuid.uuid4()
     # url = domain + reverse('login_qr') + "?uid=" + str(uid)
     url = "%s://%s%s?uid=%s" % (url_schema, domain, reverse('login_qr'), str(uid))
