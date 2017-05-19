@@ -13,9 +13,9 @@
                 {{ year }}年04月～{{ year|add:'1' }}年03月お客様別の売上情報
             {% endif %}
         </div>
-        <!--<div class="center print">-->
-            <!--<img src="{% url 'image_turnover_clients_yearly_area_plot' year %}?data_type={{ data_type }}">-->
-        <!--</div>-->
+        <div class="center print">
+            <img style="max-width: 1095px; min-height: 500px;" src="{% url 'image_turnover_clients_yearly_area_plot' year %}?data_type={{ data_type }}">
+        </div>
     </div>
     <table class="list" cellpadding="0" cellspacing="0">
         <thead>

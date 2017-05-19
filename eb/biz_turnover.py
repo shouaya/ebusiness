@@ -5,18 +5,17 @@ Created on 2016/06/02
 @author: Yang Wanjun
 """
 from __future__ import unicode_literals
+import datetime
 import StringIO
-import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.ticker import FuncFormatter
-import matplotlib.patches as mpatches
 import pandas as pd
 
 from eb import models
 
 from django.db.models import Sum
 from django.db.models.functions import Concat
-from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
+from django.core.exceptions import ObjectDoesNotExist
 from django.db import connection
 from django.contrib.humanize.templatetags import humanize
 
@@ -196,43 +195,35 @@ def clients_turnover_yearly_area_plot(year, data_type=1):
         ym_start = '%s04' % year
         ym_end = '%s03' % (int(year) + 1)
 
-    client_queryset = models.ProjectRequest.objects.order_by().annotate(ym=Concat('year', 'month')).filter(
+    queryset = models.ProjectRequest.objects.order_by().annotate(ym=Concat('year', 'month')).filter(
         ym__gte=ym_start,
         ym__lte=ym_end,
         projectrequestheading__client__isnull=False,
         projectrequestheading__isnull=False
     ).values(
         'projectrequestheading__client__pk',
-        'projectrequestheading__client__name'
-    ).order_by('projectrequestheading__client__name').distinct()
+        'projectrequestheading__client__name',
+        'year',
+        'month',
+    ).annotate(
+        turnover_amount=Sum('turnover_amount'),
+    ).order_by('projectrequestheading__client__name', 'year', 'month').distinct()
 
-    data = {}
-    for client in client_queryset:
-        ym_turnover_list = models.ProjectRequest.objects.order_by().annotate(ym=Concat('year', 'month')).filter(
-            ym__gte=ym_start,
-            ym__lte=ym_end,
-            projectrequestheading__client__pk=client.get('projectrequestheading__client__pk'),
-        ).values('year', 'month').annotate(
-            turnover_amount=Sum('turnover_amount'),
-        ).order_by('year', 'month').distinct()
-
-        name = client.get('projectrequestheading__client__name')
-        data[name] = []
-        for date in pd.date_range(ym_start + '01', periods=12, freq='M'):
-            try:
-                amount_dict = ym_turnover_list.get(year=str(date.year), month='%02d' % date.month)
-                amount = amount_dict.get('turnover_amount')
-            except (ObjectDoesNotExist, MultipleObjectsReturned):
-                amount = 0
-            data[name].append(amount)
+    df = pd.DataFrame(list(queryset))
+    new_df = pd.DataFrame([], index=df.groupby(['year', 'month']).sum().index)
+    for name in df.projectrequestheading__client__name.unique():
+        new_df[name] = df[df.projectrequestheading__client__name == name].set_index(['year',
+                                                                                     'month'])['turnover_amount']
+    new_df.index = pd.to_datetime(new_df.index.map(lambda x: datetime.date(int(x[0]), int(x[1]), 1)))
 
     ax = plt.subplot()
-    df = pd.DataFrame(data, index=pd.date_range(ym_start + '01', periods=12, freq='M'))
-    # colors = []
-    # legend_colors = []
-    # for i, label in enumerate(df.columns):
-    #     c = "#%06x" % (0xffffff - (100000 * i))
-    #     colors.append(c)
+    df = new_df
+    # 売上上位１０社を表示する
+    other_df = df.loc[:, list(df.sum().sort_values(ascending=False).index[10:])]
+    other_cnt = len(other_df.columns)
+    other_sum = other_df.sum(axis=1)
+    df = df.loc[:, list(df.sum().sort_values(ascending=False).index[:10])]
+    df['その他%d社' % other_cnt] = other_sum
     df.plot.area(ax=ax, figsize=(12, 5))
 
     def y_ax_format(y, p):
@@ -246,22 +237,14 @@ def clients_turnover_yearly_area_plot(year, data_type=1):
             return y
     ax.get_yaxis().set_major_formatter(FuncFormatter(y_ax_format))
     ax.grid(alpha=0.3)
-    ax.legend().remove()
-    # plt.legend([mpatches.Patch(color='#377EB8'),
-    #             mpatches.Patch(color='#55BA87'),
-    #             mpatches.Patch(color='#7E1137')],
-    #            list(df.columns))
-    # prev_sum = 0
-    # for i, label in enumerate(df.columns):
-    #     loc_x = df[label].argmax()
-    #     if i == 0:
-    #         loc_y = df[label][loc_x]
-    #     else:
-    #         loc_y = prev_sum + df[label][loc_x]
-    #     prev_sum += df[label][loc_x]
-    #     ax.text(loc_x, loc_y, label)
+    if data_type == 1:
+        ax.set_title("%s年%02d月～%s年%02d月お客様別の売上（税抜）情報" % (year, 1, year, 12))
+    else:
+        ax.set_title("%s年%02d月～%s年%02d月お客様別の売上（税抜）情報" % (year, 4, int(year) + 1, 3))
     img_data = StringIO.StringIO()
-    plt.savefig(img_data, format='png', bbox_inches='tight')
+    handles, labels = ax.get_legend_handles_labels()
+    lgd = ax.legend(handles, labels, loc='upper center', bbox_to_anchor=(0.5, -0.1), ncol=3)
+    plt.savefig(img_data, format='png', bbox_extra_artists=(lgd,), bbox_inches='tight')
     img_data.seek(0)
     plt.close()
     return img_data
@@ -375,11 +358,17 @@ def clients_turnover_monthly_pie_plot(year, month):
     df = pd.DataFrame(list(queryset.values('projectrequestheading__client__pk',
                                            'projectrequestheading__client__name',
                                            'turnover_amount')))
-    df.set_index('projectrequestheading__client__name')
-    percent = 100. * df.turnover_amount / df.turnover_amount.sum()
-    labels = [name if per >= 3 else '' for name, per in zip(df.projectrequestheading__client__name, percent)]
+    # df.set_index('projectrequestheading__client__name')
+    # percent = 100. * df.turnover_amount / df.turnover_amount.sum()
+    # labels = [name if per >= 3 else '' for name, per in zip(df.projectrequestheading__client__name, percent)]
     ax = plt.subplot()
-    pd.Series(list(df.turnover_amount), name='').plot.pie(ax=ax, labels=labels, autopct='%.1f%%', figsize=(7, 4.5))
+    series = pd.Series(list(df.turnover_amount), index=df.projectrequestheading__client__name, name='')
+    series = series.sort_values(ascending=False)
+    other_cnt = series.iloc[11:].count()
+    other_sum = series.iloc[11:].sum()
+    series = series.iloc[:11]
+    series.set_value('その他%d社' % other_cnt, other_sum)
+    series.plot.pie(ax=ax, labels=series.index, autopct='%.1f%%', pctdistance=0.8, figsize=(7, 4.5), startangle=45)
     ax.set_title("%s年%s月 お客様別売上（税抜）分配図" % (year, month))
     plt.tight_layout()
 
