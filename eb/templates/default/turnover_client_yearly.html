@@ -2,6 +2,17 @@
 {% load humanize %}
 
 {% block header %}
+<script type="text/javascript">
+    $(document).ready(function () {
+          setTimeout(function () {
+            $('.load-delay').each(function () {
+                var imagex = $(this);
+                var imgOriginal = imagex.data('original');
+                $(imagex).attr('src', imgOriginal);
+            });
+        }, 200);
+    });
+</script>
 {% endblock %}
 
 {% block content %}
@@ -9,6 +20,6 @@
         <div class="dashboard-title">{{ client }} の 売上分析</div>
     </div>
     <div>
-        <img src="{% url 'image_client_turnover_chart' client.pk %}">
+        <img style="width: 1100px; height: 500px;" class="load-delay" src="" data-original="{% url 'image_client_turnover_chart' client.pk %}">
     </div>
 {% endblock %}

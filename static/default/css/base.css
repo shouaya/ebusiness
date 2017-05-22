@@ -101,3 +101,10 @@ option.group {
            rgba(0,0,0,0) calc(50% + 0.8px),
            rgba(0,0,0,0) 100%);
 }
+
+img.load-delay {
+    background-color: white;
+    background-image: url(../../admin/img/image_loading.gif);
+    background-repeat: no-repeat;
+    background-position: 50% 50%;
+}

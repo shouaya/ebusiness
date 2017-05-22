@@ -301,9 +301,10 @@ def client_turnover_monthly(client):
             tick.set_rotation(0)
 
     for i, v in enumerate(sum_df['amount']):
-        axes[0].text(i, v + 1, '%sK' % (humanize.intcomma(int(round(v / 1000)))), color='black', fontsize=8)
+        axes[0].text(i, v, '%sK' % (humanize.intcomma(int(round(v / 1000)))), color='black', fontsize=8,
+                     horizontalalignment='center', va='bottom')
     for i, v in enumerate(sum_df['member_count']):
-        axes[1].text(i, v, str(v), color='black', fontsize=8)
+        axes[1].text(i, v, str(v), color='black', fontsize=8, horizontalalignment='center', va='bottom')
 
     plt.tight_layout()
 
