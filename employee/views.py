@@ -10,7 +10,6 @@ import json
 from django.http import HttpResponseRedirect
 from django.shortcuts import render_to_response
 from django.http import HttpResponse
-from django.utils.encoding import smart_str
 from django.conf import settings
 
 from eb.models import Company, Config
@@ -28,12 +27,9 @@ def page_not_found(request):
 
 
 def get_push_js(request):
-    response = HttpResponse(
-        content_type='text/javascript')  # mimetype is replaced by content_type for django 1.7
-    response['Content-Disposition'] = 'attachment; filename=%s' % smart_str("push.js")
-    response['X-Sendfile'] = smart_str(os.path.join(settings.BASE_DIR, '/static/admin/js/push.js'))
-    # It's usually a good idea to set the 'Content-Length' header too.
-    # You can also set any other required headers: Cache-Control, etc.
+    path = os.path.join(settings.BASE_DIR, 'static/admin/js/push.js')
+    response = HttpResponse(open(path, 'rb'), content_type='text/javascript')
+    response['Content-Disposition'] = 'attachment; filename=push.js'
     return response
 
 
@@ -41,14 +37,17 @@ def push_notification(request):
     import requests
     gcm_url = 'https://fcm.googleapis.com/fcm/send'
 
-    # 上で控えたregistrationIdとAPI key
-    reg_id = "cyxRzXwSnjc:APA91bGDFos1DyXoZYuZ8jzgrsId9pTUtr-pDYVxjdXE4Xbc_P9C1L108WcVxQ1NBVsHpGoTUQN8NABFv1tIYc1w4VZQGRuUjl_ZtoBQrsmGX1KHzSo4UnJoU976T4x5epu9LB9lepGC"
-    key = "key=" + Config.get_firebase_serverkey()
+    reg_id = "fmXw6HqlAKw:APA91bGwY6TsKrAWb2QkX9z__7oNMyXFAm4r8hr6demDEdQCF66KZ0yL6w0L8IG_2lgrIFPVvzL2cnL2iP2Oq-AQUcLkvJ-WhlsZKQ7mWnDOq-TCHlM5hvBIGOQg4vpkjr3b3qTfxVe7"
+    api_key = "key=" + Config.get_firebase_serverkey()
 
-    headers = {'content-type': 'application/json', 'Authorization': key}
+    headers = {'content-type': 'application/json', 'Authorization': api_key}
     # 渡すデータは適当です。
     # dictのkeyはAndroidのextrasのkeyと合わせましょう
-    params = json.dumps({'registration_ids': [reg_id], 'data': {'id': 'admin', 'text': 'notifi'}})
+    params = json.dumps({'to': reg_id,
+                         "data": {
+                             "message": "This is a GCM Topic Message!",
+                         },
+                         })
 
     r = requests.post(gcm_url, data=params, headers=headers)
     return HttpResponse(r.content)

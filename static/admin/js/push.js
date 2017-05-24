@@ -1,14 +1,15 @@
-self.addEventListener("install", function() {
-  console.log("install");
-}, false);
-
 self.addEventListener("push", function(event) {
-  event.waitUntil(
-    self.registration.showNotification(
-      "title",
-      {
-        "body": "body"
-      }
-    )
-  );
-}, false);
+    console.log('[Service Worker] Push Received.');
+
+    if (!(self.Notification && self.Notification.permission === 'granted')) {
+        return;
+    }
+
+    const title = 'Push Codelab';
+    const options = {
+        body: 'Yay it works.',
+        icon: '/static/logo.gif'
+    };
+
+    event.waitUntil(self.registration.showNotification(title, options));
+});
