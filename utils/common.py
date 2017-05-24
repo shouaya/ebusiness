@@ -732,7 +732,7 @@ def get_template_order_path(contract):
     if contract.is_hourly_pay:
         # 時給
         path = os.path.join(settings.MEDIA_ROOT, 'eb_order', 'eb_order_hourly.xlsx')
-    elif contract.is_fixed_cost():
+    elif contract.is_fixed_cost:
         # 固定給料
         path = os.path.join(settings.MEDIA_ROOT, 'eb_order', 'eb_order_fixed.xlsx')
     elif contract.is_show_formula is False:

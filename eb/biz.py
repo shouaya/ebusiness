@@ -243,6 +243,7 @@ def get_project_members_month_section(section, date, user=None):
 
     :param section: 部署
     :param date: 日付
+    :param user:
     :return:
     """
     project_members = models.get_project_members_by_month(date)
@@ -504,23 +505,49 @@ def generate_bp_order_data(project_member, year, month, contract, user, bp_order
     data['DETAIL']['IS_HOURLY_PAY'] = contract.is_hourly_pay
     # 基本給
     allowance_base = humanize.intcomma(contract.allowance_base + contract.allowance_other) if contract else ''
-    allowance_base_memo = contract.allowance_base_memo if contract.allowance_base_memo else ''
+    if contract.allowance_base_memo:
+        allowance_base_memo = contract.allowance_base_memo
+    elif contract.is_hourly_pay:
+        allowance_base_memo = u"時間単価：\%s/h  (消費税を含まない)" % allowance_base
+    elif contract.is_fixed_cost:
+        allowance_base_memo = u"月額基本料金：\%s円/月  (固定)" % allowance_base
+    else:
+        allowance_base_memo = u"月額基本料金：\%s円/月  (税金抜き)" % allowance_base
     data['DETAIL']['ALLOWANCE_BASE'] = allowance_base
     data['DETAIL']['ALLOWANCE_BASE_MEMO'] = allowance_base_memo
     # 固定
-    data['DETAIL']['IS_FIXED_COST'] = contract.is_fixed_cost()
+    data['DETAIL']['IS_FIXED_COST'] = contract.is_fixed_cost
     # 計算式を表示するか
     data['DETAIL']['IS_SHOW_FORMULA'] = contract.is_show_formula
-    if not contract.is_fixed_cost():
+    if not contract.is_fixed_cost:
         # 超過単価
         allowance_overtime = humanize.intcomma(contract.allowance_overtime) if contract else ''
+        if contract.allowance_overtime_memo:
+            allowance_overtime_memo = contract.allowance_overtime_memo
+        else:
+            allowance_overtime_memo = u"超過単価：\%s/%sh=\%s/h" % (
+                allowance_base, contract.allowance_time_max, allowance_overtime
+            )
         data['DETAIL']['ALLOWANCE_OVERTIME'] = allowance_overtime
+        data['DETAIL']['ALLOWANCE_OVERTIME_MEMO'] = allowance_overtime_memo
         # 不足単価
         allowance_absenteeism = humanize.intcomma(contract.allowance_absenteeism) if contract else ''
+        if contract.allowance_absenteeism_memo:
+            allowance_absenteeism_memo = contract.allowance_absenteeism_memo
+        else:
+            allowance_absenteeism_memo = u"超過単価：\%s/%sh=\%s/h" % (
+                allowance_base, contract.allowance_time_min, allowance_absenteeism
+            )
         data['DETAIL']['ALLOWANCE_ABSENTEEISM'] = allowance_absenteeism
+        data['DETAIL']['ALLOWANCE_ABSENTEEISM_MEMO'] = allowance_absenteeism_memo
         # 基準時間
         data['DETAIL']['ALLOWANCE_TIME_MIN'] = unicode(contract.allowance_time_min)
         data['DETAIL']['ALLOWANCE_TIME_MAX'] = unicode(contract.allowance_time_max)
+        if contract.allowance_time_memo:
+            allowance_time_memo = contract.allowance_time_memo
+        else:
+            allowance_time_memo = u"※基準時間：%s～%sh/月" % (contract.allowance_time_min, contract.allowance_time_max)
+        data['DETAIL']['ALLOWANCE_TIME_MEMO'] = allowance_time_memo
     # 追記コメント
     data['DETAIL']['COMMENT'] = contract.comment
     # 作業場所

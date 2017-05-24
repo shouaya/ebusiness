@@ -13,7 +13,7 @@
     <div class="dashboard">
         <div class="dashboard-title">ＢＰメンバー注文情報</div>
         <form>
-            <a href="{% url 'contract:eb_member_change' member.pk %}?from=portal&_popup=1" class="button" target="_blank">編集</a>
+            <a href="{% url 'contract:contract_bpcontract_add' %}?from=portal&_popup=1&member_id={{member.pk}}" class="button" target="_blank">契約追加</a>
         </form>
     </div>
     <table class="detail" cellpadding="0" cellspacing="0">
@@ -27,6 +27,69 @@
                 </a>
             </td>
         </tr>
+    </table>
+    <table class="list" cellpadding="0" cellspacing="0">
+        <thead>
+            <tr>
+                <th>開始日</th>
+                <th>終了日</th>
+                <th>時給</th>
+                <th>固定</th>
+                <th>基本給</th>
+                <th>時間下限</th>
+                <th>時間上限</th>
+                <th>残業手当</th>
+                <th>欠勤手当</th>
+                <th>その他</th>
+                <th style="width: 50px;"></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% if member.bpcontract_set.all %}
+                {% for contract in member.bpcontract_set.all %}
+                    <tr class="{% cycle 'row1' 'row2' %}">
+                        <td>{{ contract.start_date }}</td>
+                        <td>{{ contract.end_date }}</td>
+                        <td>
+                            {% if contract.is_hourly_pay %}
+                                <img width="12px" src="/static/{{ theme }}/img/icon-normal.png" />
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if contract.is_fixed_cost %}
+                                <img width="12px" src="/static/{{ theme }}/img/icon-normal.png" />
+                            {% endif %}
+                        </td>
+                        <td class="num">{{ contract.allowance_base|intcomma }}</td>
+                        <td class="num">{{ contract.allowance_time_min|intcomma }}</td>
+                        <td class="num">{{ contract.allowance_time_max|intcomma }}</td>
+                        <td class="num">{{ contract.allowance_overtime|intcomma }}</td>
+                        <td class="num">{{ contract.allowance_absenteeism|intcomma }}</td>
+                        <td class="num">{{ contract.allowance_other|intcomma }}</td>
+                        <td class="center"><a href="{% url 'contract:contract_bpcontract_change' contract.pk %}?from=portal&_popup=1" target="_blank">編集</a></td>
+                    </tr>
+                {% endfor %}
+            {% else %}
+                <tr>
+                    <td colspan="11" class="red row2 center">契約情報がありません、追加してください。</td>
+                </tr>
+            {% endif %}
+        </tbody>
+        <tfoot>
+            <tr>
+                <th>開始日</th>
+                <th>終了日</th>
+                <th>時給</th>
+                <th>固定</th>
+                <th>基本給</th>
+                <th>時間下限</th>
+                <th>時間上限</th>
+                <th>残業手当</th>
+                <th>欠勤手当</th>
+                <th>その他</th>
+                <th></th>
+            </tr>
+        </tfoot>
     </table>
     <table class="list" cellpadding="0" cellspacing="0">
         <thead>

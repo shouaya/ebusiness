@@ -39,7 +39,7 @@ def get_push_js(request):
 
 
 def push_notification(request):
-    gcm_url = 'https://android.googleapis.com/gcm/send'
+    gcm_url = 'https://fcm.googleapis.com/fcm/send'
 
     # 上で控えたregistrationIdとAPI key
     reg_id = "cyxRzXwSnjc:APA91bGDFos1DyXoZYuZ8jzgrsId9pTUtr-pDYVxjdXE4Xbc_P9C1L108WcVxQ1NBVsHpGoTUQN8NABFv1tIYc1w4VZQGRuUjl_ZtoBQrsmGX1KHzSo4UnJoU976T4x5epu9LB9lepGC"

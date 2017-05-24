@@ -1567,6 +1567,7 @@ class BpMemberOrdersView(BaseTemplateView):
         member = get_object_or_404(models.Member, pk=member_id)
         project_members = member.projectmember_set.public_filter(is_deleted=False).order_by('-start_date')
         context.update({
+            'title': u"%s | ＢＰ注文書" % unicode(member),
             'member': member,
             'project_members': project_members,
         })
@@ -1603,6 +1604,13 @@ class BpMemberOrderDetailView(BaseTemplateView):
             context.update({
                 'bp_order': bp_order,
             })
+        context.update({
+            'title': u"%s | %s(%s年%s月)" % (
+                bp_order.order_no, unicode(bp_order.project_member),
+                bp_order.year,
+                bp_order.month,
+            ),
+        })
         return context
 
 

@@ -34,7 +34,7 @@ class PublicManager(models.Manager):
 
 
 class BaseModel(models.Model):
-    created_date = models.DateTimeField(auto_now_add=True, editable=False, verbose_name=u"作成日時")
+    created_date = models.DateTimeField(auto_now_add=True, null=True, editable=False, verbose_name=u"作成日時")
     updated_date = models.DateTimeField(auto_now=True, editable=False, verbose_name=u"更新日時")
     is_deleted = models.BooleanField(default=False, editable=False, verbose_name=u"削除フラグ")
     deleted_date = models.DateTimeField(blank=True, null=True, editable=False, verbose_name=u"削除年月日")
@@ -200,21 +200,25 @@ class ContractRecipient(BaseModel):
 
 
 class BpContract(BaseModel):
-    member = models.ForeignKey(Member, editable=False, verbose_name=u"社員")
+    member = models.ForeignKey(Member, verbose_name=u"社員")
     company = models.ForeignKey(Subcontractor, verbose_name=u"雇用会社")
-    member_type = models.IntegerField(default=4, choices=constants.CHOICE_MEMBER_TYPE, verbose_name=u"雇用形態")
+    member_type = models.IntegerField(default=4, editable=False, choices=constants.CHOICE_MEMBER_TYPE,
+                                      verbose_name=u"雇用形態")
     start_date = models.DateField(verbose_name=u"雇用開始日")
     end_date = models.DateField(blank=True, null=True, verbose_name=u"雇用終了日")
     is_hourly_pay = models.BooleanField(default=False, verbose_name=u"時給")
+    is_fixed_cost = models.BooleanField(default=False, verbose_name=u"固定")
     is_show_formula = models.BooleanField(default=True, verbose_name=u"計算式",
                                           help_text=u"注文書に超過単価と不足単価の計算式を表示するか")
     allowance_base = models.IntegerField(verbose_name=u"基本給")
-    allowance_base_memo = models.CharField(max_length=255, blank=True, null=True, default=u"税金抜き",
-                                           verbose_name=u"基本給メモ")
+    allowance_base_memo = models.CharField(max_length=255, blank=True, null=True, verbose_name=u"基本給メモ")
     allowance_time_min = models.IntegerField(default=160, verbose_name=u"時間下限", help_text=u"足りないなら欠勤となる")
     allowance_time_max = models.IntegerField(default=200, verbose_name=u"時間上限", help_text=u"超えたら残業となる")
+    allowance_time_memo = models.CharField(max_length=255, blank=True, null=True, verbose_name=u"基準時間メモ")
     allowance_overtime = models.IntegerField(default=0, verbose_name=u"残業手当")
+    allowance_overtime_memo = models.CharField(max_length=255, blank=True, null=True, verbose_name=u"残業手当メモ")
     allowance_absenteeism = models.IntegerField(default=0, verbose_name=u"欠勤手当")
+    allowance_absenteeism_memo = models.CharField(max_length=255, blank=True, null=True, verbose_name=u"欠勤手当メモ")
     allowance_other = models.IntegerField(default=0, verbose_name=u"その他手当")
     allowance_other_memo = models.CharField(max_length=255, blank=True, null=True, verbose_name=u"その他手当メモ")
     comment = models.TextField(blank=True, null=True,  verbose_name=u"備考")
@@ -226,9 +230,6 @@ class BpContract(BaseModel):
 
     def __unicode__(self):
         return u"%s(%s)" % (unicode(self.member), self.start_date)
-
-    def is_fixed_cost(self):
-        return self.allowance_time_min == self.allowance_time_max == self.allowance_overtime == self.allowance_absenteeism
 
     def get_cost(self):
         """コストを取得する

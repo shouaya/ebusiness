@@ -1203,6 +1203,13 @@ class Member(AbstractMember):
         else:
             return "0001"
 
+    def get_next_month_bp_order(self):
+        next_month = common.add_months(datetime.date.today(), 1)
+        queryset = BpMemberOrder.objects.public_filter(project_member__member=self,
+                                                       year=next_month.year,
+                                                       month="%02d" % next_month.month)
+        return queryset
+
     def delete(self, using=None, keep_parents=False):
         self.is_deleted = True
         self.deleted_date = datetime.datetime.now()
@@ -2206,9 +2213,12 @@ class ProjectMember(models.Model):
         max_months = self.end_date.year * 12 + self.end_date.month
         min_months = self.start_date.year * 12 + self.start_date.month
         today = datetime.date.today()
+        next_month = common.add_months(today, 1)
+        max_date = next_month \
+            if self.end_date and next_month.strftime('%Y%m') <= self.end_date.strftime('%Y%m') else today
         for i in range(max_months - min_months, -1, -1):
             date = common.add_months(self.start_date, i)
-            if (today.year * 12 + today.month) < (date.year * 12 + date.month):
+            if (max_date.year * 12 + max_date.month) < (date.year * 12 + date.month):
                 # 来月以降だったら、表示する必要ないので、スキップする。
                 continue
             try:
@@ -2600,14 +2610,19 @@ class BpMemberOrder(BaseModel):
                                            subcontractor_middleman=data['DETAIL'].get('SUBCONTRACTOR_MIDDLEMAN', None),
                                            member_name=data['DETAIL'].get('MEMBER_NAME', None),
                                            location=data['DETAIL'].get('LOCATION', None),
-                                           is_hourly_pay=data['DETAIL'].get('IS_HOURLY_PAY', None),
-                                           is_fixed_cost=data['DETAIL'].get('IS_FIXED_COST', None),
+                                           is_hourly_pay=data['DETAIL'].get('IS_HOURLY_PAY', False),
+                                           is_fixed_cost=data['DETAIL'].get('IS_FIXED_COST', False),
+                                           is_show_formula=data['DETAIL'].get('IS_SHOW_FORMULA', False),
                                            allowance_base=data['DETAIL'].get('ALLOWANCE_BASE', None),
                                            allowance_base_memo=data['DETAIL'].get('ALLOWANCE_BASE_MEMO', None),
                                            allowance_time_min=data['DETAIL'].get('ALLOWANCE_TIME_MIN', None),
                                            allowance_time_max=data['DETAIL'].get('ALLOWANCE_TIME_MAX', None),
+                                           allowance_time_memo=data['DETAIL'].get('ALLOWANCE_TIME_MEMO', None),
                                            allowance_overtime=data['DETAIL'].get('ALLOWANCE_OVERTIME', None),
+                                           allowance_overtime_memo=data['DETAIL'].get('ALLOWANCE_OVERTIME_MEMO', None),
                                            allowance_absenteeism=data['DETAIL'].get('ALLOWANCE_ABSENTEEISM', None),
+                                           allowance_absenteeism_memo=data['DETAIL'].get('ALLOWANCE_ABSENTEEISM_MEMO',
+                                                                                         None),
                                            comment=data['DETAIL'].get('COMMENT', None),
                                            delivery_properties_comment=data['DETAIL'].get('DELIVERY_PROPERTIES', None),
                                            payment_condition_comments=data['DETAIL'].get('PAYMENT_CONDITION', None),
@@ -2636,12 +2651,16 @@ class BpMemberOrderHeading(models.Model):
     location = models.CharField(blank=True, null=True, max_length=200, verbose_name=u"作業場所")
     is_hourly_pay = models.BooleanField(default=False, verbose_name=u"時給")
     is_fixed_cost = models.BooleanField(default=False, verbose_name=u"固定")
+    is_show_formula = models.BooleanField(default=True, verbose_name=u"計算式")
     allowance_base = models.CharField(blank=True, null=True, max_length=20, verbose_name=u"基本給")
     allowance_base_memo = models.CharField(blank=True, null=True, max_length=255, verbose_name=u"基本給メモ")
     allowance_time_min = models.CharField(blank=True, null=True, max_length=20, verbose_name=u"時間下限")
     allowance_time_max = models.CharField(blank=True, null=True, max_length=20, verbose_name=u"時間上限")
+    allowance_time_memo = models.CharField(max_length=255, blank=True, null=True, verbose_name=u"基準時間メモ")
     allowance_overtime = models.CharField(blank=True, null=True, max_length=20, verbose_name=u"残業手当")
+    allowance_overtime_memo = models.CharField(max_length=255, blank=True, null=True, verbose_name=u"残業手当メモ")
     allowance_absenteeism = models.CharField(blank=True, null=True, max_length=20, verbose_name=u"欠勤手当")
+    allowance_absenteeism_memo = models.CharField(max_length=255, blank=True, null=True, verbose_name=u"欠勤手当メモ")
     allowance_other = models.CharField(blank=True, null=True, max_length=20, verbose_name=u"その他手当")
     allowance_other_memo = models.CharField(blank=True, null=True, max_length=255, verbose_name=u"その他手当メモ")
     comment = models.TextField(blank=True, null=True, verbose_name=u"備考")

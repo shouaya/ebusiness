@@ -187,7 +187,7 @@
                 <td colspan="2" class="center left top">連絡窓口担当者（乙）</td>
                 <td colspan="2" class="left top border_right">
                     {% if data %}
-                        {{ data.DETAIL.SUBCONTRACTOR_MIDDLEMAN }}
+                        {{ data.DETAIL.SUBCONTRACTOR_MIDDLEMAN|default:'' }}
                     {% else %}
                         {{ bp_order.bpmemberorderheading.subcontractor_middleman }}
                     {% endif %}
@@ -209,39 +209,34 @@
                     {% if data %}
                         {% if data.DETAIL.IS_HOURLY_PAY %}
                             <br/><br/>
-                            時間単価：\{{ data.DETAIL.ALLOWANCE_BASE }}円/h&nbsp;&nbsp;({{ data.DETAIL.ALLOWANCE_BASE_MEMO }})
+                            {{ data.DETAIL.ALLOWANCE_BASE_MEMO }}
                             <br/><br/>作業報告書に基づく稼動実費精算とする。<br/>
                         {% elif data.DETAIL.IS_FIXED_COST %}
                             <br/><br/>
-                            月額基本料金：\{{ data.DETAIL.ALLOWANCE_BASE }}円/月&nbsp;&nbsp;(固定)
+                            {{ data.DETAIL.ALLOWANCE_BASE_MEMO }}
                             <br/><br/><br/>
                         {% else %}
-                            月額基本料金：\{{ data.DETAIL.ALLOWANCE_BASE }}円/月&nbsp;&nbsp;{{ data.DETAIL.ALLOWANCE_BASE_MEMO }}<br/>
-                            {% if data.DETAIL.IS_SHOW_FORMULA %}
-                                超過単価：\{{ data.DETAIL.ALLOWANCE_BASE }}/{{ data.DETAIL.ALLOWANCE_TIME_MAX }}h=\{{ data.DETAIL.ALLOWANCE_OVERTIME }}/h<br/>
-                                不足単価：\{{ data.DETAIL.ALLOWANCE_BASE }}/{{ data.DETAIL.ALLOWANCE_TIME_MIN }}h=\{{ data.DETAIL.ALLOWANCE_ABSENTEEISM }}/h<br/>
-                            {% else %}
-                                &nbsp;<br/>
-                                &nbsp;<br/>
-                            {% endif %}
-                            ※基準時間：{{ data.DETAIL.ALLOWANCE_TIME_MIN }}～{{ data.DETAIL.ALLOWANCE_TIME_MAX }}h/月<br/>
-                            {{ data.DETAIL.COMMENT }}<br/>
+                            {{ data.DETAIL.ALLOWANCE_BASE_MEMO }}<br/>
+                            {{ data.DETAIL.ALLOWANCE_OVERTIME_MEMO }}<br/>
+                            {{ data.DETAIL.ALLOWANCE_ABSENTEEISM_MEMO }}<br/>
+                            {{ data.DETAIL.ALLOWANCE_TIME_MEMO }}<br/>
+                            {{ data.DETAIL.COMMENT|default:'' }}<br/>
                             作業報告書に基づく稼動実費精算とする。
                         {% endif %}
                     {% else %}
                         {% if bp_order.bpmemberorderheading.is_hourly_pay %}
                             <br/><br/>
-                            時間単価：\{{ bp_order.bpmemberorderheading.allowance_base }}円/h&nbsp;&nbsp;({{ bp_order.bpmemberorderheading.allowance_base_memo }})
+                            {{ bp_order.bpmemberorderheading.allowance_base_memo }}
                             <br/><br/>作業報告書に基づく稼動実費精算とする。<br/>
                         {% elif bp_order.bpmemberorderheading.is_fixed_cost %}
                             <br/><br/>
-                            月額基本料金：\{{ bp_order.bpmemberorderheading.allowance_base }}円/月&nbsp;&nbsp;(固定)
+                            {{ bp_order.bpmemberorderheading.allowance_base_memo }}
                             <br/><br/><br/>
                         {% else %}
-                            月額基本料金：\{{ bp_order.bpmemberorderheading.allowance_base }}円/月　　{{ bp_order.bpmemberorderheading.allowance_base_memo }}<br/>
-                            超過単価：\{{ bp_order.bpmemberorderheading.allowance_base }}/{{ bp_order.bpmemberorderheading.allowance_time_max }}h=\{{ bp_order.bpmemberorderheading.allowance_overtime }}/h<br/>
-                            不足単価：\{{ bp_order.bpmemberorderheading.allowance_base }}/{{ bp_order.bpmemberorderheading.allowance_time_min }}h=\{{ bp_order.bpmemberorderheading.allowance_absenteeism }}/h<br/>
-                            ※基準時間：{{ bp_order.bpmemberorderheading.allowance_time_min }}～{{ bp_order.bpmemberorderheading.allowance_time_max }}h/月<br/>
+                            {{ bp_order.bpmemberorderheading.allowance_base_memo }}<br/>
+                            {{ bp_order.bpmemberorderheading.allowance_overtime_memo }}<br/>
+                            {{ bp_order.bpmemberorderheading.allowance_absenteeism_memo }}<br/>
+                            {{ bp_order.bpmemberorderheading.allowance_time_memo }}<br/>
                             {{ bp_order.bpmemberorderheading.comment }}<br/>
                             作業報告書に基づく稼動実費精算とする。
                         {% endif %}

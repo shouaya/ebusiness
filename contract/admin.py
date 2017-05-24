@@ -9,6 +9,7 @@ from django.contrib import admin
 from django.utils.translation import ugettext as _
 from django.utils.text import get_text_list
 from django.utils.encoding import force_text
+from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
 
 from utils import common
 from . import models, forms
@@ -20,13 +21,6 @@ def get_full_name(obj):
     return "%s %s" % (obj.first_name, obj.last_name)
 get_full_name.short_description = u"名前"
 get_full_name.admin_order_field = "first_name"
-
-
-class BpContractInline(admin.TabularInline):
-    model = models.BpContract
-    form = forms.BpContractForm
-    formset = forms.BpContractFormset
-    extra = 0
 
 
 class BaseAdmin(admin.ModelAdmin):
@@ -101,17 +95,23 @@ class ContractAdmin(BaseAdmin):
     search_fields = ('member__first_name', 'member__last_name', 'contract_no')
 
 
-class MemberAdmin(BaseAdmin):
-    form = forms.ContractMemberForm
-    list_display = (get_full_name,)
-    search_fields = ['first_name', 'last_name', 'employee_id', 'subcontractor']
-    inlines = (BpContractInline,)
+class BpContractAdmin(BaseAdmin):
+    form = forms.BpContractForm
+    list_display = ['member', 'company', 'start_date', 'end_date', 'is_hourly_pay', 'allowance_base']
+    search_fields = ('member__first_name', 'member__last_name', 'company')
 
-    def has_add_permission(self, request):
-        return False
+    class Media:
+        js = ('/static/admin/js/calc_contract.js',)
 
-    def has_delete_permission(self, request, obj=None):
-        return False
+    def get_form(self, request, obj=None, **kwargs):
+        form = super(BpContractAdmin, self).get_form(request, obj, **kwargs)
+        member_id = request.GET.get('member_id')
+        try:
+            member = sales_models.Member.objects.get(pk=member_id)
+            form.base_fields['member'].initial = member
+        except (ObjectDoesNotExist, MultipleObjectsReturned):
+            pass
+        return form
 
 
 class ContractAdminSite(admin.AdminSite):
@@ -121,5 +121,4 @@ class ContractAdminSite(admin.AdminSite):
 
 contract_admin_site = ContractAdminSite(name='contract')
 contract_admin_site.register(models.Contract, ContractAdmin)
-
-contract_admin_site.register(sales_models.Member, MemberAdmin)
+contract_admin_site.register(models.BpContract, BpContractAdmin)

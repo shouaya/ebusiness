@@ -92,8 +92,17 @@ class BpContractForm(BaseForm):
 
     def __init__(self, *args, **kwargs):
         super(BpContractForm, self).__init__(*args, **kwargs)
-        for name in ('allowance_base_memo', 'allowance_other_memo'):
-            self.fields[name].widget.attrs.update({'style': 'width: 100px;'})
+        self.fields['is_hourly_pay'].widget.attrs.update({
+            'onchange': 'change_hourly_pay_display(this, "allowance_base")'
+        })
+        self.fields['is_fixed_cost'].widget.attrs.update({
+            'onchange': 'change_fixed_cost_display(this, "allowance_base")'
+        })
+        self.fields['is_show_formula'].widget.attrs.update({
+            'onchange': 'change_formula_display(this, "allowance_base", '
+                        '"allowance_time_min", "allowance_time_max", '
+                        '"allowance_absenteeism", "allowance_overtime")'
+        })
         self.fields['allowance_base'].widget.attrs.update({
             'onchange': 'calculate_plus_minus(this, "allowance_base", '
                         '"allowance_time_min", "allowance_time_max", '
@@ -109,7 +118,6 @@ class BpContractForm(BaseForm):
                         '"allowance_time_min", "allowance_time_max", '
                         '"allowance_absenteeism", "allowance_overtime")'
         })
-        self.fields['comment'].widget.attrs.update({'rows': '1', 'style': 'width: 100px;'})
 
     def clean(self):
         cleaned_data = super(BpContractForm, self).clean()
@@ -119,25 +127,25 @@ class BpContractForm(BaseForm):
             self.instance.company = member.subcontractor
 
 
-class BpContractFormset(forms.BaseInlineFormSet):
-    def clean(self):
-        count = 0
-        dates = []
-        for form in self.forms:
-            try:
-                if form.cleaned_data:
-                    start_date = form.cleaned_data.get("start_date")
-                    end_date = form.cleaned_data.get("end_date")
-                    if start_date:
-                        dates.append((start_date, end_date))
-                        count += 1
-            except AttributeError:
-                pass
-        if count > 1:
-            dates.sort(key=lambda date: date[0])
-            for i, period in enumerate(dates):
-                start_date, end_date = period
-                if common.is_cross_date(dates, start_date, i):
-                    raise forms.ValidationError(u"契約期間の開始日が重複している。")
-                if end_date and common.is_cross_date(dates, end_date, i):
-                    raise forms.ValidationError(u"契約期間の終了日が重複している。")
+# class BpContractFormset(forms.BaseInlineFormSet):
+#     def clean(self):
+#         count = 0
+#         dates = []
+#         for form in self.forms:
+#             try:
+#                 if form.cleaned_data:
+#                     start_date = form.cleaned_data.get("start_date")
+#                     end_date = form.cleaned_data.get("end_date")
+#                     if start_date:
+#                         dates.append((start_date, end_date))
+#                         count += 1
+#             except AttributeError:
+#                 pass
+#         if count > 1:
+#             dates.sort(key=lambda date: date[0])
+#             for i, period in enumerate(dates):
+#                 start_date, end_date = period
+#                 if common.is_cross_date(dates, start_date, i):
+#                     raise forms.ValidationError(u"契約期間の開始日が重複している。")
+#                 if end_date and common.is_cross_date(dates, end_date, i):
+#                     raise forms.ValidationError(u"契約期間の終了日が重複している。")

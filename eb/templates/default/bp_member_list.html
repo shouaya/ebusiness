@@ -88,9 +88,17 @@
                         <td></td>
                     {% endif %}
                     <td>
-                        {% if member.is_retired %}退職{% endif %}
+                        {% if member.is_retired %}
+                            退職
+                        {% else %}
+                            {% with bp_order=member.get_next_month_bp_order|first %}
+                                {% if bp_order %}
+                                    作成済み
+                                {% endif %}
+                            {% endwith %}
+                        {% endif %}
                     </td>
-                    <td class="center"><a href="{% url 'contract:eb_member_change' member.pk %}?from=portal&_popup=1" target="_blank">編集</a></td>
+                    <td class="center"><a href="{% url 'bp_member_orders' member.pk %}" target="_blank">編集</a></td>
                 </tr>
             {% endwith %}
             {% endfor %}
