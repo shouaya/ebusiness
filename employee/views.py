@@ -6,7 +6,6 @@ Created on 2015/08/21
 """
 import os
 import json
-import requests
 
 from django.http import HttpResponseRedirect
 from django.shortcuts import render_to_response
@@ -39,6 +38,7 @@ def get_push_js(request):
 
 
 def push_notification(request):
+    import requests
     gcm_url = 'https://fcm.googleapis.com/fcm/send'
 
     # 上で控えたregistrationIdとAPI key
