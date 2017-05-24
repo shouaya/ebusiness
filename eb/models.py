@@ -26,6 +26,8 @@ from django.core.mail import EmailMultiAlternatives, get_connection, SafeMIMETex
 from django.core.mail.message import MIMEBase
 from django.conf import settings
 from django.core.validators import validate_comma_separated_integer_list
+from django.contrib.contenttypes.models import ContentType
+from django.contrib.contenttypes.fields import GenericForeignKey
 
 
 from utils import common, constants
@@ -503,6 +505,68 @@ class Subcontractor(AbstractCompany):
         self.is_deleted = True
         self.deleted_date = datetime.datetime.now()
         self.save()
+
+
+class SubcontractorMember(BaseModel):
+    name = models.CharField(max_length=30, verbose_name=u"名前")
+    email = models.EmailField(blank=False, null=True, verbose_name=u"メールアドレス")
+    phone = models.CharField(blank=True, null=True, max_length=11, verbose_name=u"電話番号")
+    member_type = models.CharField(max_length=2, choices=constants.CHOICE_CLIENT_MEMBER_TYPE, verbose_name=u"役割担当")
+    subcontractor = models.ForeignKey(Subcontractor, on_delete=models.PROTECT, verbose_name=u"所属会社")
+
+    class Meta:
+        ordering = ['name']
+        unique_together = ('name', 'subcontractor')
+        verbose_name = verbose_name_plural = u"協力会社社員"
+
+    def __unicode__(self):
+        return "%s - %s" % (self.subcontractor.name, self.name)
+
+
+class MailTemplate(BaseModel):
+    mail_title = models.CharField(max_length=50, verbose_name=u"送信メールのタイトル")
+    mail_body = models.TextField(blank=True, null=True, verbose_name=u"メール本文(Plain Text)")
+    mail_html = models.TextField(blank=True, null=True, verbose_name=u"メール本文(HTML)")
+    attachment1 = models.FileField(blank=True, null=True, upload_to="./attachment", verbose_name=u"添付ファイル１",
+                                   help_text=u"メール送信時の添付ファイルその１。")
+    attachment2 = models.FileField(blank=True, null=True, upload_to="./attachment", verbose_name=u"添付ファイル２",
+                                   help_text=u"メール送信時の添付ファイルその２。")
+    attachment3 = models.FileField(blank=True, null=True, upload_to="./attachment", verbose_name=u"添付ファイル３",
+                                   help_text=u"メール送信時の添付ファイルその３。")
+    description = models.TextField(blank=True, null=True, verbose_name=u"説明")
+
+    class Meta:
+        ordering = ['mail_title']
+        verbose_name = verbose_name_plural = u"メールテンプレート"
+
+    def __unicode__(self):
+        return self.mail_title
+
+
+class MailGroup(BaseModel):
+    name = models.CharField(max_length=30, unique=True, verbose_name=u"名称")
+    mail_template = models.ForeignKey(MailTemplate, blank=True, null=True, on_delete=models.PROTECT,
+                                      verbose_name=u"メールテンプレート")
+
+    class Meta:
+        ordering = ['name']
+        verbose_name = verbose_name_plural = u"メールグループ"
+
+    def __unicode__(self):
+        return self.name
+
+
+class MailList(BaseModel):
+    group = models.ForeignKey(MailGroup, on_delete=models.PROTECT, verbose_name=u"メールグループ")
+    member = models.ForeignKey(SubcontractorMember, on_delete=models.PROTECT, verbose_name=u"メンバー")
+
+    class Meta:
+        ordering = ['group']
+        unique_together = ('group', 'member')
+        verbose_name = verbose_name_plural = u"メールリスト"
+
+    def __unicode__(self):
+        return unicode(self.member)
 
 
 class Section(BaseModel):

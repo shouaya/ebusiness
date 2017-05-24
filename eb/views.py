@@ -35,6 +35,7 @@ from django.utils.translation import ugettext as _
 from django.contrib.auth import update_session_auth_hash
 from django.views.generic import View
 from django.views.generic.base import TemplateResponseMixin, ContextMixin
+from django.db.models import Count
 
 from eb import biz, biz_turnover, biz_config
 from utils import constants, common, errors, loader as file_loader, file_gen
@@ -1954,6 +1955,35 @@ class BatchLogView(BaseView):
         else:
             log = u"ログファイル「%s」が存在しません。" % (log_file,)
         return HttpResponse(log)
+
+
+class AutoSendMailView(BaseTemplateView):
+    template_name = 'default/auto_send_mail.html'
+
+    def get_context_data(self, **kwargs):
+        context = super(AutoSendMailView, self).get_context_data(**kwargs)
+        # request = kwargs.get('request')
+        groups = models.MailGroup.objects.public_all().annotate(member_count=Count('maillist'))
+        context.update({
+            'groups': groups,
+        })
+
+        return context
+
+
+class AutoMailEditView(BaseTemplateView):
+    template_name = 'default/auto_mail_edit.html'
+
+    def get_context_data(self, **kwargs):
+        context = super(AutoMailEditView, self).get_context_data(**kwargs)
+        group_id = kwargs.get('group_id')
+        group = get_object_or_404(models.MailGroup, pk=group_id)
+        # request = kwargs.get('request')
+        context.update({
+            'group': group,
+        })
+
+        return context
 
 
 def login_user(request, qr=False):

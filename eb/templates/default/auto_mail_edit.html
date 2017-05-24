@@ -1,0 +1,17 @@
+{% extends theme|add:"/base.html" %}
+
+{% block header %}
+{% endblock %}
+
+{% block content %}
+    <div class="dashboard">
+        <div class="dashboard-title">グループ「{{ group }}」のメール送信設定</div>
+        <form>
+            <a href="{% url 'admin:eb_mailgroup_change' group.pk %}?from=portal&_popup=1" title="編集：宛先追加、削除などはできます。" class="button" target="_blank">編集</a>
+        </form>
+    </div>
+    <table cellspacing="0" cellpadding="0" class="detail">
+        <tbody>
+        </tbody>
+    </table>
+{% endblock %}

@@ -740,3 +740,21 @@ class ConfigForm(forms.ModelForm):
             elif instance.group and instance.group in ('contract', 'bp_order'):
                 self.fields['value'] = forms.CharField(widget=forms.Textarea(attrs={'style': 'width: 610px;'}),
                                                        required=True, label=u"設定値")
+
+
+class MailGroupForm(forms.ModelForm):
+    class Meta:
+        model = models.MailGroup
+        fields = '__all__'
+
+
+class MailListForm(forms.ModelForm):
+    class Meta:
+        model = models.MailList
+        fields = '__all__'
+
+
+class SubcontractorMemberForm(forms.ModelForm):
+    class Meta:
+        model = models.SubcontractorMember
+        fields = '__all__'

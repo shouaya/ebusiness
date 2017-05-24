@@ -1,0 +1,61 @@
+{% extends theme|add:"/base.html" %}
+
+{% block header %}
+{% endblock %}
+
+{% block content %}
+    <div class="dashboard">
+        <div class="dashboard-title">メール送信コントロールセンター</div>
+        <form>
+            <a href="{% url 'admin:eb_mailgroup_add' %}?from=portal&_popup=1" class="button" target="_blank">グループ追加</a>
+        </form>
+    </div>
+    <table cellspacing="0" cellpadding="0" class="list hierarchy">
+        <thead>
+            <tr>
+                <th>グループ／名前</th>
+                <th>所属会社</th>
+                <th>役割</th>
+                <th>メールアドレス</th>
+                <th>編集</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for group in groups %}
+                <tr class="row1 lev1">
+                    <td colspan="4">{{ group }}&nbsp;（{{ group.member_count }}&nbsp;名）</td>
+                    <td class="center">
+                        <a href="{% url 'admin:eb_mailgroup_change' group.pk %}?from=portal&_popup=1" title="編集：宛先追加、削除などはできます。" target="_blank">
+                            <i class="fa fa-pencil-square-o" aria-hidden="true"></i>
+                        </a>
+                    </td>
+                    <td class="center">
+                        <a href="{% url 'auto_mail_edit' group.pk %}" title="メール送信設定">
+                            <i class="fa fa-share" aria-hidden="true"></i>
+                        </a>
+                    </td>
+                </tr>
+                {% for mail_member in group.maillist_set.all %}
+                    <tr class="row2 lev2">
+                        <td class="first">{{ mail_member.member.name }}</td>
+                        <td>{{ mail_member.member.subcontractor }} </td>
+                        <td>{{ mail_member.member.get_member_type_display }}</td>
+                        <td>{{ mail_member.member.email }}</td>
+                        <td class="center">
+                            <a href="{% url 'admin:eb_subcontractormember_change' mail_member.member.pk %}?from=portal&_popup=1" title="メンバー情報変更" target="_blank">
+                                <i class="fa fa-pencil-square-o" aria-hidden="true"></i>
+                            </a>
+                        </td>
+                        <td></td>
+                    </tr>
+                {% endfor %}
+            {% endfor %}
+        </tbody>
+        <tfoot>
+            <tr>
+                <td colspan="6">{{ groups.count }} グループ</td>
+            </tr>
+        </tfoot>
+    </table>
+{% endblock %}

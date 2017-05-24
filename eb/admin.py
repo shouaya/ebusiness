@@ -166,6 +166,18 @@ class PositionShipInline(admin.TabularInline):
     extra = 0
 
 
+class MailListInline(admin.TabularInline):
+    model = models.MailList
+    form = forms.MailListForm
+    extra = 0
+
+
+class SubcontractorMemberInline(admin.TabularInline):
+    model = models.SubcontractorMember
+    form = forms.SubcontractorMemberForm
+    extra = 0
+
+
 def get_full_name(obj):
     return "%s %s" % (obj.first_name, obj.last_name)
 get_full_name.short_description = u"名前"
@@ -654,6 +666,11 @@ class SubcontractorAdmin(BaseAdmin):
 
     list_display = ['name', 'is_deleted']
     list_filter = ['is_deleted']
+    inlines = (SubcontractorMemberInline,)
+
+
+class SubcontractorMemberAdmin(BaseAdmin):
+    list_display = ['name', 'subcontractor', 'email', 'member_type']
 
 
 class ClientMemberAdmin(BaseAdmin):
@@ -924,6 +941,15 @@ class BpMemberOrderInfoAdmin(ReadonlyAdmin):
     search_fields = ('member__first_name', 'member__last_name', 'member__subcontractor__name')
 
 
+class MailGroupAdmin(BaseAdmin):
+    list_display = ['name']
+    inlines = (MailListInline,)
+
+
+class MailTemplateAdmin(BaseAdmin):
+    list_display = ['mail_title']
+
+
 NEW_USERNAME_LENGTH = 50
 
 
@@ -962,6 +988,7 @@ admin.site.register(models.ProjectRequestDetail, ProjectRequestDetailAdmin)
 admin.site.register(models.MemberAttendance, MemberAttendanceAdmin)
 admin.site.register(models.ProjectActivity, ProjectActivityAdmin)
 admin.site.register(models.Subcontractor, SubcontractorAdmin)
+admin.site.register(models.SubcontractorMember, SubcontractorMemberAdmin)
 admin.site.register(models.PositionShip, PositionShipAdmin)
 admin.site.register(models.ProjectStage, ProjectStageAdmin)
 admin.site.register(models.OS)
@@ -972,6 +999,8 @@ admin.site.register(models.History, HistoryAdmin)
 admin.site.register(models.BatchManage, BatchManageAdmin)
 admin.site.register(models.Config, ConfigAdmin)
 admin.site.register(models.BpMemberOrderInfo, BpMemberOrderInfoAdmin)
+admin.site.register(models.MailGroup, MailGroupAdmin)
+admin.site.register(models.MailTemplate, MailTemplateAdmin)
 
 admin.site.unregister(User)
 admin.site.register(User, CustomUserAdmin)
