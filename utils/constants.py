@@ -46,6 +46,7 @@ CONFIG_SERVICE_MEMBERS = 'service_members'
 CONFIG_SERVICE_CONTRACT = 'service_contract'
 CONFIG_SALES_SYSTEM_NAME = 'sales_system_name'
 # 契約設定
+CONFIG_GROUP_SYSTEM = 'system'
 CONFIG_GROUP_CONTRACT = 'contract'
 CONFIG_GROUP_BP_ORDER = 'bp_order'
 CONFIG_EMPLOYMENT_PERIOD_COMMENT = 'employment_period_comment'
@@ -63,6 +64,7 @@ CONFIG_BP_ORDER_DELIVERY_PROPERTIES = 'delivery_properties'
 CONFIG_BP_ORDER_PAYMENT_CONDITION = 'payment_condition'
 CONFIG_BP_ORDER_CONTRACT_ITEMS = 'contract_items'
 CONFIG_DEFAULT_EXPENSES_ID = 'default_expenses_category_id'
+CONFIG_FIREBASE_SERVERKEY = 'firebase_serverkey'
 
 MARK_POST_CODE = u"〒"
 

@@ -396,3 +396,45 @@ function calculate_plus_from_max_hour(obj, name_base, name_min, name_max, name_m
         obj_plus.val(plus_per_hour);
     }
 }
+
+window.addEventListener("load", function() {
+  var el = document.querySelector(".js-push-button");
+  el.addEventListener("click", function() {
+    subscribe();
+  });
+
+  // 指定したスクリプトをServiceWorkerとしてインストール
+  navigator.serviceWorker.register("/push.js").then(function() {
+    if (Notification.permission === "denied") {
+      throw new "Notification is denied";
+    }
+
+    navigator.serviceWorker.ready.then(function(serviceWorkerRegistration) {
+      serviceWorkerRegistration.pushManager
+        .getSubscription()
+        .then(function(subscription) {
+            // subscribeされてなければnullになる
+            if (!subscription) {
+              return;
+            }
+
+            el.disabled = true;
+            renderSubscription(subscription);
+        });
+    });
+  });
+}, false);
+
+function subscribe() {
+  navigator.serviceWorker.ready.then(function(serviceWorkerRegistration) {
+    serviceWorkerRegistration.pushManager.subscribe({userVisibleOnly:true}).then(function(subscription) {
+      var el = document.querySelector(".js-push-button");
+      el.disabled = true;
+      renderSubscription(subscription);
+    });
+  });
+}
+
+function renderSubscription(subscription) {
+  document.querySelector('#subscription').innerHTML = subscription.endpoint.split("/").pop();
+}

@@ -21,6 +21,8 @@ urlpatterns = [
     url(r'^reset/done/$', auth_views.password_reset_complete, name='password_reset_complete'),
     url(r'^accounts/login/$', auth_views.login),
     url(r'^jsi18n/$', javascript_catalog, {'packages': 'django.conf'}),
+    url(r'push.js', views.get_push_js),
+    url(r'push_notification', views.push_notification),
 
     url(r'^eboa-admin/', include(eboa_admin_site.urls)),
     url(r'^del-data-admin/', include(del_data_admin_site.urls)),

@@ -294,6 +294,10 @@ class Config(models.Model):
         else:
             return None
 
+    @staticmethod
+    def get_firebase_serverkey():
+        return Config.get(constants.CONFIG_FIREBASE_SERVERKEY, '', group_name=constants.CONFIG_GROUP_SYSTEM)
+
 
 class BaseModel(models.Model):
     created_date = models.DateTimeField(auto_now_add=True, auto_now=False, null=True, editable=False,
