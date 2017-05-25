@@ -131,7 +131,15 @@
                                     再作成</a>
                             </td>
                             <td class="center">
-                                注文請書
+                                {% if order.filename_request %}
+                                    <a href="{% url 'download_bp_order_request' project_member.pk year month|stringformat:'02d' %}?overwrite=1" target="_blank">
+                                        ダウンロード</a>&nbsp;|&nbsp;
+                                    <a href="{% url 'download_bp_order_request' project_member.pk year month|stringformat:'02d' %}" target="_blank"
+                                       onclick="return confirm('既に作成済みなので、上書きしてもよろしいですか？')">
+                                        再作成</a>
+                                {% else %}
+                                    <a href="{% url 'download_bp_order_request' project_member.pk year month|stringformat:'02d' %}" target="_blank">注文請書作成</a>
+                                {% endif %}
                             </td>
                             {% else %}
                             <td class="center">

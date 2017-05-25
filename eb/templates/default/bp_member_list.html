@@ -50,7 +50,6 @@
                 <th>超過単価</th>
                 <th>不足単価</th>
                 <th>状態</th>
-                <th></th>
             </tr>
         </thead>
         <tbody>
@@ -98,14 +97,13 @@
                             {% endwith %}
                         {% endif %}
                     </td>
-                    <td class="center"><a href="{% url 'bp_member_orders' member.pk %}" target="_blank">編集</a></td>
                 </tr>
             {% endwith %}
             {% endfor %}
         </tbody>
         <tfoot>
             <tr>
-                <td colspan="11">
+                <td colspan="10">
                     {% paging members %}
                 </td>
             </tr>

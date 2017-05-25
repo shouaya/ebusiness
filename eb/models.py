@@ -2531,6 +2531,7 @@ class BpMemberOrder(BaseModel):
                             choices=constants.CHOICE_ATTENDANCE_YEAR, verbose_name=u"対象年")
     month = models.CharField(max_length=2, choices=constants.CHOICE_ATTENDANCE_MONTH, verbose_name=u"対象月")
     filename = models.CharField(max_length=255, blank=True, null=True, verbose_name=u"注文書ファイル名")
+    filename_request = models.CharField(max_length=255, blank=True, null=True, verbose_name=u"注文請書")
     created_user = models.ForeignKey(User, related_name='created_orders', null=True, on_delete=models.PROTECT,
                                      editable=False, verbose_name=u"作成者")
     updated_user = models.ForeignKey(User, related_name='updated_orders', null=True, on_delete=models.PROTECT,
@@ -2587,7 +2588,7 @@ class BpMemberOrder(BaseModel):
         return "{0}{1:02d}".format(order_no, index)
 
     def save(self, force_insert=False, force_update=False, using=None,
-             update_fields=None, data=None):
+             update_fields=None, data=None, is_request=False):
         super(BpMemberOrder, self).save(force_insert, force_update, using, update_fields)
         # 注文書作成時、注文に関する全ての情報を履歴として保存する。
         if data:
@@ -2635,6 +2636,11 @@ class BpMemberOrderHeading(models.Model):
     bp_order = models.OneToOneField(BpMemberOrder, verbose_name=u"ＢＰ注文書")
     publish_date = models.CharField(max_length=200, verbose_name=u"発行年月日")
     subcontractor_name = models.CharField(blank=True, null=True, max_length=50, verbose_name=u"下請け会社名")
+    subcontractor_post_code = models.CharField(blank=True, null=True, max_length=8, verbose_name=u"協力会社郵便番号")
+    subcontractor_address1 = models.CharField(blank=True, null=True, max_length=200, verbose_name=u"協力会社住所１")
+    subcontractor_address2 = models.CharField(blank=True, null=True, max_length=200, verbose_name=u"協力会社住所２")
+    subcontractor_tel = models.CharField(blank=True, null=True, max_length=15, verbose_name=u"協力会社電話番号")
+    subcontractor_fax = models.CharField(blank=True, null=True, max_length=15, verbose_name=u"協力会社ファックス")
     company_address1 = models.CharField(blank=True, null=True, max_length=200, verbose_name=u"本社住所１")
     company_address2 = models.CharField(blank=True, null=True, max_length=200, verbose_name=u"本社住所２")
     company_name = models.CharField(blank=True, null=True, max_length=30, verbose_name=u"会社名")

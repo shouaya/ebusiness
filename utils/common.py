@@ -705,43 +705,51 @@ def get_request_file_path(request_no, client_name, ym):
     return os.path.join(path, filename).decode('UTF-8')
 
 
-def get_order_file_path(order_no, client_name, ym):
+def get_order_file_path(order_no, client_name, ym, is_request=False):
     """協力会社の注文書のパスを取得する。
 
     :param order_no:
     :param client_name:
     :param ym:
+    :param is_request: 注文請書
     :return:
     """
     now = datetime.datetime.now()
-    filename = "EB注文書_%s_%s_%s.xlsx" % (str(order_no), client_name.encode('UTF-8'), now.strftime("%Y%m%d_%H%M%S%f"))
+    if is_request:
+        name_format = "EB注文請書_%s_%s_%s.xlsx"
+    else:
+        name_format = "EB注文書_%s_%s_%s.xlsx"
+    filename = name_format % (str(order_no), client_name.encode('UTF-8'), now.strftime("%Y%m%d_%H%M%S%f"))
     path = os.path.join(settings.GENERATED_FILES_ROOT, "partner_order", str(ym))
     if not os.path.exists(path):
         os.makedirs(path)
     return os.path.join(path, filename).decode('UTF-8')
 
 
-def get_template_order_path(contract):
+def get_template_order_path(contract, is_request=False):
     """注文書のテンプレートパスを取得する
 
     :param contract:
+    :param is_request: 注文請書
     :return:
     """
     if not contract:
         raise errors.CustomException(constants.ERROR_BP_NO_CONTRACT)
     if contract.is_hourly_pay:
         # 時給
-        path = os.path.join(settings.MEDIA_ROOT, 'eb_order', 'eb_order_hourly.xlsx')
+        filename = "eb_order_hourly"
     elif contract.is_fixed_cost:
         # 固定給料
-        path = os.path.join(settings.MEDIA_ROOT, 'eb_order', 'eb_order_fixed.xlsx')
-    elif contract.is_show_formula is False:
-        # 計算式を隠す
-        path = os.path.join(settings.MEDIA_ROOT, 'eb_order', 'eb_order_hide_formula.xlsx')
+        filename = "eb_order_fixed"
+    # elif contract.is_show_formula is False:
+    #     # 計算式を隠す
+    #     path = os.path.join(settings.MEDIA_ROOT, 'eb_order', 'eb_order_hide_formula.xlsx')
     else:
         # 既定
-        path = os.path.join(settings.MEDIA_ROOT, 'eb_order', 'eb_order.xlsx')
-    return path
+        filename = "eb_order"
+    if is_request:
+        filename = "%s(request).xlsx" % filename
+    return os.path.join(settings.MEDIA_ROOT, 'eb_order', filename)
 
 
 def delete_temp_files(path):

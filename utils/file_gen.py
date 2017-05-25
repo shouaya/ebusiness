@@ -847,11 +847,12 @@ def get_replace_labels_position(sheet, start_row, start_col, row_span):
     return labels
 
 
-def generate_order(data, template_path):
+def generate_order(data, template_path, is_request=False):
     """註文書を生成する。
 
     :param data 註文書の出力データ
     :param template_path: テンプレートのパス
+    :param is_request: 注文請書
     :return エクセルのバイナリー
     """
     if is_win32:
@@ -886,14 +887,15 @@ def generate_order(data, template_path):
 
         return path
     else:
-        return generate_order_linux(data, template_path)
+        return generate_order_linux(data, template_path, is_request)
 
 
-def generate_order_linux(data, template_path):
+def generate_order_linux(data, template_path, is_request):
     """openpyxlを利用してＢＰ注文書を作成する。
 
     :param data:
     :param template_path:
+    :param is_request: 注文請書
     :return:
     """
     book = px.load_workbook(template_path)
@@ -901,7 +903,7 @@ def generate_order_linux(data, template_path):
 
     order_no = data['DETAIL']['ORDER_NO']
     partner_name = data['DETAIL']['SUBCONTRACTOR_NAME']
-    path = common.get_order_file_path(order_no, partner_name, data['DETAIL']['YM'])
+    path = common.get_order_file_path(order_no, partner_name, data['DETAIL']['YM'], is_request)
 
     for row in sheet.iter_rows():
         for cell in row:

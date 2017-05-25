@@ -473,6 +473,20 @@ def generate_bp_order_data(project_member, year, month, contract, user, bp_order
     data['DETAIL']['PUBLISH_DATE'] = common.to_wareki(date)
     # 下請け会社名
     data['DETAIL']['SUBCONTRACTOR_NAME'] = project_member.member.subcontractor.name
+    # 下請け会社郵便番号
+    if project_member.member.subcontractor.post_code and len(project_member.member.subcontractor.post_code) == 7:
+        post_code = project_member.member.subcontractor.post_code[:3] + '-' + \
+                    project_member.member.subcontractor.post_code[3:]
+    else:
+        post_code = ''
+    data['DETAIL']['SUBCONTRACTOR_POST_CODE'] = post_code
+    # 下請け会社住所
+    data['DETAIL']['SUBCONTRACTOR_ADDRESS1'] = project_member.member.subcontractor.address1
+    data['DETAIL']['SUBCONTRACTOR_ADDRESS2'] = project_member.member.subcontractor.address2
+    # 下請け会社電話番号
+    data['DETAIL']['SUBCONTRACTOR_TEL'] = project_member.member.subcontractor.tel
+    # 下請け会社ファックス
+    data['DETAIL']['SUBCONTRACTOR_FAX'] = project_member.member.subcontractor.fax
     # 委託業務責任者（乙）
     data['DETAIL']['SUBCONTRACTOR_MASTER'] = project_member.member.subcontractor.president
     # 連絡窓口担当者（甲）
