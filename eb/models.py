@@ -3158,10 +3158,10 @@ def get_project_members_by_month(date):
     :return: ProjectMemberのQueryset
     """
     first_day = common.get_first_day_by_month(date)
-    today = datetime.date.today()
+    # today = datetime.date.today()
     next_2_month = common.add_months(first_day, 2)
-    if date.year == today.year and date.month == today.month:
-        first_day = today
+    # if date.year == today.year and date.month == today.month:
+    #     first_day = today
     last_day = common.get_last_day_by_month(date)
     query_set = ProjectMember.objects.public_filter(end_date__gte=first_day,
                                                     start_date__lte=last_day,
