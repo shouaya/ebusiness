@@ -123,9 +123,23 @@ class BpContractForm(BaseForm):
         cleaned_data = super(BpContractForm, self).clean()
         member = cleaned_data.get('member', None)
         company = cleaned_data.get('company', None)
+        start_date = cleaned_data.get('start_date', None)
+        end_date = cleaned_data.get('end_date', None)
         if not company and member and self.instance:
             self.instance.company = member.subcontractor
-
+        # 契約期間が重複されているかどうかをチェック
+        dates = [(start_date, end_date)]
+        queryset = models.BpContract.objects.public_filter(member=member).exclude(pk=self.instance.pk)
+        for contract in queryset:
+            dates.append((contract.start_date, contract.end_date))
+        if len(dates) > 1:
+            dates.sort(key=lambda date: date[0])
+            for i, period in enumerate(dates):
+                start_date, end_date = period
+                if common.is_cross_date(dates, start_date, i):
+                    self.add_error('start_date', u"契約期間の開始日が重複している。")
+                if end_date and common.is_cross_date(dates, end_date, i):
+                    self.add_error('end_date', u"契約期間の終了日が重複している。")
 
 # class BpContractFormset(forms.BaseInlineFormSet):
 #     def clean(self):
