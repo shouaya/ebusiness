@@ -35,9 +35,9 @@ def get_push_js(request):
 
 def push_notification(request):
     import requests
-    gcm_url = 'https://fcm.googleapis.com/fcm/send'
+    gcm_url = 'https://android.googleapis.com/gcm/send'
 
-    reg_id = "fmXw6HqlAKw:APA91bGwY6TsKrAWb2QkX9z__7oNMyXFAm4r8hr6demDEdQCF66KZ0yL6w0L8IG_2lgrIFPVvzL2cnL2iP2Oq-AQUcLkvJ-WhlsZKQ7mWnDOq-TCHlM5hvBIGOQg4vpkjr3b3qTfxVe7"
+    reg_id = "eU4IjUJu9Uk:APA91bGChpZNRcO4fkADblQbPfZfej9zAY8yNVGYAg44gtfk2tOXRkq6-pvFrvrae60KbLWszi_7dHCm9ZekQRQlh5eUC4tQnIS9K94ULpVXPmrJk_96a1rV0R2gnpEo1C76_xakNHfM"
     api_key = "key=" + Config.get_firebase_serverkey()
 
     headers = {'content-type': 'application/json', 'Authorization': api_key}
@@ -45,7 +45,8 @@ def push_notification(request):
     # dictのkeyはAndroidのextrasのkeyと合わせましょう
     params = json.dumps({'to': reg_id,
                          "data": {
-                             "message": "This is a GCM Topic Message!",
+                             "title": u"営業支援システム",
+                             "body": u"こんにちは"
                          },
                          })
 

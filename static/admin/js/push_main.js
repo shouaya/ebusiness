@@ -24,19 +24,6 @@ window.addEventListener("load", function() {
                     console.log('User is NOT subscribed.');
                 }
             })
-//            navigator.serviceWorker.ready.then(function(serviceWorkerRegistration) {
-//            serviceWorkerRegistration.pushManager
-//                .getSubscription()
-//                .then(function(subscription) {
-//                    // subscribeされてなければnullになる
-//                    if (!subscription) {
-//                      return;
-//                    }
-//
-//                    el.disabled = true;
-//                    renderSubscription(subscription);
-//                });
-//            });
         }).catch(function(error) {
             console.error('Service Worker Error', error);
         });
@@ -55,19 +42,8 @@ function subscribeUser() {
     .catch(function(err) {
         console.log('Failed to subscribe the user: ', err);
     });
-//  navigator.serviceWorker.ready.then(function(serviceWorkerRegistration) {
-//    serviceWorkerRegistration.pushManager.subscribe({userVisibleOnly:true}).then(function(subscription) {
-//      var el = document.querySelector(".js-push-button");
-//      el.disabled = true;
-//      renderSubscription(subscription);
-//    });
-//  });
 }
 
 function renderSubscription(subscription) {
   document.querySelector('#subscription').innerHTML = subscription.endpoint.split("/").pop();
-}
-
-function updateSubscriptionOnServer(subscription) {
-
 }
