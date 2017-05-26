@@ -35,12 +35,16 @@ def get_push_js(request):
 
 def push_notification(request):
     import requests
-    gcm_url = 'https://android.googleapis.com/gcm/send'
+    gcm_url = 'https://fcm.googleapis.com/fcm/send'
 
-    reg_id = "eU4IjUJu9Uk:APA91bGChpZNRcO4fkADblQbPfZfej9zAY8yNVGYAg44gtfk2tOXRkq6-pvFrvrae60KbLWszi_7dHCm9ZekQRQlh5eUC4tQnIS9K94ULpVXPmrJk_96a1rV0R2gnpEo1C76_xakNHfM"
+    reg_id = "cuJ235fUGEQ:APA91bHHdLmMA-hc5dDO8SrYcvWNfyDrbxGgaUafmnwh3DCtH0GplMK7uN1k7TalW52tzhZTVTeO2fK9V0imvrE6d3IYnRaKR1EEZmmMwRWDpc6nxrjMu7VN70qtdU0Er-vSdN2e3OKw"
     api_key = "key=" + Config.get_firebase_serverkey()
 
-    headers = {'content-type': 'application/json', 'Authorization': api_key}
+    headers = {'content-type': 'application/json',
+               'Authorization': api_key,
+               'Encryption': 'salt=BnALjqTuUuk6lv4jVM3C3w==',
+               'Crypto-Key': 'dh=BKbndB0NDEiugNa8VShuKp8cuQV14ZDhLZCUeNw0Ow814sbtREOEa80NIivfebkd8_D-if0NPFtGN0jh-guy-A0=',
+               'Content-Encoding': 'aesgcm'}
     # 渡すデータは適当です。
     # dictのkeyはAndroidのextrasのkeyと合わせましょう
     params = json.dumps({'to': reg_id,
@@ -48,7 +52,19 @@ def push_notification(request):
                              "title": u"営業支援システム",
                              "body": u"こんにちは"
                          },
+                         "notification": {
+                             "title": "Portugal vs. Denmark",
+                             "body": "5 to 1"
+                         },
                          })
 
     r = requests.post(gcm_url, data=params, headers=headers)
     return HttpResponse(r.content)
+
+
+def notification_data(request):
+    data = {
+        'title': u"新入社員",
+        'message': u"歓迎！"
+    }
+    return HttpResponse(json.dumps(data))
