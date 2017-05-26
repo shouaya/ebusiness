@@ -26,8 +26,8 @@ from django.core.mail import EmailMultiAlternatives, get_connection, SafeMIMETex
 from django.core.mail.message import MIMEBase
 from django.conf import settings
 from django.core.validators import validate_comma_separated_integer_list
-from django.contrib.contenttypes.models import ContentType
-from django.contrib.contenttypes.fields import GenericForeignKey
+# from django.contrib.contenttypes.models import ContentType
+# from django.contrib.contenttypes.fields import GenericForeignKey
 
 
 from utils import common, constants
@@ -297,6 +297,11 @@ class Config(models.Model):
     @staticmethod
     def get_firebase_serverkey():
         return Config.get(constants.CONFIG_FIREBASE_SERVERKEY, '', group_name=constants.CONFIG_GROUP_SYSTEM)
+
+    @staticmethod
+    def get_gcm_url():
+        return Config.get(constants.CONFIG_GCM_URL, 'https://fcm.googleapis.com/fcm/send',
+                          group_name=constants.CONFIG_GROUP_SYSTEM)
 
 
 class BaseModel(models.Model):
@@ -3029,6 +3034,19 @@ class BatchCarbonCopy(BaseModel):
             return self.salesperson.__unicode__()
         else:
             return self.email
+
+
+class PushNotification(BaseModel):
+    user = models.ForeignKey(User, verbose_name=u"ユーザー")
+    registration_id = models.CharField(max_length=1000, verbose_name=u"デバイスの登録ＩＤ")
+    key_auth = models.CharField(max_length=100)
+    key_p256dh = models.CharField(max_length=256)
+    title = models.CharField(blank=True, null=True, max_length=100)
+    message = models.CharField(blank=True, null=True, max_length=256)
+
+    class Meta:
+        ordering = ['user']
+        verbose_name = verbose_name_plural = u"プッシュ通知"
 
 
 class EmailMultiAlternativesWithEncoding(EmailMultiAlternatives):

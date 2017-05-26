@@ -11,12 +11,38 @@ from django.http import HttpResponseRedirect
 from django.shortcuts import render_to_response
 from django.http import HttpResponse
 from django.conf import settings
+from django.utils.decorators import method_decorator
+from django.contrib.auth.decorators import login_required
+from django.views.generic import View
+from django.views.generic.base import ContextMixin
+from django.contrib.admin.models import LogEntry, ADDITION
+from django.contrib.contenttypes.models import ContentType
+from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
 
-from eb.models import Company, Config
+from eb import models
+from utils import constants
+
+
+@method_decorator(login_required(login_url=constants.LOGIN_IN_URL), name='dispatch')
+class BaseView(View, ContextMixin):
+
+    def get_context_data(self, **kwargs):
+        context = super(BaseView, self).get_context_data(**kwargs)
+        return context
+
+    def get(self, request, *args, **kwargs):
+        kwargs.update({
+            'request': request
+        })
+        context = self.get_context_data(**kwargs)
+        return self.render_to_response(context)
+
+    def post(self, request, *args, **kwargs):
+        pass
 
 
 def home(request):
-    if Company.objects.all().count() == 0:
+    if models.Company.objects.all().count() == 0:
         return HttpResponseRedirect("/admin/eb/company/add/")
     else:
         return HttpResponseRedirect("/eb/")
@@ -33,38 +59,50 @@ def get_push_js(request):
     return response
 
 
-def push_notification(request):
-    import requests
-    gcm_url = 'https://fcm.googleapis.com/fcm/send'
+class UpdateSubscription(BaseView):
 
-    reg_id = "cuJ235fUGEQ:APA91bHHdLmMA-hc5dDO8SrYcvWNfyDrbxGgaUafmnwh3DCtH0GplMK7uN1k7TalW52tzhZTVTeO2fK9V0imvrE6d3IYnRaKR1EEZmmMwRWDpc6nxrjMu7VN70qtdU0Er-vSdN2e3OKw"
-    api_key = "key=" + Config.get_firebase_serverkey()
-
-    headers = {'content-type': 'application/json',
-               'Authorization': api_key,
-               'Encryption': 'salt=BnALjqTuUuk6lv4jVM3C3w==',
-               'Crypto-Key': 'dh=BKbndB0NDEiugNa8VShuKp8cuQV14ZDhLZCUeNw0Ow814sbtREOEa80NIivfebkd8_D-if0NPFtGN0jh-guy-A0=',
-               'Content-Encoding': 'aesgcm'}
-    # 渡すデータは適当です。
-    # dictのkeyはAndroidのextrasのkeyと合わせましょう
-    params = json.dumps({'to': reg_id,
-                         "data": {
-                             "title": u"営業支援システム",
-                             "body": u"こんにちは"
-                         },
-                         "notification": {
-                             "title": "Portugal vs. Denmark",
-                             "body": "5 to 1"
-                         },
-                         })
-
-    r = requests.post(gcm_url, data=params, headers=headers)
-    return HttpResponse(r.content)
+    def post(self, request, *args, **kwargs):
+        result = {}
+        subscription = request.POST.get('subscription', None)
+        if subscription:
+            subscription = json.loads(subscription)
+            endpoint = subscription.get('endpoint')
+            registration_id = endpoint.split('/')[-1]
+            if models.PushNotification.objects.filter(registration_id=registration_id).count() == 0:
+                notification = models.PushNotification(
+                    user=request.user,
+                    registration_id=registration_id,
+                    key_auth=subscription.get('keys').get('auth'),
+                    key_p256dh=subscription.get('keys').get('p256dh')
+                )
+                notification.save()
+                LogEntry.objects.log_action(request.user.id,
+                                            ContentType.objects.get_for_model(notification).pk,
+                                            notification.pk,
+                                            unicode(notification),
+                                            ADDITION,
+                                            change_message=u"デバイスを追加しました：" + registration_id)
+            result['error'] = 0
+        else:
+            result['error'] = 1
+        return HttpResponse(json.dumps(result))
 
 
 def notification_data(request):
-    data = {
-        'title': u"新入社員",
-        'message': u"歓迎！"
-    }
+    registration_id = request.GET.get('registration_id', None)
+    data = {}
+    if registration_id:
+        try:
+            notification = models.PushNotification.objects.get(registration_id=registration_id)
+            title = notification.title
+            message = notification.message
+        except (ObjectDoesNotExist, MultipleObjectsReturned):
+            title = ''
+            message = ''
+        data = {
+            'title': title,
+            'message': message,
+        }
+    else:
+        data['error'] = 1
     return HttpResponse(json.dumps(data))

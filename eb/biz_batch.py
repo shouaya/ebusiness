@@ -11,6 +11,7 @@ import re
 import os
 import traceback
 import openpyxl as px
+import requests
 
 from . import biz, biz_config
 from utils import constants, common, file_gen
@@ -22,6 +23,7 @@ from django.contrib.admin.models import LogEntry, ADDITION, CHANGE
 from django.contrib.contenttypes.models import ContentType
 from django.utils.text import get_text_list
 from django.utils.translation import ugettext as _
+from django.contrib.auth.models import User
 
 
 def sync_members(batch):
@@ -471,3 +473,49 @@ def members_to_excel(data_list, path):
         r += 1
 
     book.save(path)
+
+
+def batch_push_new_member(batch):
+    logger = batch.get_logger()
+    if batch.mail_body and '%s' in batch.mail_body:
+        gcm_url = models.Config.get_gcm_url()
+        # 新入社員通知
+        members = models.Member.objects.public_filter(join_date=datetime.date.today())
+        if members.count() > 0:
+            message = batch.mail_body % u"、".join([unicode(m) for m in members])
+            users = User.objects.filter(is_superuser=True)
+            push_notification(users, batch.mail_title, message, gcm_url)
+            logger.info(u"プッシュ通知しました。")
+        else:
+            logger.info(u"新入社員がいません。")
+    else:
+        logger.info(u"メール本文(Plain Text)が設定されていません。")
+
+
+def push_notification(users, title, message, gcm_url=None):
+    if not gcm_url:
+        gcm_url = models.Config.get_gcm_url()
+
+    queryset = models.PushNotification.objects.public_filter(user__in=users)
+    queryset.update(title=title, message=message)
+    for notification in queryset:
+        headers = {'content-type': 'application/json',
+                   'Authorization': "key=" + models.Config.get_firebase_serverkey(),
+                   'Encryption': 'salt=' + notification.key_auth,
+                   'Crypto-Key': 'dh=' + notification.key_p256dh,
+                   'Content-Encoding': 'aesgcm'}
+        # 渡すデータは適当です。
+        # dictのkeyはAndroidのextrasのkeyと合わせましょう
+        params = json.dumps({'to': notification.registration_id,
+                             "data": {
+                                 "title": u"メッセージタイトル",
+                                 "body": u"メッセージ本文"
+                             },
+                             "notification": {
+                                 "title": u"メッセージタイトル",
+                                 "body": u"メッセージ本文"
+                             },
+                             })
+
+        r = requests.post(gcm_url, data=params, headers=headers)
+        pass

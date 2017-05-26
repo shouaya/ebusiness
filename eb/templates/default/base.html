@@ -31,7 +31,6 @@
             <div class="header-top">
                 <img class="logo" src="/static/logo.gif" />
                 <span style="color: gray;">E-Business Inc.</span>
-                <button class="js-push-button" style="display:none;">register</button>
                 <div class="login-info">
                     {% if not user.is_anonymous %}
                         ようこそ&nbsp;&nbsp;
@@ -116,6 +115,7 @@
             <a href="{% url 'history' %}">Click here to see history</a>
             {% endifequal %}
             <a href="{% url 'issues' %}">課題管理票</a>
+            <button disabled class="js-push-button right" style="display: none;">register</button>
         </div>
     </footer>
 </body>

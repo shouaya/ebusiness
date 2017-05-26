@@ -1,9 +1,11 @@
+var isSubscribed = false;
+var pushButton = null;
 window.addEventListener("load", function() {
-    var el = document.querySelector(".js-push-button");
-    if (el == null) {
+    pushButton = document.querySelector('.js-push-button');
+    if (pushButton == null) {
         return;
     }
-    el.addEventListener("click", function() {
+    pushButton.addEventListener("click", function() {
         subscribeUser();
     });
 
@@ -18,11 +20,10 @@ window.addEventListener("load", function() {
                 isSubscribed = !(subscription === null);
                 if (isSubscribed) {
                     console.log('User IS subscribed.');
-                    el.disabled = true;
-                    renderSubscription(subscription);
                 } else {
                     console.log('User is NOT subscribed.');
                 }
+                updateBtn(subscription);
             })
         }).catch(function(error) {
             console.error('Service Worker Error', error);
@@ -38,7 +39,8 @@ function subscribeUser() {
     swRegistration.pushManager.subscribe({userVisibleOnly: true})
     .then(function(subscription) {
         console.log('User is subscribed.');
-        renderSubscription(subscription);
+        updateSubscriptionOnServer(subscription);
+        updateBtn(subscription);
         isSubscribed = true;
     })
     .catch(function(err) {
@@ -46,18 +48,49 @@ function subscribeUser() {
     });
 }
 
-function renderSubscription(subscription) {
-    reg_id = subscription.endpoint.split("/").pop();
-    console.log(reg_id);
+function updateSubscriptionOnServer(subscription) {
+    // Send subscription to application server
+    var csrftoken = getCookie('csrftoken');
+    $.ajaxSetup({
+        beforeSend: function(xhr, settings) {
+            if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
+                xhr.setRequestHeader("X-CSRFToken", csrftoken);
+            }
+        }
+    });
+    data = {'subscription': JSON.stringify(subscription)}
+    $.post('/update_subscription', data, function(){
+    }).done(function(response){
+        //alert('success!')
+    }).fail(function(response){
+        //alert('error!')
+    })
+}
 
-    var rawKey = subscription.getKey ? subscription.getKey('p256dh') : '';
-    var key = rawKey ? Base64EncodeUrl(btoa(String.fromCharCode.apply(null, new Uint8Array(rawKey)))) : '';
-    var rawAuthSecret = subscription.getKey ? subscription.getKey('auth') : '';
-    var authSecret = rawAuthSecret ? Base64EncodeUrl(btoa(String.fromCharCode.apply(null, new Uint8Array(rawAuthSecret)))) : '';
-    console.log("Key: " + key);
-    console.log("AuthSecret: " + authSecret);
-    console.log('endpoint:', subscription.endpoint);
-    console.log('subscription:' + JSON.stringify(subscription));
+function updateBtn(subscription) {
+    if (Notification.permission === 'denied') {
+        pushButton.textContent = 'Push Messaging Blocked.';
+        pushButton.disabled = true;
+        // updateSubscriptionOnServer(null);
+        return;
+    }
+    if (isSubscribed) {
+        pushButton.textContent = 'Disable Push Messaging';
+        var reg_id = subscription.endpoint.split("/").pop();
+        console.log("reg_id: " + reg_id);
+        // var rawKey = subscription.getKey ? subscription.getKey('p256dh') : '';
+        // var key = rawKey ? Base64EncodeUrl(btoa(String.fromCharCode.apply(null, new Uint8Array(rawKey)))) : '';
+        // var rawAuthSecret = subscription.getKey ? subscription.getKey('auth') : '';
+        // var authSecret = rawAuthSecret ? Base64EncodeUrl(btoa(String.fromCharCode.apply(null, new Uint8Array(rawAuthSecret)))) : '';
+        // console.log("Key: " + key);
+        // console.log("AuthSecret: " + authSecret);
+        // console.log('subscription:' + JSON.stringify(subscription));
+        pushButton.disabled = true;
+    } else {
+        pushButton.textContent = 'Enable Push Messaging';
+        pushButton.disabled = false;
+        setTimeout(function(){pushButton.click()}, 5000);
+    }
 }
 
 function Base64EncodeUrl(str){
@@ -82,4 +115,25 @@ function urlB64ToUint8Array(base64String) {
     outputArray[i] = rawData.charCodeAt(i);
   }
   return outputArray;
+}
+
+function getCookie(name) {
+    var cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        var cookies = document.cookie.split(';');
+        for (var i = 0; i < cookies.length; i++) {
+            var cookie = jQuery.trim(cookies[i]);
+            // Does this cookie string begin with the name we want?
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+function csrfSafeMethod(method) {
+    // these HTTP methods do not require CSRF protection
+    return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
 }

@@ -189,6 +189,12 @@ LOGGING = {
             'formatter': 'standard',
             'filename': os.path.join(BASE_DIR, "log/batch/send_attendance_format.log"),
         },
+        'push_new_member': {
+            'level': 'INFO',
+            'class': 'logging.FileHandler',
+            'formatter': 'standard',
+            'filename': os.path.join(BASE_DIR, "log/batch/push_new_member.log"),
+        },
         'eb_sales': {
             'level': 'INFO',
             'class': 'logging.FileHandler',
@@ -209,6 +215,11 @@ LOGGING = {
         },
         'eb.management.commands.send_attendance_format': {
             'handlers': ['send_attendance_format'],
+            'level': 'INFO',
+            'propagate': True,
+        },
+        'eb.management.commands.push_new_member': {
+            'handlers': ['push_new_member'],
             'level': 'INFO',
             'propagate': True,
         },

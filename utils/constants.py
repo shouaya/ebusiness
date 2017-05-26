@@ -30,6 +30,7 @@ NAME_MEMBERS_COST = u"要員コスト一覧_%s"
 BATCH_MEMBER_STATUS = 'member_status'
 BATCH_SYNC_MEMBERS = 'sync_members'
 BATCH_SEND_ATTENDANCE_FORMAT = 'send_attendance_format'
+BATCH_PUSH_NEW_MEMBER = 'push_new_member'
 
 CONFIG_ADMIN_EMAIL_ADDRESS = 'admin_email_address'
 CONFIG_ADMIN_EMAIL_SMTP_HOST = 'admin_email_smtp_host'
@@ -65,6 +66,7 @@ CONFIG_BP_ORDER_PAYMENT_CONDITION = 'payment_condition'
 CONFIG_BP_ORDER_CONTRACT_ITEMS = 'contract_items'
 CONFIG_DEFAULT_EXPENSES_ID = 'default_expenses_category_id'
 CONFIG_FIREBASE_SERVERKEY = 'firebase_serverkey'
+CONFIG_GCM_URL = 'gcm_url'
 
 MARK_POST_CODE = u"〒"
 
