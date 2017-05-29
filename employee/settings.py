@@ -195,6 +195,12 @@ LOGGING = {
             'formatter': 'standard',
             'filename': os.path.join(BASE_DIR, "log/batch/push_new_member.log"),
         },
+        'push_birthday': {
+            'level': 'INFO',
+            'class': 'logging.FileHandler',
+            'formatter': 'standard',
+            'filename': os.path.join(BASE_DIR, "log/batch/push_birthday.log"),
+        },
         'eb_sales': {
             'level': 'INFO',
             'class': 'logging.FileHandler',
@@ -220,6 +226,11 @@ LOGGING = {
         },
         'eb.management.commands.push_new_member': {
             'handlers': ['push_new_member'],
+            'level': 'INFO',
+            'propagate': True,
+        },
+        'eb.management.commands.push_birthday': {
+            'handlers': ['push_birthday'],
             'level': 'INFO',
             'propagate': True,
         },

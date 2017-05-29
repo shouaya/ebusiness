@@ -31,6 +31,7 @@ BATCH_MEMBER_STATUS = 'member_status'
 BATCH_SYNC_MEMBERS = 'sync_members'
 BATCH_SEND_ATTENDANCE_FORMAT = 'send_attendance_format'
 BATCH_PUSH_NEW_MEMBER = 'push_new_member'
+BATCH_PUSH_BIRTHDAY = 'push_birthday'
 
 CONFIG_ADMIN_EMAIL_ADDRESS = 'admin_email_address'
 CONFIG_ADMIN_EMAIL_SMTP_HOST = 'admin_email_smtp_host'

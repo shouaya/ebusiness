@@ -24,7 +24,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.utils.text import get_text_list
 from django.utils.translation import ugettext as _
 from django.contrib.auth.models import User
-
+from django.db.models.functions import ExtractMonth, ExtractDay
 
 def sync_members(batch):
     company = biz.get_company()
@@ -488,6 +488,27 @@ def batch_push_new_member(batch):
             logger.info(u"プッシュ通知しました。")
         else:
             logger.info(u"新入社員がいません。")
+    else:
+        logger.info(u"メール本文(Plain Text)が設定されていません。")
+
+
+def batch_push_birthday(batch):
+    logger = batch.get_logger()
+    if batch.mail_body and '%s' in batch.mail_body:
+        gcm_url = models.Config.get_gcm_url()
+        today = datetime.date.today()
+        # 今日誕生日の社員
+        members = models.Member.objects.public_all().annotate(
+            month=ExtractMonth('birthday'),
+            day=ExtractDay('birthday')
+        ).filter(day=today.day, month='%02d' % today.month).exclude(member_type=4)
+        if members.count() > 0:
+            message = batch.mail_body % u"、".join([unicode(m) for m in members])
+            users = User.objects.filter(is_superuser=True)
+            push_notification(users, batch.mail_title, message, gcm_url)
+            logger.info(u"プッシュ通知しました。")
+        else:
+            logger.info(u"今日(%s)誕生日の社員がいません。" % today.strftime('%Y-%m-%d'))
     else:
         logger.info(u"メール本文(Plain Text)が設定されていません。")
 
