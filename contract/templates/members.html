@@ -1,5 +1,6 @@
 {% extends "base_contract.html" %}
 {% load humanize %}
+{% load sales_templates %}
 
 {% block content %}
 <form method="get" action="#">
@@ -27,7 +28,7 @@
             </thead>
             <tbody>
                 {% for member in members %}
-                <tr>
+                <tr {% if member.is_retired %}class="expired"{% endif %}>
                     {% with contract=member.latest_contract_set|first %}
                     {% if contract %}
                         <td class="center"><a href="{% url 'contract_change' member.id_from_api %}">{{ member.id_from_api|default:'' }}</a></td>
@@ -49,9 +50,12 @@
                             <td class="center"><a href="{% url 'contract_change' member.id_from_api %}">{{ member.id_from_api|default:'' }}</a></td>
                         {% else %}
                             <td class="center">
+                                {% if member.is_retired %}
+                                {% else %}
                                 <a href="javascript:gen_api_id('{% url 'gen_api_id' member.pk %}')" onclick="return confirm('ＩＤを作成しますか？')">
                                     <i class="fa fa-plus" aria-hidden="true"></i>
                                 </a>
+                                {% endif %}
                             </td>
                         {% endif %}
                         <td><a href="{% url 'member_change' member.pk %}">{{ member }}</a></td>
@@ -71,30 +75,7 @@
             <tfoot>
                 <tr>
                     <td colspan="10">
-                        <div class="pagination">
-                            <span class="step-links">
-                                {% if members.has_previous %}
-                                    <a href="?page={{ members.previous_page_number }}{{ params }}{{ orders }}">&lt;</a>
-                                {% endif %}
-
-                                {% if paginator.page_range|length > 1 %}
-                                    {% for page in paginator.page_range %}
-                                        {% ifequal page members.number %}
-                                            <span class="current">
-                                                {{ page }}
-                                            </span>
-                                        {% else %}
-                                            <a href="?page={{ page }}{{ params }}{{ orders }}">{{ page }}</a>
-                                        {% endifequal %}
-                                    {% endfor %}
-                                {% endif %}
-
-                                {% if members.has_next %}
-                                    <a href="?page={{ members.next_page_number }}{{ params }}{{ orders }}">&gt;</a>
-                                {% endif %}
-                                <span>{{ paginator.count }} 件</span>
-                            </span>
-                        </div>
+                        {% paging members %}
                     </td>
                 </tr>
             </tfoot>

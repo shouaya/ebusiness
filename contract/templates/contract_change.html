@@ -96,6 +96,12 @@ django.jQuery = $
                     </td>
                 </tr>
                 <tr>
+                    <th>{{ form.is_loan.label_tag }}</th>
+                    <td>{{ form.is_loan.errors }}
+                        <table class="inner"><tr><td>{{ form.is_loan }}</td></tr></table>
+                    </td>
+                </tr>
+                <tr>
                     <th>{{ form.employment_date.label_tag }}<span class="red">*</span></th>
                     <td>{{ form.employment_date.errors }}
                         <table class="inner"><tr><td>{{ form.employment_date }}</td></tr></table>

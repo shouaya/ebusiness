@@ -57,6 +57,10 @@ article table.list tbody td {
     background-color: #F7FAFF;
 }
 
+article table.list tr.expired td {
+    background-color: lightgray;
+}
+
 article .pagination {
     margin-top: 3px;
     padding: 2px;

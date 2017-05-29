@@ -37,7 +37,7 @@
             <div class="errors">{{ form.errors }}</div>
             <table class="detail">
                 <tr>
-                    <th style="width: 150px;">{{ form.id_from_api.label_tag }}<span class="red">*</span></th>
+                    <th style="width: 150px;">{{ form.id_from_api.label_tag }}</th>
                     <td colspan="3"><div class="inner">{{ form.id_from_api.errors }}{{ form.id_from_api }}</div></td>
                 </tr>
                 <tr>
@@ -51,6 +51,12 @@
                     <td>{{ form.first_name_ja.errors }}{{ form.first_name_ja }}</td>
                     <th>{{ form.last_name_ja.label_tag }}</th>
                     <td>{{ form.last_name_ja.errors }}{{ form.last_name_ja }}</td>
+                </tr>
+                <tr>
+                    <th>{{ form.first_name_en.label_tag }}</th>
+                    <td>{{ form.first_name_en.errors }}{{ form.first_name_en }}</td>
+                    <th>{{ form.last_name_en.label_tag }}</th>
+                    <td>{{ form.last_name_en.errors }}{{ form.last_name_en }}</td>
                 </tr>
                 <tr>
                     <th>{{ form.member_type.label_tag }}<span class="red">*</span></th>

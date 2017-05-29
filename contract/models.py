@@ -56,6 +56,7 @@ class Contract(BaseModel):
     contract_no = models.CharField(max_length=20, verbose_name=u"契約番号")
     contract_date = models.DateField(verbose_name=u"契約日", help_text=u"例：2014-01-01")
     member_type = models.IntegerField(choices=constants.CHOICE_MEMBER_TYPE, verbose_name=u"雇用形態")
+    is_loan = models.BooleanField(default=False, verbose_name=u"出向")
     employment_date = models.DateField(verbose_name=u"雇用日", help_text=u"例：2014-01-01")
     start_date = models.DateField(verbose_name=u"雇用開始日")
     end_date = models.DateField(blank=True, null=True, verbose_name=u"雇用終了日")

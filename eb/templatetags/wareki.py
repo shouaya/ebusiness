@@ -10,4 +10,7 @@ from utils import common
 
 @register.filter
 def to_wareki(date):
-    return common.to_wareki(date)
+    if date:
+        return common.to_wareki(date)
+    else:
+        return ''
