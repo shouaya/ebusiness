@@ -18,9 +18,6 @@ import constants, errors
 import jholiday
 
 from decimal import Decimal
-from django.conf import settings
-from django.contrib.auth.models import Group
-from django.utils import timezone
 
 
 def get_tz_jp():
@@ -72,6 +69,8 @@ def get_last_day_from_ym(ym):
 
 
 def get_last_day_current_month():
+    from django.utils import timezone
+
     return get_last_day_by_month(timezone.now())
 
 
@@ -697,6 +696,8 @@ def get_request_file_path(request_no, client_name, ym):
     :param ym: 対象年月
     :return:
     """
+    from django.conf import settings
+
     now = datetime.datetime.now()
     filename = "EB請求書_%s_%s_%s.xlsx" % (str(request_no), client_name.encode('UTF-8'), now.strftime("%Y%m%d_%H%M%S%f"))
     path = os.path.join(settings.GENERATED_FILES_ROOT, "project_request", str(ym))
@@ -714,6 +715,8 @@ def get_order_file_path(order_no, client_name, ym, is_request=False):
     :param is_request: 注文請書
     :return:
     """
+    from django.conf import settings
+
     now = datetime.datetime.now()
     if is_request:
         name_format = "EB注文請書_%s_%s_%s.xlsx"
@@ -733,6 +736,8 @@ def get_template_order_path(contract, is_request=False):
     :param is_request: 注文請書
     :return:
     """
+    from django.conf import settings
+
     if not contract:
         raise errors.CustomException(constants.ERROR_BP_NO_CONTRACT)
     if contract.is_hourly_pay:
@@ -960,6 +965,8 @@ def has_group(user, group_name):
     :param group_name:
     :return:
     """
+    from django.contrib.auth.models import Group
+
     if user.username == 'admin':
         return True
     try:
