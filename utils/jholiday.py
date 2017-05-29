@@ -57,31 +57,31 @@ Python 2.6.1 (r261:67515, Feb 11 2010, 15:47:53)
 [GCC 4.2.1 (Apple Inc. build 5646)] on darwin
 Type "help", "copyright", "credits" or "license" for more information.
 
->>> import jholiday
->>> jholiday.holiday_name(2007, 4, 28)
-None
->>> jholiday.holiday_name(2007, 4, 29)
-u'\u662d\u548c\u306e\u65e5'
->>> print jholiday.holiday_name(2007, 4, 29).encode('euc-jp')
-昭和の日
->>> import datetime
->>> date = datetime.date(2007, 4, 29)
->>> jholiday.holiday_name(date = date)
-u'\u662d\u548c\u306e\u65e5'
-
-
-Python 3.1.2 (r312:79360M, Mar 24 2010, 01:33:18) 
-[GCC 4.0.1 (Apple Inc. build 5493)] on darwin
-Type "help", "copyright", "credits" or "license" for more information.
->>> import jholiday
->>> jholiday.holiday_name(2007, 4, 28)
->>> jholiday.holiday_name(2007, 4, 29)
-'昭和の日'
->>> print(jholiday.holiday_name(2007, 4, 29))
-昭和の日
->>> import datetime
->>> date = datetime.date(2007, 4, 29)
->>> jholiday.holiday_name(date = date)
+# >>> import jholiday
+# >>> jholiday.holiday_name(2007, 4, 28)
+# None
+# >>> jholiday.holiday_name(2007, 4, 29)
+# u'\u662d\u548c\u306e\u65e5'
+# >>> print jholiday.holiday_name(2007, 4, 29).encode('euc-jp')
+# 昭和の日
+# >>> import datetime
+# >>> date = datetime.date(2007, 4, 29)
+# >>> jholiday.holiday_name(date = date)
+# u'\u662d\u548c\u306e\u65e5'
+#
+#
+# Python 3.1.2 (r312:79360M, Mar 24 2010, 01:33:18)
+# [GCC 4.0.1 (Apple Inc. build 5493)] on darwin
+# Type "help", "copyright", "credits" or "license" for more information.
+# >>> import jholiday
+# >>> jholiday.holiday_name(2007, 4, 28)
+# >>> jholiday.holiday_name(2007, 4, 29)
+# '昭和の日'
+# >>> print(jholiday.holiday_name(2007, 4, 29))
+# 昭和の日
+# >>> import datetime
+# >>> date = datetime.date(2007, 4, 29)
+# >>> jholiday.holiday_name(date = date)
 '昭和の日'
 """
 
@@ -92,21 +92,23 @@ import math
 
 MONDAY, TUESDAY, WEDNESDAY = 0, 1, 2
 
+
 def _vernal_equinox(y):
     """整数で年を与えると、その年の春分の日が3月の何日であるかを返す
     """
     if y <= 1947:
         d = 0
     elif y <= 1979:
-        d = math.floor(20.8357  +  0.242194 * (y - 1980)  -  math.floor((y - 1980) / 4))
+        d = math.floor(20.8357 + 0.242194 * (y - 1980) - math.floor((y - 1980) / 4))
     elif y <= 2099:
-        d = math.floor(20.8431  +  0.242194 * (y - 1980)  -  math.floor((y - 1980) / 4))
+        d = math.floor(20.8431 + 0.242194 * (y - 1980) - math.floor((y - 1980) / 4))
     elif y <= 2150:
-        d = math.floor(21.8510  +  0.242194 * (y - 1980)  -  math.floor((y - 1980) / 4))
+        d = math.floor(21.8510 + 0.242194 * (y - 1980) - math.floor((y - 1980) / 4))
     else:
         d = 99
 
     return d
+
 
 def _autumn_equinox(y):
     """整数で年を与えると、その年の秋分の日が9月の何日であるかを返す
@@ -114,17 +116,18 @@ def _autumn_equinox(y):
     if y <= 1947:
         d = 0
     elif y <= 1979:
-        d = math.floor(23.2588  +  0.242194 * (y - 1980)  -  math.floor((y - 1980) / 4))
+        d = math.floor(23.2588 + 0.242194 * (y - 1980) - math.floor((y - 1980) / 4))
     elif y <= 2099:
-        d = math.floor(23.2488  +  0.242194 * (y - 1980)  -  math.floor((y - 1980) / 4))
+        d = math.floor(23.2488 + 0.242194 * (y - 1980) - math.floor((y - 1980) / 4))
     elif y <= 2150:
-        d = math.floor(24.2488  +  0.242194 * (y - 1980)  -  math.floor((y - 1980) / 4))
+        d = math.floor(24.2488 + 0.242194 * (y - 1980) - math.floor((y - 1980) / 4))
     else:
         d = 99
 
     return d
 
-def holiday_name(year = None, month = None, day = None, date = None):
+
+def holiday_name(year=None, month=None, day=None, date=None):
     """holiday_name() の呼び出し方法は2通りあります。
 
     1つ目の方法は、3つの引数 year, month, day に整数を渡す方法です。
@@ -138,14 +141,13 @@ def holiday_name(year = None, month = None, day = None, date = None):
     指定した日が祝日でなければ、 Python のバージョンによらず None を返します。
     """
 
-    if date == None:
+    if date is None:
         date = datetime.date(year, month, day)
 
     if date < datetime.date(1948, 7, 20):
         return None
     else:
         name = None
-
 
     # 1月
     if date.month == 1:
@@ -243,7 +245,7 @@ def holiday_name(year = None, month = None, day = None, date = None):
 
     # 振替休日
     if not name and date.weekday() == MONDAY:
-        prev = date + datetime.timedelta(days = -1)
+        prev = date + datetime.timedelta(days=-1)
         if holiday_name(prev.year, prev.month, prev.day):
             name = '振替休日'
 

@@ -840,9 +840,10 @@ def get_business_days(year, month, exclude=None):
     for i in range(1, 32):
         try:
             this_date = datetime.date(int(year), int(month), i)
-        except(ValueError):
+        except ValueError:
             break
-        if this_date.weekday() < 5 and jholiday.holiday_name(int(year), int(month), i) is None: # Monday == 0, Sunday == 6
+        if this_date.weekday() < 5 and jholiday.holiday_name(int(year), int(month), i) is None:
+            # Monday == 0, Sunday == 6
             if exclude and this_date.strftime("%Y/%m/%d") not in exclude:
                 business_days += 1
     return business_days
@@ -1002,5 +1003,5 @@ def to_wareki(date):
 
 
 if __name__ == "__main__":
-    for i in range(1, 10):
-        print u'2016年%02d月' % (i,), get_business_days(2016, i)
+    for it in range(1, 10):
+        print u'2016年%02d月' % (it,), get_business_days(2016, it)
