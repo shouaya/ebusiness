@@ -754,6 +754,8 @@ def get_template_order_path(contract, is_request=False):
         filename = "eb_order"
     if is_request:
         filename = "%s(request).xlsx" % filename
+    else:
+        filename = "%s.xlsx" % filename
     return os.path.join(settings.MEDIA_ROOT, 'eb_order', filename)
 
 

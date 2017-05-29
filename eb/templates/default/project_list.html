@@ -4,8 +4,8 @@
 {% block header %}
     <script type="text/javascript">
         window.onload = function() {
-            init_select("name__contains");
-            init_select("client__name__contains");
+            init_select("name__icontains");
+            init_select("client__name__icontains");
             init_select("salesperson__pk");
             init_select("status");
             init_select("is_lump");
@@ -18,8 +18,8 @@
     <div class="dashboard">
         <div class="dashboard-title">{{ title }}</div>
         <form action="{% url 'project_list' %}" method="get">
-            <span>名称: </span><input type="text" id="name__contains" name="name__contains" style="width: 200px;"/>
-            <span>関連会社: </span><input type="text" id="client__name__contains" name="client__name__contains" style="width: 150px;"/>
+            <span>名称: </span><input type="text" id="name__icontains" name="name__icontains" style="width: 200px;"/>
+            <span>関連会社: </span><input type="text" id="client__name__icontains" name="client__name__icontains" style="width: 150px;"/>
             <span>営業員:</span>
             <select id="salesperson__pk" name="salesperson__pk">
                 <option value="">すべて</option>
