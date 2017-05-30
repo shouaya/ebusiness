@@ -250,29 +250,29 @@ def sync_members_for_change(batch):
         logger.warning(u"%sのEBOAユーザーＩＤが設定されていません。" % (', '.join(name_list)))
 
 
-def sync_contracts(batch):
-    members = models.Member.objects.public_filter(eboa_user_id__isnull=False)
-    logger = batch.get_logger()
-    user = batch.get_log_entry_user()
-    # changed_list = []
-    # common.get_object_changed_message(member, 'cost', cost, changed_list)
-    # # common.get_object_changed_message(member, 'member_type', member_type, changed_list)
-    # if changed_list:
-    #     member.cost = cost
-    #     # member.member_type = member_type
-    #     member.save()
-    #
-    #     change_message = _('Changed %s.') % get_text_list(changed_list,
-    #                                                       _('and')) if changed_list else ''
-    #     prefix = u"【%s】" % batch.title
-    #     LogEntry.objects.log_action(user_id=user.pk,
-    #                                 content_type_id=ContentType.objects.get_for_model(member).pk,
-    #                                 object_id=member.pk,
-    #                                 object_repr=unicode(member),
-    #                                 action_flag=CHANGE,
-    #                                 change_message=(prefix + change_message) or _('No fields changed.'))
-    #     msg = u"name: %s, %s" % (member.__unicode__(), u"情報が変更されました。")
-    #     logger.info(msg)
+# def sync_contracts(batch):
+#     members = models.Member.objects.public_filter(eboa_user_id__isnull=False)
+#     logger = batch.get_logger()
+#     user = batch.get_log_entry_user()
+#     changed_list = []
+#     common.get_object_changed_message(member, 'cost', cost, changed_list)
+#     # common.get_object_changed_message(member, 'member_type', member_type, changed_list)
+#     if changed_list:
+#         member.cost = cost
+#         # member.member_type = member_type
+#         member.save()
+#
+#         change_message = _('Changed %s.') % get_text_list(changed_list,
+#                                                           _('and')) if changed_list else ''
+#         prefix = u"【%s】" % batch.title
+#         LogEntry.objects.log_action(user_id=user.pk,
+#                                     content_type_id=ContentType.objects.get_for_model(member).pk,
+#                                     object_id=member.pk,
+#                                     object_repr=unicode(member),
+#                                     action_flag=CHANGE,
+#                                     change_message=(prefix + change_message) or _('No fields changed.'))
+#         msg = u"name: %s, %s" % (member.__unicode__(), u"情報が変更されました。")
+#         logger.info(msg)
 
 
 def get_latest_concat(code):
@@ -478,6 +478,13 @@ def members_to_excel(data_list, path):
 
 
 def batch_push_new_member(batch):
+    """新入社員のプッシュ通知
+
+    本日入社する人を全員にお知らせします。
+
+    :param batch:
+    :return:
+    """
     logger = batch.get_logger()
     if batch.mail_body and '%s' in batch.mail_body:
         gcm_url = models.Config.get_gcm_url()
@@ -485,11 +492,8 @@ def batch_push_new_member(batch):
         members = models.Member.objects.public_filter(join_date=datetime.date.today())
         if members.count() > 0:
             message = batch.mail_body % u"、".join([unicode(m) for m in members])
-            users = User.objects.filter(Q(is_superuser=True) |
-                                        (Q(salesperson__isnull=False) &
-                                         Q(salesperson__is_retired=False) &
-                                         Q(salesperson__is_deleted=False)),
-                                        is_active=True)
+            # ユーザー全員
+            users = User.objects.filter(is_active=True)
             push_notification(users, batch.mail_title, message, gcm_url)
             logger.info(u"プッシュ通知しました。")
         else:
@@ -499,6 +503,13 @@ def batch_push_new_member(batch):
 
 
 def batch_push_birthday(batch):
+    """誕生日のプッシュ通知
+
+    本日誕生日の社員をスーパーユーザーと営業員にお知らせします。
+
+    :param batch:
+    :return:
+    """
     logger = batch.get_logger()
     if batch.mail_body and '%s' in batch.mail_body:
         gcm_url = models.Config.get_gcm_url()
@@ -510,6 +521,7 @@ def batch_push_birthday(batch):
         ).filter(day=today.day, month='%02d' % today.month).exclude(member_type=4)
         if members.count() > 0:
             message = batch.mail_body % u"、".join([unicode(m) for m in members])
+            # スーパーユーザーと営業員
             users = User.objects.filter(Q(is_superuser=True) |
                                         (Q(salesperson__isnull=False) &
                                          Q(salesperson__is_retired=False) &
@@ -524,6 +536,14 @@ def batch_push_birthday(batch):
 
 
 def push_notification(users, title, message, gcm_url=None):
+    """プッシュ通知を各端末に送信する。
+
+    :param users:
+    :param title:
+    :param message:
+    :param gcm_url:
+    :return:
+    """
     if not gcm_url:
         gcm_url = models.Config.get_gcm_url()
 
@@ -548,5 +568,4 @@ def push_notification(users, title, message, gcm_url=None):
                              },
                              })
 
-        r = requests.post(gcm_url, data=params, headers=headers)
-        pass
+        requests.post(gcm_url, data=params, headers=headers)
