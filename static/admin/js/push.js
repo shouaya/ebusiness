@@ -22,7 +22,7 @@ self.addEventListener("push", function(event) {
     event.waitUntil(
         self.registration.pushManager.getSubscription().then(function(subscription) {
             var reg_id = subscription.endpoint.split("/").pop();
-            var notificationsPath = 'https://localhost/notification_data?registration_id=' + reg_id;
+            var notificationsPath = '/notification_data?registration_id=' + reg_id;
             var headers = new Headers();
             headers.append('Accept', 'application/json');
             return fetch(notificationsPath, {headers: headers}).then(function(response) {

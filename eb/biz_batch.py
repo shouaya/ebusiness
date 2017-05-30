@@ -25,6 +25,8 @@ from django.utils.text import get_text_list
 from django.utils.translation import ugettext as _
 from django.contrib.auth.models import User
 from django.db.models.functions import ExtractMonth, ExtractDay
+from django.db.models import Q
+
 
 def sync_members(batch):
     company = biz.get_company()
@@ -483,7 +485,11 @@ def batch_push_new_member(batch):
         members = models.Member.objects.public_filter(join_date=datetime.date.today())
         if members.count() > 0:
             message = batch.mail_body % u"、".join([unicode(m) for m in members])
-            users = User.objects.filter(is_superuser=True)
+            users = User.objects.filter(Q(is_superuser=True) |
+                                        (Q(salesperson__isnull=False) &
+                                         Q(salesperson__is_retired=False) &
+                                         Q(salesperson__is_deleted=False)),
+                                        is_active=True)
             push_notification(users, batch.mail_title, message, gcm_url)
             logger.info(u"プッシュ通知しました。")
         else:
@@ -504,7 +510,11 @@ def batch_push_birthday(batch):
         ).filter(day=today.day, month='%02d' % today.month).exclude(member_type=4)
         if members.count() > 0:
             message = batch.mail_body % u"、".join([unicode(m) for m in members])
-            users = User.objects.filter(is_superuser=True)
+            users = User.objects.filter(Q(is_superuser=True) |
+                                        (Q(salesperson__isnull=False) &
+                                         Q(salesperson__is_retired=False) &
+                                         Q(salesperson__is_deleted=False)),
+                                        is_active=True)
             push_notification(users, batch.mail_title, message, gcm_url)
             logger.info(u"プッシュ通知しました。")
         else:
