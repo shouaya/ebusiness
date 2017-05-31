@@ -1,5 +1,6 @@
 {% extends theme|add:"/base.html" %}
 {% load order_by_tag %}
+{% load sales_templates %}
 
 {% block header %}
     <script type="text/javascript">
@@ -98,30 +99,7 @@
         <tfoot>
             <tr>
                 <td colspan="8">
-                    <div class="pagination">
-                        <span class="step-links">
-                            {% if project_members.has_previous %}
-                                <a href="?page={{ project_members.previous_page_number }}{{ params }}">&lt;</a>
-                            {% endif %}
-
-                            {% if paginator.page_range|length > 1 %}
-                                {% for page in paginator.page_range %}
-                                    {% ifequal page project_members.number %}
-                                        <span class="current">
-                                            {{ page }}
-                                        </span>
-                                    {% else %}
-                                        <a href="?page={{ page }}{{ params }}">{{ page }}</a>
-                                    {% endifequal %}
-                                {% endfor %}
-                            {% endif %}
-
-                            {% if project_members.has_next %}
-                                <a href="?page={{ project_members.next_page_number }}{{ params }}">&gt;</a>
-                            {% endif %}
-                            <span>{{ paginator.count }} 件</span>
-                        </span>
-                    </div>
+                    {% paging project_members %}
                 </td>
             </tr>
         </tfoot>

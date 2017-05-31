@@ -182,6 +182,7 @@ class MemberForm(forms.ModelForm):
         sales_off_reason = cleaned_data.get("sales_off_reason")
         is_retired = cleaned_data.get("is_retired")
         retired_date = cleaned_data.get("retired_date")
+        today = datetime.date.today()
 
         if post_code and not re.match(REG_POST_CODE, post_code):
             self.add_error('post_code', u"正しい郵便番号を入力してください。")
@@ -217,6 +218,9 @@ class MemberForm(forms.ModelForm):
             if sales_off_reason is None:
                 self.add_error('sales_off_reason', u"営業対象外の場合、営業対象外理由は選択してください！")
         if is_retired:
+            # 案件アサインの終了日をチェックする、終了日はまだ来てない場合は退職が設定できない。
+            if self.instance.projectmember_set.filter(is_deleted=False, end_date__gt=today).count() > 0:
+                self.add_error('is_retired', u"まだ終了してない案件が存在しているので、退職は設定できません！")
             if retired_date is None:
                 self.add_error('retired_date', u"退職した場合、退職年月日を入力してください！")
 

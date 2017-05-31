@@ -1756,7 +1756,7 @@ class ClientOrder(BaseModel):
     projects = models.ManyToManyField(Project, verbose_name=u"案件")
     name = models.CharField(max_length=50, verbose_name=u"注文書名称")
     start_date = models.DateField(default=common.get_first_day_current_month(), verbose_name=u"開始日")
-    end_date = models.DateField(default=common.get_last_day_current_month(), verbose_name=u"終了日")
+    end_date = models.DateField(default=timezone.now, verbose_name=u"終了日")
     order_no = models.CharField(max_length=20, verbose_name=u"注文番号")
     order_date = models.DateField(blank=False, null=True, verbose_name=u"注文日")
     bank_info = models.ForeignKey(BankInfo, blank=False, null=True, on_delete=models.PROTECT, verbose_name=u"振込先口座")
@@ -3266,7 +3266,7 @@ def get_release_members_by_month(date, p=None):
     ).exclude(member__in=working_member_next_date)
     if p:
         project_members = project_members.filter(**p)
-    return project_members
+    return project_members.order_by('member__first_name', 'member__last_name')
 
 
 def get_release_current_month():
