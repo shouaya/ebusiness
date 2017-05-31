@@ -66,7 +66,7 @@
             <tr class="row2">
                 <th>今月リリース:</th>
                 <td class="num">
-                    <a href="{% url 'release_list_current' %}?salesperson={{ user.salesperson.pk }}"
+                    <a href="{% url 'release_list' filter_list.current_ym %}?salesperson={{ user.salesperson.pk }}"
                        class="red">{{ user.salesperson.get_release_current_month.count }}</a></td>
                 <th>来月リリース:</th>
                 <td class="num">
@@ -147,7 +147,7 @@
                         </a>
                     </td>
                     <td class="center">
-                        <a href="{% url 'release_list_current' %}?salesperson={{ salesperson.pk }}">
+                        <a href="{% url 'release_list' filter_list.current_ym %}?salesperson={{ salesperson.pk }}">
                             {{ salesperson.get_release_current_month.count }}
                         </a>
                     </td>

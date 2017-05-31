@@ -1177,15 +1177,6 @@ class TurnoverClientYearlyView(BaseTemplateView):
 
 
 @method_decorator(permission_required('eb.view_member', raise_exception=True), name='get')
-class ReleaseListCurrentView(BaseTemplateView):
-    template_name = 'default/release_list.html'
-
-    def get(self, request, *args, **kwargs):
-        now = datetime.date.today()
-        return redirect(reverse("release_list", args=(now.strftime('%Y%m'),)))
-
-
-@method_decorator(permission_required('eb.view_member', raise_exception=True), name='get')
 class ReleaseListView(BaseTemplateView):
     template_name = 'default/release_list.html'
 

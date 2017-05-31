@@ -26,6 +26,7 @@
 </head>
 
 <body>
+{% now 'Ym' as current_ym %}
 	<header>
         <div class="container">
             <div class="header-top">
@@ -68,7 +69,7 @@
                         <ul>
                             <li><a href="{% url 'member_cost_list' %}">要員コスト一覧</a></li>
                             <li><a href="{% url 'change_list' %}">入退場リスト</a></li>
-                            <li><a href="{% url 'release_list_current' %}">リリース状況一覧</a></li>
+                            <li><a href="{% url 'release_list' current_ym %}">リリース状況一覧</a></li>
                         </ul>
                     </li>
                     <li><a href="{% url 'project_list' %}">案件一覧</a>

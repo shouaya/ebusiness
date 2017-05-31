@@ -713,6 +713,7 @@ class Salesperson(AbstractMember):
                                                  Q(membersalespersonperiod__end_date__isnull=True)) |
                                                 (Q(membersalespersonperiod__start_date__lte=today) &
                                                  Q(membersalespersonperiod__end_date__gte=today)),
+                                                membersalespersonperiod__is_deleted=False,
                                                 membersalespersonperiod__salesperson=self)
         return members
 
@@ -726,6 +727,7 @@ class Salesperson(AbstractMember):
                                                   Q(membersalespersonperiod__end_date__isnull=True)) |
                                                  (Q(membersalespersonperiod__start_date__lte=today) &
                                                   Q(membersalespersonperiod__end_date__gte=today)),
+                                                 membersalespersonperiod__is_deleted=False,
                                                  membersalespersonperiod__salesperson=self)
         return members
 
@@ -739,6 +741,7 @@ class Salesperson(AbstractMember):
                                                 Q(membersalespersonperiod__end_date__isnull=True)) |
                                                (Q(membersalespersonperiod__start_date__lte=today) &
                                                 Q(membersalespersonperiod__end_date__gte=today)),
+                                               membersalespersonperiod__is_deleted=False,
                                                membersalespersonperiod__salesperson=self)
         return members
 
@@ -752,6 +755,7 @@ class Salesperson(AbstractMember):
                                                 Q(membersalespersonperiod__end_date__isnull=True)) |
                                                (Q(membersalespersonperiod__start_date__lte=today) &
                                                 Q(membersalespersonperiod__end_date__gte=today)),
+                                               membersalespersonperiod__is_deleted=False,
                                                membersalespersonperiod__salesperson=self)
         return members
 
@@ -766,6 +770,7 @@ class Salesperson(AbstractMember):
                                             Q(member__membersalespersonperiod__end_date__isnull=True)) |
                                            (Q(member__membersalespersonperiod__start_date__lte=today) &
                                             Q(member__membersalespersonperiod__end_date__gte=today)),
+                                           member__membersalespersonperiod__is_deleted=False,
                                            member__membersalespersonperiod__salesperson=self)
         return query_set
 
@@ -780,6 +785,7 @@ class Salesperson(AbstractMember):
                                             Q(member__membersalespersonperiod__end_date__isnull=True)) |
                                            (Q(member__membersalespersonperiod__start_date__lte=today) &
                                             Q(member__membersalespersonperiod__end_date__gte=today)),
+                                           member__membersalespersonperiod__is_deleted=False,
                                            member__membersalespersonperiod__salesperson=self)
         return query_set
 
@@ -794,6 +800,7 @@ class Salesperson(AbstractMember):
                                             Q(member__membersalespersonperiod__end_date__isnull=True)) |
                                            (Q(member__membersalespersonperiod__start_date__lte=today) &
                                             Q(member__membersalespersonperiod__end_date__gte=today)),
+                                           member__membersalespersonperiod__is_deleted=False,
                                            member__membersalespersonperiod__salesperson=self)
         return query_set
 
@@ -3087,7 +3094,8 @@ def get_all_members(date=None):
     query_set = Member.objects.filter(Q(join_date__isnull=True) | Q(join_date__lte=last_day),
                                       Q(membersectionperiod__division__is_on_sales=True) |
                                       Q(membersectionperiod__section__is_on_sales=True) |
-                                      Q(membersectionperiod__subsection__is_on_sales=True)).distinct()
+                                      Q(membersectionperiod__subsection__is_on_sales=True),
+                                      membersectionperiod__is_deleted=False).distinct()
     # 現在所属の部署を取得
     section_set = MemberSectionPeriod.objects.filter((Q(start_date__lte=last_day) & Q(end_date__isnull=True)) |
                                                      (Q(start_date__lte=last_day) & Q(end_date__gte=first_day)))
@@ -3249,11 +3257,13 @@ def get_release_members_by_month(date, p=None):
     """
     # 次の月はまだ稼働中の案件メンバーは除外する。
     working_member_next_date = get_working_members(date=common.add_months(date, 1))
-    project_members = get_project_members_by_month(date).filter(Q(member__membersectionperiod__division__is_on_sales=True) |
-                                                                Q(member__membersectionperiod__section__is_on_sales=True) |
-                                                                Q(member__membersectionperiod__subsection__is_on_sales=True),
-                                                                member__is_on_sales=True)\
-        .exclude(member__in=working_member_next_date)
+    project_members = get_project_members_by_month(date).filter(
+        Q(member__membersectionperiod__division__is_on_sales=True) |
+        Q(member__membersectionperiod__section__is_on_sales=True) |
+        Q(member__membersectionperiod__subsection__is_on_sales=True),
+        member__membersectionperiod__is_deleted=False,
+        member__is_on_sales=True,
+    ).exclude(member__in=working_member_next_date)
     if p:
         project_members = project_members.filter(**p)
     return project_members

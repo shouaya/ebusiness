@@ -112,7 +112,6 @@ urlpatterns = [
     url(r'^member/', include(member_patterns)),
     url(r'^section/', include(section_patterns)),
     url(r'^project/', include(project_patterns)),
-    url(r'^release_list.html$', views.ReleaseListCurrentView.as_view(), name='release_list_current'),
     url(r'^release_list/(?P<ym>[0-9]{6}).html$', views.ReleaseListView.as_view(), name='release_list'),
     url(r'^subcontractor/', include(subcontractor_patterns)),
     url(r'^turnover/', include(turnover_patterns)),
