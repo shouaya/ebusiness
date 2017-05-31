@@ -1,6 +1,17 @@
 {% extends theme|add:"/base.html" %}
 
 {% block header %}
+<script type="text/javascript">
+    $(document).ready(function () {
+          setTimeout(function () {
+            $('.load-delay').each(function () {
+                var imagex = $(this);
+                var imgOriginal = imagex.data('original');
+                $(imagex).attr('src', imgOriginal);
+            });
+        }, 200);
+    });
+</script>
 <style type="text/css">
     .project_list td,
     .status_list td {
@@ -164,13 +175,13 @@
             </tr>
             <tr class="row2">
                 <th>社員数(営業対象内):</th>
-                <td class="num"><a href="{% url 'employee_list' %}?status=sales_prev"> {{ member_count_prev_month }}</a></td>
+                <td class="num"><a > {{ member_count_prev_month }}</a></td>
                 <th>稼働中人数:</th>
-                <td class="num"><a href="{% url 'employee_list' %}?status=working_prev"> {{ working_member_count_prev_month }}</a></td>
+                <td class="num"><a > {{ working_member_count_prev_month }}</a></td>
                 <th>待機中人数:</th>
-                <td class="num"><a href="{% url 'employee_list' %}?status=waiting_prev" class="red">{{ waiting_member_count_prev_month }}</a></td>
-                <th>営業対象外:</th>
-                <td class="num"><a href="{% url 'employee_list' %}?status=off_sales_prev">{{ off_sales_members_count_prev_month }}</a></td>
+                <td class="num"><a  class="red">{{ waiting_member_count_prev_month }}</a></td>
+                <th></th>
+                <td class="num"></td>
                 <th></th>
                 <td class="num"></td>
             </tr>
@@ -194,13 +205,13 @@
             </tr>
             <tr class="row2">
                 <th>社員数(営業対象内):</th>
-                <td class="num"><a href="{% url 'employee_list' %}?status=sales_next"> {{ member_count_next_month }}</a></td>
+                <td class="num"><a > {{ member_count_next_month }}</a></td>
                 <th>稼働中人数:</th>
-                <td class="num"><a href="{% url 'employee_list' %}?status=working_next"> {{ working_member_count_next_month }}</a></td>
+                <td class="num"><a > {{ working_member_count_next_month }}</a></td>
                 <th>待機中人数:</th>
-                <td class="num"><a href="{% url 'employee_list' %}?status=waiting_next" class="red">{{ waiting_member_count_next_month }}</a></td>
-                <th>営業対象外:</th>
-                <td class="num"><a href="{% url 'employee_list' %}?status=off_sales_next">{{ off_sales_members_count_next_month }}</a></td>
+                <td class="num"><a  class="red">{{ waiting_member_count_next_month }}</a></td>
+                <th></th>
+                <td class="num"></td>
                 <th></th>
                 <td class="num"></td>
             </tr>
@@ -222,6 +233,9 @@
                         {{ release_next_2_month_count }}</a></td>
             </tr>
         </table>
+        <div class="center">
+            <img style="max-width: 1100px; max-height: 205px;" class="load-delay" src="" data-original="{% url 'member_status_bar' %}">
+        </div>
     </div>
     <div class="dashboard">
         <div class="dashboard-title">協力社員状況</div>

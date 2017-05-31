@@ -34,6 +34,7 @@ self.addEventListener("push", function(event) {
                 });
             }).catch(function(err) {
                 console.error('Unable to retrieve notifications.', err);
+                return;
             });
         })
     );

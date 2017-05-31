@@ -91,6 +91,7 @@ class AbstractMember(models.Model):
                                       help_text=u"メール通知時に利用する。EBのメールアドレスを設定すると、"
                                                 u"通知のメールはEBのアドレスに送信する")
     is_retired = models.BooleanField(blank=False, null=False, default=False, verbose_name=u"退職")
+    retired_date = models.DateField(blank=True, null=True, verbose_name=u"退職年月日")
     id_from_api = models.CharField(blank=True, null=True, unique=True, max_length=30,
                                    verbose_name=u"社員ID", help_text=u"データを導入するために、API側のID")
     eboa_user_id = models.BigIntegerField(blank=True, null=True, unique=True)
@@ -3078,25 +3079,41 @@ class EmailMultiAlternativesWithEncoding(EmailMultiAlternatives):
 
 
 def get_all_members(date=None):
-    if date is None:
-        date = datetime.date.today()
-    query_set = Member.objects.filter(Q(join_date__isnull=True) | Q(join_date__lte=date),
-                                      membersectionperiod__section__is_on_sales=True).distinct()
+    if date is None or date.strftime('%Y%m') == datetime.date.today().strftime('%Y%m'):
+        first_day = last_day = datetime.date.today()
+    else:
+        first_day = common.get_first_day_by_month(date)
+        last_day = common.get_last_day_by_month(date)
+    query_set = Member.objects.filter(Q(join_date__isnull=True) | Q(join_date__lte=last_day),
+                                      Q(membersectionperiod__division__is_on_sales=True) |
+                                      Q(membersectionperiod__section__is_on_sales=True) |
+                                      Q(membersectionperiod__subsection__is_on_sales=True)).distinct()
     # 現在所属の部署を取得
-    section_set = MemberSectionPeriod.objects.filter((Q(start_date__lte=date) & Q(end_date__isnull=True)) |
-                                                     (Q(start_date__lte=date) & Q(end_date__gte=date)))
+    section_set = MemberSectionPeriod.objects.filter((Q(start_date__lte=last_day) & Q(end_date__isnull=True)) |
+                                                     (Q(start_date__lte=last_day) & Q(end_date__gte=first_day)))
     # 現在所属の営業員を取得
-    salesperson_set = MemberSalespersonPeriod.objects.filter((Q(start_date__lte=date) & Q(end_date__isnull=True)) |
-                                                             (Q(start_date__lte=date) & Q(end_date__gte=date)))
+    salesperson_set = MemberSalespersonPeriod.objects.filter((Q(start_date__lte=last_day) & Q(end_date__isnull=True)) |
+                                                             (Q(start_date__lte=last_day) & Q(end_date__gte=first_day)))
     return query_set.prefetch_related(
         Prefetch('membersectionperiod_set', queryset=section_set, to_attr='current_section_period'),
         Prefetch('membersalespersonperiod_set', queryset=salesperson_set, to_attr='current_salesperson_period'),
     ).extra(select={
-        'last_end_date': "select max(end_date) "
+        'last_end_date': "select max(pm.end_date) "
                          "  from eb_projectmember pm "
+                         "  join eb_project p on p.id = pm.project_id"
                          " where pm.member_id = eb_member.id "
                          "   and pm.is_deleted = 0 "
-                         "   and pm.status = 2",
+                         "   and pm.status = 2"
+                         "   and p.is_reserve = 0",
+        'is_working': "select count(1)"
+                      "  from eb_projectmember pm"
+                      "  join eb_project p on p.id = pm.project_id"
+                      " where pm.member_id = eb_member.id"
+                      "   and pm.status = 2"
+                      "   and pm.is_deleted = 0"
+                      "   and pm.start_date <= '%s'"
+                      "   and pm.end_date >= '%s'"
+                      "   and p.is_reserve = 0" % (last_day, first_day),
         'planning_count': "select count(*) "
                           "  from eb_projectmember pm "
                           " where pm.member_id = eb_member.id "
@@ -3112,7 +3129,10 @@ def get_sales_members(date=None):
 
     :return: MemberのQueryset
     """
-    return get_all_members(date).filter(is_retired=False)
+    if date is None:
+        date = datetime.date.today()
+    first_day = common.get_first_day_by_month(date)
+    return get_all_members(date).filter(Q(is_retired=False) | (Q(is_retired=True) & Q(retired_date__gt=first_day)))
 
 
 def get_on_sales_members(date=None):
@@ -3145,7 +3165,7 @@ def get_working_members(date=None):
     :param date: 対象年月
     :return: MemberのQueryset
     """
-    if not date:
+    if not date or date.strftime('%Y%m') == datetime.date.today().strftime('%Y%m'):
         first_day = last_day = datetime.date.today()
     else:
         first_day = common.get_first_day_by_month(date)
@@ -3153,7 +3173,8 @@ def get_working_members(date=None):
     members = get_on_sales_members(date).filter(projectmember__start_date__lte=last_day,
                                                 projectmember__end_date__gte=first_day,
                                                 projectmember__is_deleted=False,
-                                                projectmember__status=2).distinct()
+                                                projectmember__status=2,
+                                                projectmember__project__is_reserve=False).distinct()
     return members
 
 
@@ -3228,7 +3249,9 @@ def get_release_members_by_month(date, p=None):
     """
     # 次の月はまだ稼働中の案件メンバーは除外する。
     working_member_next_date = get_working_members(date=common.add_months(date, 1))
-    project_members = get_project_members_by_month(date).filter(member__membersectionperiod__section__is_on_sales=True,
+    project_members = get_project_members_by_month(date).filter(Q(member__membersectionperiod__division__is_on_sales=True) |
+                                                                Q(member__membersectionperiod__section__is_on_sales=True) |
+                                                                Q(member__membersectionperiod__subsection__is_on_sales=True),
                                                                 member__is_on_sales=True)\
         .exclude(member__in=working_member_next_date)
     if p:

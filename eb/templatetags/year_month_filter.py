@@ -42,7 +42,7 @@ class GenerateFilterTag(template.Node):
         current_year = context.get(self.context_year, None)
         current_month = context.get(self.context_month, None)
         if year_list and current_year and current_month:
-            nodes.append(u"<span>対象年月</span>")
+            nodes.append(u"<span>対象年月：</span>")
             nodes.append(u'<select id="{0}" name="{0}">'.format(self.year_name))
             for y in year_list:
                 if "%04d" % y == current_year:

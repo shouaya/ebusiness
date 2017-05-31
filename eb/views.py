@@ -37,7 +37,7 @@ from django.views.generic import View
 from django.views.generic.base import TemplateResponseMixin, ContextMixin
 from django.db.models import Count
 
-from eb import biz, biz_turnover, biz_config
+from eb import biz, biz_turnover, biz_config, biz_plot
 from utils import constants, common, errors, loader as file_loader, file_gen
 from . import forms, models
 
@@ -89,8 +89,8 @@ class IndexView(BaseTemplateView):
                        'next_2_ym': next_2_months.strftime('%Y%m')}
 
         member_count = models.get_on_sales_members().count()
-        working_members = models.get_working_members()
-        waiting_members = models.get_waiting_members()
+        working_member_count = models.get_working_members().count()
+        waiting_member_count = models.get_waiting_members().count()
         member_in_coming = biz.get_members_in_coming()
         off_sales_members_count = models.get_off_sales_members().count()
 
@@ -127,8 +127,8 @@ class IndexView(BaseTemplateView):
             'waiting_member_count_prev_month': models.get_waiting_members(prev_month).count(),
             'off_sales_members_count_prev_month': models.get_off_sales_members(prev_month).count(),
             'member_count': member_count,
-            'working_member_count': working_members.count(),
-            'waiting_member_count': waiting_members.count(),
+            'working_member_count': working_member_count,
+            'waiting_member_count': waiting_member_count,
             'members_in_coming_count': member_in_coming.count(),
             'off_sales_members_count': off_sales_members_count,
             'member_count_next_month': models.get_on_sales_members(next_month).count(),
@@ -158,50 +158,26 @@ class MemberListView(BaseTemplateView):
     template_name = 'default/employee_list.html'
 
     def get(self, request, *args, **kwargs):
-        date = datetime.date.today()
-        prev_month = common.add_months(date, -1)
-        next_month = common.add_months(date, 1)
+        year = request.GET.get('year', None)
+        month = request.GET.get('month', None)
+        if year and month:
+            date = datetime.date(int(year), int(month), 20)
+        else:
+            date = datetime.date.today()
+            year = str(date.year)
+            month = '%02d' % date.month
         status = request.GET.get('status', None)
         section_id = request.GET.get('section', None)
         salesperson_id = request.GET.get('salesperson', None)
         q = request.GET.get('q', None)
-        month_type = 'current'
         if status == "sales":
-            all_members = models.get_on_sales_members()
-            month_type = 'current'
+            all_members = models.get_on_sales_members(date)
         elif status == "working":
-            all_members = models.get_working_members()
-            month_type = 'current'
+            all_members = models.get_working_members(date)
         elif status == "waiting":
-            all_members = models.get_waiting_members()
-            month_type = 'current'
+            all_members = models.get_waiting_members(date)
         elif status == "off_sales":
-            all_members = models.get_off_sales_members()
-            month_type = 'current'
-        elif status == "sales_prev":
-            all_members = models.get_on_sales_members(prev_month)
-            month_type = 'prev'
-        elif status == "working_prev":
-            all_members = models.get_working_members(prev_month)
-            month_type = 'prev'
-        elif status == "waiting_prev":
-            all_members = models.get_waiting_members(prev_month)
-            month_type = 'prev'
-        elif status == "off_sales_prev":
-            all_members = models.get_off_sales_members(prev_month)
-            month_type = 'prev'
-        elif status == "sales_next":
-            all_members = models.get_on_sales_members(next_month)
-            month_type = 'next'
-        elif status == "working_next":
-            all_members = models.get_working_members(next_month)
-            month_type = 'next'
-        elif status == "waiting_next":
-            all_members = models.get_waiting_members(next_month)
-            month_type = 'next'
-        elif status == "off_sales_next":
-            all_members = models.get_off_sales_members(next_month)
-            month_type = 'next'
+            all_members = models.get_off_sales_members(date)
         else:
             all_members = models.get_all_members()
 
@@ -245,7 +221,6 @@ class MemberListView(BaseTemplateView):
         context = self.get_context_data()
         context.update({
             'title': u'要員一覧 | %s' % constants.NAME_SYSTEM,
-            'month_type': month_type,
             'members': members,
             'sections': biz.get_on_sales_top_org(),
             'salesperson': models.Salesperson.objects.public_all(),
@@ -1891,6 +1866,14 @@ class ImageTurnoverClientsYearlyView(BaseView):
         else:
             img_data = biz_turnover.clients_turnover_yearly_area_plot(year)
 
+        response = HttpResponse(img_data, content_type="image/png")
+        return response
+
+
+class ImageMemberStatusBar(BaseView):
+
+    def get(self, request, *args, **kwargs):
+        img_data = biz_plot.members_status_bar()
         response = HttpResponse(img_data, content_type="image/png")
         return response
 

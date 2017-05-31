@@ -1,6 +1,7 @@
 {% extends theme|add:"/base.html" %}
 {% load order_by_tag %}
 {% load sales_templates %}
+{% load year_month_filter %}
 
 {% block header %}
     <script type="text/javascript">
@@ -62,6 +63,7 @@
                 <option value="1">営業対象</option>
                 <option value="0">営業対象外</option>
             </select>
+            {% year_month_filter year month %}
             <input type="submit" value="Filter" />
             <a href="{{ request.path }}">クリア</a>
         </form>
@@ -73,6 +75,19 @@
             <a href="{% url 'admin:eb_member_add' %}?from=portal&_popup=1" target="_blank">要員を追加</a>
         </div>
         {% endif %}
+    </div>
+    <div class="dashboard">
+        <div class="dashboard-title">{{ year }}年{{ month }}月の情報まとめ</div>
+        <table>
+            <tr>
+                <th>社員数(営業対象内):</th>
+                <td><b>{{ member_count }}</b></td>
+                <th>稼働中人数:</th>
+                <td><b>{{ working_member_count }}</b></td>
+                <th>待機中人数:</th>
+                <td class="red"><b>{{ waiting_member_count }}</b></td>
+            </tr>
+        </table>
     </div>
     <table class="list" cellpadding="0" cellspacing="0">
         <thead>
@@ -119,7 +134,7 @@
                             <td colspan="4">退職</td>
                         {% else %}
                             <td class="center">
-                                {% if member.is_working > 0 %}
+                                {% if member.last_end_date|date:"Y-m-d" > ymd %}
                                     <a href="?status=working{{ params }}"><img width="12px" src="/static/{{ theme }}/img/icon-normal.png"/></a>
                                 {% else %}
                                     <a href="?status=waiting{{ params }}"><img width="12px" src="/static/{{ theme }}/img/icon-warn.png"/></a>

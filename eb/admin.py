@@ -401,7 +401,7 @@ class MemberAdmin(BaseAdmin):
                    'is_retired', 'is_deleted']
     search_fields = ['first_name', 'last_name', 'employee_id']
     inlines = (DegreeInline, MemberSectionPeriodInline, MemberSalespersonPeriodInline, EmployeeExpensesInline)
-    actions = ['create_users', 'member_retire']
+    actions = ['create_users']
     fieldsets = (
         (None, {'fields': ('employee_id',
                            ('first_name', 'last_name'),
@@ -417,7 +417,7 @@ class MemberAdmin(BaseAdmin):
                      'country', 'graduate_date', 'phone', 'japanese_description',
                      'certificate', 'skill_description', 'comment')}),
         (u"勤務情報", {'fields': ['member_type', 'ranking', 'join_date', 'email', 'notify_type', 'section', 'company',
-                              'subcontractor', 'is_on_sales', 'sales_off_reason', 'is_retired']})
+                              'subcontractor', 'is_on_sales', 'sales_off_reason', 'is_retired', 'retired_date']})
     )
 
     def is_user_created(self, obj):
@@ -470,11 +470,11 @@ class MemberAdmin(BaseAdmin):
             self.fieldsets[2][1]['fields'].insert(-3, 'is_individual_pay')
         return super(MemberAdmin, self).add_view(request, form_url, extra_context)
 
-    def member_retire(self, request, queryset):
-        cnt = queryset.update(is_retired=True)
-        self.message_user(request,  str(cnt) + u"件選択されたメンバーが退職しました。")
-
-    member_retire.short_description = u"選択されたメンバーを退職する"
+    # def member_retire(self, request, queryset):
+    #     cnt = queryset.update(is_retired=True)
+    #     self.message_user(request,  str(cnt) + u"件選択されたメンバーが退職しました。")
+    #
+    # member_retire.short_description = u"選択されたメンバーを退職する"
 
     def create_users(self, request, queryset):
         if request.user.is_superuser:
@@ -523,7 +523,7 @@ class SalespersonAdmin(BaseAdmin):
                      'post_code',
                      ('address1', 'address2'),
                      'country', 'graduate_date', 'phone', 'japanese_description', 'certificate', 'comment')}),
-        (u"勤務情報", {'fields': ('member_type', 'email', 'notify_type', 'section', 'company', 'is_retired')})
+        (u"勤務情報", {'fields': ('member_type', 'email', 'notify_type', 'section', 'company', 'is_retired', 'retired_date')})
     )
     actions = ['create_users']
 

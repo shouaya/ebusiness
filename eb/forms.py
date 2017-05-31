@@ -180,6 +180,8 @@ class MemberForm(forms.ModelForm):
         # notify_type = cleaned_data.get("notify_type")
         is_on_sales = cleaned_data.get("is_on_sales")
         sales_off_reason = cleaned_data.get("sales_off_reason")
+        is_retired = cleaned_data.get("is_retired")
+        retired_date = cleaned_data.get("retired_date")
 
         if post_code and not re.match(REG_POST_CODE, post_code):
             self.add_error('post_code', u"正しい郵便番号を入力してください。")
@@ -214,6 +216,9 @@ class MemberForm(forms.ModelForm):
         else:
             if sales_off_reason is None:
                 self.add_error('sales_off_reason', u"営業対象外の場合、営業対象外理由は選択してください！")
+        if is_retired:
+            if retired_date is None:
+                self.add_error('retired_date', u"退職した場合、退職年月日を入力してください！")
 
 
 class SalespersonForm(forms.ModelForm):
@@ -235,6 +240,8 @@ class SalespersonForm(forms.ModelForm):
         # email = cleaned_data.get("email")
         # private_email = cleaned_data.get("private_email")
         # notify_type = cleaned_data.get("notify_type")
+        is_retired = cleaned_data.get("is_retired")
+        retired_date = cleaned_data.get("retired_date")
         if post_code and not re.match(REG_POST_CODE, post_code):
             self.add_error('post_code', u"正しい郵便番号を入力してください。")
         # ローマ名のチェック
@@ -249,6 +256,9 @@ class SalespersonForm(forms.ModelForm):
         #     self.add_error('notify_type', u"個人メールアドレスを追加してください。")
         # elif notify_type == 3 and (not email or not private_email):
         #     self.add_error('notify_type', u"メールアドレス及び個人メールアドレスを追加してください。")
+        if is_retired:
+            if retired_date is None:
+                self.add_error('retired_date', u"退職した場合、退職年月日を入力してください！")
 
 
 class ProjectMemberForm(forms.ModelForm):

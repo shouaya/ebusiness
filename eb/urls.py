@@ -56,6 +56,7 @@ image_patterns = [
         views.ImageClientsTurnoverMonthlyView.as_view(), name='image_clients_turnover_monthly'),
     url(r'^clients/(?P<year>[0-9]{4}).html$', views.ImageTurnoverClientsYearlyView.as_view(),
         name='image_turnover_clients_yearly_area_plot'),
+    url(r'^member_status_bar.html$', views.ImageMemberStatusBar.as_view(), name='member_status_bar'),
 ]
 
 turnover_patterns = [
