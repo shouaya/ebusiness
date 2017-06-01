@@ -92,7 +92,7 @@ class UpdateSubscription(BaseView):
         return HttpResponse(json.dumps(result))
 
 
-class GetNotificationData(BaseView):
+class GetNotificationData(View):
 
     def get(self, request, *args, **kwargs):
         registration_id = request.GET.get('registration_id', None)
@@ -111,5 +111,4 @@ class GetNotificationData(BaseView):
             }
         else:
             data['error'] = 1
-        print json.dumps(data)
         return JsonResponse(data)
