@@ -450,70 +450,86 @@
                                                 <td style="color: lightblue;">******</td>
                                             {% endif %}
                                         {% else %}
-                                            <!-- 一括案件 -->
-                                            {% if project_member.project.is_lump %}
-                                                <td class="num row_{{ forloop.counter }} col_01">{{ project_member.project.all_price_lump|floatformat:0|intcomma }}</td>
-                                                <td class="num row_{{ forloop.counter }} col_02">{{ project_member.project.lump_amount|floatformat:0|intcomma }}</td>
-                                                <td class="num row_{{ forloop.counter }} col_03">0</td>
-                                            {% else %}
-                                                <!--売上-->
-                                                <td class="num">0</td>
-                                                <td class="num">0</td>
-                                                <td class="num">0</td>
-                                            {% endif %}
-                                            <td class="num row_{{ forloop.counter }} col_04 {% if repeated %}crossed{% endif %}">{{ attendance.get_cost|intcomma }}</td>
-                                            {% if attendance.allowance %}
-                                                <td class="num row_{{ forloop.counter }} col_05">{{ attendance.allowance|default:''|intcomma }}</td>
-                                            {% else %}
-                                                {% if prev_attendance and prev_attendance.allowance %}
-                                                    <td class="num prev_month_data row_{{ forloop.counter }} col_05">{{ prev_attendance.allowance|default:''|intcomma }}</td>
+                                            {% if is_own %}
+                                                <!-- 一括案件 -->
+                                                {% if project_member.project.is_lump %}
+                                                    <td class="num row_{{ forloop.counter }} col_01">{{ project_member.project.all_price_lump|floatformat:0|intcomma }}</td>
+                                                    <td class="num row_{{ forloop.counter }} col_02">{{ project_member.project.lump_amount|floatformat:0|intcomma }}</td>
+                                                    <td class="num row_{{ forloop.counter }} col_03">0</td>
                                                 {% else %}
-                                                    <td class="num"></td>
+                                                    <!--売上-->
+                                                    <td class="num">0</td>
+                                                    <td class="num">0</td>
+                                                    <td class="num">0</td>
                                                 {% endif %}
+                                                <td class="num row_{{ forloop.counter }} col_04 {% if repeated %}crossed{% endif %}">{{ attendance.get_cost|intcomma }}</td>
+                                                {% if attendance.allowance %}
+                                                    <td class="num row_{{ forloop.counter }} col_05">{{ attendance.allowance|default:''|intcomma }}</td>
+                                                {% else %}
+                                                    {% if prev_attendance and prev_attendance.allowance %}
+                                                        <td class="num prev_month_data row_{{ forloop.counter }} col_05">{{ prev_attendance.allowance|default:''|intcomma }}</td>
+                                                    {% else %}
+                                                        <td class="num"></td>
+                                                    {% endif %}
+                                                {% endif %}
+                                                <!--深夜手当-->
+                                                <td class="num row_{{ forloop.counter }} col_06">
+                                                    {{ attendance.get_night_allowance|default:''|intcomma }}
+                                                </td>
+                                                <td class="num row_{{ forloop.counter }} col_07"></td>
+                                                <!--交通費-->
+                                                <td class="num row_{{ forloop.counter }} col_08">{{ attendance.traffic_cost|default:''|intcomma }}</td>
+                                                <!--経費(原価)-->
+                                                <td class="num row_{{ forloop.counter }} col_09">{{ attendance.expenses|default:''|intcomma }}</td>
+                                                <!--雇用／労災-->
+                                                <td class="num row_{{ forloop.counter }} col_10">
+                                                    <script type="text/javascript">
+                                                        cols = ["col_04", "col_05", "col_06", "col_07", "col_08"];
+                                                        total = calculate_employment_insurance("row_{{ forloop.counter }}", cols);
+                                                        $(".row_{{ forloop.counter }}.col_10").text(total);
+                                                    </script>
+                                                </td>
+                                                <td class="num row_{{ forloop.counter }} col_11">
+                                                    <script type="text/javascript">
+                                                        cols = ["col_04", "col_05", "col_06", "col_07", "col_08"];
+                                                        total = calculate_health_insurance("row_{{ forloop.counter }}", cols);
+                                                        $(".row_{{ forloop.counter }}.col_11").text(total);
+                                                    </script>
+                                                </td>
+                                                <!--原価合計-->
+                                                <td class="num row_{{ forloop.counter }} col_12">
+                                                    <script type="text/javascript">
+                                                        cols = ["col_04", "col_05", "col_06", "col_07", "col_08", "col_09", "col_10", "col_11"];
+                                                        total = calculate_cols_sum("row_{{ forloop.counter }}", cols);
+                                                        $(".row_{{ forloop.counter }}.col_12").text(toNumComma(total));
+                                                    </script>
+                                                </td>
+                                                <td class="num row_{{ forloop.counter }} col_13">
+                                                    <script type="text/javascript">
+                                                        var cost = toNum($(".row_{{ forloop.counter }}.col_12").text().trim())
+                                                        var price = toNum($(".row_{{ forloop.counter }}.col_02").text().trim())
+                                                        var profit = price - cost;
+                                                        if (profit < 0) {
+                                                            $(".row_{{ forloop.counter }}.col_13").addClass("red");
+                                                        }
+                                                        $(".row_{{ forloop.counter }}.col_13").text(toNumComma(price - cost));
+                                                    </script>
+                                                </td>
+                                            {% else %}
+                                                <td style="color: lightblue;">******</td>
+                                                <td style="color: lightblue;">******</td>
+                                                <td style="color: lightblue;">******</td>
+                                                <td style="color: lightblue;">******</td>
+                                                <td style="color: lightblue;">******</td>
+                                                <td style="color: lightblue;">******</td>
+                                                <td style="color: lightblue;">******</td>
+                                                <td style="color: lightblue;">******</td>
+                                                <td style="color: lightblue;">******</td>
+                                                <td style="color: lightblue;">******</td>
+                                                <td style="color: lightblue;">******</td>
+                                                <td style="color: lightblue;">******</td>
+                                                <td style="color: lightblue;">******</td>
                                             {% endif %}
-                                            <!--深夜手当-->
-                                            <td class="num row_{{ forloop.counter }} col_06">
-                                                {{ attendance.get_night_allowance|default:''|intcomma }}
-                                            </td>
-                                            <td class="num row_{{ forloop.counter }} col_07"></td>
-                                            <!--交通費-->
-                                            <td class="num row_{{ forloop.counter }} col_08">{{ attendance.traffic_cost|default:''|intcomma }}</td>
-                                            <!--経費(原価)-->
-                                            <td class="num row_{{ forloop.counter }} col_09">{{ attendance.expenses|default:''|intcomma }}</td>
-                                            <!--雇用／労災-->
-                                            <td class="num row_{{ forloop.counter }} col_10">
-                                                <script type="text/javascript">
-                                                    cols = ["col_04", "col_05", "col_06", "col_07", "col_08"];
-                                                    total = calculate_employment_insurance("row_{{ forloop.counter }}", cols);
-                                                    $(".row_{{ forloop.counter }}.col_10").text(total);
-                                                </script>
-                                            </td>
-                                            <td class="num row_{{ forloop.counter }} col_11">
-                                                <script type="text/javascript">
-                                                    cols = ["col_04", "col_05", "col_06", "col_07", "col_08"];
-                                                    total = calculate_health_insurance("row_{{ forloop.counter }}", cols);
-                                                    $(".row_{{ forloop.counter }}.col_11").text(total);
-                                                </script>
-                                            </td>
-                                            <!--原価合計-->
-                                            <td class="num row_{{ forloop.counter }} col_12">
-                                                <script type="text/javascript">
-                                                    cols = ["col_04", "col_05", "col_06", "col_07", "col_08", "col_09", "col_10", "col_11"];
-                                                    total = calculate_cols_sum("row_{{ forloop.counter }}", cols);
-                                                    $(".row_{{ forloop.counter }}.col_12").text(toNumComma(total));
-                                                </script>
-                                            </td>
-                                            <td class="num row_{{ forloop.counter }} col_13">
-                                                <script type="text/javascript">
-                                                    var cost = toNum($(".row_{{ forloop.counter }}.col_12").text().trim())
-                                                    var price = toNum($(".row_{{ forloop.counter }}.col_02").text().trim())
-                                                    var profit = price - cost;
-                                                    if (profit < 0) {
-                                                        $(".row_{{ forloop.counter }}.col_13").addClass("red");
-                                                    }
-                                                    $(".row_{{ forloop.counter }}.col_13").text(toNumComma(price - cost));
-                                                </script>
-                                            </td>
                                         {% endif %}
                                     {% endwith %}
                                     {% endwith %}
