@@ -331,8 +331,10 @@ section div.dialog {
     width: 600px;
     background-color: white;
     z-index: 1000;
-    overflow-y: scroll;
+    overflow-y: auto;
     max-height: 600px;
+    padding: 10px 15px;
+    border-radius: 5px;
 }
 
 section div.dialog .sep {

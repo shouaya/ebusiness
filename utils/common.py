@@ -1004,6 +1004,24 @@ def to_wareki(date):
     return u"%s%s年%02d月%02d日" % (prefix, years, date.month, date.day)
 
 
+def get_bp_order_publish_date(year, month, str_date):
+    """ＢＰ注文書の発行年月日を取得する。
+
+    :param year:
+    :param month:
+    :param str_date:
+    :return:
+    """
+    if str_date and isinstance(str_date, basestring):
+        try:
+            publish_date = datetime.datetime.strptime(str_date, '%Y/%m/%d').date()
+            return publish_date
+        except ValueError:
+            pass
+    from pandas.tseries.offsets import BDay
+    return datetime.date(int(year), int(month), 1) - BDay(1)
+
+
 if __name__ == "__main__":
     for it in range(1, 10):
         print u'2016年%02d月' % (it,), get_business_days(2016, it)

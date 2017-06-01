@@ -7,6 +7,8 @@ Created on 2017/05/02
 import datetime
 from django import template
 
+from utils import common
+
 register = template.Library()
 
 
@@ -57,3 +59,9 @@ class GeneratePagingTag(template.Node):
 def is_belong_to(user, member, year, month, *args, **kwargs):
     date = datetime.date(int(year), int(month), 1)
     return member.is_belong_to(user, date)
+
+
+@register.simple_tag()
+def get_default_bp_order_no(year, month, *args, **kwargs):
+    date = common.get_bp_order_publish_date(year, month, None)
+    return date.strftime('%Y/%m/%d')

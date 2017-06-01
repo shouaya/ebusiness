@@ -1755,7 +1755,7 @@ def get_client_order_path(instance, filename):
 class ClientOrder(BaseModel):
     projects = models.ManyToManyField(Project, verbose_name=u"案件")
     name = models.CharField(max_length=50, verbose_name=u"注文書名称")
-    start_date = models.DateField(default=common.get_first_day_current_month(), verbose_name=u"開始日")
+    start_date = models.DateField(default=timezone.now, verbose_name=u"開始日")
     end_date = models.DateField(default=timezone.now, verbose_name=u"終了日")
     order_no = models.CharField(max_length=20, verbose_name=u"注文番号")
     order_date = models.DateField(blank=False, null=True, verbose_name=u"注文日")
@@ -2558,12 +2558,13 @@ class BpMemberOrder(BaseModel):
         return u"%s(%s)" % (unicode(self.project_member.member), self.order_no)
 
     @classmethod
-    def get_next_bp_order(cls, project_member, year, month):
+    def get_next_bp_order(cls, project_member, year, month, publish_date=None):
         """指定メンバー、年月によって、注文情報を取得する。
 
         :param project_member:
         :param year:
         :param month:
+        :param publish_date:
         :return:
         """
         try:
@@ -2574,23 +2575,28 @@ class BpMemberOrder(BaseModel):
             salesperson = project_member.member.get_salesperson(datetime.date(int(year), int(month), 20))
             order = BpMemberOrder(project_member=project_member,
                                   subcontractor=project_member.member.subcontractor,
-                                  order_no=BpMemberOrder.get_next_order_no(salesperson),
+                                  order_no=BpMemberOrder.get_next_order_no(salesperson, year, month, publish_date),
                                   year=year,
                                   month="%02d" % int(month))
         return order
 
     @classmethod
-    def get_next_order_no(cls, member):
+    def get_next_order_no(cls, member, year=None, month=None, publish_date=None):
         """注文番号を取得する。
 
         :param member ログインしているユーザ
+        :param year:
+        :param month
+        :param publish_date:
         """
         prefix = '-'
-        today = datetime.date.today()
+        date = datetime.date.today()
+        if year and month:
+            date = common.get_bp_order_publish_date(year, month, publish_date)
         if member and member.first_name_en:
             prefix = member.first_name_en[0].upper()
 
-        order_no = "EB{0:04d}{1:02d}{2:02d}{3}".format(today.year, today.month, today.day, prefix)
+        order_no = "EB{0:04d}{1:02d}{2:02d}{3}".format(date.year, date.month, date.day, prefix)
         max_order_no = BpMemberOrder.objects.public_filter(order_no__startswith=order_no)\
             .aggregate(Max('order_no'))
         max_order_no = max_order_no.get('order_no__max')

@@ -1669,9 +1669,10 @@ class DownloadBpMemberOrder(BaseView):
         project_member = get_object_or_404(models.ProjectMember, pk=project_member_id)
         year = kwargs.get('year')
         month = kwargs.get('month')
+        publish_date = request.GET.get('publish_date', None)
         is_request = kwargs.get('is_request')
         try:
-            bp_order = models.BpMemberOrder.get_next_bp_order(project_member, year, month)
+            bp_order = models.BpMemberOrder.get_next_bp_order(project_member, year, month, publish_date=publish_date)
             overwrite = request.GET.get("overwrite", None)
             if overwrite:
                 if is_request:
@@ -1691,7 +1692,8 @@ class DownloadBpMemberOrder(BaseView):
                                             u"ファイルをダウンロードしました：%s" % filename)
             else:
                 contract = project_member.member.get_contract(datetime.date(int(year), int(month), 20))
-                data = biz.generate_bp_order_data(project_member, year, month, contract, request.user, bp_order)
+                data = biz.generate_bp_order_data(project_member, year, month, contract, request.user, bp_order,
+                                                  publish_date=publish_date)
                 template_path = common.get_template_order_path(contract, is_request)
                 path = file_gen.generate_order(data=data, template_path=template_path, is_request=is_request)
                 filename = os.path.basename(path)

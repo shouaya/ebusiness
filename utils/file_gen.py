@@ -855,7 +855,7 @@ def generate_order(data, template_path, is_request=False):
     :param is_request: 注文請書
     :return エクセルのバイナリー
     """
-    if is_win32:
+    if False:
         # テンプレートを取得する
         if not template_path or not os.path.exists(template_path):
             raise errors.FileNotExistException(constants.ERROR_TEMPLATE_NOT_EXISTS)

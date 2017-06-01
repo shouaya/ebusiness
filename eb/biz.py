@@ -450,7 +450,7 @@ def get_user_profile(user):
     return None
 
 
-def generate_bp_order_data(project_member, year, month, contract, user, bp_order):
+def generate_bp_order_data(project_member, year, month, contract, user, bp_order, publish_date=None):
     """ＢＰ注文書を作成するためのデータを取得する。
 
     :param project_member:
@@ -459,6 +459,7 @@ def generate_bp_order_data(project_member, year, month, contract, user, bp_order
     :param contract:
     :param user:
     :param bp_order:
+    :param publish_date
     :return:
     """
     if not contract:
@@ -469,8 +470,8 @@ def generate_bp_order_data(project_member, year, month, contract, user, bp_order
     data = {'DETAIL': {}}
     data['DETAIL']['YM'] = '%04d%02d' % (int(year), int(month))
     # 発行年月日
-    date = datetime.date.today()
-    data['DETAIL']['PUBLISH_DATE'] = common.to_wareki(date)
+    publish_date = common.get_bp_order_publish_date(year, month, publish_date)
+    data['DETAIL']['PUBLISH_DATE'] = common.to_wareki(publish_date)
     # 下請け会社名
     data['DETAIL']['SUBCONTRACTOR_NAME'] = project_member.member.subcontractor.name
     # 下請け会社郵便番号
