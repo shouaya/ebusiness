@@ -22,7 +22,7 @@ urlpatterns = [
     url(r'^accounts/login/$', auth_views.login),
     url(r'^jsi18n/$', javascript_catalog, {'packages': 'django.conf'}),
     url(r'push.js', views.get_push_js),
-    url(r'notification_data', views.GetNotificationData.as_view()),
+    url(r'notification_data/\.json', views.GetNotificationData.as_view()),
     url(r'update_subscription', views.UpdateSubscription.as_view(), name='update_subscription'),
 
     url(r'^eboa-admin/', include(eboa_admin_site.urls)),

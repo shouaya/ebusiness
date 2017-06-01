@@ -6,7 +6,6 @@ Created on 2015/08/21
 """
 import os
 import json
-import logging
 
 from django.http import HttpResponseRedirect
 from django.shortcuts import render_to_response
@@ -20,6 +19,7 @@ from django.contrib.admin.models import LogEntry, ADDITION
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
 from django.core.urlresolvers import reverse
+from django.http.response import JsonResponse
 
 from eb import models
 from utils import constants
@@ -27,7 +27,6 @@ from utils import constants
 
 @method_decorator(login_required(login_url=constants.LOGIN_IN_URL), name='dispatch')
 class BaseView(View, ContextMixin):
-    logger = logging.getLogger(constants.LOG_EB_SALES)
 
     def get_context_data(self, **kwargs):
         context = super(BaseView, self).get_context_data(**kwargs)
@@ -103,7 +102,6 @@ class GetNotificationData(BaseView):
                 notification = models.PushNotification.objects.get(registration_id=registration_id)
                 title = notification.title
                 message = notification.message
-                self.logger.info(u"%s %sにメッセージを通知しました。" % (request.user.first_name, request.user.last_name))
             except (ObjectDoesNotExist, MultipleObjectsReturned):
                 title = ''
                 message = ''
@@ -113,4 +111,5 @@ class GetNotificationData(BaseView):
             }
         else:
             data['error'] = 1
-        return HttpResponse(json.dumps(data))
+        print json.dumps(data)
+        return JsonResponse(data)

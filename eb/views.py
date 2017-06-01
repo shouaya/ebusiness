@@ -1770,7 +1770,7 @@ class DownloadProjectRequestView(BaseTemplateView):
                 project_request.updated_user = request.user
                 # 請求履歴を保存する。
                 action_flag = CHANGE if project_request.pk else ADDITION
-                project_request.save(data=data)
+                project_request.save(other_data=data)
                 LogEntry.objects.log_action(request.user.id,
                                             ContentType.objects.get_for_model(project_request).pk,
                                             project_request.pk,

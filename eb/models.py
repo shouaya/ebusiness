@@ -1806,10 +1806,11 @@ class ProjectRequest(models.Model):
         return u"%s-%s" % (self.request_no, self.project.name)
 
     def save(self, force_insert=False, force_update=False, using=None,
-             update_fields=None, data=None):
+             update_fields=None, other_data=None):
         super(ProjectRequest, self).save(force_insert, force_update, using, update_fields)
         # 請求書作成時、請求に関する全ての情報を履歴として保存する。
-        if data:
+        if other_data:
+            data = other_data
             # 既存のデータを全部消す。
             if hasattr(self, "projectrequestheading"):
                 self.projectrequestheading.delete()
