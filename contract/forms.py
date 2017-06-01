@@ -92,6 +92,13 @@ class BpContractForm(BaseForm):
 
     def __init__(self, *args, **kwargs):
         super(BpContractForm, self).__init__(*args, **kwargs)
+        # 開始日を変更時、営業日数も変更する
+        self.fields['start_date'].widget.attrs.update({
+            'onblur': 'change_start_date(this, "allowance_base", '
+                      '"calculate_time_min", "calculate_time_max", '
+                      '"allowance_absenteeism", "allowance_overtime",'
+                      ' "calculate_type", "business_days")'
+        })
         self.fields['is_hourly_pay'].widget.attrs.update({
             'onchange': 'change_hourly_pay_display(this, "allowance_base")'
         })
@@ -100,24 +107,63 @@ class BpContractForm(BaseForm):
         })
         self.fields['is_show_formula'].widget.attrs.update({
             'onchange': 'change_formula_display(this, "allowance_base", '
-                        '"allowance_time_min", "allowance_time_max", '
+                        '"calculate_time_min", "calculate_time_max", '
                         '"allowance_absenteeism", "allowance_overtime")'
         })
         self.fields['allowance_base'].widget.attrs.update({
             'onchange': 'calculate_plus_minus(this, "allowance_base", '
-                        '"allowance_time_min", "allowance_time_max", '
+                        '"calculate_time_min", "calculate_time_max", '
                         '"allowance_absenteeism", "allowance_overtime")'
         })
+        # 基準時間　下限
         self.fields['allowance_time_min'].widget.attrs.update({
-            'onchange': 'calculate_minus_from_min_hour(this, "allowance_base", '
-                        '"allowance_time_min", "allowance_time_max", '
-                        '"allowance_absenteeism", "allowance_overtime")'
+            'onchange': 'change_allowance_time_min(this, "allowance_time_max", '
+                        '"allowance_time_memo")'
         })
+        # 基準時間　上限
         self.fields['allowance_time_max'].widget.attrs.update({
-            'onchange': 'calculate_plus_from_max_hour(this, "allowance_base", '
-                        '"allowance_time_min", "allowance_time_max", '
+            'onchange': 'change_allowance_time_max(this, "allowance_time_min", '
+                        '"allowance_time_memo")'
+        })
+        # 計算用下限
+        self.fields['calculate_time_min'].widget.attrs.update({
+            'onchange': 'calculate_minus_from_min_hour(this, "allowance_base", '
+                        '"calculate_time_min", "calculate_time_max", '
                         '"allowance_absenteeism", "allowance_overtime")'
         })
+        # 計算用上限
+        self.fields['calculate_time_max'].widget.attrs.update({
+            'onchange': 'calculate_plus_from_max_hour(this, "allowance_base", '
+                        '"calculate_time_min", "calculate_time_max", '
+                        '"allowance_absenteeism", "allowance_overtime")'
+        })
+        # 残業手当
+        self.fields['allowance_overtime'].widget.attrs.update({
+            'onchange': 'change_allowance_overtime(this, "allowance_base", '
+                        '"calculate_time_max", '
+                        '"allowance_overtime_memo")'
+        })
+        # 欠勤手当
+        self.fields['allowance_absenteeism'].widget.attrs.update({
+            'onchange': 'change_allowance_absenteeism(this, "allowance_base", '
+                        '"calculate_time_min", '
+                        '"allowance_absenteeism_memo")'
+        })
+        # 計算種類
+        self.fields['calculate_type'].widget.attrs.update({
+            'onchange': 'change_calculate_type(this, "allowance_base", '
+                        '"calculate_time_min", "calculate_time_max", '
+                        '"allowance_absenteeism", "allowance_overtime", "calculate_type", "business_days")'
+        })
+        # 営業日数
+        self.fields['business_days'].widget.attrs.update({
+            'onchange': 'change_business_days(this, "allowance_base", '
+                        '"calculate_time_min", "calculate_time_max", '
+                        '"allowance_absenteeism", "allowance_overtime", "calculate_type")'
+        })
+
+        for name in ('allowance_overtime_memo', 'allowance_absenteeism_memo'):
+            self.fields[name].widget.attrs.update({'readonly': 'readonly'})
 
     def clean(self):
         cleaned_data = super(BpContractForm, self).clean()

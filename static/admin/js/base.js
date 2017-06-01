@@ -343,3 +343,49 @@ function toNumComma(num) {
     int_comma = (num + "").replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,');
     return int_comma;
 }
+
+function get_business_days(year, month) {
+    var csrftoken = getCookie('csrftoken');
+
+    $.ajaxSetup({
+        beforeSend: function(xhr, settings) {
+            if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
+                xhr.setRequestHeader("X-CSRFToken", csrftoken);
+            }
+        }
+    });
+
+    var business_days = [];
+    $.ajax({
+        type: "POST",
+        url: "/eb/business_days.html",
+        data: {year: year, month: month},
+        dataType: "json",
+        async: false,
+        success: function(ret){
+            business_days = ret.business_days;
+        }
+    });
+    return business_days;
+}
+
+function getCookie(name) {
+    var cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        var cookies = document.cookie.split(';');
+        for (var i = 0; i < cookies.length; i++) {
+            var cookie = jQuery.trim(cookies[i]);
+            // Does this cookie string begin with the name we want?
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+function csrfSafeMethod(method) {
+    // these HTTP methods do not require CSRF protection
+    return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
+}

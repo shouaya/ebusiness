@@ -99,6 +99,23 @@ class BpContractAdmin(BaseAdmin):
     form = forms.BpContractForm
     list_display = ['member', 'company', 'start_date', 'end_date', 'is_hourly_pay', 'allowance_base']
     search_fields = ('member__first_name', 'member__last_name', 'company')
+    fieldsets = (
+        (None, {'fields': ('member',
+                           'start_date',
+                           'end_date',
+                           ('is_hourly_pay', 'is_fixed_cost', 'is_show_formula'),
+                           ('allowance_base', 'allowance_base_memo'),
+                           'allowance_time_min',
+                           'allowance_time_max',
+                           'allowance_time_memo',
+                           'calculate_type',
+                           'business_days',
+                           ('calculate_time_min', 'calculate_time_max'),
+                           ('allowance_overtime', 'allowance_overtime_memo'),
+                           ('allowance_absenteeism', 'allowance_absenteeism_memo'),
+                           ('allowance_other', 'allowance_other_memo'),
+                           'comment')}),
+    )
 
     class Media:
         js = ('/static/admin/js/calc_contract.js',)

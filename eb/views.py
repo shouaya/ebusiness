@@ -19,7 +19,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.core.urlresolvers import reverse
 from django.forms.models import modelformset_factory
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from django.shortcuts import redirect, get_object_or_404
 from django.template import loader
 from django.template.context_processors import csrf
@@ -1988,6 +1988,15 @@ class AutoMailEditView(BaseTemplateView):
         })
 
         return context
+
+
+class BusinessDaysView(BaseView):
+
+    def post(self, request, *args, **kwargs):
+        year = request.POST.get('year')
+        month = request.POST.get('month')
+        business_days = common.get_business_days(year, month)
+        return JsonResponse({'business_days': business_days})
 
 
 def login_user(request, qr=False):

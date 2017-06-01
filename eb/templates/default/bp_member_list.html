@@ -49,6 +49,8 @@
                 <th>基準時間</th>
                 <th>超過単価</th>
                 <th>不足単価</th>
+                <th>今月</th>
+                <th>来月</th>
                 <th>状態</th>
             </tr>
         </thead>
@@ -78,7 +80,23 @@
                             <td class="num">{{ contract.allowance_overtime|intcomma }}</td>
                             <td class="num">{{ contract.allowance_absenteeism|intcomma }}</td>
                         {% endif %}
+                        <td class="center">
+                            {% with bp_order=member.get_current_month_bp_order|first %}
+                                {% if bp_order %}
+                                    <img width="12px" src="/static/{{ theme }}/img/icon-normal.png"/>
+                                {% endif %}
+                            {% endwith %}
+                        </td>
+                        <td class="center">
+                            {% with bp_order=member.get_next_month_bp_order|first %}
+                                {% if bp_order %}
+                                    <img width="12px" src="/static/{{ theme }}/img/icon-normal.png"/>
+                                {% endif %}
+                            {% endwith %}
+                        </td>
                     {% else %}
+                        <td></td>
+                        <td></td>
                         <td></td>
                         <td></td>
                         <td></td>
@@ -89,12 +107,6 @@
                     <td>
                         {% if member.is_retired %}
                             退職
-                        {% else %}
-                            {% with bp_order=member.get_next_month_bp_order|first %}
-                                {% if bp_order %}
-                                    作成済み
-                                {% endif %}
-                            {% endwith %}
                         {% endif %}
                     </td>
                 </tr>
@@ -103,7 +115,7 @@
         </tbody>
         <tfoot>
             <tr>
-                <td colspan="10">
+                <td colspan="12">
                     {% paging members %}
                 </td>
             </tr>

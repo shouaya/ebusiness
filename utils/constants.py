@@ -279,6 +279,11 @@ CHOICE_MEMBER_RANK = (('01', u"グループ長"),
                       ('42', u"PG2"),
                       ('43', u"PG3"),
                       )
+CHOICE_CALCULATE_TYPE = (('01', u'固定１６０時間'),
+                         ('02', u'営業日数 × ８'),
+                         ('03', u'営業日数 × ７．９'),
+                         ('99', u"その他"),
+                         )
 
 xlPart = 2
 xlByRows = 1

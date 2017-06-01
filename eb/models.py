@@ -1216,6 +1216,13 @@ class Member(AbstractMember):
         else:
             return "0001"
 
+    def get_current_month_bp_order(self):
+        today = datetime.date.today()
+        queryset = BpMemberOrder.objects.public_filter(project_member__member=self,
+                                                       year=today.year,
+                                                       month="%02d" % today.month)
+        return queryset
+
     def get_next_month_bp_order(self):
         next_month = common.add_months(datetime.date.today(), 1)
         queryset = BpMemberOrder.objects.public_filter(project_member__member=self,

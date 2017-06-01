@@ -129,4 +129,5 @@ urlpatterns = [
     url(r'^accounts/password/change/$', views.password_change, name='password_change'),
     url(r'^auto_send_mail.html$', views.AutoSendMailView.as_view(), name='auto_send_mail'),
     url(r'^auto_mail_edit/(?P<group_id>[0-9]+)\.html$', views.AutoMailEditView.as_view(), name='auto_mail_edit'),
+    url(r'^business_days\.html$', views.BusinessDaysView.as_view(), name='get_business_days'),
 ]
