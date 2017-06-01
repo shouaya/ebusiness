@@ -747,7 +747,7 @@ def generate_request_data(company, project, client_order, bank_info, ym, project
         # 金額
         detail_all['ITEM_AMOUNT_ATTENDANCE_ALL'] = members_amount
         # 備考
-        detail_all['ITEM_COMMENT'] = project.lump_comment if project.is_lump else u""
+        detail_all['ITEM_COMMENT'] = project.lump_comment if project.is_lump and project.lump_comment else u""
     else:
         for i, project_member in enumerate(project_members):
             dict_expenses = dict()
