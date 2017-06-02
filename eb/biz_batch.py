@@ -495,7 +495,7 @@ def batch_push_new_member(batch):
             # ユーザー全員
             users = User.objects.filter(is_active=True)
             push_notification(users, batch.mail_title, message, gcm_url)
-            logger.info(u"プッシュ通知しました。")
+            logger.info(message)
         else:
             logger.info(u"新入社員がいません。")
     else:
@@ -528,7 +528,7 @@ def batch_push_birthday(batch):
                                          Q(salesperson__is_deleted=False)),
                                         is_active=True)
             push_notification(users, batch.mail_title, message, gcm_url)
-            logger.info(u"プッシュ通知しました。")
+            logger.info(message)
         else:
             logger.info(u"今日(%s)誕生日の社員がいません。" % today.strftime('%Y-%m-%d'))
     else:
@@ -558,9 +558,9 @@ def batch_push_waiting_member(batch):
                     if members.count() > 0:
                         message = batch.mail_body % u"、".join([unicode(m) for m in members])
                         push_notification([user], batch.mail_title, message, gcm_url)
-                logger.info(u"プッシュ通知しました。")
+                        logger.info(u"%s: %s。" % (unicode(user.salesperson), message))
         else:
-            logger.info(u"今日(%s)誕生日の社員がいません。" % today.strftime('%Y-%m-%d'))
+            logger.info(u"待機社員がいません。")
     else:
         logger.info(u"メール本文(Plain Text)が設定されていません。")
 
