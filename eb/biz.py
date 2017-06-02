@@ -550,7 +550,7 @@ def generate_bp_order_data(project_member, year, month, contract, user, bp_order
         if contract.allowance_absenteeism_memo:
             allowance_absenteeism_memo = contract.allowance_absenteeism_memo
         else:
-            allowance_absenteeism_memo = u"超過単価：\%s/%sh=\%s/h" % (
+            allowance_absenteeism_memo = u"不足単価：\%s/%sh=\%s/h" % (
                 allowance_base, contract.allowance_time_min, allowance_absenteeism
             )
         data['DETAIL']['ALLOWANCE_ABSENTEEISM'] = allowance_absenteeism

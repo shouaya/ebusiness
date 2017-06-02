@@ -518,7 +518,7 @@ def batch_push_birthday(batch):
         members = models.Member.objects.public_all().annotate(
             month=ExtractMonth('birthday'),
             day=ExtractDay('birthday')
-        ).filter(day=today.day, month='%02d' % today.month).exclude(member_type=4)
+        ).filter(day='%02d' % today.day, month='%02d' % today.month).exclude(member_type=4)
         if members.count() > 0:
             message = batch.mail_body % u"、".join([unicode(m) for m in members])
             # スーパーユーザーと営業員
@@ -529,6 +529,36 @@ def batch_push_birthday(batch):
                                         is_active=True)
             push_notification(users, batch.mail_title, message, gcm_url)
             logger.info(u"プッシュ通知しました。")
+        else:
+            logger.info(u"今日(%s)誕生日の社員がいません。" % today.strftime('%Y-%m-%d'))
+    else:
+        logger.info(u"メール本文(Plain Text)が設定されていません。")
+
+
+def batch_push_waiting_member(batch):
+    logger = batch.get_logger()
+    if batch.mail_body and '%s' in batch.mail_body:
+        gcm_url = models.Config.get_gcm_url()
+        today = datetime.date.today()
+        # すべて待機の社員
+        all_members = models.get_waiting_members(today)
+        if all_members.count() > 0:
+            # スーパーユーザーと営業員
+            users = User.objects.filter(salesperson__isnull=False,
+                                        salesperson__is_retired=False,
+                                        salesperson__is_deleted=False,
+                                        pushnotification__isnull=False,
+                                        is_active=True).distinct()
+            if users.count() > 0:
+                for user in users:
+                    members = all_members.filter(Q(membersalespersonperiod__end_date__gte=today) |
+                                                 Q(membersalespersonperiod__end_date__isnull=True),
+                                                 membersalespersonperiod__start_date__lte=today,
+                                                 membersalespersonperiod__salesperson=user.salesperson)
+                    if members.count() > 0:
+                        message = batch.mail_body % u"、".join([unicode(m) for m in members])
+                        push_notification([user], batch.mail_title, message, gcm_url)
+                logger.info(u"プッシュ通知しました。")
         else:
             logger.info(u"今日(%s)誕生日の社員がいません。" % today.strftime('%Y-%m-%d'))
     else:
