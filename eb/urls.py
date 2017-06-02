@@ -12,6 +12,7 @@ from eboa import views as eboa_views
 
 member_patterns = [
     url(r'^list.html$', views.MemberListView.as_view(), name='employee_list'),
+    url(r'^list_by_monthly\.html$', views.MemberListMonthlyView.as_view(), name='member_list_monthly'),
     url(r'^detail/(?P<employee_id>[^,/]+).html$', views.MemberDetailView.as_view(), name='member_detail'),
     url(r'^(?P<employee_id>[^,/]+)/recommended_project.html$', views.RecommendedProjectsView.as_view(),
         name='recommended_project'),

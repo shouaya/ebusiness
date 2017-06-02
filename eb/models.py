@@ -337,6 +337,8 @@ class Company(AbstractCompany):
         verbose_name = verbose_name_plural = u"会社"
         permissions = (
             ('view_member_status_list', u"社員稼働状況リスト"),
+            ('view_batch', u"バッチ参照"),
+            ('execute_batch', u"バッチ実行"),
         )
 
     @staticmethod

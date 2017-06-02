@@ -33,9 +33,13 @@
                 </td>
                 <td>
                     {% if batch.is_active %}
-                    <input type="button" id="{{ batch.name }}" name="{{ batch.name }}" value="実行"
-                           onclick="execute_batch('{{ batch.name }}')"
-                           style="padding: 0px 15px;"/>
+                        {% if perms.eb.execute_batch %}
+                            <input type="button" id="{{ batch.name }}" name="{{ batch.name }}" value="実行"
+                                   onclick="execute_batch('{{ batch.name }}')"
+                                   style="padding: 0px 15px;"/>
+                        {% else %}
+                            <span class="red">実行権限なし</span>
+                        {% endif %}
                     {% endif %}
                 </td>
                 <td>

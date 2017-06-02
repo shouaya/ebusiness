@@ -12,7 +12,6 @@
             init_select("business_status");
             init_select("salesperson");
             init_select("section");
-            init_select("is_on_sales");
         };
     </script>
 {% endblock %}
@@ -48,6 +47,7 @@
             </select>
             <select id="status" name="status">
                 <option value="">===稼働状態===</option>
+                <option value="sales">営業対象</option>
                 <option value="working">稼働中</option>
                 <option value="waiting">待機</option>
                 <option value="off_sales">営業対象外</option>
@@ -57,11 +57,6 @@
                 {% for sales in salesperson %}
                     <option value="{{ sales.pk }}">{{ sales }}</option>
                 {% endfor %}
-            </select>
-            <select id="is_on_sales" name="is_on_sales">
-                <option value="">===営業対象===</option>
-                <option value="1">営業対象</option>
-                <option value="0">営業対象外</option>
             </select>
             {% year_month_filter year month %}
             <input type="submit" value="Filter" />
@@ -81,7 +76,7 @@
         <table>
             <tr>
                 <th>社員数(営業対象内):</th>
-                <td><b>{{ member_count }}</b></td>
+                <td><b>{{ sales_member_count }}</b></td>
                 <th>稼働中人数:</th>
                 <td><b>{{ working_member_count }}</b></td>
                 <th>待機中人数:</th>
@@ -98,16 +93,9 @@
                 <th>課・グループ</th>
                 <th>{% create_order_display "協力会社" "subcontractor__name" %}</th>
                 <th style="width: 50px;">稼働</th>
-                <th style="width: 120px;">
-                    {% if page_type == "members_in_coming" %}
-                        入社年月日
-                    {% else %}
-                        リリース予定日
-                    {% endif %}
-                </th>
                 <th style="width: 90px;">営業員</th>
                 <!--<th>営業状態</th>-->
-                <th style="width: 99px;">
+                <th>
                     {% if page_type == "off_sales" %}
                         営業対象外理由
                     {% endif %}
@@ -131,22 +119,13 @@
                         {% endwith %}
                         <td>{{ member.subcontractor|default:"" }}</td>
                         {% if member.is_retired %}
-                            <td colspan="4">退職</td>
+                            <td colspan="3">退職</td>
                         {% else %}
                             <td class="center">
                                 {% if member.last_end_date|date:"Y-m-d" > ymd %}
                                     <a href="?status=working{{ params }}"><img width="12px" src="/static/{{ theme }}/img/icon-normal.png"/></a>
                                 {% else %}
                                     <a href="?status=waiting{{ params }}"><img width="12px" src="/static/{{ theme }}/img/icon-warn.png"/></a>
-                                {% endif %}
-                            </td>
-                            <td>
-                                {% if page_type == "members_in_coming" %}
-                                    {{ member.join_date }}
-                                {% else %}
-                                    {% if member.last_end_date|date:"Y-m-d" > ymd %}
-                                        {{ member.last_end_date|date:"Y-m-d" }}
-                                    {% endif %}
                                 {% endif %}
                             </td>
                             <td>
@@ -158,10 +137,6 @@
                             <td class="center">
                                 {% if page_type == "off_sales" %}
                                     {{ member.sales_off_reason }}
-                                {% else %}
-                                    {% ifequal member.get_business_status "未提案" %}
-                                        <a href="{% url 'recommended_project' member.employee_id %}">推薦された案件</a>
-                                    {% endifequal %}
                                 {% endif %}
                             </td>
                         {% endif %}
@@ -174,7 +149,7 @@
         </tbody>
         <tfoot>
             <tr>
-                <td colspan="10">
+                <td colspan="9">
                     {% paging members %}
                 </td>
             </tr>

@@ -84,7 +84,8 @@ class IndexView(BaseTemplateView):
         prev_month = common.add_months(now, -1)
         next_month = common.add_months(now, 1)
         next_2_months = common.add_months(now, 2)
-        filter_list = {'current_ym': now.strftime('%Y%m'),
+        filter_list = {'prev_ym': prev_month.strftime('%Y%m'),
+                       'current_ym': now.strftime('%Y%m'),
                        'next_ym': next_month.strftime('%Y%m'),
                        'next_2_ym': next_2_months.strftime('%Y%m')}
 
@@ -158,14 +159,7 @@ class MemberListView(BaseTemplateView):
     template_name = 'default/employee_list.html'
 
     def get(self, request, *args, **kwargs):
-        year = request.GET.get('year', None)
-        month = request.GET.get('month', None)
-        if year and month:
-            date = datetime.date(int(year), int(month), 20)
-        else:
-            date = datetime.date.today()
-            year = str(date.year)
-            month = '%02d' % date.month
+        date = datetime.date.today()
         status = request.GET.get('status', None)
         section_id = request.GET.get('section', None)
         salesperson_id = request.GET.get('salesperson', None)
@@ -231,6 +225,95 @@ class MemberListView(BaseTemplateView):
             'page_type': "off_sales" if status == "off_sales" else None,
         })
         return self.render_to_response(context)
+
+
+@method_decorator(permission_required('eb.view_member', raise_exception=True), name='get')
+class MemberListMonthlyView(BaseTemplateView):
+    template_name = 'default/member_status_list.html'
+
+    def get_context_data(self, **kwargs):
+        context = super(MemberListMonthlyView, self).get_context_data(**kwargs)
+        request = kwargs.get('request')
+        year = request.GET.get('year', None)
+        month = request.GET.get('month', None)
+        if year and month:
+            date = datetime.date(int(year), int(month), 20)
+        else:
+            date = datetime.date.today()
+            year = str(date.year)
+            month = '%02d' % date.month
+        status = request.GET.get('status', None)
+        section_id = request.GET.get('section', None)
+        salesperson_id = request.GET.get('salesperson', None)
+        q = request.GET.get('q', None)
+        if status == "sales":
+            all_members = models.get_on_sales_members(date)
+        elif status == "working":
+            all_members = models.get_working_members(date)
+        elif status == "waiting":
+            all_members = models.get_waiting_members(date)
+        elif status == "off_sales":
+            all_members = models.get_off_sales_members(date)
+        else:
+            all_members = models.get_all_members()
+
+        param_list = common.get_request_params(request.GET)
+        params = "&".join(["%s=%s" % (key, value) for key, value in param_list.items()]) if param_list else ""
+        if 'status' in param_list:
+            del param_list['status']
+        if 'section' in param_list:
+            del param_list['section']
+        if 'salesperson' in param_list:
+            del param_list['salesperson']
+        if param_list:
+            all_members = all_members.filter(**param_list)
+        if q:
+            orm_lookups = ['first_name__icontains', 'last_name__icontains']
+            for bit in q.split():
+                or_queries = [models.Q(**{orm_lookup: bit}) for orm_lookup in orm_lookups]
+                all_members = all_members.filter(reduce(operator.or_, or_queries))
+
+        if section_id:
+            all_members = biz.get_members_by_section(all_members, section_id)
+        if salesperson_id:
+            all_members = biz.get_members_by_salesperson(all_members, salesperson_id)
+        o = request.GET.get('o', None)
+        dict_order = common.get_ordering_dict(o, ['first_name', 'section', 'subcontractor__name',
+                                                  'salesperson__first_name'])
+        order_list = common.get_ordering_list(o)
+
+        if order_list:
+            all_members = all_members.order_by(*order_list)
+
+        sales_member_count = models.get_on_sales_members(date).count()
+        working_member_count = models.get_working_members(date).count()
+        waiting_member_count = models.get_waiting_members(date).count()
+        paginator = Paginator(all_members, biz_config.get_page_size())
+        page = request.GET.get('page')
+        try:
+            members = paginator.page(page)
+        except PageNotAnInteger:
+            members = paginator.page(1)
+        except EmptyPage:
+            members = paginator.page(paginator.num_pages)
+
+        context.update({
+            'title': u'要員一覧 | %s' % constants.NAME_SYSTEM,
+            'members': members,
+            'year': year,
+            'month': month,
+            'sections': biz.get_on_sales_top_org(),
+            'salesperson': models.Salesperson.objects.public_all(),
+            'paginator': paginator,
+            'params': "&" + params if params else "",
+            'dict_order': dict_order,
+            'orders': "&o=%s" % (o,) if o else "",
+            'page_type': "off_sales" if status == "off_sales" else None,
+            'sales_member_count': sales_member_count,
+            'working_member_count': working_member_count,
+            'waiting_member_count': waiting_member_count,
+        })
+        return context
 
 
 @method_decorator(permission_required('eb.view_member', raise_exception=True), name='get')
@@ -1924,6 +2007,8 @@ class HistoryView(BaseTemplateView):
         return self.render_to_response(context)
 
 
+@method_decorator(permission_required('eb.view_batch', raise_exception=True), name='get')
+@method_decorator(permission_required('eb.execute_batch', raise_exception=True), name='post')
 class BatchListView(BaseTemplateView):
     template_name = 'default/batch_list.html'
 

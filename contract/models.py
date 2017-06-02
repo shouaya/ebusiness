@@ -215,7 +215,8 @@ class BpContract(BaseModel):
     allowance_base_memo = models.CharField(max_length=255, blank=True, null=True, verbose_name=u"基本給メモ")
     allowance_time_min = models.IntegerField(default=160, verbose_name=u"時間下限", help_text=u"足りないなら欠勤となる")
     allowance_time_max = models.IntegerField(default=200, verbose_name=u"時間上限", help_text=u"超えたら残業となる")
-    allowance_time_memo = models.CharField(max_length=255, blank=True, null=True, verbose_name=u"基準時間メモ")
+    allowance_time_memo = models.CharField(max_length=255, blank=True, null=True,
+                                           default=u"※基準時間：160～200/月", verbose_name=u"基準時間メモ")
     calculate_type = models.CharField(default='01', max_length=2, choices=constants.CHOICE_CALCULATE_TYPE,
                                       verbose_name=u"計算種類")
     business_days = models.IntegerField(blank=True, null=True, verbose_name=u"営業日数")

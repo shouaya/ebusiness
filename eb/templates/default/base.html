@@ -91,16 +91,17 @@
                         </ul>
                     </li>
                     {% endif %}
+                    {% if user.is_staff %}
                     <li><a href="{% url 'admin:index' %}">管理サイト</a>
                         <ul>
                             {% if user.username == "admin" %}
                             <li><a href="{% url 'eboa_admin:index' %}">EBOAデータ参照</a></li>
                             {% endif %}
                             <li><a href="{% url 'del_data_admin:index' %}">削除したデータ</a></li>
-                            <li><a href="{% url 'batch_list' %}">バッチ一覧</a></li>
                             <li><a href="{% url 'auto_send_mail' %}">メール送信</a></li>
                         </ul>
                     </li>
+                    {% endif %}
                 </ul>
             </div>
         </div>
@@ -113,9 +114,12 @@
 	<footer>
         <div class="container">
             {% ifequal request.user.username 'admin' %}
-            <a href="{% url 'history' %}">Click here to see history</a>
+                <a href="{% url 'history' %}">Click here to see history&nbsp;|&nbsp;</a>
             {% endifequal %}
-            <a href="{% url 'issues' %}">課題管理票</a>
+            <a href="{% url 'issues' %}">課題管理票</a>&nbsp;
+            {% if perms.eb.view_batch %}
+                |&nbsp;<a href="{% url 'batch_list' %}">バッチ一覧</a>
+            {% endif %}
             <button disabled class="js-push-button right" style="display: none;">register</button>
         </div>
     </footer>
