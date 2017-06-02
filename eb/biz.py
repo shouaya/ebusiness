@@ -676,9 +676,9 @@ def generate_request_data(company, project, client_order, bank_info, ym, project
     # お客様郵便番号
     data['DETAIL']['CLIENT_POST_CODE'] = common.get_full_postcode(project.client.post_code)
     # お客様住所
-    data['DETAIL']['CLIENT_ADDRESS'] = project.client.address1 + project.client.address2
+    data['DETAIL']['CLIENT_ADDRESS'] = (project.client.address1 or '') + (project.client.address2 or '')
     # お客様電話番号
-    data['DETAIL']['CLIENT_TEL'] = project.client.tel
+    data['DETAIL']['CLIENT_TEL'] = project.client.tel or ''
     # お客様名称
     data['DETAIL']['CLIENT_COMPANY_NAME'] = project.client.name
     # 作業期間
@@ -705,7 +705,7 @@ def generate_request_data(company, project, client_order, bank_info, ym, project
     # 本社郵便番号
     data['DETAIL']['POST_CODE'] = common.get_full_postcode(company.post_code)
     # 本社住所
-    data['DETAIL']['ADDRESS'] = company.address1 + company.address2
+    data['DETAIL']['ADDRESS'] = (company.address1 or '') + (company.address2 or '')
     # 会社名
     data['DETAIL']['COMPANY_NAME'] = company.name
     # 代表取締役
