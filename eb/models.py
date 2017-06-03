@@ -1334,6 +1334,21 @@ class MemberSalespersonPeriod(BaseModel):
         return f % (self.member.__unicode__(), self.salesperson.__unicode__(), self.start_date, self.end_date)
 
 
+class MemberSalesOffPeriod(BaseModel):
+    member = models.ForeignKey(Member, on_delete=models.PROTECT, verbose_name=u"社員名")
+    sales_off_reason = models.ForeignKey(SalesOffReason, on_delete=models.PROTECT, verbose_name=u"営業対象外理由")
+    start_date = models.DateField(verbose_name=u"開始日")
+    end_date = models.DateField(blank=True, null=True, verbose_name=u"終了日")
+
+    class Meta:
+        ordering = ['start_date']
+        verbose_name = verbose_name_plural = u"社員の営業対象外期間"
+
+    def __unicode__(self):
+        f = u"%s - %s(%s〜%s)"
+        return f % (unicode(self.member), unicode(self.sales_off_reason), self.start_date, self.end_date)
+
+
 class PositionShip(BaseModel):
     member = models.ForeignKey(Member, on_delete=models.PROTECT, verbose_name=u"社員名")
     position = models.IntegerField(blank=True, null=True, choices=constants.CHOICE_POSITION, verbose_name=u"職位")
@@ -3166,7 +3181,13 @@ def get_on_sales_members(date=None):
 
     :return: MemberのQueryset
     """
-    query_set = get_sales_members(date).filter(is_on_sales=True)
+    if date is None:
+        date = datetime.date.today()
+    query_set = get_sales_members(date).filter(
+        Q(membersalesoffperiod__isnull=True) |
+        Q(membersalesoffperiod__end_date__lt=date) |
+        (Q(membersalesoffperiod__start_date__gt=date) & Q(membersalesoffperiod__is_deleted=False))
+    ).distinct()
     return query_set
 
 

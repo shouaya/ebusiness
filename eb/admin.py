@@ -149,6 +149,12 @@ class MemberSalespersonPeriodInline(admin.TabularInline):
         return AdminFormsetWithRequest
 
 
+class MemberSalesOffPeriodInline(admin.TabularInline):
+    model = models.MemberSalesOffPeriod
+    extra = 0
+    formset = forms.MemberSalesOffPeriodFormset
+
+
 class DegreeInline(admin.TabularInline):
     model = models.Degree
     extra = 0
@@ -400,7 +406,8 @@ class MemberAdmin(BaseAdmin):
     list_filter = ['member_type', NoUserFilter,
                    'is_retired', 'is_deleted']
     search_fields = ['first_name', 'last_name', 'employee_id']
-    inlines = (DegreeInline, MemberSectionPeriodInline, MemberSalespersonPeriodInline, EmployeeExpensesInline)
+    inlines = (DegreeInline, MemberSalesOffPeriodInline, MemberSectionPeriodInline, MemberSalespersonPeriodInline,
+               EmployeeExpensesInline)
     actions = ['create_users']
     fieldsets = (
         (None, {'fields': ('employee_id',
@@ -416,8 +423,12 @@ class MemberAdmin(BaseAdmin):
                      ('address1', 'address2'), 'nearest_station',
                      'country', 'graduate_date', 'phone', 'japanese_description',
                      'certificate', 'skill_description', 'comment')}),
-        (u"勤務情報", {'fields': ['member_type', 'ranking', 'join_date', 'email', 'notify_type', 'section', 'company',
-                              'subcontractor', 'is_on_sales', 'sales_off_reason', 'is_retired', 'retired_date']})
+        (u"勤務情報", {'fields': [
+            ('member_type', 'ranking'),
+            'join_date', 'email', 'notify_type', 'section', 'company',
+            'subcontractor',
+            'is_retired', 'retired_date',
+        ]})
     )
 
     def is_user_created(self, obj):
@@ -444,24 +455,24 @@ class MemberAdmin(BaseAdmin):
             except:
                 pass
 
-    def change_view(self, request, object_id, form_url='', extra_context=None):
-        member = models.Member.objects.get(pk=object_id)
-        if member.member_type == 4:
-            # 他社技術者
-            if member.is_belong_to(request.user, datetime.date.today()):
-                if self.fieldsets[2][1]['fields'].count('cost') == 0:
-                    self.fieldsets[2][1]['fields'].insert(-2, 'cost')
-            elif self.fieldsets[2][1]['fields'].count('cost') > 0:
-                self.fieldsets[2][1]['fields'].remove('cost')
-            if self.fieldsets[2][1]['fields'].count('is_individual_pay') == 0:
-                self.fieldsets[2][1]['fields'].insert(-3, 'is_individual_pay')
-        else:
-            try:
-                self.fieldsets[2][1]['fields'].remove('cost')
-                self.fieldsets[2][1]['fields'].remove('is_individual_pay')
-            except ValueError:
-                pass
-        return super(MemberAdmin, self).change_view(request, object_id, form_url, extra_context)
+    # def change_view(self, request, object_id, form_url='', extra_context=None):
+    #     member = models.Member.objects.get(pk=object_id)
+    #     if member.member_type == 4:
+    #         # 他社技術者
+    #         if member.is_belong_to(request.user, datetime.date.today()):
+    #             if self.fieldsets[2][1]['fields'].count('cost') == 0:
+    #                 self.fieldsets[2][1]['fields'].insert(-2, 'cost')
+    #         elif self.fieldsets[2][1]['fields'].count('cost') > 0:
+    #             self.fieldsets[2][1]['fields'].remove('cost')
+    #         if self.fieldsets[2][1]['fields'].count('is_individual_pay') == 0:
+    #             self.fieldsets[2][1]['fields'].insert(-3, 'is_individual_pay')
+    #     else:
+    #         try:
+    #             self.fieldsets[2][1]['fields'].remove('cost')
+    #             self.fieldsets[2][1]['fields'].remove('is_individual_pay')
+    #         except ValueError:
+    #             pass
+    #     return super(MemberAdmin, self).change_view(request, object_id, form_url, extra_context)
 
     def add_view(self, request, form_url='', extra_context=None):
         if self.fieldsets[2][1]['fields'].count('cost') == 0:
@@ -469,12 +480,6 @@ class MemberAdmin(BaseAdmin):
         if self.fieldsets[2][1]['fields'].count('is_individual_pay') == 0:
             self.fieldsets[2][1]['fields'].insert(-3, 'is_individual_pay')
         return super(MemberAdmin, self).add_view(request, form_url, extra_context)
-
-    # def member_retire(self, request, queryset):
-    #     cnt = queryset.update(is_retired=True)
-    #     self.message_user(request,  str(cnt) + u"件選択されたメンバーが退職しました。")
-    #
-    # member_retire.short_description = u"選択されたメンバーを退職する"
 
     def create_users(self, request, queryset):
         if request.user.is_superuser:

@@ -258,7 +258,7 @@ class MemberListMonthlyView(BaseTemplateView):
             all_members = models.get_all_members()
 
         param_list = common.get_request_params(request.GET)
-        params = "&".join(["%s=%s" % (key, value) for key, value in param_list.items()]) if param_list else ""
+        params = "&".join(["%s=%s" % (key, value) for key, value in (param_list.items() + [('year', year), ('month', month)])]) if param_list else ""
         if 'status' in param_list:
             del param_list['status']
         if 'section' in param_list:
@@ -278,7 +278,7 @@ class MemberListMonthlyView(BaseTemplateView):
         if salesperson_id:
             all_members = biz.get_members_by_salesperson(all_members, salesperson_id)
         o = request.GET.get('o', None)
-        dict_order = common.get_ordering_dict(o, ['first_name', 'section', 'subcontractor__name',
+        dict_order = common.get_ordering_dict(o, ['employee_id', 'first_name', 'section', 'subcontractor__name',
                                                   'salesperson__first_name'])
         order_list = common.get_ordering_list(o)
 
@@ -288,6 +288,7 @@ class MemberListMonthlyView(BaseTemplateView):
         sales_member_count = models.get_on_sales_members(date).count()
         working_member_count = models.get_working_members(date).count()
         waiting_member_count = models.get_waiting_members(date).count()
+
         paginator = Paginator(all_members, biz_config.get_page_size())
         page = request.GET.get('page')
         try:

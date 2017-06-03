@@ -6,9 +6,10 @@
 {% block header %}
     <script type="text/javascript">
         window.onload = function() {
+            init_select("employee_id__icontains");
             init_select("status");
-            init_select("first_name__contains");
-            init_select("last_name__contains");
+            init_select("first_name__icontains");
+            init_select("last_name__icontains");
             init_select("business_status");
             init_select("salesperson");
             init_select("section");
@@ -21,8 +22,9 @@
     <div class="dashboard">
         <div class="dashboard-title">{{ title }}</div>
         <form action="" method="get">
-            <span>姓: </span><input type="text" id="first_name__contains" name="first_name__contains" style="width: 50px;"/>
-            <span>名: </span><input type="text" id="last_name__contains" name="last_name__contains" style="width: 50px;"/>
+            <label for="employee_id__icontains">番号: </label><input type="text" id="employee_id__icontains" name="employee_id__icontains" style="width: 50px;"/>
+            <span>姓: </span><input type="text" id="first_name__icontains" name="first_name__icontains" style="width: 50px;"/>
+            <span>名: </span><input type="text" id="last_name__icontains" name="last_name__icontains" style="width: 50px;"/>
             <select id="section" name="section">
                 <option value="">======部署======</option>
                 {% for section in sections %}
@@ -87,6 +89,7 @@
     <table class="list" cellpadding="0" cellspacing="0">
         <thead>
             <tr>
+                <th>{% create_order_display "社員番号" "employee_id" %}</th>
                 <th>{% create_order_display "名前" "first_name" %}</th>
                 <th>事業部</th>
                 <th>部署</th>
@@ -107,6 +110,7 @@
             {% if members %}
                 {% for member in members %}
                     <tr class="{% cycle 'row1' 'row2' %} {% if member.is_retired %}expired{% endif %}">
+                        <td>{{ member.employee_id }}</td>
                         <td>
                             <a href="{% url 'member_detail' member.employee_id %}">
                                 {{ member.first_name }}&nbsp;{{ member.last_name }}
@@ -119,7 +123,8 @@
                         {% endwith %}
                         <td>{{ member.subcontractor|default:"" }}</td>
                         {% if member.is_retired %}
-                            <td colspan="3">退職</td>
+                            <td>退職</td>
+                            <td colspan="2">{{ member.retired_date }}</td>
                         {% else %}
                             <td class="center">
                                 {% if member.last_end_date|date:"Y-m-d" > ymd %}
@@ -149,7 +154,7 @@
         </tbody>
         <tfoot>
             <tr>
-                <td colspan="9">
+                <td colspan="10">
                     {% paging members %}
                 </td>
             </tr>

@@ -178,8 +178,8 @@ class MemberForm(forms.ModelForm):
         # email = cleaned_data.get("email")
         # private_email = cleaned_data.get("private_email")
         # notify_type = cleaned_data.get("notify_type")
-        is_on_sales = cleaned_data.get("is_on_sales")
-        sales_off_reason = cleaned_data.get("sales_off_reason")
+        # is_on_sales = cleaned_data.get("is_on_sales")
+        # sales_off_reason = cleaned_data.get("sales_off_reason")
         is_retired = cleaned_data.get("is_retired")
         retired_date = cleaned_data.get("retired_date")
         today = datetime.date.today()
@@ -211,12 +211,12 @@ class MemberForm(forms.ModelForm):
         # elif notify_type == 3 and (not email or not private_email):
         #     self.add_error('notify_type', u"メールアドレス及び個人メールアドレスを追加してください。")
 
-        if is_on_sales:
-            if sales_off_reason:
-                self.add_error('sales_off_reason', u"営業対象の場合、理由は選択しないでください！")
-        else:
-            if sales_off_reason is None:
-                self.add_error('sales_off_reason', u"営業対象外の場合、営業対象外理由は選択してください！")
+        # if is_on_sales:
+        #     if sales_off_reason:
+        #         self.add_error('sales_off_reason', u"営業対象の場合、理由は選択しないでください！")
+        # else:
+        #     if sales_off_reason is None:
+        #         self.add_error('sales_off_reason', u"営業対象外の場合、営業対象外理由は選択してください！")
         if is_retired:
             # 案件アサインの終了日をチェックする、終了日はまだ来てない場合は退職が設定できない。
             if self.instance.projectmember_set.filter(is_deleted=False, end_date__gt=today).count() > 0:
@@ -716,6 +716,30 @@ class MemberSalespersonPeriodFormset(forms.BaseInlineFormSet):
                     raise forms.ValidationError(u"営業員期間の開始日が重複している。")
                 if end_date and common.is_cross_date(dates, end_date, i):
                     raise forms.ValidationError(u"営業員期間の終了日が重複している。")
+
+
+class MemberSalesOffPeriodFormset(forms.BaseInlineFormSet):
+
+    def clean(self):
+        count = 0
+        dates = []
+        for form in self.forms:
+            try:
+                if form.cleaned_data:
+                    start_date = form.cleaned_data.get("start_date")
+                    end_date = form.cleaned_data.get("end_date")
+                    dates.append((start_date, end_date))
+                    count += 1
+            except AttributeError:
+                pass
+        if count > 1:
+            dates.sort(key=lambda date: date[0])
+            for i, period in enumerate(dates):
+                start_date, end_date = period
+                if common.is_cross_date(dates, start_date, i):
+                    raise forms.ValidationError(u"営業対象外期間の開始日が重複している。")
+                if end_date and common.is_cross_date(dates, end_date, i):
+                    raise forms.ValidationError(u"営業対象外期間の終了日が重複している。")
 
 
 class BatchCarbonCopyForm(forms.ModelForm):
