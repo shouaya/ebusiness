@@ -11,7 +11,6 @@
             init_select("business_status");
             init_select("salesperson");
             init_select("section");
-            init_select("is_on_sales");
         };
     </script>
 {% endblock %}
@@ -47,6 +46,7 @@
             </select>
             <select id="status" name="status">
                 <option value="">===稼働状態===</option>
+                <option value="sales">営業対象</option>
                 <option value="working">稼働中</option>
                 <option value="waiting">待機</option>
                 <option value="off_sales">営業対象外</option>
@@ -56,11 +56,6 @@
                 {% for sales in salesperson %}
                     <option value="{{ sales.pk }}">{{ sales }}</option>
                 {% endfor %}
-            </select>
-            <select id="is_on_sales" name="is_on_sales">
-                <option value="">===営業対象===</option>
-                <option value="1">営業対象</option>
-                <option value="0">営業対象外</option>
             </select>
             <input type="submit" value="Filter" />
             <a href="{{ request.path }}">クリア</a>

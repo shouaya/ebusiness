@@ -37,25 +37,25 @@
             <tr class="row2">
                 <th>総人数(営業対象内):</th>
                 <td class="num">
-                    <a href="{% url 'employee_list' %}?salesperson={{ user.salesperson.pk }}&is_on_sales=1">
+                    <a href="{% url 'employee_list' %}?salesperson={{ user.salesperson.pk }}&status=sales">
                         {{ user.salesperson.get_on_sales_members.count }}
                     </a>
                 </td>
                 <th>稼働中人数:</th>
                 <td class="num">
-                    <a href="{% url 'employee_list' %}?status=working&salesperson={{ user.salesperson.pk }}&is_on_sales=1">
+                    <a href="{% url 'employee_list' %}?status=working&salesperson={{ user.salesperson.pk }}&status=sales">
                         {{ user.salesperson.get_working_members.count }}
                     </a>
                 </td>
                 <th>待機中人数:</th>
                 <td class="num">
-                    <a href="{% url 'employee_list' %}?status=waiting&salesperson={{ user.salesperson.pk }}&is_on_sales=1" class="red">
+                    <a href="{% url 'employee_list' %}?status=waiting&salesperson={{ user.salesperson.pk }}&status=sales" class="red">
                         {{ user.salesperson.get_waiting_members.count }}
                     </a>
                 </td>
                 <th>営業対象外:</th>
                 <td class="num">
-                    <a href="{% url 'employee_list' %}?salesperson={{ user.salesperson.pk }}&is_on_sales=0">
+                    <a href="{% url 'employee_list' %}?salesperson={{ user.salesperson.pk }}&status=off_sales">
                         {{ user.salesperson.get_off_sales_members.count }}
                     </a>
                 </td>
@@ -131,17 +131,17 @@
                 <tr class="row2">
                     <td class="title">{{ salesperson }}</td>
                     <td class="center">
-                        <a href="{% url 'employee_list' %}?salesperson={{ salesperson.pk }}&is_on_sales=1">
+                        <a href="{% url 'employee_list' %}?status=sales&salesperson={{ salesperson.pk }}">
                             {{ salesperson.get_on_sales_members.count }}
                         </a>
                     </td>
                     <td class="center">
-                        <a href="{% url 'employee_list' %}?status=working&salesperson={{ salesperson.pk }}&is_on_sales=1">
+                        <a href="{% url 'employee_list' %}?status=working&salesperson={{ salesperson.pk }}">
                            {{ salesperson.get_working_members.count }}
                         </a>
                     </td>
                     <td class="center">
-                        <a href="{% url 'employee_list' %}?status=waiting&salesperson={{ salesperson.pk }}&is_on_sales=1"
+                        <a href="{% url 'employee_list' %}?status=waiting&salesperson={{ salesperson.pk }}&"
                            {% if salesperson.get_waiting_members.count > 0 %}class="red num"{% endif %}>
                             {{ salesperson.get_waiting_members.count }}
                         </a>
