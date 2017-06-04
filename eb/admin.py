@@ -406,7 +406,7 @@ class MemberAdmin(BaseAdmin):
     list_filter = ['member_type', NoUserFilter,
                    'is_retired', 'is_deleted']
     search_fields = ['first_name', 'last_name', 'employee_id']
-    inlines = (DegreeInline, MemberSalesOffPeriodInline, MemberSectionPeriodInline, MemberSalespersonPeriodInline,
+    inlines = (MemberSalesOffPeriodInline, DegreeInline, MemberSectionPeriodInline, MemberSalespersonPeriodInline,
                EmployeeExpensesInline)
     actions = ['create_users']
     fieldsets = (

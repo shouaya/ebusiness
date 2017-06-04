@@ -16,7 +16,7 @@ header div.header-nav ul {
 header div.header-nav ul li {
     float: left;
     display: block;
-    width: 160px;
+    width: 150px;
     height: 48px;
     overflow: hidden;
     cursor: pointer;
@@ -39,13 +39,13 @@ header div.header-nav ul li a:hover {
 header div.header-nav ul li ul {
     position: absolute;
     top: 115px;/*親メニューの高さと同じにする*/
-    width: 160px;
+    width: 150px;
     z-index: 100;
 }
 header div.header-nav ul li ul li {
     visibility: hidden;
     overflow: hidden;
-    width: 160px;/*サブメニューの幅*/
+    width: 150px;/*サブメニューの幅*/
     height: 0;
     background: #ffffff;/*サブメニューの背景色*/
     border: 1px solid #ffe;

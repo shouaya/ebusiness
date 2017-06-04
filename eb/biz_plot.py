@@ -5,12 +5,18 @@ Created on 2016/06/02
 @author: Yang Wanjun
 """
 from __future__ import unicode_literals
+import platform
 import StringIO
 import datetime
 import pandas as pd
 import matplotlib.pyplot as plt
+import matplotlib
 
 from django.db import connection
+
+
+if platform.system() == "Darwin":
+    matplotlib.rcParams['font.family'] = 'AppleGothic'
 
 
 def members_status_bar():

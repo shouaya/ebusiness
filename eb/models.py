@@ -3250,6 +3250,7 @@ def get_project_members_by_month(date):
     query_set = ProjectMember.objects.public_filter(end_date__gte=first_day,
                                                     start_date__lte=last_day,
                                                     project__status__in=[4, 5],
+                                                    project__is_reserve=False,
                                                     status=2)
     return query_set.extra(select={
         'section_name': "select name "

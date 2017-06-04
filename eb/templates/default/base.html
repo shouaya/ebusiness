@@ -77,9 +77,9 @@
                             {% if perms.eb.view_turnover %}
                             <li><a href="{% url 'project_order_list' %}">案件の注文情報</a></li>
                             {% endif %}
-                            <li><a href="{% url 'section_list' %}">部署情報一覧</a></li>
                         </ul>
                     </li>
+                    <li><a href="{% url 'section_list' %}">部署一覧</a></li>
                     {% if perms.eb.view_subcontractor %}
                     <li><a href="{% url 'business_partner_members' %}">ＢＰメンバー</a>
                     </li>
