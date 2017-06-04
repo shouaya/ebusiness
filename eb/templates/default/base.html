@@ -82,6 +82,9 @@
                     <li><a href="{% url 'section_list' %}">部署一覧</a></li>
                     {% if perms.eb.view_subcontractor %}
                     <li><a href="{% url 'business_partner_members' %}">ＢＰメンバー</a>
+                        <ul>
+                            <li><a href="{% url 'subcontractor_cost_list' %}">協力会社コスト</a></li>
+                        </ul>
                     </li>
                     {% endif %}
                     {% if perms.eb.view_turnover %}

@@ -408,3 +408,14 @@ def members_turnover_monthly(ym, q=None, o=None):
         turnover_details = turnover_details.order_by(*o)
 
     return turnover_details
+
+
+def subcontractor_cost_monthly():
+    queryset = models.MemberAttendance.objects.public_filter(
+        project_member__member__subcontractor__isnull=False,
+        year__gte='2017',
+    ).values('year', 'month').annotate(
+        total_hours=Sum('total_hours'),
+        ym=Concat('year', 'month')
+    ).filter(ym__gte='201704').order_by('year', 'month').distinct()
+    return queryset

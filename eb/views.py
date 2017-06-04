@@ -1385,16 +1385,15 @@ class SubcontractorListView(BaseTemplateView):
     template_name = 'default/subcontractor_list.html'
 
     def get(self, request, *args, **kwargs):
-        name = request.GET.get('name', None)
+        param_list = common.get_request_params(request.GET)
+        params = "&".join(["%s=%s" % (key, value) for key, value in param_list.items()]) if param_list else ""
         o = request.GET.get('o', None)
         dict_order = common.get_ordering_dict(o, ['name'])
         order_list = common.get_ordering_list(o)
-        params = ""
 
         all_subcontractors = models.Subcontractor.objects.public_all()
-        if name:
-            all_subcontractors = all_subcontractors.filter(name__contains=name)
-            params += "&name=%s" % (name,)
+        if param_list:
+            all_subcontractors = all_subcontractors.filter(**param_list)
         if order_list:
             all_subcontractors = all_subcontractors.order_by(*order_list)
 
@@ -1412,12 +1411,26 @@ class SubcontractorListView(BaseTemplateView):
             'title': u'協力会社一覧 | %s' % constants.NAME_SYSTEM,
             'subcontractors': subcontractors,
             'paginator': paginator,
-            'params': params,
+            'params': "&" + params if params else "",
             'orders': "&o=%s" % (o,) if o else "",
             'dict_order': dict_order,
             'bp_count': models.Member.objects.public_filter(subcontractor__isnull=False).count(),
         })
         return self.render_to_response(context)
+
+
+@method_decorator(permission_required('eb.view_subcontractor', raise_exception=True), name='get')
+class SubcontractorCostListView(BaseTemplateView):
+    template_name = 'default/subcontractor_cost_list.html'
+
+    def get_context_data(self, **kwargs):
+        context = super(SubcontractorCostListView, self).get_context_data(**kwargs)
+        object_list = biz_turnover.subcontractor_cost_monthly()
+
+        context.update({
+            'object_list': object_list,
+        })
+        return context
 
 
 @method_decorator(permission_required('eb.view_subcontractor', raise_exception=True), name='get')

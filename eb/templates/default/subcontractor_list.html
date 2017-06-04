@@ -5,7 +5,7 @@
 {% block header %}
     <script type="text/javascript">
         window.onload = function() {
-            init_select("name");
+            init_select("name__icontains");
         };
     </script>
 {% endblock %}
@@ -14,8 +14,9 @@
     <div class="dashboard">
         <div class="dashboard-title">なにをしたいのですか？</div>
         <form action="" method="get">
-            <span>会社名称: </span><input type="text" id="name" name="name" style="width: 100px;"/>
+            <label for="name__icontains">会社名称: </label><input type="text" id="name__icontains" name="name__icontains" style="width: 150px;"/>
             <input type="submit" value="Filter" />
+            <a href="{% url 'subcontractor_list' %}">クリア</a>
         </form>
     </div>
     <table class="list" cellpadding="0" cellspacing="0">

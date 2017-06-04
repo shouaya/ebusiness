@@ -78,7 +78,7 @@ turnover_patterns = [
 ]
 
 subcontractor_patterns = [
-    # url(r'^list.html$', views.SubcontractorListView.as_view(), name='subcontractor_list'),
+    url(r'^list.html$', views.SubcontractorListView.as_view(), name='subcontractor_list'),
     url(r'^detail/(?P<subcontractor_id>[0-9]+).html$', views.SubcontractorDetailView.as_view(),
         name='subcontractor_detail'),
     url(r'^members/(?P<subcontractor_id>[0-9]+).html$', views.SubcontractorMembersView.as_view(),
@@ -87,7 +87,8 @@ subcontractor_patterns = [
     url(r'^(?P<member_id>[0-9]+)/order_info\.html$', views.BpMemberOrdersView.as_view(), name='bp_member_orders'),
     url(r'^(?P<project_member_id>[0-9]+)/order/(?P<year>[0-9]{4})/(?P<month>[0-9]{2})\.html$',
         views.BpMemberOrderDetailView.as_view(), {'preview': True}, name='bp_member_order_preview'),
-    url(r'^order/(?P<order_id>[0-9]+)\.html$', views.BpMemberOrderDetailView.as_view(), name='bp_member_order')
+    url(r'^order/(?P<order_id>[0-9]+)\.html$', views.BpMemberOrderDetailView.as_view(), name='bp_member_order'),
+    url(r'^cost_monthly.html$', views.SubcontractorCostListView.as_view(), name='subcontractor_cost_list'),
 ]
 
 project_patterns = [
