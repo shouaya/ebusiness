@@ -427,7 +427,7 @@ def subcontractor_members_cost_monthly(year, month):
         project_member__member__subcontractor__isnull=False,
         year=year,
         month=month,
-    ).distinct()
+    ).order_by('project_member__member__first_name', 'project_member__member__last_name').distinct()
     return queryset
 
 
@@ -436,7 +436,9 @@ def subcontractors_cost_by_month(year, month):
         project_member__member__subcontractor__isnull=False,
         year=year,
         month=month,
-    ).order_by('project_member__member__subcontractor').distinct()
+    ).order_by('project_member__member__subcontractor').distinct().prefetch_related(
+        'project_member__member__subcontractor',
+    )
 
     subcontractors = dict()
     for member_attendance in queryset:

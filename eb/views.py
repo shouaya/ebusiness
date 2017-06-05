@@ -1470,6 +1470,7 @@ class SubcontractorMembersCostMonthlyView(BaseTemplateView):
             object_list = paginator.page(paginator.num_pages)
 
         context.update({
+            'title': u"%s年%s月のＢＰメンバーコスト一覧" % (year, month),
             'object_list': object_list,
             'paginator': paginator,
             'params': "&" + params if params else "",

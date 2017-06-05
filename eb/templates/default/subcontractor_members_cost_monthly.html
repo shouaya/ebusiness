@@ -6,14 +6,25 @@
 {% block header %}
     <script type="text/javascript">
         window.onload = function() {
-            init_select("name__icontains");
+            init_select("project_member__member__first_name__icontains");
+            init_select("project_member__member__last_name__icontains");
+            init_select("project_member__member__subcontractor__name__icontains");
+            init_select("project_member__project__name__icontains");
         };
     </script>
 {% endblock %}
 
 {% block content %}
     <div class="dashboard">
-        <div class="dashboard-title">なにをしたいのですか？</div>
+        <div class="dashboard-title">{{ title }}</div>
+        <form action="" method="get">
+            <label for="project_member__member__first_name__icontains">姓: </label><input type="text" id="project_member__member__first_name__icontains" name="project_member__member__first_name__icontains" style="width: 50px;"/>
+            <label for="project_member__member__last_name__icontains">名: </label><input type="text" id="project_member__member__last_name__icontains" name="project_member__member__last_name__icontains" style="width: 50px;"/>
+            <label for="project_member__member__subcontractor__name__icontains">協力会社: </label><input type="text" id="project_member__member__subcontractor__name__icontains" name="project_member__member__subcontractor__name__icontains" style="width: 150px;"/>
+            <label for="project_member__project__name__icontains">杏衣見: </label><input type="text" id="project_member__project__name__icontains" name="project_member__project__name__icontains" style="width: 150px;"/>
+            <input type="submit" value="Filter" />
+            <a href="{{ request.path }}">クリア</a>
+        </form>
     </div>
     <table class="list" cellpadding="0" cellspacing="0">
         <thead>
