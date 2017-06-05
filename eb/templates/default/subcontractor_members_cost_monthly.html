@@ -21,7 +21,7 @@
             <label for="project_member__member__first_name__icontains">姓: </label><input type="text" id="project_member__member__first_name__icontains" name="project_member__member__first_name__icontains" style="width: 50px;"/>
             <label for="project_member__member__last_name__icontains">名: </label><input type="text" id="project_member__member__last_name__icontains" name="project_member__member__last_name__icontains" style="width: 50px;"/>
             <label for="project_member__member__subcontractor__name__icontains">協力会社: </label><input type="text" id="project_member__member__subcontractor__name__icontains" name="project_member__member__subcontractor__name__icontains" style="width: 150px;"/>
-            <label for="project_member__project__name__icontains">杏衣見: </label><input type="text" id="project_member__project__name__icontains" name="project_member__project__name__icontains" style="width: 150px;"/>
+            <label for="project_member__project__name__icontains">案件名: </label><input type="text" id="project_member__project__name__icontains" name="project_member__project__name__icontains" style="width: 150px;"/>
             <input type="submit" value="Filter" />
             <a href="{{ request.path }}">クリア</a>
         </form>
@@ -69,7 +69,7 @@
                         <td>
                             {% if contract.is_hourly_pay %}
                             {% elif contract.is_fixed_cost %}
-                            {% else %}
+                            {% elif contract %}
                                 {{ contract.allowance_time_min }}～{{ contract.allowance_time_max }}
                             {% endif %}
                         </td>
