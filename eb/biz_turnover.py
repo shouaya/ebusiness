@@ -429,3 +429,20 @@ def subcontractor_members_cost_monthly(year, month):
         month=month,
     ).distinct()
     return queryset
+
+
+def subcontractors_cost_by_month(year, month):
+    queryset = models.MemberAttendance.objects.public_filter(
+        project_member__member__subcontractor__isnull=False,
+        year=year,
+        month=month,
+    ).order_by('project_member__member__subcontractor').distinct()
+
+    subcontractors = dict()
+    for member_attendance in queryset:
+        cost = member_attendance.get_all_cost()
+        if member_attendance.project_member.member.subcontractor in subcontractors:
+            subcontractors[member_attendance.project_member.member.subcontractor] += cost
+        else:
+            subcontractors[member_attendance.project_member.member.subcontractor] = cost
+    return subcontractors.items()

@@ -1421,7 +1421,7 @@ class SubcontractorListView(BaseTemplateView):
 
 @method_decorator(permission_required('eb.view_subcontractor', raise_exception=True), name='get')
 class SubcontractorsCostMonthlyView(BaseTemplateView):
-    template_name = 'default/subcontractor_cost_monthly.html'
+    template_name = 'default/subcontractors_cost_monthly.html'
 
     def get_context_data(self, **kwargs):
         context = super(SubcontractorsCostMonthlyView, self).get_context_data(**kwargs)
@@ -1442,7 +1442,23 @@ class SubcontractorMembersCostMonthlyView(BaseTemplateView):
         request = kwargs.get('request')
         year = kwargs.get('year')
         month = kwargs.get('month')
+        subcontractor_id = kwargs.get('subcontractor_id', None)
+        param_list = common.get_request_params(request.GET)
+        o = request.GET.get('o', None)
+        dict_order = common.get_ordering_dict(o, ['project_member__member__first_name',
+                                                  'project_member__member__subcontractor__name',
+                                                  'project_member__project__name',])
+        order_list = common.get_ordering_list(o)
+        params = "&".join(["%s=%s" % (key, value) for key, value in param_list.items()]) if param_list else ""
+
         object_list = biz_turnover.subcontractor_members_cost_monthly(year, month)
+
+        if subcontractor_id:
+            object_list = object_list.filter(project_member__member__subcontractor__pk=subcontractor_id)
+        if param_list:
+            object_list = object_list.filter(**param_list)
+        if order_list:
+            object_list = object_list.order_by(*order_list)
 
         paginator = Paginator(object_list, biz_config.get_page_size())
         page = request.GET.get('page')
@@ -1456,6 +1472,27 @@ class SubcontractorMembersCostMonthlyView(BaseTemplateView):
         context.update({
             'object_list': object_list,
             'paginator': paginator,
+            'params': "&" + params if params else "",
+            'dict_order': dict_order,
+            'orders': "&o=%s" % (o,) if o else "",
+        })
+        return context
+
+
+class SubcontractorCostMonthlyView(BaseTemplateView):
+    template_name = 'default/subcontractor_cost_monthly.html'
+
+    def get_context_data(self, **kwargs):
+        context = super(SubcontractorCostMonthlyView, self).get_context_data(**kwargs)
+        year = kwargs.get('year')
+        month = kwargs.get('month')
+
+        object_list = biz_turnover.subcontractors_cost_by_month(year, month)
+
+        context.update({
+            'object_list': object_list,
+            'year': year,
+            'month': month,
         })
         return context
 

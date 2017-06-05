@@ -18,9 +18,9 @@
     <table class="list" cellpadding="0" cellspacing="0">
         <thead>
             <tr>
-                <th>名前</th>
-                <th>協力会社</th>
-                <th>案件</th>
+                <th>{% create_order_display "名前" "project_member__member__first_name" %}</th>
+                <th style="width: 200px;">{% create_order_display "協力会社" "project_member__member__subcontractor__name" %}</th>
+                <th style="width: 250px;">{% create_order_display "案件" "project_member__project__name" %}</th>
                 <th></th>
                 <th>基本給</th>
                 <th>基準時間</th>
@@ -37,8 +37,16 @@
                 {% with contract=member_attendance.get_contract %}
                     <tr class="{% cycle 'row1' 'row2' %}">
                         <td><a>{{ member_attendance.project_member }}</a></td>
-                        <td>{{ member_attendance.project_member.member.subcontractor }}</td>
-                        <td>{{ member_attendance.project_member.project }}</td>
+                        <td>
+                            <div style="width: 200px; overflow: hidden; white-space: nowrap;">
+                            {{ member_attendance.project_member.member.subcontractor }}
+                            </div>
+                        </td>
+                        <td>
+                            <div style="width: 250px; overflow: hidden; white-space: nowrap;">
+                            {{ member_attendance.project_member.project }}
+                            </div>
+                        </td>
                         <td class="center">
                             {% if contract.is_hourly_pay %}
                                 時給

@@ -1,11 +1,11 @@
 {% extends theme|add:"/base.html" %}
 {% load humanize %}
 {% load order_by_tag %}
-{% load sales_templates %}
 
 {% block header %}
     <script type="text/javascript">
         window.onload = function() {
+            init_select("name__icontains");
         };
     </script>
 {% endblock %}
@@ -17,16 +17,20 @@
     <table class="list" cellpadding="0" cellspacing="0">
         <thead>
             <tr>
-                <th>会社名</th>
-                <th>コスト</th>
+                <th></th>
+                <th>出勤時間</th>
+                <th>人数</th>
+                <th></th>
             </tr>
         </thead>
         <tbody>
             {% if object_list %}
-                {% for subcontractor, cost in object_list %}
+                {% for object in object_list %}
                     <tr class="{% cycle 'row1' 'row2' %}">
-                        <td><a href="{% url 'subcontractor_members_cost_by_month' subcontractor.pk year month %}">{{ subcontractor }}</a></td>
-                        <td class="num">{{ cost|intcomma }}</td>
+                        <td><a href="{% url 'subcontractor_members_cost_monthly' object.year object.month %}">{{ object.year }}年{{ object.month }}月</a></td>
+                        <td>{{ object.total_hours }}</td>
+                        <td>{{ object.member_count }}</td>
+                        <td class="center"><a href="{% url 'subcontractor_cost_monthly' object.year object.month %}">会社別</a></td>
                     </tr>
                 {% endfor %}
             {% else %}
@@ -35,8 +39,10 @@
         </tbody>
         <tfoot>
             <tr>
-                <th>会社名</th>
-                <th>コスト</th>
+                <th></th>
+                <th>出勤時間</th>
+                <th>人数</th>
+                <th></th>
             </tr>
         </tfoot>
     </table>

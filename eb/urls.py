@@ -89,9 +89,14 @@ subcontractor_patterns = [
         views.BpMemberOrderDetailView.as_view(), {'preview': True}, name='bp_member_order_preview'),
     url(r'^order/(?P<order_id>[0-9]+)\.html$', views.BpMemberOrderDetailView.as_view(), name='bp_member_order'),
     url(r'^cost_monthly.html$', views.SubcontractorsCostMonthlyView.as_view(), name='subcontractors_cost_monthly'),
-    url(r'^cost/(?P<year>[0-9]{4})/(?P<month>[0-9]{2})\.html$',
+    url(r'^members_cost/(?P<year>[0-9]{4})/(?P<month>[0-9]{2})\.html$',
         views.SubcontractorMembersCostMonthlyView.as_view(),
         name='subcontractor_members_cost_monthly'),
+    url(r'^cost/(?P<year>[0-9]{4})/(?P<month>[0-9]{2})\.html$', views.SubcontractorCostMonthlyView.as_view(),
+        name='subcontractor_cost_monthly'),
+    url(r'^(?P<subcontractor_id>[0-9]+)/members_cost/(?P<year>[0-9]{4})/(?P<month>[0-9]{2})\.html$',
+        views.SubcontractorMembersCostMonthlyView.as_view(),
+        name='subcontractor_members_cost_by_month'),
 ]
 
 project_patterns = [
