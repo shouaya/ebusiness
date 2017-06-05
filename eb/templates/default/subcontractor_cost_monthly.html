@@ -19,16 +19,16 @@
             <tr>
                 <th></th>
                 <th>出勤時間</th>
-                <th></th>
+                <th>人数</th>
             </tr>
         </thead>
         <tbody>
             {% if object_list %}
                 {% for object in object_list %}
                     <tr class="{% cycle 'row1' 'row2' %}">
-                        <td>{{ object.year }}年{{ object.month }}月</td>
+                        <td><a href="{% url 'subcontractor_members_cost_monthly' object.year object.month %}">{{ object.year }}年{{ object.month }}月</a></td>
                         <td>{{ object.total_hours }}</td>
-                        <td></td>
+                        <td>{{ object.member_count }}</td>
                     </tr>
                 {% endfor %}
             {% else %}
@@ -39,7 +39,7 @@
             <tr>
                 <th></th>
                 <th>出勤時間</th>
-                <th></th>
+                <th>人数</th>
             </tr>
         </tfoot>
     </table>

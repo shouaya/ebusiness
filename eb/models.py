@@ -2413,6 +2413,26 @@ class MemberAttendance(BaseModel):
         """
         return 0
 
+    def get_overtime(self, contract=None):
+        if contract is None:
+            contract = self.get_contract()
+        if contract:
+            if contract.allowance_time_min <= self.total_hours <= contract.allowance_time_max:
+                return 0
+            elif contract.is_fixed_cost or contract.is_hourly_pay:
+                return 0
+            elif self.project_member.project.is_reserve:
+                # 待機案件の場合、残業と欠勤を計算する必要がない。
+                return 0
+            elif self.total_hours > contract.allowance_time_max:
+                overtime = self.total_hours - contract.allowance_time_max
+                return overtime
+            else:
+                absenteeism = self.total_hours - contract.allowance_time_min
+                return absenteeism
+        else:
+            return 0
+
     def get_overtime_cost(self):
         """残業／控除の金額を取得する
 

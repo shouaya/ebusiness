@@ -1420,15 +1420,42 @@ class SubcontractorListView(BaseTemplateView):
 
 
 @method_decorator(permission_required('eb.view_subcontractor', raise_exception=True), name='get')
-class SubcontractorCostListView(BaseTemplateView):
-    template_name = 'default/subcontractor_cost_list.html'
+class SubcontractorsCostMonthlyView(BaseTemplateView):
+    template_name = 'default/subcontractor_cost_monthly.html'
 
     def get_context_data(self, **kwargs):
-        context = super(SubcontractorCostListView, self).get_context_data(**kwargs)
-        object_list = biz_turnover.subcontractor_cost_monthly()
+        context = super(SubcontractorsCostMonthlyView, self).get_context_data(**kwargs)
+        object_list = biz_turnover.subcontractors_cost_monthly()
 
         context.update({
             'object_list': object_list,
+        })
+        return context
+
+
+@method_decorator(permission_required('eb.view_subcontractor', raise_exception=True), name='get')
+class SubcontractorMembersCostMonthlyView(BaseTemplateView):
+    template_name = 'default/subcontractor_members_cost_monthly.html'
+
+    def get_context_data(self, **kwargs):
+        context = super(SubcontractorMembersCostMonthlyView, self).get_context_data(**kwargs)
+        request = kwargs.get('request')
+        year = kwargs.get('year')
+        month = kwargs.get('month')
+        object_list = biz_turnover.subcontractor_members_cost_monthly(year, month)
+
+        paginator = Paginator(object_list, biz_config.get_page_size())
+        page = request.GET.get('page')
+        try:
+            object_list = paginator.page(page)
+        except PageNotAnInteger:
+            object_list = paginator.page(1)
+        except EmptyPage:
+            object_list = paginator.page(paginator.num_pages)
+
+        context.update({
+            'object_list': object_list,
+            'paginator': paginator,
         })
         return context
 

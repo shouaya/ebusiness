@@ -13,7 +13,7 @@ import pandas as pd
 
 from eb import models
 
-from django.db.models import Sum
+from django.db.models import Sum, Count
 from django.db.models.functions import Concat
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import connection
@@ -410,12 +410,22 @@ def members_turnover_monthly(ym, q=None, o=None):
     return turnover_details
 
 
-def subcontractor_cost_monthly():
+def subcontractors_cost_monthly():
     queryset = models.MemberAttendance.objects.public_filter(
         project_member__member__subcontractor__isnull=False,
         year__gte='2017',
     ).values('year', 'month').annotate(
         total_hours=Sum('total_hours'),
-        ym=Concat('year', 'month')
+        ym=Concat('year', 'month'),
+        member_count=Count('id'),
     ).filter(ym__gte='201704').order_by('year', 'month').distinct()
+    return queryset
+
+
+def subcontractor_members_cost_monthly(year, month):
+    queryset = models.MemberAttendance.objects.public_filter(
+        project_member__member__subcontractor__isnull=False,
+        year=year,
+        month=month,
+    ).distinct()
     return queryset

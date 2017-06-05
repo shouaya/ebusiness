@@ -1,0 +1,89 @@
+{% extends theme|add:"/base.html" %}
+{% load humanize %}
+{% load order_by_tag %}
+{% load sales_templates %}
+
+{% block header %}
+    <script type="text/javascript">
+        window.onload = function() {
+            init_select("name__icontains");
+        };
+    </script>
+{% endblock %}
+
+{% block content %}
+    <div class="dashboard">
+        <div class="dashboard-title">なにをしたいのですか？</div>
+    </div>
+    <table class="list" cellpadding="0" cellspacing="0">
+        <thead>
+            <tr>
+                <th>名前</th>
+                <th>協力会社</th>
+                <th>案件</th>
+                <th></th>
+                <th>基本給</th>
+                <th>基準時間</th>
+                <th>増</th>
+                <th>減</th>
+                <th>出勤時間</th>
+                <th>不足/超過</th>
+                <th>コスト</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% if object_list %}
+                {% for member_attendance in object_list %}
+                {% with contract=member_attendance.get_contract %}
+                    <tr class="{% cycle 'row1' 'row2' %}">
+                        <td><a>{{ member_attendance.project_member }}</a></td>
+                        <td>{{ member_attendance.project_member.member.subcontractor }}</td>
+                        <td>{{ member_attendance.project_member.project }}</td>
+                        <td class="center">
+                            {% if contract.is_hourly_pay %}
+                                時給
+                            {% elif contract.is_fixed_cost %}
+                                固定
+                            {% endif %}
+                        </td>
+                        <td class="num">{{ contract.allowance_base|intcomma }}</td>
+                        <td>
+                            {% if contract.is_hourly_pay %}
+                            {% elif contract.is_fixed_cost %}
+                            {% else %}
+                                {{ contract.allowance_time_min }}～{{ contract.allowance_time_max }}
+                            {% endif %}
+                        </td>
+                        <td class="num">
+                            {% if contract.is_hourly_pay %}
+                            {% elif contract.is_fixed_cost %}
+                            {% else %}
+                                {{ contract.allowance_overtime|intcomma }}
+                            {% endif %}
+                        </td>
+                        <td class="num">
+                            {% if contract.is_hourly_pay %}
+                            {% elif contract.is_fixed_cost %}
+                            {% else %}
+                                {{ contract.allowance_absenteeism|intcomma }}
+                            {% endif %}
+                        </td>
+                        <td class="num">{{ member_attendance.total_hours }}</td>
+                        <td class="num {% if member_attendance.get_overtime < 0 %}red{% endif %}">{{ member_attendance.get_overtime }}</td>
+                        <td class="num">{{ member_attendance.get_all_cost|intcomma }}</td>
+                    </tr>
+                {% endwith %}
+                {% endfor %}
+            {% else %}
+                <tr class="row1"><td class="center red" colspan="4">協力会社がありません。</td></tr>
+            {% endif %}
+        </tbody>
+        <tfoot>
+            <tr>
+                <td colspan="11">
+                    {% paging object_list %}
+                </td>
+            </tr>
+        </tfoot>
+    </table>
+{% endblock %}
