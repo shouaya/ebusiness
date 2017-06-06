@@ -32,13 +32,14 @@
                 <th>{% create_order_display "名前" "project_member__member__first_name" %}</th>
                 <th style="width: 200px;">{% create_order_display "協力会社" "project_member__member__subcontractor__name" %}</th>
                 <th style="width: 250px;">{% create_order_display "案件" "project_member__project__name" %}</th>
-                <th></th>
                 <th>基本給</th>
+                <th></th>
                 <th>基準時間</th>
                 <th>増</th>
                 <th>減</th>
                 <th>出勤時間</th>
                 <th>不足/超過</th>
+                <th>交通費</th>
                 <th>コスト</th>
             </tr>
         </thead>
@@ -58,6 +59,7 @@
                             {{ member_attendance.project_member.project }}
                             </div>
                         </td>
+                        <td class="num">{{ contract.allowance_base|intcomma }}</td>
                         <td class="center">
                             {% if contract.is_hourly_pay %}
                                 時給
@@ -65,7 +67,6 @@
                                 固定
                             {% endif %}
                         </td>
-                        <td class="num">{{ contract.allowance_base|intcomma }}</td>
                         <td>
                             {% if contract.is_hourly_pay %}
                             {% elif contract.is_fixed_cost %}
@@ -89,6 +90,7 @@
                         </td>
                         <td class="num">{{ member_attendance.total_hours }}</td>
                         <td class="num {% if member_attendance.get_overtime < 0 %}red{% endif %}">{{ member_attendance.get_overtime }}</td>
+                        <td class="num">{{ member_attendance.traffic_cost|default:'0'|intcomma }}</td>
                         <td class="num">{{ member_attendance.get_all_cost|intcomma }}</td>
                     </tr>
                 {% endwith %}
@@ -99,7 +101,7 @@
         </tbody>
         <tfoot>
             <tr>
-                <td colspan="11">
+                <td colspan="12">
                     {% paging object_list %}
                 </td>
             </tr>
