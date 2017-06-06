@@ -69,6 +69,7 @@ CONFIG_BP_ORDER_CONTRACT_ITEMS = 'contract_items'
 CONFIG_DEFAULT_EXPENSES_ID = 'default_expenses_category_id'
 CONFIG_FIREBASE_SERVERKEY = 'firebase_serverkey'
 CONFIG_GCM_URL = 'gcm_url'
+CONFIG_BP_ATTENDANCE_TYPE = 'bp_attendance_type'
 
 MARK_POST_CODE = u"〒"
 

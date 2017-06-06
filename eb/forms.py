@@ -772,6 +772,8 @@ class ConfigForm(forms.ModelForm):
         if instance and isinstance(instance, models.Config):
             if instance.name == 'theme':
                 self.fields['value'] = forms.ChoiceField(constants.CHOICE_THEME, required=True, label=u"設定値")
+            elif instance.name == 'bp_attendance_type':
+                self.fields['value'] = forms.ChoiceField(constants.CHOICE_ATTENDANCE_TYPE, required=True, label=u"設定値")
             elif instance.name and instance.name.find('mail_body') > 0:
                 self.fields['value'] = forms.CharField(widget=forms.Textarea(attrs={'style': 'width: 610px;'}),
                                                        required=True, label=u"設定値")

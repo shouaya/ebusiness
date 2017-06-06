@@ -934,7 +934,7 @@ def get_attendance_total_hours(total_hours, attendance_type):
         return 0
     elif isinstance(total_hours, int) or isinstance(total_hours, long):
         return total_hours
-    elif isinstance(total_hours, float):
+    elif isinstance(total_hours, float) or isinstance(total_hours, Decimal):
         float_part, int_part = math.modf(total_hours)
         if attendance_type == '1':
             # １５分ごと

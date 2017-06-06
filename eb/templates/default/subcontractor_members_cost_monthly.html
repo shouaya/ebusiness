@@ -40,7 +40,7 @@
                 <th>出勤時間</th>
                 <th>不足/超過</th>
                 <th>交通費</th>
-                <th>コスト</th>
+                <th>コスト（税抜）</th>
             </tr>
         </thead>
         <tbody>
@@ -48,7 +48,7 @@
                 {% for member_attendance in object_list %}
                 {% with contract=member_attendance.get_contract %}
                     <tr class="{% cycle 'row1' 'row2' %}">
-                        <td><a>{{ member_attendance.project_member }}</a></td>
+                        <td><a href="{% url 'member_detail' member_attendance.project_member.member.employee_id %}">{{ member_attendance.project_member }}</a></td>
                         <td>
                             <div style="width: 200px; overflow: hidden; white-space: nowrap;">
                             {{ member_attendance.project_member.member.subcontractor }}
@@ -56,7 +56,7 @@
                         </td>
                         <td>
                             <div style="width: 250px; overflow: hidden; white-space: nowrap;">
-                            {{ member_attendance.project_member.project }}
+                                <a href="{% url 'project_detail' member_attendance.project_member.project.pk %}">{{ member_attendance.project_member.project }}</a>
                             </div>
                         </td>
                         <td class="num">{{ contract.allowance_base|intcomma }}</td>
@@ -88,7 +88,7 @@
                                 {{ contract.allowance_absenteeism|intcomma }}
                             {% endif %}
                         </td>
-                        <td class="num">{{ member_attendance.total_hours }}</td>
+                        <td class="num">{{ member_attendance.get_total_hours_cost|floatformat:2 }}</td>
                         <td class="num {% if member_attendance.get_overtime < 0 %}red{% endif %}">{{ member_attendance.get_overtime }}</td>
                         <td class="num">{{ member_attendance.traffic_cost|default:'0'|intcomma }}</td>
                         <td class="num">{{ member_attendance.get_all_cost|intcomma }}</td>

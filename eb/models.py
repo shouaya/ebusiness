@@ -304,6 +304,10 @@ class Config(models.Model):
         return Config.get(constants.CONFIG_GCM_URL, 'https://fcm.googleapis.com/fcm/send',
                           group_name=constants.CONFIG_GROUP_SYSTEM)
 
+    @staticmethod
+    def get_bp_attendance_type():
+        return Config.get(constants.CONFIG_BP_ATTENDANCE_TYPE, '2', group_name=constants.CONFIG_GROUP_SYSTEM)
+
 
 class BaseModel(models.Model):
     created_date = models.DateTimeField(auto_now_add=True, auto_now=False, null=True, editable=False,
@@ -2391,6 +2395,10 @@ class MemberAttendance(BaseModel):
         date = datetime.datetime(int(self.year), int(self.month), 1, tzinfo=common.get_tz_utc())
         return self.project_member.member.get_contract(date)
 
+    def get_total_hours_cost(self):
+        attendance_type = Config.get_bp_attendance_type()
+        return common.get_attendance_total_hours(self.total_hours, attendance_type)
+
     def get_cost(self):
         """コストを取得する
 
@@ -2399,7 +2407,7 @@ class MemberAttendance(BaseModel):
         contract = self.get_contract()
         if contract:
             if contract.is_hourly_pay:
-                return int(contract.get_cost() * self.total_hours)
+                return int(contract.get_cost() * self.get_total_hours_cost())
             else:
                 return contract.get_cost()
         return 0
@@ -2417,18 +2425,19 @@ class MemberAttendance(BaseModel):
         if contract is None:
             contract = self.get_contract()
         if contract:
-            if contract.allowance_time_min <= self.total_hours <= contract.allowance_time_max:
+            total_hours = self.get_total_hours_cost()
+            if contract.allowance_time_min <= total_hours <= contract.allowance_time_max:
                 return 0
             elif contract.is_fixed_cost or contract.is_hourly_pay:
                 return 0
             elif self.project_member.project.is_reserve:
                 # 待機案件の場合、残業と欠勤を計算する必要がない。
                 return 0
-            elif self.total_hours > contract.allowance_time_max:
-                overtime = self.total_hours - contract.allowance_time_max
+            elif total_hours > contract.allowance_time_max:
+                overtime = total_hours - contract.allowance_time_max
                 return overtime
             else:
-                absenteeism = self.total_hours - contract.allowance_time_min
+                absenteeism = total_hours - contract.allowance_time_min
                 return absenteeism
         else:
             return 0
@@ -2440,16 +2449,19 @@ class MemberAttendance(BaseModel):
         """
         contract = self.get_contract()
         if contract:
-            if contract.allowance_time_min <= self.total_hours <= contract.allowance_time_max:
+            if self.project_member.member.employee_id == 'BP01126':
+                pass
+            total_hours = self.get_total_hours_cost()
+            if contract.allowance_time_min <= total_hours <= contract.allowance_time_max:
                 return 0
             elif self.project_member.project.is_reserve:
                 # 待機案件の場合、残業と欠勤を計算する必要がない。
                 return 0
-            elif self.total_hours > contract.allowance_time_max:
-                overtime = self.total_hours - contract.allowance_time_max
+            elif total_hours > contract.allowance_time_max:
+                overtime = total_hours - contract.allowance_time_max
                 return int(overtime * contract.allowance_overtime)
             else:
-                absenteeism = self.total_hours - contract.allowance_time_min
+                absenteeism = total_hours - contract.allowance_time_min
                 return int(absenteeism * contract.allowance_absenteeism)
         else:
             return 0
