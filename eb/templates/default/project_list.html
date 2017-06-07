@@ -1,5 +1,6 @@
 {% extends theme|add:"/base.html" %}
 {% load order_by_tag %}
+{% load sales_templates %}
 
 {% block header %}
     <script type="text/javascript">
@@ -55,12 +56,13 @@
             <tr>
                 <th style="width: 320px;">{% create_order_display "案件名称" "name" %}</th>
                 <th style="width: 180px;">{% create_order_display "関連会社" "client__name" %}</th>
+                <th>{% create_order_display "事業分類" "business_type" %}</th>
                 <th>{% create_order_display "営業員" "salesperson__first_name" %}</th>
                 <th style="width: 50px;">{% create_order_display "総人数" "" %}</th>
                 <th style="width: 62px;">{% create_order_display "現在人数" "" %}</th>
                 <th>{% create_order_display "メンバー" "" %}</th>
                 <th style="width: 60px;">{% create_order_display "状態" "" %}</th>
-                <th style="width: 140px;">{% create_order_display "更新日" "update_date" %}</th>
+                <th style="width: 110px;">{% create_order_display "更新日" "update_date" %}</th>
                 <th class="noprint" style="width: 65px;"></th>
             </tr>
         </thead>
@@ -81,6 +83,7 @@
                                 <a title="{{ project.client.name }}">{{ project.client.name }}</a>
                             </div>
                         </td>
+                        <td>{{ project.get_business_type_display|default:'' }}</td>
                         <td>
                             {% if project.salesperson %}
                                 <a href="?salesperson__pk={{ project.salesperson.pk }}">{{ project.salesperson }}</a>
@@ -113,31 +116,8 @@
         </tbody>
         <tfoot>
             <tr>
-                <td colspan="9">
-                    <div class="pagination">
-                        <span class="step-links">
-                            {% if projects.has_previous %}
-                                <a href="?page={{ projects.previous_page_number }}{{ params }}{{ orders }}">&lt;</a>
-                            {% endif %}
-
-                            {% if paginator.page_range|length > 1 %}
-                                {% for page in paginator.page_range %}
-                                    {% ifequal page projects.number %}
-                                        <span class="current">
-                                            {{ page }}
-                                        </span>
-                                    {% else %}
-                                        <a href="?page={{ page }}{{ params }}{{ orders }}">{{ page }}</a>
-                                    {% endifequal %}
-                                {% endfor %}
-                            {% endif %}
-
-                            {% if projects.has_next %}
-                                <a href="?page={{ projects.next_page_number }}{{ params }}{{ orders }}">&gt;</a>
-                            {% endif %}
-                            <span>{{ paginator.count }} 件</span>
-                        </span>
-                    </div>
+                <td colspan="10">
+                    {% paging projects %}
                 </td>
             </tr>
         </tfoot>

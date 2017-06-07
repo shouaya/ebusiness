@@ -510,7 +510,7 @@ class ProjectListView(BaseTemplateView):
         o = request.GET.get('o', None)
         q = request.GET.get('q', None)
         dict_order = common.get_ordering_dict(o, ['name', 'client__name', 'salesperson__first_name', 'boss__name',
-                                                  'middleman__name', 'update_date'])
+                                                  'middleman__name', 'update_date', 'business_type'])
         order_list = common.get_ordering_list(o)
         all_projects = biz.get_projects(q=param_list, o=order_list)
 

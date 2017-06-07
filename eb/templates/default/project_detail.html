@@ -291,6 +291,10 @@
             <th>作業場所</th><td colspan="3">{{ project.address }}</td>
         </tr>
         <tr>
+            <th>事業分類</th>
+            <td colspan="3">{{ project.get_business_type_display }}</td>
+        </tr>
+        <tr>
             <th>開始日付</th><td>{{ project.start_date|date:"Y-m-d" }}</td>
             <th>終了日付</th><td>{{ project.end_date|date:"Y-m-d" }}</td>
         </tr>

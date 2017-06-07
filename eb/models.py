@@ -1477,6 +1477,9 @@ class OS(BaseModel):
 class Project(models.Model):
     name = models.CharField(blank=False, null=False, max_length=50, verbose_name=u"案件名称")
     description = models.TextField(blank=True, null=True, verbose_name=u"案件概要")
+    business_type = models.CharField(blank=False, null=True, max_length=2,
+                                     choices=constants.CHOICE_PROJECT_BUSINESS_TYPE,
+                                     verbose_name=u"事業分類", help_text=u"必ず入力してください。")
     skills = models.ManyToManyField(Skill, through='ProjectSkill', blank=True, verbose_name=u"スキル要求")
     os = models.ManyToManyField(OS, blank=True, verbose_name=u"機種／OS")
     start_date = models.DateField(blank=True, null=True, verbose_name=u"開始日")
@@ -2396,6 +2399,12 @@ class MemberAttendance(BaseModel):
         return self.project_member.member.get_contract(date)
 
     def get_total_hours_cost(self):
+        """コスト算出時、社内は30分ごとに計算されている。
+
+        規定としては30分ですが、システム設定では変更できます。
+
+        :return:
+        """
         attendance_type = Config.get_bp_attendance_type()
         return common.get_attendance_total_hours(self.total_hours, attendance_type)
 
