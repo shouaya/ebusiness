@@ -5,8 +5,14 @@ function calculate_plus_minus(obj, name_base, name_min, name_max, name_minus, na
         max_hours = parseFloat($("#id_" + name_max).val());
         plus_per_hour = Math.round(price / max_hours);
         minus_per_hour = Math.round(price / min_hours);
+        // 残業手当
         $("#id_" + name_plus).val(plus_per_hour);
+        // 残業手当メモ
+        change_allowance_overtime($("#id_" + name_plus)[0], name_base, 'calculate_time_max', 'allowance_overtime_memo')
+        // 欠勤手当
         $("#id_" + name_minus).val(minus_per_hour);
+        // 欠勤手当メモ
+        change_allowance_absenteeism($("#id_" + name_minus)[0], name_base, 'calculate_time_min', 'allowance_absenteeism_memo')
 
         // 基本給メモ
         obj_memo = $("#id_" + "allowance_base_memo");
