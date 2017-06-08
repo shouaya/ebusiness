@@ -25,7 +25,7 @@ from django.utils.text import get_text_list
 from django.utils.translation import ugettext as _
 from django.contrib.auth.models import User
 from django.db.models.functions import ExtractMonth, ExtractDay
-from django.db.models import Q
+from django.db.models import Q, Prefetch
 
 
 def sync_members(batch):
@@ -475,6 +475,40 @@ def members_to_excel(data_list, path):
         r += 1
 
     book.save(path)
+
+
+def batch_sync_members_cost(batch, year, month):
+    logger = batch.get_logger()
+    # 請求明細にコストを同期する
+    project_request_details = models.ProjectRequestDetail.objects.filter(
+        project_request__year=str(int(year)),
+        project_request__month='%02d' % int(month),
+    ).prefetch_related(
+        Prefetch('project_member'),
+    )
+    if project_request_details.count() > 0:
+        count = 0
+        for request_detail in project_request_details:
+            try:
+                member_attendance = models.MemberAttendance.objects.get(
+                    year=str(int(year)),
+                    month='%02d' % int(month),
+                    project_member=request_detail.project_member
+                )
+                salary = member_attendance.get_cost()
+                cost = member_attendance.get_all_cost()
+                request_detail.salary = salary
+                request_detail.cost = cost
+                request_detail.save()
+                member_attendance.salary = salary
+                member_attendance.cost = cost
+                member_attendance.save()
+                count += 1
+            except (ObjectDoesNotExist, MultipleObjectsReturned):
+                pass
+        logger.info(u"%s年%s月のコスト同期は %s／%s 件完了しました。" % (year, month, count, project_request_details.count()))
+    else:
+        logger.info(u"%s年%s月の請求情報がありません、請求書を作成しているのかをご確認ください。" % (year, month))
 
 
 def batch_push_new_member(batch):

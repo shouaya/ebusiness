@@ -50,7 +50,7 @@
                 <th style="width: 220px;">{% create_order_display "案件名称" "project_request__project__name" %}</th>
                 <th style="width: 160px;">{% create_order_display "関連会社" "project_request__projectrequestheading__client__name" %}</th>
                 <th>営業</th>
-                <th>コスト</th>
+                <!--<th>コスト</th>-->
                 <th>売上（税別）</th>
                 <th>税金</th>
                 <th>精算</th>
@@ -78,15 +78,15 @@
                             </div>
                         </td>
                         <td>{{ turnover_detail.salesperson }}</td>
-                        <td style="text-align: right">{{ turnover_detail.cost|intcomma }}</td>
-                        <td style="text-align: right">{{ turnover_detail.total_price|intcomma }}</td>
-                        <td style="text-align: right">
+                        <!--<td class="num">{{ turnover_detail.cost|intcomma }}</td>-->
+                        <td class="num">{{ turnover_detail.total_price|intcomma }}</td>
+                        <td class="num">
                             {{ turnover_detail.get_tax_price|intcomma }}
                         </td>
-                        <td style="text-align: right">
+                        <td class="num">
                             {{ turnover_detail.expenses_price|intcomma }}
                         </td>
-                        <td style="text-align: right">
+                        <td class="num">
                             {{ turnover_detail.get_all_price|intcomma }}
                         </td>
                     </tr>
@@ -100,11 +100,11 @@
                 <td colspan="5">
                     {% paging turnover_details %}
                 </td>
-                <td style="text-align: right">{{ summary.cost_amount|intcomma }}</td>
-                <td style="text-align: right"> {{ summary.attendance_amount|intcomma }}</td>
-                <td style="text-align: right"> {{ summary.attendance_tex|intcomma }}</td>
-                <td style="text-align: right"> {{ summary.expenses_amount|intcomma }}</td>
-                <td style="text-align: right"> {{ summary.all_amount|intcomma }}</td>
+                <!--<td class="num">{{ summary.cost_amount|intcomma }}</td>-->
+                <td class="num"> {{ summary.attendance_amount|intcomma }}</td>
+                <td class="num"> {{ summary.attendance_tex|intcomma }}</td>
+                <td class="num"> {{ summary.expenses_amount|intcomma }}</td>
+                <td class="num"> {{ summary.all_amount|intcomma }}</td>
             </tr>
         </tfoot>
     </table>

@@ -177,6 +177,12 @@ LOGGING = {
             'formatter': 'standard',
             'filename': os.path.join(BASE_DIR, "log/batch/sync_members.log"),
         },
+        'sync_members_cost': {
+            'level': 'INFO',
+            'class': 'logging.FileHandler',
+            'formatter': 'standard',
+            'filename': os.path.join(BASE_DIR, "log/batch/sync_members_cost.log"),
+        },
         'member_status': {
             'level': 'INFO',
             'class': 'logging.FileHandler',
@@ -217,6 +223,11 @@ LOGGING = {
     'loggers': {
         'eb.management.commands.sync_members': {
             'handlers': ['sync_members'],
+            'level': 'INFO',
+            'propagate': True,
+        },
+        'eb.management.commands.sync_members_cost': {
+            'handlers': ['sync_members_cost'],
             'level': 'INFO',
             'propagate': True,
         },

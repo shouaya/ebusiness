@@ -1949,7 +1949,9 @@ class ProjectRequestDetail(models.Model):
     member_section = models.ForeignKey(Section, verbose_name=u"部署")
     member_type = models.IntegerField(default=0, choices=constants.CHOICE_MEMBER_TYPE, verbose_name=u"社員区分")
     salesperson = models.ForeignKey(Salesperson, blank=True, null=True, on_delete=models.PROTECT, verbose_name=u"営業員")
-    subcontractor = models.ForeignKey(Subcontractor, blank=True, null=True, on_delete=models.PROTECT, verbose_name=u"協力会社")
+    subcontractor = models.ForeignKey(Subcontractor, blank=True, null=True, on_delete=models.PROTECT,
+                                      verbose_name=u"協力会社")
+    salary = models.IntegerField(default=0, verbose_name=u"給料")
     cost = models.IntegerField(default=0, verbose_name=u"コスト")
     no = models.IntegerField(verbose_name=u"番号")
     hourly_pay = models.IntegerField(default=0, verbose_name=u"時給")
@@ -2348,7 +2350,9 @@ class MemberAttendance(BaseModel):
                             choices=constants.CHOICE_ATTENDANCE_YEAR, verbose_name=u"対象年")
     month = models.CharField(max_length=2, choices=constants.CHOICE_ATTENDANCE_MONTH, verbose_name=u"対象月")
     rate = models.DecimalField(max_digits=3, decimal_places=2, default=1, verbose_name=u"率")
-    # cost = models.IntegerField(default=0, editable=False, verbose_name=u"コスト")
+    salary = models.IntegerField(default=0, editable=False, verbose_name=u"給料")
+    cost = models.IntegerField(default=0, editable=False, verbose_name=u"コスト",
+                               help_text=u"交通費、残業、保険など含む")
     basic_price = models.IntegerField(default=0, editable=False, verbose_name=u"単価")
     total_hours = models.DecimalField(max_digits=5, decimal_places=2, verbose_name=u"合計時間")
     extra_hours = models.DecimalField(max_digits=5, decimal_places=2, default=0, verbose_name=u"残業時間")

@@ -69,7 +69,7 @@
         <thead>
             <tr>
                 <th></th>
-                <th>コスト</th>
+                <!--<th>コスト</th>-->
                 <th>売上（税別）</th>
                 <th>税金</th>
                 <th>精算</th>
@@ -83,7 +83,7 @@
                 <td>
                     <a href="{% url 'turnover_members_monthly' turnover.ym %}">{{ turnover.year }}年{{ turnover.month }}月</a>
                 </td>
-                <td style="text-align: right;">{{ turnover.cost_amount|intcomma }}</td>
+                <!--<td style="text-align: right;">{{ turnover.cost_amount|intcomma }}</td>-->
                 <td style="text-align: right;">{{ turnover.turnover_amount|intcomma }}</td>
                 <td style="text-align: right;">{{ turnover.tax_amount|intcomma }}</td>
                 <td style="text-align: right;">{{ turnover.expenses_amount|intcomma }}</td>
@@ -95,7 +95,7 @@
         <tfoot>
             <tr>
                 <th></th>
-                <th>コスト</th>
+                <!--<th>コスト</th>-->
                 <th>売上（税別）</th>
                 <th>税金</th>
                 <th>精算</th>

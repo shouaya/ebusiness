@@ -54,13 +54,13 @@
     <table class="list" cellpadding="0" cellspacing="0">
         <thead>
             <tr>
-                <th style="width: 320px;">{% create_order_display "案件名称" "name" %}</th>
-                <th style="width: 180px;">{% create_order_display "関連会社" "client__name" %}</th>
-                <th>{% create_order_display "事業分類" "business_type" %}</th>
-                <th>{% create_order_display "営業員" "salesperson__first_name" %}</th>
+                <th style="width: 290px;">{% create_order_display "案件名称" "name" %}</th>
+                <th style="width: 150px;">{% create_order_display "関連会社" "client__name" %}</th>
+                <th style="width: 100px">{% create_order_display "事業分類" "business_type" %}</th>
+                <th style="width: 90px;">{% create_order_display "営業員" "salesperson__first_name" %}</th>
                 <th style="width: 50px;">{% create_order_display "総人数" "" %}</th>
                 <th style="width: 62px;">{% create_order_display "現在人数" "" %}</th>
-                <th>{% create_order_display "メンバー" "" %}</th>
+                <th style="width: 70px;">{% create_order_display "メンバー" "" %}</th>
                 <th style="width: 60px;">{% create_order_display "状態" "" %}</th>
                 <th style="width: 110px;">{% create_order_display "更新日" "update_date" %}</th>
                 <th class="noprint" style="width: 65px;"></th>
@@ -71,7 +71,7 @@
                 {% for project in projects %}
                     <tr class="{% cycle 'row1' 'row2' %} {% if project.status == 5 %}finished{% endif %} {%if project.is_reserve %}reserve_project{% endif %}">
                         <td {% if project.is_lump %}class="lump_project"{% endif %}>
-                            <div style="width: 320px; overflow: hidden; white-space: nowrap;">
+                            <div style="width: 300px; overflow: hidden; white-space: nowrap;">
                                 <a href="{% url 'project_detail' project.pk %}" title="{{ project.name }}">
                                     {% if project.is_lump %}【一括】{% endif %}
                                     {{ project.name }}
@@ -79,7 +79,7 @@
                             </div>
                         </td>
                         <td>
-                            <div style="width: 190px; overflow: hidden; white-space: nowrap;">
+                            <div style="width: 150px; overflow: hidden; white-space: nowrap;">
                                 <a title="{{ project.client.name }}">{{ project.client.name }}</a>
                             </div>
                         </td>

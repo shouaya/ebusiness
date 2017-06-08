@@ -33,6 +33,7 @@ BATCH_SEND_ATTENDANCE_FORMAT = 'send_attendance_format'
 BATCH_PUSH_NEW_MEMBER = 'push_new_member'
 BATCH_PUSH_BIRTHDAY = 'push_birthday'
 BATCH_PUSH_WAITING_MEMBER = 'push_waiting_member'
+BATCH_SYNC_MEMBERS_COST = 'sync_members_cost'
 
 CONFIG_ADMIN_EMAIL_ADDRESS = 'admin_email_address'
 CONFIG_ADMIN_EMAIL_SMTP_HOST = 'admin_email_smtp_host'

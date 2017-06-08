@@ -58,7 +58,7 @@
                 {% if form.non_field_errors %}
                     <tr><td colspan="{{ form.visible_fields|length }}">{{ form.non_field_errors }}</td></tr>
                 {% endif %}
-                <tr class="{% cycle row1 row2 %}" id="id_form-{{ forloop.counter0 }}">
+                <tr class="{% cycle 'row1' 'row2' %}" id="id_form-{{ forloop.counter0 }}">
                     {% for field in form.visible_fields %}
                         <td>
                             {# Include the hidden fields in the form #}
