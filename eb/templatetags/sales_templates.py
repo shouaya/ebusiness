@@ -4,10 +4,12 @@ Created on 2017/05/02
 
 @author: Yang Wanjun
 """
+from __future__ import unicode_literals
 import datetime
 from django import template
 
 from utils import common
+from eb import biz
 
 register = template.Library()
 
@@ -19,7 +21,7 @@ def paging(parser, token):
     except ValueError:
         raise template.TemplateSyntaxError("%r tag requires one arguments" % token.contents.split()[0])
     if page_object[0] == page_object[-1] and page_object[0] in ('"', "'"):
-        raise template.TemplateSyntaxError("%r tag's argument should be in quotes" % tag_name)
+        raise template.TemplateSyntaxError("%r tag's argument should not be in quotes" % tag_name)
 
     return GeneratePagingTag(page_object)
 
@@ -53,6 +55,46 @@ class GeneratePagingTag(template.Node):
             nodes.append(u'</div>')
             html = "".join(nodes)
         return html
+
+
+@register.tag(name='organization_filter')
+def organization_filter(parser, token):
+    try:
+        tag_name, ele_name = token.split_contents()
+    except ValueError:
+        raise template.TemplateSyntaxError("%r tag requires one arguments" % token.contents.split()[0])
+    if ele_name[0] == ele_name[-1] and ele_name[0] in ('"', "'"):
+        ele_name = ele_name[1:-1]
+    else:
+        raise template.TemplateSyntaxError("%r tag's argument should be in quotes" % tag_name)
+
+    return GenerateOrganizationFilter(ele_name)
+
+
+class GenerateOrganizationFilter(template.Node):
+    def __init__(self, ele_name):
+        self.ele_name = ele_name
+
+    def render(self, context):
+        top_org_list = biz.get_on_sales_top_org()
+        nodes = list()
+        nodes.append('<select id="{0}" name="{0}">'.format(self.ele_name))
+        nodes.append('<option value="">======部署======</option>')
+        for org in top_org_list:
+            if org.children.count() == 0:
+                nodes.append('<option value="%s">%s</option>' % (org.pk, unicode(org)))
+            else:
+                nodes.append('<option class="group" value="%s">%s</option>' % (org.pk, unicode(org)))
+                for sec in org.children.all():
+                    if sec.children.count() == 0:
+                        nodes.append('<option value="%s">%s%s</option>' % (sec.pk, '&nbsp;' * 4, unicode(sec)))
+                    else:
+                        nodes.append('<option class="group" value="%s">%s%s</option>' % (sec.pk, '&nbsp;' * 4, unicode(sec)))
+                        if sec.children.count() > 0:
+                            for sub_sec in sec.children.all():
+                                nodes.append('<option value="%s">%s%s</option>' % (sub_sec.pk, '&nbsp;' * 8, unicode(sub_sec)))
+        nodes.append('</select>')
+        return "".join(nodes)
 
 
 @register.simple_tag()

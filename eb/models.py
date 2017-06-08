@@ -1479,7 +1479,8 @@ class Project(models.Model):
     description = models.TextField(blank=True, null=True, verbose_name=u"案件概要")
     business_type = models.CharField(blank=False, null=True, max_length=2,
                                      choices=constants.CHOICE_PROJECT_BUSINESS_TYPE,
-                                     verbose_name=u"事業分類", help_text=u"必ず入力してください。")
+                                     verbose_name=u"事業分類",
+                                     help_text=u"必ず入力してください、質問があったら 沈さん にお問い合わせください。")
     skills = models.ManyToManyField(Skill, through='ProjectSkill', blank=True, verbose_name=u"スキル要求")
     os = models.ManyToManyField(OS, blank=True, verbose_name=u"機種／OS")
     start_date = models.DateField(blank=True, null=True, verbose_name=u"開始日")

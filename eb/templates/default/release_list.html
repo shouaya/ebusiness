@@ -21,13 +21,7 @@
         <form action="{% url 'release_list' ym %}" method="get">
             <span>姓: </span><input type="text" id="member__first_name__contains" name="member__first_name__contains" style="width: 50px;"/>
             <span>名: </span><input type="text" id="member__last_name__contains" name="member__last_name__contains" style="width: 50px;"/>
-            <span>部署：</span>
-            <select id="section" name="section">
-                <option value="">すべて</option>
-                {% for section in sections %}
-                    <option value="{{ section.pk }}">{{ section.name }}</option>
-                {% endfor %}
-            </select>
+            {% organization_filter "section" %}
             <span>協力会社: </span><input type="text" id="member__subcontractor__name__contains" name="member__subcontractor__name__contains" style="width: 150px;"/>
             <span>案件: </span><input type="text" id="project__name__contains" name="project__name__contains" style="width: 150px;"/>
             <span>営業：</span>

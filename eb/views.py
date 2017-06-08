@@ -1066,7 +1066,7 @@ class TurnoverChartsMonthlyView(BaseTemplateView):
         salesperson_attendance_amount_list = [item['attendance_amount'] for item in salesperson_turnover]
         salesperson_attendance_tex_list = [item['attendance_tex'] for item in salesperson_turnover]
         salesperson_expenses_amount_list = [item['expenses_amount'] for item in salesperson_turnover]
-        salesperson_name_list = ["'" + item['salesperson'].__unicode__() + "'" for item in salesperson_turnover]
+        salesperson_name_list = ["'" + unicode(item['salesperson']) + "'" for item in salesperson_turnover]
 
         clients_turnover = biz_turnover.clients_turnover_monthly(ym[:4], ym[4:])
         clients_attendance_amount_list = [item['attendance_amount'] for item in clients_turnover]
@@ -1114,6 +1114,11 @@ class TurnoverMembersMonthlyView(BaseTemplateView):
 
         sections = biz_turnover.get_turnover_sections(ym)
         all_turnover_details = biz_turnover.members_turnover_monthly(ym, param_list, order_list)
+        if '_member_section__pk' in request.GET:
+            organization = get_object_or_404(models.Section, pk=request.GET.get('_member_section__pk'))
+            org_list = organization.get_children()
+            org_list.append(organization)
+            all_turnover_details = all_turnover_details.filter(member_section__in=org_list)
         summary = {'attendance_amount': 0, 'expenses_amount': 0,
                    'attendance_tex': 0, 'all_amount': 0,
                    'cost_amount': 0}
@@ -1125,6 +1130,7 @@ class TurnoverMembersMonthlyView(BaseTemplateView):
             summary['cost_amount'] += item.cost
         summary['attendance_tex'] = int(round(summary['attendance_tex']))
         summary['all_amount'] = int(round(summary['all_amount']))
+
         paginator = Paginator(all_turnover_details, biz_config.get_page_size())
         page = request.GET.get('page')
         try:
@@ -1136,7 +1142,7 @@ class TurnoverMembersMonthlyView(BaseTemplateView):
 
         context = self.get_context_data()
         context.update({
-            'title': u'%s年%s月の売上詳細情報 | %s' % (ym[:4], ym[4:], constants.NAME_SYSTEM),
+            'title': u'%s年%s月の売上詳細情報' % (ym[:4], ym[4:]),
             'sections': sections,
             'salesperson': models.Salesperson.objects.public_all(),
             'turnover_details': turnover_details,

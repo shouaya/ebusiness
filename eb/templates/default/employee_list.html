@@ -22,28 +22,7 @@
         <form action="" method="get">
             <span>姓: </span><input type="text" id="first_name__contains" name="first_name__contains" style="width: 50px;"/>
             <span>名: </span><input type="text" id="last_name__contains" name="last_name__contains" style="width: 50px;"/>
-            <select id="section" name="section">
-                <option value="">======部署======</option>
-                {% for section in sections %}
-                    {% if section.children.count == 0 %}
-                        <option value="{{ section.pk }}">{{ section.name }}</option>
-                    {% else %}
-                        <option class="group" value="{{ section.pk }}">{{ section }}</option>
-                        {% for sec1 in section.children.all %}
-                            {% if sec1.children.count == 0 %}
-                                <option value="{{ sec1.pk }}">&nbsp;&nbsp;&nbsp;&nbsp;{{ sec1 }}</option>
-                            {% else %}
-                                <option class="group" value="{{ sec1.pk }}">&nbsp;&nbsp;&nbsp;&nbsp;{{ sec1 }}</option>
-                                {% if sec1.children.count > 0 %}
-                                    {% for sec2 in sec1.children.all %}
-                                        <option value="{{ sec2.pk }}">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{ sec2 }}</option>
-                                    {% endfor %}
-                                {% endif %}
-                            {% endif %}
-                        {% endfor %}
-                    {% endif %}
-                {% endfor %}
-            </select>
+            {% organization_filter "section" %}
             <select id="status" name="status">
                 <option value="">===稼働状態===</option>
                 <option value="sales">営業対象</option>

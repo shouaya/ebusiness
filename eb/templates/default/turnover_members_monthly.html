@@ -1,14 +1,15 @@
 {% extends theme|add:"/base.html" %}
 {% load humanize %}
 {% load order_by_tag %}
+{% load sales_templates %}
 
 {% block header %}
     <script type="text/javascript">
         window.onload = function() {
             init_select("project_member__member__first_name");
             init_select("project_member__member__last_name__contains");
-            init_select("member_section__pk");
-            init_select_name("member_section__pk", "member_section__name");
+            init_select("_member_section__pk");
+            init_select_name("_member_section__pk", "member_section__name");
             init_select("project_request__project__name__icontains");
             init_select("project_request__projectrequestheading__client__name__icontains");
             init_select("salesperson__pk");
@@ -23,17 +24,11 @@
 
 {% block content %}
     <div class="dashboard print">
-        <div class="dashboard-title">{{ ym }} の売上情報</div>
+        <div class="dashboard-title">{{ title }}</div>
         <form action="{% url 'turnover_members_monthly' ym %}" method="get">
             <span>姓: </span><input type="text" id="project_member__member__first_name__contains" name="project_member__member__first_name__contains" style="width: 50px;"/>
             <span>名: </span><input type="text" id="project_member__member__last_name__contains" name="project_member__member__last_name__contains" style="width: 50px;"/>
-            <span>部署：</span>
-            <select id="member_section__pk" name="member_section__pk">
-                <option value="">すべて</option>
-                {% for section in sections %}
-                    <option value="{{ section.pk }}">{{ section.name }}</option>
-                {% endfor %}
-            </select>
+            {% organization_filter "_member_section__pk" %}
             <span>案件: </span><input type="text" id="project_request__project__name__icontains" name="project_request__project__name__icontains" style="width: 150px;"/>
             <span>関連会社: </span><input type="text" id="project_request__projectrequestheading__client__name__icontains" name="project_request__projectrequestheading__client__name__icontains" style="width: 150px;"/>
             <span>営業：</span>
@@ -103,30 +98,7 @@
         <tfoot>
             <tr>
                 <td colspan="5">
-                    <div class="pagination">
-                        <span class="step-links">
-                            {% if members_turnover.has_previous %}
-                                <a href="?page={{ members_turnover.previous_page_number }}{{ orders }}{{ params }}">&lt;</a>
-                            {% endif %}
-
-                            {% if paginator.page_range|length > 1 %}
-                                {% for page in paginator.page_range %}
-                                    {% ifequal page members_turnover.number %}
-                                        <span class="current">
-                                            {{ page }}
-                                        </span>
-                                    {% else %}
-                                        <a href="?page={{ page }}{{ orders }}{{ params }}">{{ page }}</a>
-                                    {% endifequal %}
-                                {% endfor %}
-                            {% endif %}
-
-                            {% if members_turnover.has_next %}
-                                <a href="?page={{ members_turnover.next_page_number }}{{ orders }}{{ params }}">&gt;</a>
-                            {% endif %}
-                            <span>{{ paginator.count }} 件</span>
-                        </span>
-                    </div>
+                    {% paging turnover_details %}
                 </td>
                 <td style="text-align: right">{{ summary.cost_amount|intcomma }}</td>
                 <td style="text-align: right"> {{ summary.attendance_amount|intcomma }}</td>
