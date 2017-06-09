@@ -14,7 +14,7 @@ import pandas as pd
 from eb import models
 from utils import common
 
-from django.db.models import Sum, Count, Q
+from django.db.models import Sum, Count, Q, Value
 from django.db.models.functions import Concat
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import connection
@@ -419,7 +419,11 @@ def subcontractors_cost_monthly():
         total_hours=Sum('total_hours'),
         ym=Concat('year', 'month'),
         member_count=Count('id'),
-    ).filter(ym__gte='201704').order_by('year', 'month').distinct()
+    ).filter(
+        Q(project_member__member__bpcontract__end_date__gte=Concat('year', Value('-'), 'month', Value('-01'))) |
+        Q(project_member__member__bpcontract__end_date__isnull=True),
+        project_member__member__bpcontract__start_date__lte=Concat('year', Value('-'), 'month', Value('-30')),
+    ).order_by('year', 'month').distinct()
     return queryset
 
 
@@ -437,8 +441,12 @@ def subcontractor_members_cost_monthly(year, month):
 
 
 def subcontractors_cost_by_month(year, month):
+    first_day = common.get_first_day_from_ym(year + month)
+    last_day = common.get_last_day_by_month(first_day)
     queryset = models.MemberAttendance.objects.public_filter(
-        project_member__member__subcontractor__isnull=False,
+        Q(project_member__member__bpcontract__end_date__gte=first_day) |
+        Q(project_member__member__bpcontract__end_date__isnull=True),
+        project_member__member__bpcontract__start_date__lte=last_day,
         year=year,
         month=month,
     ).order_by('project_member__member__subcontractor').distinct().prefetch_related(

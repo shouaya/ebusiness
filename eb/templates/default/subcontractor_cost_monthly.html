@@ -18,7 +18,7 @@
         <thead>
             <tr>
                 <th>会社名</th>
-                <th>コスト</th>
+                <th style="text-align: right; padding-right: 4px; font-size: 13px; font-weight: normal;">{{ summary.total_cost|intcomma }}</th>
             </tr>
         </thead>
         <tbody>
@@ -35,8 +35,8 @@
         </tbody>
         <tfoot>
             <tr>
-                <th>会社名</th>
-                <th>コスト</th>
+                <th>{{ object_list|length }} 社</th>
+                <th style="text-align: right; padding-right: 4px; font-size: 13px; font-weight: normal;">{{ summary.total_cost|intcomma }}</th>
             </tr>
         </tfoot>
     </table>

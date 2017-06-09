@@ -1453,7 +1453,7 @@ class SubcontractorMembersCostMonthlyView(BaseTemplateView):
         o = request.GET.get('o', None)
         dict_order = common.get_ordering_dict(o, ['project_member__member__first_name',
                                                   'project_member__member__subcontractor__name',
-                                                  'project_member__project__name',])
+                                                  'project_member__project__name'])
         order_list = common.get_ordering_list(o)
         params = "&".join(["%s=%s" % (key, value) for key, value in param_list.items()]) if param_list else ""
 
@@ -1495,11 +1495,13 @@ class SubcontractorCostMonthlyView(BaseTemplateView):
         month = kwargs.get('month')
 
         object_list = biz_turnover.subcontractors_cost_by_month(year, month)
+        summary = {'total_cost': sum([cost for obj, cost in object_list])}
 
         context.update({
             'object_list': object_list,
             'year': year,
             'month': month,
+            'summary': summary,
         })
         return context
 
