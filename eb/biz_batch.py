@@ -477,7 +477,18 @@ def members_to_excel(data_list, path):
     book.save(path)
 
 
-def batch_sync_members_cost(batch, year, month):
+def batch_sync_members_cost(batch, year, month, username):
+    """社員コストを同期する
+
+    請求書作成後の請求明細と出勤情報明細に月給とコストを更新する。
+    事業部などのコスト情報を計算するために、いちいち契約ＤＢにデータを取るのは時間かかるので、まとめってここで出力する。
+
+    :param batch:実行するバッチ
+    :param year:該当年のデータ
+    :param month:該当月のデータ
+    :param username:実行するユーザー
+    :return:
+    """
     logger = batch.get_logger()
     # 請求明細にコストを同期する
     project_request_details = models.ProjectRequestDetail.objects.filter(

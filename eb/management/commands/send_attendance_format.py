@@ -20,6 +20,9 @@ class Command(BaseBatch):
 
     def handle(self, *args, **options):
         ymd = options.get('ymd')
+        username = options.get('username')
+
+        logger.info(u"バッチ実行開始。username: %s" % username)
         date = datetime.datetime.strptime(ymd, '%Y%m%d')
         biz_batch.send_attendance_format(self.batch, date)
 

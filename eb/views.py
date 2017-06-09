@@ -2113,7 +2113,8 @@ class BatchListView(BaseTemplateView):
 
     def post(self, request, *args, **kwargs):
         batch_name = request.POST.get('batch_name', None)
-        call_command(batch_name)
+        options = {'username': request.user.username}
+        call_command(batch_name, **options)
         return redirect(reverse("batch_log", args=(batch_name,)))
 
 

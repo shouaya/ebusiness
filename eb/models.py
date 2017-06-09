@@ -3012,13 +3012,13 @@ class BatchManage(BaseModel):
         return logging.getLogger('eb.management.commands.%s' % (self.name,))
 
     @classmethod
-    def get_log_entry_user(cls):
+    def get_log_entry_user(cls, username='batch'):
         """ログエントリーにログを記録するにはログインユーザが必要
 
         :return:
         """
         try:
-            user = User.objects.get(username='batch')
+            user = User.objects.get(username=username)
             return user
         except ObjectDoesNotExist:
             try:

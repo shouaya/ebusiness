@@ -19,5 +19,8 @@ class Command(BaseBatch):
     MAIL_TITLE = u"【営業支援システム】社員稼働状況"
 
     def handle(self, *args, **options):
+        username = options.get('username')
+
+        logger.info(u"バッチ実行開始。username: %s" % username)
         status_list, summary = biz_batch.get_members_information()
         biz_batch.notify_member_status_mails(self.batch, status_list, summary)

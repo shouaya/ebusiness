@@ -40,3 +40,11 @@ class BaseBatch(BaseCommand):
         except Exception as e:
             print e.message
             logger.error(traceback.format_exc())
+
+    def add_arguments(self, parser):
+        parser.add_argument(
+            '--username',
+            action='store',
+            dest='username',
+            default='batch'
+        )

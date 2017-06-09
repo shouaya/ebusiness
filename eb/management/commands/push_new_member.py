@@ -19,4 +19,7 @@ class Command(BaseBatch):
     MAIL_TITLE = u"【営業支援システム】新入社員通知"
 
     def handle(self, *args, **options):
+        username = options.get('username')
+
+        logger.info(u"バッチ実行開始。username: %s" % username)
         biz_batch.batch_push_new_member(self.batch)
