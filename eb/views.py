@@ -934,7 +934,9 @@ def section_attendance(request, section_id):
             project_member.current_attendance_set = [models.MemberAttendance(project_member=project_member,
                                                                              year=year, month=month,
                                                                              total_hours=0)]
-        all_project_members.append((project_member, project_member.member.is_belong_to(request.user, date), msg))
+        all_project_members.append((project_member, None, project_member.member.is_belong_to(request.user, date), msg))
+    for lump_project in lump_projects:
+        all_project_members.append((None, lump_project, True, ''))
 
     context = get_base_context()
     context.update({

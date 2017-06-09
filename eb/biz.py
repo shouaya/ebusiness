@@ -297,10 +297,12 @@ def get_lump_projects_by_section(section, date):
     all_children = section.get_children()
     all_children = list(all_children)
     all_children.append(section)
+    first_day = common.get_first_day_by_month(date)
+    last_day = common.get_last_day_by_month(first_day)
     queryset = models.Project.objects.public_filter(is_lump=True,
                                                     department__in=list(all_children),
-                                                    start_date__lte=date,
-                                                    end_date__gte=date)
+                                                    start_date__lte=last_day,
+                                                    end_date__gte=first_day)
     return queryset
 
 

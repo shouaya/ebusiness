@@ -112,7 +112,8 @@ def business_type_pie(year, data_type):
     s_type_name_amount = df.type_name.str.cat(s_amount.astype(str), sep=' ')
     series = pd.Series(df.turnover_amount, name='')
     ax = plt.subplot()
-    series.plot.pie(ax=ax, figsize=(6, 6), labels=[''] * len(series), autopct='%.2f%%', pctdistance=0.8)
+    series.plot.pie(ax=ax, figsize=(6, 6), labels=[''] * len(series), autopct='%.2f%%', pctdistance=0.8,
+                    wedgeprops={'linewidth': 1, 'edgecolor': "white"})
     ax.legend(loc=(1.01, 0.45), labels=s_type_name_amount)
     ax.set_title("%s年度(%s～%s) の事業別売上ブレイクダウン" % (year, ym_start, ym_end))
     plt.tight_layout()

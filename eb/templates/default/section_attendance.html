@@ -302,7 +302,8 @@
             <table class="attendance" cellspacing="0" cellpadding="0">
                 <tbody>
                     {% if project_members %}
-                        {% for project_member, is_own, msg in project_members %}
+                        {% for project_member, lump_project, is_own, msg in project_members %}
+                        {% if project_member %}
                             {% is_repeated project_member.member.pk as repeated %}
                             <tr>
                                 <td style="text-align:center; width: 20px;">{{ forloop.counter }}</td>
@@ -535,30 +536,36 @@
                                     {% endwith %}
                                 {% endif %}
                             </tr>
-                        {% endfor %}
-                        <!--
-                        {% for project in lump_projects %}
+                        {% elif lump_project %}
                             <tr>
-                                <td>{{ forloop.counter|add:project_members.count }}</td>
+                                <td>{{ forloop.counter }}</td>
                                 <td></td>
                                 <td></td>
                                 <td></td>
                                 <td></td>
                                 <td></td>
                                 <td></td>
-                                <td title="{{ project }}"
-                                    {% if project.is_lump %}class="lump_project"{% endif %}>
+                                <td title="{{ lump_project }}" class="lump_project">
                                     <div style="width: 160px; overflow: hidden; white-space: nowrap;">
-                                        <a href="{% url 'project_detail' project.pk %}">
-                                        {% if project.is_lump %}【一括】{% endif %}{{ project }}
+                                        <a href="{% url 'project_detail' lump_project.pk %}">
+                                        【一括】{{ lump_project }}
                                         </a>
                                     </div>
                                 </td>
-                                <td title="{{ project.client }}">
+                                <td title="{{ lump_project.client }}">
                                     <div style="width: 120px; overflow: hidden; white-space: nowrap;">
-                                        {{ project.client }}
+                                        {{ lump_project.client }}
                                     </div>
                                 </td>
+                                <td>一括</td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td class="num row_{{ forloop.counter }} col_01">{{ lump_project.lump_amount|default:''|floatformat:0|intcomma }}</td>
+                                <td class="num row_{{ forloop.counter }} col_02">{{ lump_project.lump_amount|default:''|floatformat:0|intcomma }}</td>
                                 <td></td>
                                 <td></td>
                                 <td></td>
@@ -566,22 +573,13 @@
                                 <td></td>
                                 <td></td>
                                 <td></td>
-                                <td class="num row_{{ forloop.counter }} col_01">{{ project.lump_amount|default:''|floatformat:0|intcomma }}</td>
-                                <td class="num row_{{ forloop.counter }} col_02">{{ project.lump_amount|default:''|floatformat:0|intcomma }}</td>
                                 <td></td>
                                 <td></td>
                                 <td></td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                                <td class="num row_{{ forloop.counter }} col_13">{{ project.lump_amount|default:''|floatformat:0|intcomma }}</td>
+                                <td class="num row_{{ forloop.counter }} col_13">{{ lump_project.lump_amount|default:''|floatformat:0|intcomma }}</td>
                             </tr>
+                        {% endif %}
                         {% endfor %}
-                        -->
                     {% else %}
                         <tr class="row2"><td class="center red" colspan="29">メンバーがいません。</td></tr>
                     {% endif %}
