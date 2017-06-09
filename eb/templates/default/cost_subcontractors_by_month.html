@@ -18,14 +18,14 @@
         <thead>
             <tr>
                 <th>会社名</th>
-                <th style="text-align: right; padding-right: 4px; font-size: 13px; font-weight: normal;">{{ summary.total_cost|intcomma }}</th>
+                <th style="text-align: right; padding-right: 4px; font-size: 13px; font-weight: normal;">合計：&nbsp;{{ summary.total_cost|intcomma }}</th>
             </tr>
         </thead>
         <tbody>
             {% if object_list %}
                 {% for subcontractor, cost in object_list %}
                     <tr class="{% cycle 'row1' 'row2' %}">
-                        <td><a href="{% url 'subcontractor_members_cost_by_month' subcontractor.pk year month %}">{{ subcontractor }}</a></td>
+                        <td><a href="{% url 'cost_subcontractor_members_by_month' subcontractor.pk year month %}">{{ subcontractor }}</a></td>
                         <td class="num">{{ cost|intcomma }}</td>
                     </tr>
                 {% endfor %}
@@ -36,7 +36,7 @@
         <tfoot>
             <tr>
                 <th>{{ object_list|length }} 社</th>
-                <th style="text-align: right; padding-right: 4px; font-size: 13px; font-weight: normal;">{{ summary.total_cost|intcomma }}</th>
+                <th style="text-align: right; padding-right: 4px; font-size: 13px; font-weight: normal;">合計：&nbsp;{{ summary.total_cost|intcomma }}</th>
             </tr>
         </tfoot>
     </table>

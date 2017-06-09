@@ -411,7 +411,7 @@ def members_turnover_monthly(ym, q=None, o=None):
     return turnover_details
 
 
-def subcontractors_cost_monthly():
+def cost_subcontractors_monthly():
     queryset = models.MemberAttendance.objects.public_filter(
         project_member__member__subcontractor__isnull=False,
         year__gte='2017',
@@ -427,7 +427,7 @@ def subcontractors_cost_monthly():
     return queryset
 
 
-def subcontractor_members_cost_monthly(year, month):
+def cost_subcontractor_members_by_month(year, month):
     first_day = common.get_first_day_from_ym(year + month)
     last_day = common.get_last_day_by_month(first_day)
     queryset = models.MemberAttendance.objects.public_filter(
@@ -440,7 +440,7 @@ def subcontractor_members_cost_monthly(year, month):
     return queryset
 
 
-def subcontractors_cost_by_month(year, month):
+def cost_subcontractors_by_month(year, month):
     first_day = common.get_first_day_from_ym(year + month)
     last_day = common.get_last_day_by_month(first_day)
     queryset = models.MemberAttendance.objects.public_filter(

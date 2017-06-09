@@ -4,6 +4,7 @@ Created on 2015/08/21
 
 @author: Yang Wanjun
 """
+from __future__ import unicode_literals
 import datetime
 import json
 import os
@@ -1426,25 +1427,26 @@ class SubcontractorListView(BaseTemplateView):
 
 
 @method_decorator(permission_required('eb.view_subcontractor', raise_exception=True), name='get')
-class SubcontractorsCostMonthlyView(BaseTemplateView):
-    template_name = 'default/subcontractors_cost_monthly.html'
+class CostSubcontractorsMonthlyView(BaseTemplateView):
+    template_name = 'default/cost_subcontractors_monthly.html'
 
     def get_context_data(self, **kwargs):
-        context = super(SubcontractorsCostMonthlyView, self).get_context_data(**kwargs)
-        object_list = biz_turnover.subcontractors_cost_monthly()
+        context = super(CostSubcontractorsMonthlyView, self).get_context_data(**kwargs)
+        object_list = biz_turnover.cost_subcontractors_monthly()
 
         context.update({
+            'title': "協力会社月別コスト一覧",
             'object_list': object_list,
         })
         return context
 
 
 @method_decorator(permission_required('eb.view_subcontractor', raise_exception=True), name='get')
-class SubcontractorMembersCostMonthlyView(BaseTemplateView):
-    template_name = 'default/subcontractor_members_cost_monthly.html'
+class CostSubcontractorMembersByMonthView(BaseTemplateView):
+    template_name = 'default/cost_subcontractor_members_by_month.html'
 
     def get_context_data(self, **kwargs):
-        context = super(SubcontractorMembersCostMonthlyView, self).get_context_data(**kwargs)
+        context = super(CostSubcontractorMembersByMonthView, self).get_context_data(**kwargs)
         request = kwargs.get('request')
         year = kwargs.get('year')
         month = kwargs.get('month')
@@ -1457,7 +1459,7 @@ class SubcontractorMembersCostMonthlyView(BaseTemplateView):
         order_list = common.get_ordering_list(o)
         params = "&".join(["%s=%s" % (key, value) for key, value in param_list.items()]) if param_list else ""
 
-        object_list = biz_turnover.subcontractor_members_cost_monthly(year, month)
+        object_list = biz_turnover.cost_subcontractor_members_by_month(year, month)
 
         if subcontractor_id:
             object_list = object_list.filter(project_member__member__subcontractor__pk=subcontractor_id)
@@ -1486,15 +1488,15 @@ class SubcontractorMembersCostMonthlyView(BaseTemplateView):
         return context
 
 
-class SubcontractorCostMonthlyView(BaseTemplateView):
-    template_name = 'default/subcontractor_cost_monthly.html'
+class CostSubcontractorsByMonthView(BaseTemplateView):
+    template_name = 'default/cost_subcontractors_by_month.html'
 
     def get_context_data(self, **kwargs):
-        context = super(SubcontractorCostMonthlyView, self).get_context_data(**kwargs)
+        context = super(CostSubcontractorsByMonthView, self).get_context_data(**kwargs)
         year = kwargs.get('year')
         month = kwargs.get('month')
 
-        object_list = biz_turnover.subcontractors_cost_by_month(year, month)
+        object_list = biz_turnover.cost_subcontractors_by_month(year, month)
         summary = {'total_cost': sum([cost for obj, cost in object_list])}
 
         context.update({

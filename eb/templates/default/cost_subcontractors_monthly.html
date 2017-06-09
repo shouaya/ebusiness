@@ -12,7 +12,7 @@
 
 {% block content %}
     <div class="dashboard">
-        <div class="dashboard-title">なにをしたいのですか？</div>
+        <div class="dashboard-title">{{ title }}</div>
     </div>
     <table class="list" cellpadding="0" cellspacing="0">
         <thead>
@@ -27,10 +27,10 @@
             {% if object_list %}
                 {% for object in object_list %}
                     <tr class="{% cycle 'row1' 'row2' %}">
-                        <td><a href="{% url 'subcontractor_members_cost_monthly' object.year object.month %}">{{ object.year }}年{{ object.month }}月</a></td>
-                        <td>{{ object.total_hours }}</td>
-                        <td>{{ object.member_count }}</td>
-                        <td class="center"><a href="{% url 'subcontractor_cost_monthly' object.year object.month %}">会社別</a></td>
+                        <td><a href="{% url 'cost_all_subcontractor_members_by_month' object.year object.month %}">{{ object.year }}年{{ object.month }}月</a></td>
+                        <td class="num">{{ object.total_hours }}</td>
+                        <td class="num">{{ object.member_count }}</td>
+                        <td class="center"><a href="{% url 'cost_subcontractors_by_month' object.year object.month %}">会社別</a></td>
                     </tr>
                 {% endfor %}
             {% else %}
