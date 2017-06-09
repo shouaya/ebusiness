@@ -12,8 +12,9 @@ from matplotlib.ticker import FuncFormatter
 import pandas as pd
 
 from eb import models
+from utils import common
 
-from django.db.models import Sum, Count
+from django.db.models import Sum, Count, Q
 from django.db.models.functions import Concat
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import connection
@@ -423,8 +424,12 @@ def subcontractors_cost_monthly():
 
 
 def subcontractor_members_cost_monthly(year, month):
+    first_day = common.get_first_day_from_ym(year + month)
+    last_day = common.get_last_day_by_month(first_day)
     queryset = models.MemberAttendance.objects.public_filter(
-        project_member__member__subcontractor__isnull=False,
+        Q(project_member__member__bpcontract__end_date__gte=first_day) |
+        Q(project_member__member__bpcontract__end_date__isnull=True),
+        project_member__member__bpcontract__start_date__lte=last_day,
         year=year,
         month=month,
     ).order_by('project_member__member__first_name', 'project_member__member__last_name').distinct()
