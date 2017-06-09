@@ -32,8 +32,8 @@ class GenerateFilterTag(template.Node):
     def __init__(self, context_year, context_month):
         self.context_year = context_year
         self.context_month = context_month
-        self.year_name = "year"
-        self.month_name = "month"
+        self.year_name = "_year"
+        self.month_name = "_month"
 
     def render(self, context):
         year_list = biz.get_year_list()

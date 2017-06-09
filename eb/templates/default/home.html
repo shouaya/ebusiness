@@ -37,25 +37,25 @@
             <tr class="row2">
                 <th>総人数(営業対象内):</th>
                 <td class="num">
-                    <a href="{% url 'employee_list' %}?salesperson={{ user.salesperson.pk }}&status=sales">
+                    <a href="{% url 'employee_list' %}?_salesperson={{ user.salesperson.pk }}&_status=sales">
                         {{ user.salesperson.get_on_sales_members.count }}
                     </a>
                 </td>
                 <th>稼働中人数:</th>
                 <td class="num">
-                    <a href="{% url 'employee_list' %}?status=working&salesperson={{ user.salesperson.pk }}&status=sales">
+                    <a href="{% url 'employee_list' %}?_status=working&_salesperson={{ user.salesperson.pk }}">
                         {{ user.salesperson.get_working_members.count }}
                     </a>
                 </td>
                 <th>待機中人数:</th>
                 <td class="num">
-                    <a href="{% url 'employee_list' %}?status=waiting&salesperson={{ user.salesperson.pk }}&status=sales" class="red">
+                    <a href="{% url 'employee_list' %}?_status=waiting&_salesperson={{ user.salesperson.pk }}" class="red">
                         {{ user.salesperson.get_waiting_members.count }}
                     </a>
                 </td>
                 <th>営業対象外:</th>
                 <td class="num">
-                    <a href="{% url 'employee_list' %}?salesperson={{ user.salesperson.pk }}&status=off_sales">
+                    <a href="{% url 'employee_list' %}?_salesperson={{ user.salesperson.pk }}&_status=off_sales">
                         {{ user.salesperson.get_off_sales_members.count }}
                     </a>
                 </td>
@@ -131,33 +131,33 @@
                 <tr class="row2">
                     <td class="title">{{ salesperson }}</td>
                     <td class="center">
-                        <a href="{% url 'employee_list' %}?status=sales&salesperson={{ salesperson.pk }}">
+                        <a href="{% url 'employee_list' %}?_status=sales&_salesperson={{ salesperson.pk }}">
                             {{ salesperson.get_on_sales_members.count }}
                         </a>
                     </td>
                     <td class="center">
-                        <a href="{% url 'employee_list' %}?status=working&salesperson={{ salesperson.pk }}">
+                        <a href="{% url 'employee_list' %}?_status=working&_salesperson={{ salesperson.pk }}">
                            {{ salesperson.get_working_members.count }}
                         </a>
                     </td>
                     <td class="center">
-                        <a href="{% url 'employee_list' %}?status=waiting&salesperson={{ salesperson.pk }}&"
+                        <a href="{% url 'employee_list' %}?_status=waiting&_salesperson={{ salesperson.pk }}&"
                            {% if salesperson.get_waiting_members.count > 0 %}class="red num"{% endif %}>
                             {{ salesperson.get_waiting_members.count }}
                         </a>
                     </td>
                     <td class="center">
-                        <a href="{% url 'release_list' filter_list.current_ym %}?salesperson={{ salesperson.pk }}">
+                        <a href="{% url 'release_list' filter_list.current_ym %}?_salesperson={{ salesperson.pk }}">
                             {{ salesperson.get_release_current_month.count }}
                         </a>
                     </td>
                     <td class="center">
-                        <a href="{% url 'release_list' filter_list.next_ym %}?salesperson={{ salesperson.pk }}">
+                        <a href="{% url 'release_list' filter_list.next_ym %}?_salesperson={{ salesperson.pk }}">
                             {{ salesperson.get_release_next_month.count }}
                         </a>
                     </td>
                     <td class="center">
-                        <a href="{% url 'release_list' filter_list.next_2_ym %}?salesperson={{ salesperson.pk }}">
+                        <a href="{% url 'release_list' filter_list.next_2_ym %}?_salesperson={{ salesperson.pk }}">
                             {{ salesperson.get_release_next_2_month.count }}
                         </a>
                     </td>
@@ -175,11 +175,11 @@
             </tr>
             <tr class="row2">
                 <th>社員数(営業対象内):</th>
-                <td class="num"><a href="{% url 'member_list_monthly' %}?status=sales&year={{filter_list.prev_ym|slice:':4'}}&month={{filter_list.prev_ym|slice:'4:'}}"> {{ member_count_prev_month }}</a></td>
+                <td class="num"><a href="{% url 'member_list_monthly' %}?_status=sales&_year={{filter_list.prev_ym|slice:':4'}}&_month={{filter_list.prev_ym|slice:'4:'}}"> {{ member_count_prev_month }}</a></td>
                 <th>稼働中人数:</th>
-                <td class="num"><a href="{% url 'member_list_monthly' %}?status=working&year={{filter_list.prev_ym|slice:':4'}}&month={{filter_list.prev_ym|slice:'4:'}}"> {{ working_member_count_prev_month }}</a></td>
+                <td class="num"><a href="{% url 'member_list_monthly' %}?_status=working&_year={{filter_list.prev_ym|slice:':4'}}&_month={{filter_list.prev_ym|slice:'4:'}}"> {{ working_member_count_prev_month }}</a></td>
                 <th>待機中人数:</th>
-                <td class="num"><a href="{% url 'member_list_monthly' %}?status=waiting&year={{filter_list.prev_ym|slice:':4'}}&month={{filter_list.prev_ym|slice:'4:'}}" class="red">{{ waiting_member_count_prev_month }}</a></td>
+                <td class="num"><a href="{% url 'member_list_monthly' %}?_status=waiting&_year={{filter_list.prev_ym|slice:':4'}}&_month={{filter_list.prev_ym|slice:'4:'}}" class="red">{{ waiting_member_count_prev_month }}</a></td>
                 <th></th>
                 <td class="num"></td>
                 <th></th>
@@ -190,11 +190,11 @@
             </tr>
             <tr class="row2">
                 <th>社員数(営業対象内):</th>
-                <td class="num"><a href="{% url 'member_list_monthly' %}?status=sales"> {{ member_count }}</a></td>
+                <td class="num"><a href="{% url 'member_list_monthly' %}?_status=sales"> {{ member_count }}</a></td>
                 <th>稼働中人数:</th>
-                <td class="num"><a href="{% url 'member_list_monthly' %}?status=working"> {{ working_member_count }}</a></td>
+                <td class="num"><a href="{% url 'member_list_monthly' %}?_status=working"> {{ working_member_count }}</a></td>
                 <th>待機中人数:</th>
-                <td class="num"><a href="{% url 'member_list_monthly' %}?status=waiting" class="red">{{ waiting_member_count }}</a></td>
+                <td class="num"><a href="{% url 'member_list_monthly' %}?_status=waiting" class="red">{{ waiting_member_count }}</a></td>
                 <th>営業対象外:</th>
                 <td class="num"><a href="{% url 'employee_list' %}?status=off_sales">{{ off_sales_members_count }}</a></td>
                 <th>入社予定:</th>
@@ -205,11 +205,11 @@
             </tr>
             <tr class="row2">
                 <th>社員数(営業対象内):</th>
-                <td class="num"><a href="{% url 'member_list_monthly' %}?status=sales&year={{filter_list.next_ym|slice:':4'}}&month={{filter_list.next_ym|slice:'4:'}}"> {{ member_count_next_month }}</a></td>
+                <td class="num"><a href="{% url 'member_list_monthly' %}?_status=sales&year={{filter_list.next_ym|slice:':4'}}&_month={{filter_list.next_ym|slice:'4:'}}"> {{ member_count_next_month }}</a></td>
                 <th>稼働中人数:</th>
-                <td class="num"><a href="{% url 'member_list_monthly' %}?status=working&year={{filter_list.next_ym|slice:':4'}}&month={{filter_list.next_ym|slice:'4:'}}"> {{ working_member_count_next_month }}</a></td>
+                <td class="num"><a href="{% url 'member_list_monthly' %}?_status=working&year={{filter_list.next_ym|slice:':4'}}&_month={{filter_list.next_ym|slice:'4:'}}"> {{ working_member_count_next_month }}</a></td>
                 <th>待機中人数:</th>
-                <td class="num"><a href="{% url 'member_list_monthly' %}?status=waiting&year={{filter_list.next_ym|slice:':4'}}&month={{filter_list.next_ym|slice:'4:'}}" class="red">{{ waiting_member_count_next_month }}</a></td>
+                <td class="num"><a href="{% url 'member_list_monthly' %}?_status=waiting&year={{filter_list.next_ym|slice:':4'}}&_month={{filter_list.next_ym|slice:'4:'}}" class="red">{{ waiting_member_count_next_month }}</a></td>
                 <th></th>
                 <td class="num"></td>
                 <th></th>
@@ -245,13 +245,13 @@
             </tr>
             <tr class="row2">
                 <th>総人数(営業対象内):</th>
-                <td class="num"><a href="{% url 'members_subcontractor' %}?status=sales"> {{ subcontractor_sales_member_count }}</a></td>
+                <td class="num"><a href="{% url 'members_subcontractor' %}?_status=sales"> {{ subcontractor_sales_member_count }}</a></td>
                 <th>稼働中人数:</th>
-                <td class="num"><a href="{% url 'members_subcontractor' %}?status=working"> {{ subcontractor_working_member_count }}</a></td>
+                <td class="num"><a href="{% url 'members_subcontractor' %}?_status=working"> {{ subcontractor_working_member_count }}</a></td>
                 <th>待機中人数:</th>
-                <td class="num"><a href="{% url 'members_subcontractor' %}?status=waiting" class="red">{{ subcontractor_waiting_member_count }}</a></td>
+                <td class="num"><a href="{% url 'members_subcontractor' %}?_status=waiting" class="red">{{ subcontractor_waiting_member_count }}</a></td>
                 <th>営業対象外</th>
-                <td class="num"><a href="{% url 'members_subcontractor' %}?status=off_sales">{{ subcontractor_off_sales_member_count }}</a></td>
+                <td class="num"><a href="{% url 'members_subcontractor' %}?_status=off_sales">{{ subcontractor_off_sales_member_count }}</a></td>
             </tr>
             <tr class="row1">
                 <td colspan="8" class="subtitle">協力社員リリース状況：</td>

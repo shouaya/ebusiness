@@ -15,6 +15,7 @@ import matplotlib
 from django.db import connection
 from django.db.models import Sum, CharField, Case, Value, When
 from django.db.models.functions import Concat
+from django.contrib.humanize.templatetags import humanize
 from eb import models
 
 
@@ -105,11 +106,14 @@ def business_type_pie(year, data_type):
     ).order_by('project__business_type').distinct()
 
     df = pd.DataFrame(list(queryset))
-    df['type_name_per'] = df.turnover_amount.map(lambda x: "%.2f%%" % (x * 100.0 / df.turnover_amount.sum()))
+    # s_percent = df.turnover_amount.map(lambda x: "%.2f%%" % (x * 100.0 / df.turnover_amount.sum()))
+    # type_name_per = df.type_name.str.cat(s_percent, sep=' ')
+    s_amount = df.turnover_amount.map(lambda x: humanize.intcomma(x).rjust(15))
+    s_type_name_amount = df.type_name.str.cat(s_amount.astype(str), sep=' ')
     series = pd.Series(df.turnover_amount, name='')
     ax = plt.subplot()
     series.plot.pie(ax=ax, figsize=(6, 6), labels=[''] * len(series), autopct='%.2f%%', pctdistance=0.8)
-    ax.legend(loc=(1.01, 0.45), labels=df.type_name.str.cat(df.type_name_per, sep=' '))
+    ax.legend(loc=(1.01, 0.45), labels=s_type_name_amount)
     ax.set_title("%s年度(%s～%s) の事業別売上ブレイクダウン" % (year, ym_start, ym_end))
     plt.tight_layout()
 

@@ -161,9 +161,10 @@ class MemberListView(BaseTemplateView):
 
     def get(self, request, *args, **kwargs):
         date = datetime.date.today()
-        status = request.GET.get('status', None)
-        section_id = request.GET.get('section', None)
-        salesperson_id = request.GET.get('salesperson', None)
+        param_dict, params = common.get_request_params(request.GET)
+        status = request.GET.get('_status', None)
+        section_id = request.GET.get('_section', None)
+        salesperson_id = request.GET.get('_salesperson', None)
         q = request.GET.get('q', None)
         if status == "sales":
             all_members = models.get_on_sales_members(date)
@@ -176,16 +177,8 @@ class MemberListView(BaseTemplateView):
         else:
             all_members = models.get_all_members()
 
-        param_list = common.get_request_params(request.GET)
-        params = "&".join(["%s=%s" % (key, value) for key, value in param_list.items()]) if param_list else ""
-        if 'status' in param_list:
-            del param_list['status']
-        if 'section' in param_list:
-            del param_list['section']
-        if 'salesperson' in param_list:
-            del param_list['salesperson']
-        if param_list:
-            all_members = all_members.filter(**param_list)
+        if param_dict:
+            all_members = all_members.filter(**param_dict)
         if q:
             orm_lookups = ['first_name__icontains', 'last_name__icontains']
             for bit in q.split():
@@ -220,7 +213,7 @@ class MemberListView(BaseTemplateView):
             'sections': biz.get_on_sales_top_org(),
             'salesperson': models.Salesperson.objects.public_all(),
             'paginator': paginator,
-            'params': "&" + params if params else "",
+            'params': params,
             'dict_order': dict_order,
             'orders': "&o=%s" % (o,) if o else "",
             'page_type': "off_sales" if status == "off_sales" else None,
@@ -235,17 +228,17 @@ class MemberListMonthlyView(BaseTemplateView):
     def get_context_data(self, **kwargs):
         context = super(MemberListMonthlyView, self).get_context_data(**kwargs)
         request = kwargs.get('request')
-        year = request.GET.get('year', None)
-        month = request.GET.get('month', None)
+        year = request.GET.get('_year', None)
+        month = request.GET.get('_month', None)
         if year and month:
             date = datetime.date(int(year), int(month), 20)
         else:
             date = datetime.date.today()
             year = str(date.year)
             month = '%02d' % date.month
-        status = request.GET.get('status', None)
-        section_id = request.GET.get('section', None)
-        salesperson_id = request.GET.get('salesperson', None)
+        status = request.GET.get('_status', None)
+        section_id = request.GET.get('_section', None)
+        salesperson_id = request.GET.get('_salesperson', None)
         q = request.GET.get('q', None)
         if status == "sales":
             all_members = models.get_on_sales_members(date)
@@ -258,16 +251,9 @@ class MemberListMonthlyView(BaseTemplateView):
         else:
             all_members = models.get_all_members()
 
-        param_list = common.get_request_params(request.GET)
-        params = "&".join(["%s=%s" % (key, value) for key, value in (param_list.items() + [('year', year), ('month', month)])]) if param_list else ""
-        if 'status' in param_list:
-            del param_list['status']
-        if 'section' in param_list:
-            del param_list['section']
-        if 'salesperson' in param_list:
-            del param_list['salesperson']
-        if param_list:
-            all_members = all_members.filter(**param_list)
+        param_dict, params = common.get_request_params(request.GET)
+        if param_dict:
+            all_members = all_members.filter(**param_dict)
         if q:
             orm_lookups = ['first_name__icontains', 'last_name__icontains']
             for bit in q.split():
@@ -307,7 +293,7 @@ class MemberListMonthlyView(BaseTemplateView):
             'sections': biz.get_on_sales_top_org(),
             'salesperson': models.Salesperson.objects.public_all(),
             'paginator': paginator,
-            'params': "&" + params if params else "",
+            'params': params,
             'dict_order': dict_order,
             'orders': "&o=%s" % (o,) if o else "",
             'page_type': "off_sales" if status == "off_sales" else None,
@@ -325,9 +311,8 @@ class MemberCostListView(BaseTemplateView):
     def get_context_data(self, **kwargs):
         context = super(MemberCostListView, self).get_context_data(**kwargs)
         request = kwargs.get('request')
-        section_id = request.GET.get('section', None)
-        param_list = common.get_request_params(request.GET)
-        params = "&".join(["%s=%s" % (key, value) for key, value in param_list.items()]) if param_list else ""
+        section_id = request.GET.get('_section', None)
+        param_dict, params = common.get_request_params(request.GET)
 
         all_members = models.get_sales_members()
         if section_id:
@@ -347,7 +332,7 @@ class MemberCostListView(BaseTemplateView):
             'sections': biz.get_on_sales_top_org(),
             'members': members,
             'paginator': paginator,
-            'params': "&" + params if params else "",
+            'params': params,
         })
         return context
 
@@ -378,8 +363,7 @@ class MembersComingView(BaseTemplateView):
     template_name = 'default/employee_list.html'
 
     def get(self, request, *args, **kwargs):
-        param_list = common.get_request_params(request.GET)
-        params = "&".join(["%s=%s" % (key, value) for key, value in param_list.items()]) if param_list else ""
+        param_dict, params = common.get_request_params(request.GET)
 
         o = request.GET.get('o', None)
         dict_order = common.get_ordering_dict(o, ['first_name', 'section', 'subcontractor__name',
@@ -387,8 +371,8 @@ class MembersComingView(BaseTemplateView):
         order_list = common.get_ordering_list(o)
 
         all_members = biz.get_members_in_coming()
-        if param_list:
-            all_members = all_members.filter(**param_list)
+        if param_dict:
+            all_members = all_members.filter(**param_dict)
         if order_list:
             all_members = all_members.order_by(*order_list)
 
@@ -432,12 +416,11 @@ class MembersSubcontractorView(BaseTemplateView):
         else:
             all_members = biz.get_subcontractor_all_members()
 
-        param_list = common.get_request_params(request.GET)
-        params = "&".join(["%s=%s" % (key, value) for key, value in param_list.items()]) if param_list else ""
-        if 'status' in param_list:
-            del param_list['status']
-        if param_list:
-            all_members = all_members.filter(**param_list)
+        param_dict, params = common.get_request_params(request.GET)
+        if 'status' in param_dict:
+            del param_dict['status']
+        if param_dict:
+            all_members = all_members.filter(**param_dict)
 
         o = request.GET.get('o', None)
         dict_order = common.get_ordering_dict(o, ['first_name', 'section', 'subcontractor__name',
@@ -463,7 +446,7 @@ class MembersSubcontractorView(BaseTemplateView):
             'sections': models.Section.objects.public_filter(is_on_sales=True),
             'salesperson': models.Salesperson.objects.public_all(),
             'paginator': paginator,
-            'params': "&" + params if params else "",
+            'params': params,
             'dict_order': dict_order,
             'page_type': "off_sales" if status == "off_sales" else None,
         })
@@ -507,21 +490,19 @@ class ProjectListView(BaseTemplateView):
     template_name = 'default/project_list.html'
 
     def get(self, request, *args, **kwargs):
-        param_list = common.get_request_params(request.GET)
+        param_dict, params = common.get_request_params(request.GET)
         o = request.GET.get('o', None)
         q = request.GET.get('q', None)
         dict_order = common.get_ordering_dict(o, ['name', 'client__name', 'salesperson__first_name', 'boss__name',
                                                   'middleman__name', 'update_date', 'business_type'])
         order_list = common.get_ordering_list(o)
-        all_projects = biz.get_projects(q=param_list, o=order_list)
+        all_projects = biz.get_projects(q=param_dict, o=order_list)
 
         if q:
             orm_lookups = ['name__icontains', 'client__name__icontains']
             for bit in q.split():
                 or_queries = [models.Q(**{orm_lookup: bit}) for orm_lookup in orm_lookups]
                 all_projects = all_projects.filter(reduce(operator.or_, or_queries))
-
-        params = "&".join(["%s=%s" % (key, value) for key, value in param_list.items()]) if param_list else ""
 
         paginator = Paginator(all_projects, biz_config.get_page_size())
         page = request.GET.get('page')
@@ -538,7 +519,7 @@ class ProjectListView(BaseTemplateView):
             'projects': projects,
             'paginator': paginator,
             'salesperson': models.Salesperson.objects.public_all(),
-            'params': "&" + params if params else "",
+            'params': params,
             'orders': "&o=%s" % (o,) if o else "",
             'dict_order': dict_order,
         })
@@ -570,9 +551,9 @@ class ProjectOrdersView(BaseTemplateView):
     template_name = 'default/project_order_list.html'
 
     def get(self, request, *args, **kwargs):
-        param_list = common.get_request_params(request.GET)
-        year = request.GET.get('year', None)
-        month = request.GET.get('month', None)
+        param_dict, params = common.get_request_params(request.GET)
+        year = request.GET.get('_year', None)
+        month = request.GET.get('_month', None)
         if not year or not month:
             today = common.add_months(datetime.date.today(), -1)
             year = "%04d" % today.year
@@ -583,10 +564,7 @@ class ProjectOrdersView(BaseTemplateView):
                                                   'clientorder__order_no', 'project__projectrequest__request_no'])
         order_list = common.get_ordering_list(o)
 
-        all_project_orders = biz.get_projects_orders(ym, q=param_list, o=order_list)
-
-        params = "&".join(["%s=%s" % (key, value) for key, value in param_list.items()]) if param_list else ""
-        params = "%s&year=%s&month=%s" % ("&" + params if params else "", year, month)
+        all_project_orders = biz.get_projects_orders(ym, q=param_dict, o=order_list)
 
         paginator = Paginator(all_project_orders, biz_config.get_page_size())
         page = request.GET.get('page')
@@ -827,15 +805,14 @@ class ProjectMembersView(BaseTemplateView):
     def get(self, request, *args, **kwargs):
         project_id = kwargs.get('project_id', None)
         project = get_object_or_404(models.Project, pk=project_id)
-        param_list = common.get_request_params(request.GET)
-        params = "&".join(["%s=%s" % (key, value) for key, value in param_list.items()]) if param_list else ""
+        param_dict, params = common.get_request_params(request.GET)
         o = request.GET.get('o', None)
         dict_order = common.get_ordering_dict(o, ['member__first_name', 'start_date', 'end_date', 'price'])
         order_list = common.get_ordering_list(o)
 
         all_project_members = project.projectmember_set.all()
-        if param_list:
-            all_project_members = all_project_members.filter(**param_list)
+        if param_dict:
+            all_project_members = all_project_members.filter(**param_dict)
         if order_list:
             all_project_members = all_project_members.order_by(*order_list)
 
@@ -917,15 +894,13 @@ class SectionDetailView(BaseTemplateView):
 def section_attendance(request, section_id):
     section = get_object_or_404(models.Section, pk=section_id)
     today = datetime.date.today()
-    year = request.GET.get('year', today.year)
-    month = request.GET.get('month', '%02d' % today.month)
+    year = request.GET.get('_year', today.year)
+    month = request.GET.get('_month', '%02d' % today.month)
     date = datetime.date(int(year), int(month), 20)
     prev_month = common.add_months(datetime.date(int(year), int(month), 1), -1)
     next_month = common.add_months(datetime.date(int(year), int(month), 1), 1)
 
-    param_list = common.get_request_params(request.GET)
-    param_list.update({'year': year, 'month': month})
-    params = "&".join(["%s=%s" % (key, value) for key, value in param_list.items()]) if param_list else ""
+    param_dict, params = common.get_request_params(request.GET)
 
     project_members = biz.get_project_members_month_section(section, date)
     lump_projects = biz.get_lump_projects_by_section(section, date)
@@ -968,7 +943,7 @@ def section_attendance(request, section_id):
         'project_members': all_project_members,
         'lump_projects': lump_projects,
         'dict_order': dict_order,
-        'params': "&" + params if params else "",
+        'params': params,
         'year': year,
         'month': month,
         'prev_month': prev_month,
@@ -1104,17 +1079,16 @@ class TurnoverMembersMonthlyView(BaseTemplateView):
 
     def get(self, request, *args, **kwargs):
         ym = kwargs.get('ym', None)
-        param_list = common.get_request_params(request.GET)
+        param_dict, params = common.get_request_params(request.GET)
         o = request.GET.get('o', None)
         dict_order = common.get_ordering_dict(o, ['project_member__member__first_name',
                                                   'project_member__member__section__name',
                                                   'project_request__project__name',
                                                   'project_request__projectrequestheading__client__name'])
         order_list = common.get_ordering_list(o)
-        params = "&".join(["%s=%s" % (key, value) for key, value in param_list.items()]) if param_list else ""
 
         sections = biz_turnover.get_turnover_sections(ym)
-        all_turnover_details = biz_turnover.members_turnover_monthly(ym, param_list, order_list)
+        all_turnover_details = biz_turnover.members_turnover_monthly(ym, param_dict, order_list)
         if '_member_section__pk' in request.GET:
             organization = get_object_or_404(models.Section, pk=request.GET.get('_member_section__pk'))
             org_list = organization.get_children()
@@ -1151,7 +1125,7 @@ class TurnoverMembersMonthlyView(BaseTemplateView):
             'paginator': paginator,
             'dict_order': dict_order,
             'orders': "&o=%s" % (o,) if o else "",
-            'params': "&" + params if params else "",
+            'params': params,
             'ym': ym,
         })
         return self.render_to_response(context)
@@ -1295,19 +1269,19 @@ class ReleaseListView(BaseTemplateView):
 
     def get(self, request, *args, **kwargs):
         ym = kwargs.get('ym', None)
-        param_list = common.get_request_params(request.GET)
+        param_dict, params = common.get_request_params(request.GET)
         section_id = request.GET.get('section', None)
         salesperson_id = request.GET.get('salesperson', None)
         year = int(ym[0:4])
         month = int(ym[-2:])
         start_date = datetime.datetime(year, month, 1)
 
-        if 'section' in param_list:
-            del param_list['section']
-        if 'salesperson' in param_list:
-            del param_list['salesperson']
+        if 'section' in param_dict:
+            del param_dict['section']
+        if 'salesperson' in param_dict:
+            del param_dict['salesperson']
 
-        all_project_members = models.get_release_members_by_month(start_date, param_list)
+        all_project_members = models.get_release_members_by_month(start_date, param_dict)
 
         if section_id:
             all_project_members = biz.get_project_members_by_section(all_project_members, section_id, start_date)
@@ -1325,7 +1299,6 @@ class ReleaseListView(BaseTemplateView):
         sections = models.Section.objects.public_filter(is_on_sales=True)
         salesperson = models.Salesperson.objects.public_all()
 
-        params = "&".join(["%s=%s" % (key, value) for key, value in param_list.items()]) if param_list else ""
         paginator = Paginator(all_project_members, biz_config.get_page_size())
         page = request.GET.get('page')
         try:
@@ -1340,7 +1313,7 @@ class ReleaseListView(BaseTemplateView):
             'title': u'%s年%s月 | リリース状況一覧 | %s' % (year, month, constants.NAME_SYSTEM),
             'project_members': project_members,
             'paginator': paginator,
-            'params': "&" + params if params else "",
+            'params': params,
             'dict_order': dict_order,
             'ym': ym,
             'sections': sections,
@@ -1414,15 +1387,14 @@ class SubcontractorListView(BaseTemplateView):
     template_name = 'default/subcontractor_list.html'
 
     def get(self, request, *args, **kwargs):
-        param_list = common.get_request_params(request.GET)
-        params = "&".join(["%s=%s" % (key, value) for key, value in param_list.items()]) if param_list else ""
+        param_dict, params = common.get_request_params(request.GET)
         o = request.GET.get('o', None)
         dict_order = common.get_ordering_dict(o, ['name'])
         order_list = common.get_ordering_list(o)
 
         all_subcontractors = models.Subcontractor.objects.public_all()
-        if param_list:
-            all_subcontractors = all_subcontractors.filter(**param_list)
+        if param_dict:
+            all_subcontractors = all_subcontractors.filter(**param_dict)
         if order_list:
             all_subcontractors = all_subcontractors.order_by(*order_list)
 
@@ -1440,7 +1412,7 @@ class SubcontractorListView(BaseTemplateView):
             'title': u'協力会社一覧 | %s' % constants.NAME_SYSTEM,
             'subcontractors': subcontractors,
             'paginator': paginator,
-            'params': "&" + params if params else "",
+            'params': params,
             'orders': "&o=%s" % (o,) if o else "",
             'dict_order': dict_order,
             'bp_count': models.Member.objects.public_filter(subcontractor__isnull=False).count(),
@@ -1473,20 +1445,19 @@ class CostSubcontractorMembersByMonthView(BaseTemplateView):
         year = kwargs.get('year')
         month = kwargs.get('month')
         subcontractor_id = kwargs.get('subcontractor_id', None)
-        param_list = common.get_request_params(request.GET)
+        param_dict, params = common.get_request_params(request.GET)
         o = request.GET.get('o', None)
         dict_order = common.get_ordering_dict(o, ['project_member__member__first_name',
                                                   'project_member__member__subcontractor__name',
                                                   'project_member__project__name'])
         order_list = common.get_ordering_list(o)
-        params = "&".join(["%s=%s" % (key, value) for key, value in param_list.items()]) if param_list else ""
 
         object_list = biz_turnover.cost_subcontractor_members_by_month(year, month)
 
         if subcontractor_id:
             object_list = object_list.filter(project_member__member__subcontractor__pk=subcontractor_id)
-        if param_list:
-            object_list = object_list.filter(**param_list)
+        if param_dict:
+            object_list = object_list.filter(**param_dict)
         if order_list:
             object_list = object_list.order_by(*order_list)
 
@@ -1503,7 +1474,7 @@ class CostSubcontractorMembersByMonthView(BaseTemplateView):
             'title': u"%s年%s月のＢＰメンバーコスト一覧" % (year, month),
             'object_list': object_list,
             'paginator': paginator,
-            'params': "&" + params if params else "",
+            'params': params,
             'dict_order': dict_order,
             'orders': "&o=%s" % (o,) if o else "",
         })
@@ -1688,15 +1659,14 @@ class BusinessPartnerMembersView(BaseTemplateView):
         request = kwargs.get('request')
         salesperson_id = request.GET.get('salesperson', None)
 
-        param_list = common.get_request_params(request.GET)
-        params = "&".join(["%s=%s" % (key, value) for key, value in param_list.items()]) if param_list else ""
+        param_dict, params = common.get_request_params(request.GET)
 
-        if 'salesperson' in param_list:
-            del param_list['salesperson']
+        if 'salesperson' in param_dict:
+            del param_dict['salesperson']
 
         all_members = biz.get_business_partner_members_with_contract()
-        if param_list:
-            all_members = all_members.filter(**param_list)
+        if param_dict:
+            all_members = all_members.filter(**param_dict)
         if salesperson_id:
             all_members = biz.get_members_by_salesperson(all_members, salesperson_id)
 
@@ -1713,7 +1683,7 @@ class BusinessPartnerMembersView(BaseTemplateView):
             'members': members,
             'salesperson_list': models.Salesperson.objects.public_all(),
             'paginator': paginator,
-            'params': "&" + params if params else "",
+            'params': params,
         })
         return context
 
@@ -2079,18 +2049,17 @@ class IssueListView(BaseTemplateView):
     template_name = 'default/issue_list.html'
 
     def get(self, request, *args, **kwargs):
-        param_list = common.get_request_params(request.GET)
-        params = "&".join(["%s=%s" % (key, value) for key, value in param_list.items()]) if param_list else ""
+        param_dict, params = common.get_request_params(request.GET)
 
         issue_list = models.Issue.objects.all()
-        if param_list:
-            issue_list = issue_list.filter(**param_list)
+        if param_dict:
+            issue_list = issue_list.filter(**param_dict)
 
         context = self.get_context_data()
         context.update({
             'title': u'課題管理票一覧 | %s' % constants.NAME_SYSTEM,
             'issues': issue_list,
-            'params': "&" + params if params else "",
+            'params': params,
         })
         return self.render_to_response(context)
 

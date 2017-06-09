@@ -20,6 +20,8 @@
         <div class="dashboard-title">{{ title }}</div>
     </div>
     <div class="center" style="text-align: center; background-color: white;" >
-        <img class="load-delay" src="" data-original="{% url 'image_business_type_by_year' year %}?data_type={{ data_type }}">
+        <a href="{% url 'image_business_type_by_year' year %}?data_type={{ data_type }}">
+            <img class="load-delay" src="" data-original="{% url 'image_business_type_by_year' year %}?data_type={{ data_type }}">
+        </a>
     </div>
 {% endblock %}

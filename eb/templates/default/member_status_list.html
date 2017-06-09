@@ -7,12 +7,11 @@
     <script type="text/javascript">
         window.onload = function() {
             init_select("employee_id__icontains");
-            init_select("status");
+            init_select("_status");
             init_select("first_name__icontains");
             init_select("last_name__icontains");
-            init_select("business_status");
-            init_select("salesperson");
-            init_select("section");
+            init_select("_salesperson");
+            init_select("_section");
         };
     </script>
 {% endblock %}
@@ -25,36 +24,15 @@
             <label for="employee_id__icontains">番号: </label><input type="text" id="employee_id__icontains" name="employee_id__icontains" style="width: 50px;"/>
             <span>姓: </span><input type="text" id="first_name__icontains" name="first_name__icontains" style="width: 50px;"/>
             <span>名: </span><input type="text" id="last_name__icontains" name="last_name__icontains" style="width: 50px;"/>
-            <select id="section" name="section">
-                <option value="">======部署======</option>
-                {% for section in sections %}
-                    {% if section.children.count == 0 %}
-                        <option value="{{ section.pk }}">{{ section.name }}</option>
-                    {% else %}
-                        <option class="group" value="{{ section.pk }}">{{ section }}</option>
-                        {% for sec1 in section.children.all %}
-                            {% if sec1.children.count == 0 %}
-                                <option value="{{ sec1.pk }}">&nbsp;&nbsp;&nbsp;&nbsp;{{ sec1 }}</option>
-                            {% else %}
-                                <option class="group" value="{{ sec1.pk }}">&nbsp;&nbsp;&nbsp;&nbsp;{{ sec1 }}</option>
-                                {% if sec1.children.count > 0 %}
-                                    {% for sec2 in sec1.children.all %}
-                                        <option value="{{ sec2.pk }}">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{ sec2 }}</option>
-                                    {% endfor %}
-                                {% endif %}
-                            {% endif %}
-                        {% endfor %}
-                    {% endif %}
-                {% endfor %}
-            </select>
-            <select id="status" name="status">
+            {% organization_filter "_section" %}
+            <select id="_status" name="_status">
                 <option value="">===稼働状態===</option>
                 <option value="sales">営業対象</option>
                 <option value="working">稼働中</option>
                 <option value="waiting">待機</option>
                 <option value="off_sales">営業対象外</option>
             </select>
-            <select id="salesperson" name="salesperson">
+            <select id="_salesperson" name="_salesperson">
                 <option value="">===営業員===</option>
                 {% for sales in salesperson %}
                     <option value="{{ sales.pk }}">{{ sales }}</option>
@@ -120,14 +98,14 @@
                         {% else %}
                             <td class="center">
                                 {% if member.last_end_date|date:"Y-m-d" > ymd %}
-                                    <a href="?status=working{{ params }}"><img width="12px" src="/static/{{ theme }}/img/icon-normal.png"/></a>
+                                    <a href="?_status=working{{ params }}"><img width="12px" src="/static/{{ theme }}/img/icon-normal.png"/></a>
                                 {% else %}
-                                    <a href="?status=waiting{{ params }}"><img width="12px" src="/static/{{ theme }}/img/icon-warn.png"/></a>
+                                    <a href="?_status=waiting{{ params }}"><img width="12px" src="/static/{{ theme }}/img/icon-warn.png"/></a>
                                 {% endif %}
                             </td>
                             <td>
                                 {% for salesperson_period in member.current_salesperson_period %}
-                                    <a href="?salesperson={{ salesperson_period.salesperson.pk }}">
+                                    <a href="?_salesperson={{ salesperson_period.salesperson.pk }}">
                                         {{ salesperson_period.salesperson }}</a>
                                 {% endfor %}
                             </td>

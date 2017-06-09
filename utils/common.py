@@ -98,16 +98,21 @@ def get_month_list2(start_date, end_date):
     return month_list
 
 
-def get_request_params(params):
+def get_request_params(query_string):
     """Requestから並び替え以外おパラメーターを取得する。
 
-    :param params:
+    :param query_string:
     :return:
     """
-    if params:
-        d = dict()
-        for key, value in dict(params).items():
-            if key in ("o", "page", "year", "month", "q") or not value or key.startswith('_'):
+    d = dict()
+    params = None
+    if query_string:
+        param_list = []
+        for key, value in dict(query_string).items():
+            if not value or not value[0] or key in ("o", "page", "year", "month", "q"):
+                continue
+            if key.startswith('_'):
+                param_list.append((key, value[0]))
                 continue
             if isinstance(value, list) and value[0]:
                 val = value[0]
@@ -116,8 +121,9 @@ def get_request_params(params):
                 elif val == 'False':
                     val = False
                 d[str(key)] = val
-        return d
-    return dict()
+                param_list.append((key, val))
+        params = "&".join(["%s=%s" % (key, value) for key, value in param_list]) if param_list else ""
+    return d, "&" + params if params else ""
 
 
 def get_ordering_dict(data, fields):

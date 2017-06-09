@@ -5,12 +5,11 @@
 {% block header %}
     <script type="text/javascript">
         window.onload = function() {
-            init_select("status");
-            init_select("first_name__contains");
-            init_select("last_name__contains");
-            init_select("business_status");
-            init_select("salesperson");
-            init_select("section");
+            init_select("_status");
+            init_select("first_name__icontains");
+            init_select("last_name__icontains");
+            init_select("_salesperson");
+            init_select("_section");
         };
     </script>
 {% endblock %}
@@ -20,17 +19,17 @@
     <div class="dashboard">
         <div class="dashboard-title">{{ title }}</div>
         <form action="" method="get">
-            <span>姓: </span><input type="text" id="first_name__contains" name="first_name__contains" style="width: 50px;"/>
-            <span>名: </span><input type="text" id="last_name__contains" name="last_name__contains" style="width: 50px;"/>
-            {% organization_filter "section" %}
-            <select id="status" name="status">
+            <span>姓: </span><input type="text" id="first_name__icontains" name="first_name__icontains" style="width: 50px;"/>
+            <span>名: </span><input type="text" id="last_name__icontains" name="last_name__icontains" style="width: 50px;"/>
+            {% organization_filter "_section" %}
+            <select id="_status" name="_status">
                 <option value="">===稼働状態===</option>
                 <option value="sales">営業対象</option>
                 <option value="working">稼働中</option>
                 <option value="waiting">待機</option>
                 <option value="off_sales">営業対象外</option>
             </select>
-            <select id="salesperson" name="salesperson">
+            <select id="_salesperson" name="_salesperson">
                 <option value="">===営業員===</option>
                 {% for sales in salesperson %}
                     <option value="{{ sales.pk }}">{{ sales }}</option>
