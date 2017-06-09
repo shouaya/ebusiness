@@ -58,6 +58,8 @@ image_patterns = [
     url(r'^clients/(?P<year>[0-9]{4}).html$', views.ImageTurnoverClientsYearlyView.as_view(),
         name='image_turnover_clients_yearly_area_plot'),
     url(r'^member_status_bar.html$', views.ImageMemberStatusBar.as_view(), name='member_status_bar'),
+    url(r'^business_type/(?P<year>[0-9]{4})\.html$', views.ImageBusinessTypeByYearView.as_view(),
+        name='image_business_type_by_year')
 ]
 
 turnover_patterns = [
@@ -75,6 +77,8 @@ turnover_patterns = [
         name='turnover_client_monthly'),
     url(r'^client/(?P<client_id>[0-9]+)/history.html$', views.TurnoverClientYearlyView.as_view(),
         name='turnover_client_yearly'),
+    url(r'^business_type/(?P<year>[0-9]{4})\.html$', views.TurnoverBusinessTypeByYearView.as_view(),
+        name='turnover_business_type_by_year')
 ]
 
 subcontractor_patterns = [

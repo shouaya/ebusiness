@@ -1,0 +1,25 @@
+{% extends theme|add:"/base.html" %}
+{% load humanize %}
+
+{% block header %}
+<script type="text/javascript">
+    $(document).ready(function () {
+          setTimeout(function () {
+            $('.load-delay').each(function () {
+                var imagex = $(this);
+                var imgOriginal = imagex.data('original');
+                $(imagex).attr('src', imgOriginal);
+            });
+        }, 200);
+    });
+</script>
+{% endblock %}
+
+{% block content %}
+    <div class="dashboard">
+        <div class="dashboard-title">{{ title }}</div>
+    </div>
+    <div class="center" style="text-align: center; background-color: white;" >
+        <img class="load-delay" src="" data-original="{% url 'image_business_type_by_year' year %}?data_type={{ data_type }}">
+    </div>
+{% endblock %}

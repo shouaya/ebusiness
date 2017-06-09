@@ -1267,6 +1267,28 @@ class TurnoverClientYearlyView(BaseTemplateView):
         return context
 
 
+@method_decorator(permission_required('eb.view_turnover', raise_exception=True), name='get')
+class TurnoverBusinessTypeByYearView(BaseTemplateView):
+    template_name = 'default/turnover_business_type_by_year.html'
+
+    def get_context_data(self, **kwargs):
+        context = super(TurnoverBusinessTypeByYearView, self).get_context_data(**kwargs)
+        request = kwargs.get('request')
+        year = kwargs.get('year', 0)
+        data_type = request.GET.get('data_type', "1")
+        # if data_type == '2':
+        #     title = "%s年度(%s04～%s03) の事業別売上ブレイクダウン" % (year, year, int(year) + 1)
+        # else:
+        #     title = "%s年度(%s01～%s12) の事業別売上ブレイクダウン" % (year, year, year)
+
+        context.update({
+            'title': "%s年度 の事業別売上ブレイクダウン" % year,
+            'year': year,
+            'data_type': data_type,
+        })
+        return context
+
+
 @method_decorator(permission_required('eb.view_member', raise_exception=True), name='get')
 class ReleaseListView(BaseTemplateView):
     template_name = 'default/release_list.html'
@@ -2039,6 +2061,16 @@ class ImageMemberStatusBar(BaseView):
 
     def get(self, request, *args, **kwargs):
         img_data = biz_plot.members_status_bar()
+        response = HttpResponse(img_data, content_type="image/png")
+        return response
+
+
+class ImageBusinessTypeByYearView(BaseView):
+
+    def get(self, request, *args, **kwargs):
+        year = kwargs.get('year', 0)
+        data_type = request.GET.get('data_type', "1")
+        img_data = biz_plot.business_type_pie(year, data_type)
         response = HttpResponse(img_data, content_type="image/png")
         return response
 

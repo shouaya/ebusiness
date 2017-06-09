@@ -13,6 +13,9 @@ import matplotlib.pyplot as plt
 import matplotlib
 
 from django.db import connection
+from django.db.models import Sum, CharField, Case, Value, When
+from django.db.models.functions import Concat
+from eb import models
 
 
 if platform.system() == "Darwin":
@@ -70,6 +73,48 @@ def members_status_bar():
 
     img_data = StringIO.StringIO()
     plt.savefig(img_data, format='png')
+    img_data.seek(0)
+    plt.close()
+    return img_data
+
+
+def business_type_pie(year, data_type):
+    if data_type == 1:
+        ym_start = '%s01' % year
+        ym_end = '%s12' % year
+    else:
+        ym_start = '%s04' % year
+        ym_end = '%s03' % (int(year) + 1)
+
+    queryset = models.ProjectRequest.objects.annotate(ym=Concat('year', 'month')).filter(
+        project__business_type__isnull=False,
+        ym__gte=ym_start,
+        ym__lte=ym_end
+    ).values('project__business_type').annotate(
+        turnover_amount=Sum('turnover_amount'),
+        type_name=Case(
+            When(project__business_type='01', then=Value('金融（銀行）')),
+            When(project__business_type='02', then=Value('金融（保険）')),
+            When(project__business_type='03', then=Value('金融（証券）')),
+            When(project__business_type='04', then=Value('製造　　　　')),
+            When(project__business_type='05', then=Value('サービス　　')),
+            When(project__business_type='06', then=Value('その他　　　')),
+            default=Value('Unknown'),
+            output_field=CharField(),
+        ),
+    ).order_by('project__business_type').distinct()
+
+    df = pd.DataFrame(list(queryset))
+    df['type_name_per'] = df.turnover_amount.map(lambda x: "%.2f%%" % (x * 100.0 / df.turnover_amount.sum()))
+    series = pd.Series(df.turnover_amount, name='')
+    ax = plt.subplot()
+    series.plot.pie(ax=ax, figsize=(6, 6), labels=[''] * len(series), autopct='%.2f%%', pctdistance=0.8)
+    ax.legend(loc=(1.01, 0.45), labels=df.type_name.str.cat(df.type_name_per, sep=' '))
+    ax.set_title("%s年度(%s～%s) の事業別売上ブレイクダウン" % (year, ym_start, ym_end))
+    plt.tight_layout()
+
+    img_data = StringIO.StringIO()
+    plt.savefig(img_data, format='png', bbox_inches='tight')
     img_data.seek(0)
     plt.close()
     return img_data
