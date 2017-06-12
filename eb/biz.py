@@ -480,6 +480,8 @@ def generate_bp_order_data(project_member, year, month, contract, user, bp_order
         raise errors.CustomException(constants.ERROR_BP_NO_CONTRACT)
     company = get_company()
     first_day = datetime.date(int(year), int(month), 1)
+    if project_member.start_date > first_day:
+        first_day = project_member.start_date
     last_day = common.get_last_day_by_month(first_day)
     data = {'DETAIL': {}}
     data['DETAIL']['YM'] = '%04d%02d' % (int(year), int(month))
