@@ -567,7 +567,7 @@
                                 <td class="{% if project_request %}project_requested{% endif %}"></td>
                                 <td class="num row_{{ forloop.counter }} col_01 {% if project_request %}project_requested{% endif %}">{{ project_request.amount|default:0|floatformat:0|intcomma }}</td>
                                 <td class="num row_{{ forloop.counter }} col_02 {% if project_request %}project_requested{% endif %}">{{ project_request.turnover_amount|default:0|floatformat:0|intcomma }}</td>
-                                <td class="{% if project_request %}project_requested{% endif %}">{{ project_request.expenses_amount|default:0|floatformat:0|intcomma }}</td>
+                                <td class="num {% if project_request %}project_requested{% endif %}">{{ project_request.expenses_amount|default:0|floatformat:0|intcomma }}</td>
                                 <td class="num col_03">0</td>
                                 <td></td>
                                 <td></td>

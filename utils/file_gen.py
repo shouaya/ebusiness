@@ -987,12 +987,13 @@ def replace_excel_list(sheet, items, range_start='ITERATOR_START', range_end='IT
         print ex.message
 
 
-def generate_attendance_format(user, template_path, project_members, year=None, month=None):
+def generate_attendance_format(user, template_path, project_members, lump_projects, year=None, month=None):
     """出勤情報をダウンロードする
 
     :param user: ログインユーザー
     :param template_path: テンプレートの格納場所
     :param project_members: 案件メンバー
+    :param lump_projects: 一括案件
     :param year:
     :param month:
     :return: エクセルのバイナリ
@@ -1001,7 +1002,7 @@ def generate_attendance_format(user, template_path, project_members, year=None, 
     sheet = book.get_sheet_by_name('Sheet1')
 
     start_row = constants.POS_ATTENDANCE_START_ROW
-    count = project_members.count()
+    count = project_members.count() + lump_projects.count()
     set_openpyxl_styles(sheet, 'B5:AE%s' % (start_row + count,), 5)
     for i, project_member in enumerate(project_members):
         # NO
@@ -1107,6 +1108,26 @@ def generate_attendance_format(user, template_path, project_members, year=None, 
                     sheet.cell(row=start_row, column=23).value = prev_attendance.allowance
 
         start_row += 1
+    # 一括案件
+    for i, lump_project in enumerate(lump_projects):
+        # NO
+        sheet.cell(row=start_row, column=2).value = project_members.count() + 1 + i
+        # 案件名
+        sheet.cell(row=start_row, column=10).value = lump_project.name
+        # 顧客名
+        sheet.cell(row=start_row, column=11).value = lump_project.client.name
+        # 契約種類
+        sheet.cell(row=start_row, column=12).value = u"一括"
+        project_request = lump_project.project_request_set[0] if lump_project.project_request_set else None
+        if project_request:
+            # 売上（税込）
+            sheet.cell(row=start_row, column=19).value = project_request.amount
+            # 売上（税抜）
+            sheet.cell(row=start_row, column=20).value = project_request.turnover_amount
+            # 売上（経費）
+            sheet.cell(row=start_row, column=21).value = project_request.expenses_amount
+        start_row += 1
+
     # 合計
     sheet.cell(row=start_row, column=19).value = "=SUM(S5:S%s)" % (count + 4)
     sheet.cell(row=start_row, column=20).value = "=SUM(T5:T%s)" % (count + 4)

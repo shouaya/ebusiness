@@ -1970,11 +1970,15 @@ class DownloadSectionAttendance(BaseView):
         section_id = kwargs.get('section_id', 0)
         year = kwargs.get('year', 0)
         month = kwargs.get('month', 0)
+        date = datetime.date(int(year), int(month), 20)
         section = get_object_or_404(models.Section, pk=section_id)
         batch = biz.get_batch_manage(constants.BATCH_SEND_ATTENDANCE_FORMAT)
-        project_members = biz.get_project_members_month_section(section, datetime.date(int(year), int(month), 20))
+        project_members = biz.get_project_members_month_section(section, date)
+        lump_projects = biz.get_lump_projects_by_section(section, date)
         filename = constants.NAME_SECTION_ATTENDANCE % (section.name, int(year), int(month))
-        output = file_gen.generate_attendance_format(request.user, batch.attachment1.path, project_members, year, month)
+        output = file_gen.generate_attendance_format(
+            request.user, batch.attachment1.path, project_members, lump_projects, year, month
+        )
         response = HttpResponse(output, content_type="application/ms-excel")
         response['Content-Disposition'] = "filename=" + urllib.quote(filename.encode('utf-8')) + ".xlsx"
         return response
