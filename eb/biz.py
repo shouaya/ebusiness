@@ -256,8 +256,10 @@ def get_project_members_month_section(section, date, user=None):
                                                                  month="%02d" % prev_month.month,
                                                                  is_deleted=False)
     # 請求明細情報
-    project_request_detail_set = models.ProjectRequestDetail.objects.filter(project_request__year="%04d" % date.year,
-                                                                            project_request__month="%02d" % date.month)
+    project_request_detail_set = models.ProjectRequestDetail.objects.filter(
+        project_request__year="%04d" % date.year,
+        project_request__month="%02d" % date.month
+    )
     all_children = section.get_children()
     org_pk_list = [org.pk for org in all_children]
     org_pk_list.append(section.pk)
@@ -299,10 +301,20 @@ def get_lump_projects_by_section(section, date):
     all_children.append(section)
     first_day = common.get_first_day_by_month(date)
     last_day = common.get_last_day_by_month(first_day)
-    queryset = models.Project.objects.public_filter(is_lump=True,
-                                                    department__in=list(all_children),
-                                                    start_date__lte=last_day,
-                                                    end_date__gte=first_day)
+
+    # 請求情報
+    project_request_set = models.ProjectRequest.objects.filter(
+        year="%04d" % date.year,
+        month="%02d" % date.month
+    )
+    queryset = models.Project.objects.public_filter(
+        is_lump=True,
+        department__in=list(all_children),
+        start_date__lte=last_day,
+        end_date__gte=first_day
+    ).distinct().prefetch_related(
+        Prefetch('projectrequest_set', queryset=project_request_set, to_attr='project_request_set'),
+    )
     return queryset
 
 

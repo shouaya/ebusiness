@@ -329,7 +329,7 @@
                                     <td colspan="23" class="error">{{ msg }}</td>
                                 {% else %}
                                     {% with attendance=project_member.current_attendance_set|first prev_attendance=project_member.prev_attendance_set|first %}
-                                    {% with project_request_detail=project_member.project_request_detail_set|first %}
+                                    {% with project_request_detail=project_member.project_request_detail_set|first lump_project_request=attendance.get_lump_project_request %}
                                         <td class="center row_{{ forloop.counter }} col_insurance">
                                             {% if attendance.get_contract.endowment_insurance == "1" %}
                                                 ○
@@ -359,21 +359,21 @@
                                             {% endif %}
                                         </td>
                                         <!--勤務時間-->
-                                        <td class="num {% if project_request_detail %}project_requested{% endif %}">{{ attendance.total_hours|default:'' }}</td>
-                                        <td class="num {% if project_request_detail %}project_requested{% endif %}">{{ attendance.total_days|default:'' }}</td>
-                                        <td class="num {% if project_request_detail %}project_requested{% endif %}">{{ attendance.night_days|default:'' }}</td>
-                                        <td class="num {% if project_request_detail %}project_requested{% endif %}">{{ attendance.advances_paid_client|default:''|intcomma }}</td>
-                                        <td class="num {% if project_request_detail %}project_requested{% endif %}">{{ attendance.advances_paid|default:''|intcomma }}</td>
+                                        <td class="num {% if project_request_detail %}project_requested{% endif %} {% if lump_project_request %}project_requested{% endif %}">{{ attendance.total_hours|default:'' }}</td>
+                                        <td class="num {% if project_request_detail %}project_requested{% endif %} {% if lump_project_request %}project_requested{% endif %}">{{ attendance.total_days|default:'' }}</td>
+                                        <td class="num {% if project_request_detail %}project_requested{% endif %} {% if lump_project_request %}project_requested{% endif %}">{{ attendance.night_days|default:'' }}</td>
+                                        <td class="num {% if project_request_detail %}project_requested{% endif %} {% if lump_project_request %}project_requested{% endif %}">{{ attendance.advances_paid_client|default:''|intcomma }}</td>
+                                        <td class="num {% if project_request_detail %}project_requested{% endif %} {% if lump_project_request %}project_requested{% endif %}">{{ attendance.advances_paid|default:''|intcomma }}</td>
                                         <!--交通費-->
                                         {% if attendance.traffic_cost %}
-                                            <td class="num {% if project_request_detail %}project_requested{% endif %}">{{ attendance.traffic_cost|default:''|intcomma }}</td>
+                                            <td class="num {% if project_request_detail %}project_requested{% endif %} {% if lump_project_request %}project_requested{% endif %}">{{ attendance.traffic_cost|default:''|intcomma }}</td>
                                         {% else %}
                                             {% if prev_attendance and prev_attendance.traffic_cost %}
                                                 <td class="num prev_month_data {% if project_request_detail %}project_requested{% endif %}">
                                                     {{ prev_attendance.traffic_cost|default:''|intcomma }}
                                                 </td>
                                             {% else %}
-                                                <td class=" {% if project_request_detail %}project_requested{% endif %}"></td>
+                                                <td class=" {% if project_request_detail %}project_requested{% endif %} {% if lump_project_request %}project_requested{% endif %}"></td>
                                             {% endif %}
                                         {% endif %}
                                         {% if project_request_detail %}
@@ -454,14 +454,14 @@
                                             {% if is_own %}
                                                 <!-- 一括案件 -->
                                                 {% if project_member.project.is_lump %}
-                                                    <td class="num row_{{ forloop.counter }} col_01">{{ project_member.project.all_price_lump|floatformat:0|intcomma }}</td>
-                                                    <td class="num row_{{ forloop.counter }} col_02">{{ project_member.project.lump_amount|floatformat:0|intcomma }}</td>
-                                                    <td class="num row_{{ forloop.counter }} col_03">0</td>
+                                                    <td class="num row_{{ forloop.counter }} col_01 {% if lump_project_request %}project_requested{% endif %}">{{ lump_project_request.amount|default:0|floatformat:0|intcomma }}</td>
+                                                    <td class="num row_{{ forloop.counter }} col_02 {% if lump_project_request %}project_requested{% endif %}">{{ lump_project_request.turnover_amount|default:0|floatformat:0|intcomma }}</td>
+                                                    <td class="num row_{{ forloop.counter }} col_03 {% if lump_project_request %}project_requested{% endif %}">{{ lump_project_request.expenses_amount|default:0|floatformat:0|intcomma }}</td>
                                                 {% else %}
                                                     <!--売上-->
-                                                    <td class="num">0</td>
-                                                    <td class="num">0</td>
-                                                    <td class="num">0</td>
+                                                    <td class="num {% if lump_project_request %}project_requested{% endif %}">0</td>
+                                                    <td class="num {% if lump_project_request %}project_requested{% endif %}">0</td>
+                                                    <td class="num {% if lump_project_request %}project_requested{% endif %}">0</td>
                                                 {% endif %}
                                                 <td class="num row_{{ forloop.counter }} col_04 {% if repeated %}crossed{% endif %}">{{ attendance.get_cost|intcomma }}</td>
                                                 {% if attendance.allowance %}
@@ -537,6 +537,7 @@
                                 {% endif %}
                             </tr>
                         {% elif lump_project %}
+                            {% with project_request=lump_project.project_request_set|first %}
                             <tr>
                                 <td>{{ forloop.counter }}</td>
                                 <td></td>
@@ -558,26 +559,27 @@
                                     </div>
                                 </td>
                                 <td>一括</td>
+                                <td class="{% if project_request %}project_requested{% endif %}"></td>
+                                <td class="{% if project_request %}project_requested{% endif %}"></td>
+                                <td class="{% if project_request %}project_requested{% endif %}"></td>
+                                <td class="{% if project_request %}project_requested{% endif %}"></td>
+                                <td class="{% if project_request %}project_requested{% endif %}"></td>
+                                <td class="{% if project_request %}project_requested{% endif %}"></td>
+                                <td class="num row_{{ forloop.counter }} col_01 {% if project_request %}project_requested{% endif %}">{{ project_request.amount|default:0|floatformat:0|intcomma }}</td>
+                                <td class="num row_{{ forloop.counter }} col_02 {% if project_request %}project_requested{% endif %}">{{ project_request.turnover_amount|default:0|floatformat:0|intcomma }}</td>
+                                <td class="{% if project_request %}project_requested{% endif %}">{{ project_request.expenses_amount|default:0|floatformat:0|intcomma }}</td>
+                                <td class="num col_03">0</td>
                                 <td></td>
                                 <td></td>
                                 <td></td>
                                 <td></td>
                                 <td></td>
                                 <td></td>
-                                <td class="num row_{{ forloop.counter }} col_01">{{ lump_project.lump_amount|default:''|floatformat:0|intcomma }}</td>
-                                <td class="num row_{{ forloop.counter }} col_02">{{ lump_project.lump_amount|default:''|floatformat:0|intcomma }}</td>
                                 <td></td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                                <td class="num row_{{ forloop.counter }} col_13">{{ lump_project.lump_amount|default:''|floatformat:0|intcomma }}</td>
+                                <td class="num col_12">0</td>
+                                <td class="num row_{{ forloop.counter }} col_13">{{ project_request.turnover_amount|default:0|floatformat:0|intcomma }}</td>
                             </tr>
+                            {% endwith %}
                         {% endif %}
                         {% endfor %}
                     {% else %}

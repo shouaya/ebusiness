@@ -2596,6 +2596,26 @@ class MemberAttendance(BaseModel):
         except MultipleObjectsReturned:
             return None
 
+    def get_lump_project_request(self):
+        """一括案件の請求情報を取得する
+
+        経営データ統計表の売上を表示するために使われている。
+
+        :return:
+        """
+        if self.project_member.project.is_lump:
+            try:
+                project_request = ProjectRequest.objects.get(
+                    project=self.project_member.project,
+                    year=self.year,
+                    month=self.month
+                )
+            except (ObjectDoesNotExist, MultipleObjectsReturned):
+                project_request = None
+            return project_request
+        else:
+            return None
+
     def save(self, force_insert=False, force_update=False, using=None,
              update_fields=None):
         if self.pk is None:
