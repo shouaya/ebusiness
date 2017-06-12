@@ -80,7 +80,7 @@ def members_status_bar():
 
 
 def business_type_pie(year, data_type):
-    if data_type == 1:
+    if data_type == "1":
         ym_start = '%s01' % year
         ym_end = '%s12' % year
     else:

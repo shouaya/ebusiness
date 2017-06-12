@@ -236,8 +236,8 @@
             {% if theme == "default" %}
             <a id="switch" href="javascript:switchDisplay()"><i class="fa fa-expand" aria-hidden="true"></i> 展開</a>
             {% endif %}
-            <a href="?year={{ prev_month|date:'Y' }}&month={{ prev_month|date:'m' }}"><i class="fa fa-angle-double-left" aria-hidden="true"></i> 先月</a>
-            <a href="?year={{ next_month|date:'Y' }}&month={{ next_month|date:'m' }}">来月 <i class="fa fa-angle-double-right" aria-hidden="true"></i></a>
+            <a href="?_year={{ prev_month|date:'Y' }}&_month={{ prev_month|date:'m' }}"><i class="fa fa-angle-double-left" aria-hidden="true"></i> 先月</a>
+            <a href="?_year={{ next_month|date:'Y' }}&_month={{ next_month|date:'m' }}">来月 <i class="fa fa-angle-double-right" aria-hidden="true"></i></a>
             <a href="{% url 'download_section_attendance' section.pk year month %}" target="_blank"><i class="fa fa-download" aria-hidden="true"></i> ダウンロード</a>
         </div>
     </div>
