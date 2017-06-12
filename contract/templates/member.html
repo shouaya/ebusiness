@@ -116,6 +116,12 @@
                     <th>{{ form.private_email.label_tag }}</th>
                     <td colspan="3">{{ form.private_email.errors }}{{ form.private_email }}</td>
                 </tr>
+                <tr>
+                    <th>{{ form.is_retired.label_tag }}</th>
+                    <td>{{ form.is_retired.errors }}{{ form.is_retired }}</td>
+                    <th>{{ form.retired_date.label_tag }}</th>
+                    <td>{{ form.retired_date.errors }}{{ form.retired_date }}</td>
+                </tr>
             </table>
             <div style="margin: auto; margin-top: 30px; margin-bottom: 15px; width: 700px; display: block;">
                 {% if member.pk %}

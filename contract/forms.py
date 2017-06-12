@@ -21,6 +21,9 @@ class MemberForm(BaseForm):
 
     birthday = forms.DateField(widget=AdminDateWidget, label=u"生年月日")
     join_date = forms.DateField(widget=AdminDateWidget, label=u"入社年月日")
+    retired_date = forms.DateField(widget=AdminDateWidget(attrs={'style': 'width: 80px;'}),
+                                   label=u"退職年月日",
+                                   required=False)
     post_code = forms.CharField(max_length=7,
                                 widget=forms.TextInput(
                                     attrs={'onKeyUp': "AjaxZip3.zip2addr(this,'','address1','address1');"}),
@@ -31,11 +34,17 @@ class MemberForm(BaseForm):
     def __init__(self, *args, **kwargs):
         super(MemberForm, self).__init__(*args, **kwargs)
         self.fields['id_from_api'].widget.attrs.update({'readonly': 'readonly'})
+        # for name in ('birthday', 'join_date', 'retired_date'):
+        #     self.files[name].widget = AdminDateWidget()
 
     def clean(self):
         cleaned_data = super(MemberForm, self).clean()
+        is_retired = cleaned_data.get('is_retired', False)
+        retired_date = cleaned_data.get('retired_date', False)
         if self.instance and not self.instance.pk:
             cleaned_data["id_from_api"] = models.Member.get_max_api_id()
+        if is_retired and not retired_date:
+            self.add_error('retired_date', u"退職年月日を入力してください。")
         return cleaned_data
 
 
