@@ -44,4 +44,4 @@ def get_members():
 
     :return:
     """
-    return models.EbEmployee.objects.filter(retire_date__isnull=True)
+    return models.EbEmployee.objects.filter(user__islock='0')
