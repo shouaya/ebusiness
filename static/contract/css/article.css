@@ -321,6 +321,7 @@ article .rbutton {
 }
 
 div.dashboard-control {
+    font-size: 14px;
     float: left;
     position: fixed;
     left: 20px;

@@ -9,6 +9,7 @@
     <title>在職証明書</title>
 
     <script type="text/javascript" src="/static/admin/js/jquery-2.1.4.min.js"></script>
+    <script type="text/javascript" src="/static/contract/js/base.js"></script>
 
     <link rel="shortcut icon" type="image/png" href="/static/favicon.ico"/>
     <link rel="stylesheet" type="text/css" href="/static/contract/css/article.css"/>
@@ -45,6 +46,13 @@
                 }
             });
         });
+
+        function change_income(obj, target_id) {
+            income = parseInt($(obj).val());
+            if (income > 0) {
+                $("#" + target_id).text(numberWithCommas(income));
+            }
+        }
     </script>
 </head>
 <body>
@@ -85,11 +93,11 @@
     </div>
     <div style="height: 112px;">
         <div class="income" id="div_income_yearly">
-            {{ year }}年分年収予定額：￥{{ contract.get_cost_yearly|intcomma }}円（課税前）とする。<br/>
+            {{ year }}年分年収予定額：￥<span id="span_income_yearly">{{ contract.get_cost_yearly|intcomma }}</span>円（課税前）とする。<br/>
             交通費また時間外手当などについて、別途となります。
         </div>
         <div class="income" id="div_income_monthly" style="display: none;">
-            月収額：￥{{ contract.get_cost|intcomma }}円/月（課税前）とする。<br/>
+            月収額：￥<span id="span_income_monthly">{{ contract.get_cost|intcomma }}</span>円/月（課税前）とする。<br/>
             交通費また時間外手当などについて、別途となります。
         </div>
     </div>
@@ -121,10 +129,12 @@
         <div>
             <label for="chk_income_yearly">年　　収</label>
             <input id="chk_income_yearly" type="checkbox" checked="checked"/>
+            <input type="number" style="width: 100px; text-align: right;" onchange="change_income(this, 'span_income_yearly')" value="{{ contract.get_cost_yearly }}"/>
         </div>
         <div>
             <label for="chk_income_monthly">月　　収</label>
             <input id="chk_income_monthly" type="checkbox"/>
+            <input type="number" style="width: 100px; text-align: right;" onchange="change_income(this, 'span_income_monthly')" value="{{ contract.get_cost }}"/>
         </div>
     </div>
 </article>
