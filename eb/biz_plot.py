@@ -106,6 +106,7 @@ def business_type_pie(year, data_type):
     ).order_by('project__business_type').distinct()
 
     df = pd.DataFrame(list(queryset))
+    # df = df.sort_values(by='turnover_amount', ascending=False)
     # s_percent = df.turnover_amount.map(lambda x: "%.2f%%" % (x * 100.0 / df.turnover_amount.sum()))
     # type_name_per = df.type_name.str.cat(s_percent, sep=' ')
     s_amount = df.turnover_amount.map(lambda x: humanize.intcomma(x).rjust(15))

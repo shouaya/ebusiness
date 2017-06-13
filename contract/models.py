@@ -143,6 +143,13 @@ class Contract(BaseModel):
             cost = int((cost * 14) / 12)
         return cost
 
+    def get_cost_yearly(self):
+        """年収を取得する。
+
+        :return:
+        """
+        return self.get_cost() * 12
+
     def get_next_contract_no(self):
         today = datetime.date.today()
         return "EB%04d%s" % (int(self.member.id_from_api), today.strftime('%Y%m%d'))
