@@ -25,7 +25,8 @@ django.jQuery = $
     <div style="margin-bottom: 20px;">
         {% if contract.pk %}
             <a href="{% url 'contract' contract.pk %}" target="_blank">契約書</a>&nbsp;&nbsp;&nbsp;
-            <a href="{% url 'certificate' member.pk %}" target="_blank">在職証明書</a>
+            <a href="{% url 'certificate' member.pk %}" target="_blank">在職証明書</a>&nbsp;&nbsp;&nbsp;
+            <a href="{% url 'income' member.pk %}" target="_blank">所得証明書</a>
         {% endif %}
     </div>
     <div class="flowTop"></div>

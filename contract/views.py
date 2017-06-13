@@ -183,6 +183,21 @@ class CertificateView(BaseTemplateView):
         return context
 
 
+class IncomeView(BaseTemplateView):
+    template_name = 'income.html'
+
+    def get_context_data(self, **kwargs):
+        context = super(IncomeView, self).get_context_data(**kwargs)
+        member_id = kwargs.get('member_id')
+        member = get_object_or_404(sales_models.Member, pk=member_id)
+        context.update({
+            'member': member,
+            'contract': member.get_latest_contract(),
+            'today': datetime.date.today()
+        })
+        return context
+
+
 @method_decorator(csrf_protect, name='dispatch')
 class GenerateApiIdView(BaseView):
     def post(self, request, *args, **kwargs):
