@@ -12,7 +12,7 @@ import datetime
 from django.db import models
 from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
 
-from utils import common
+from utils import common, constants
 
 
 class EboaManager(models.Manager):
@@ -3612,7 +3612,7 @@ class EbEmployee(models.Model):
     residence_name_kana = models.CharField(max_length=100, blank=True, null=True)
     passport_name = models.CharField(max_length=100, blank=True, null=True)
     birthday = models.CharField(max_length=50, blank=True, null=True)
-    sex = models.CharField(max_length=200, blank=True, null=True)
+    sex = models.CharField(max_length=1, choices=constants.CHOICE_SEX_EBOA, blank=True, null=True)
     marriage = models.CharField(max_length=200, blank=True, null=True)
     address_flag = models.CharField(max_length=1, blank=True, null=True)
     nationality = models.CharField(max_length=200, blank=True, null=True)

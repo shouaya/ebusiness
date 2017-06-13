@@ -20,7 +20,8 @@
 <body>
 <header>
     <div class="nav">
-        <a href="{% url 'index' %}">営業支援システム</a>
+        <a href="{% url 'index' %}">営業支援システム</a>&nbsp;&nbsp;|&nbsp;&nbsp;
+        <a href="{% url 'download_eboa_members' %}" target="_blank"><i class="fa fa-download" aria-hidden="true"></i> ＥＢＯＡ社員情報ダウンロード</a>
     </div>
     <div class="container">
         <h1 class="title"><a href="{% url 'contract-index' %}">契約管理システム</a></h1>

@@ -1189,6 +1189,46 @@ def generate_members_cost(user, members):
     return save_virtual_workbook(book)
 
 
+def generate_eboa_members(members):
+    book = px.Workbook()
+    sheet = book.create_sheet(title=u"社員一覧", index=0)
+    # タイトル
+    for i, title in enumerate([u'名前', u"フリカナ", u"雇用区分", u"所属部署",
+                               u"性別", u"生年月日", u"郵便番号", u"住所", u"個人携帯番号", u"会社メールアドレス",
+                               u"在留資格", u"在留カード番号", u"在留期間", u"入社年月日", u"雇用保険加入状況",
+                               u"雇用保険番号", u"社会保険加入状況", u"社会保険番号", u"厚生年金加入状況",
+                               u"厚生年金番号"], start=1):
+        sheet.cell(row=1, column=i).value = title
+    # リスト
+    start_row = 2
+    for i, member in enumerate(members):
+        contract = member.get_contract()
+        organization = member.get_organization()
+        row = start_row + i
+        sheet.cell(row=row, column=1).value = member.name
+        sheet.cell(row=row, column=2).value = member.residence_name_kana or ''
+        sheet.cell(row=row, column=3).value = contract.employer_type if contract else ''
+        sheet.cell(row=row, column=4).value = organization.orgname if organization else ''
+        sheet.cell(row=row, column=5).value = member.get_sex_display()
+        sheet.cell(row=row, column=6).value = member.birthday
+        sheet.cell(row=row, column=7).value = member.zipcode
+        sheet.cell(row=row, column=8).value = member.address
+        sheet.cell(row=row, column=9).value = member.private_tel_number
+        sheet.cell(row=row, column=10).value = member.business_mail_addr
+        sheet.cell(row=row, column=11).value = member.residence_type
+        sheet.cell(row=row, column=12).value = member.id_number
+        sheet.cell(row=row, column=13).value = member.id_card_expired_date
+        sheet.cell(row=row, column=14).value = member.join_date
+        sheet.cell(row=row, column=15).value = ''
+        sheet.cell(row=row, column=16).value = ''
+        sheet.cell(row=row, column=17).value = u"○" if contract and contract.endowment_insurance == "2" else ''
+        sheet.cell(row=row, column=18).value = ''
+        sheet.cell(row=row, column=19).value = ''
+        sheet.cell(row=row, column=20).value = ''
+
+    return save_virtual_workbook(book)
+
+
 def set_openpyxl_styles(ws, cell_range, start_row):
     rows = list(ws.iter_rows(cell_range))
     style_list = []

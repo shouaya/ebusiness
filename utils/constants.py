@@ -155,6 +155,7 @@ CHOICE_POSITION = ((3, u"事業部長"),
                    (10, u"サブリーダー"),
                    (11, u"勤務統計者"))
 CHOICE_SEX = (('1', u"男"), ('2', u"女"))
+CHOICE_SEX_EBOA = (('1', u"男"), ('0', u"女"))
 CHOICE_MARRIED = (('', u"------"), ('0', u"未婚"), ('1', u"既婚"))
 CHOICE_PAYMENT_MONTH = (('1', u"翌月"),
                         ('2', u"翌々月"),
