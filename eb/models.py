@@ -2911,10 +2911,13 @@ class Issue(BaseModel):
     present_user = models.ForeignKey(User, blank=False, null=True, related_name='present_issue_set',
                                      on_delete=models.PROTECT,
                                      verbose_name=u"提出者")
+    observer = models.ManyToManyField(User, blank=True, verbose_name=u"観察者",
+                                      help_text=u"ここで選択されたユーザーに対して、"
+                                                u"課題に変更があったら自動的メールを送信します。")
     status = models.CharField(max_length=1, default=1, choices=constants.CHOICE_ISSUE_STATUS,
                               verbose_name=u"ステータス")
     limit_date = models.DateField(blank=True, null=True, verbose_name=u"期限日")
-    resolve_user = models.ForeignKey(User, related_name='resolve_issue_set', blank=True, null=True,
+    resolve_user = models.ForeignKey(User, related_name='resolve_issue_set', blank=False, null=True,
                                      on_delete=models.PROTECT,
                                      verbose_name=u"担当者")
     planned_end_date = models.DateField(blank=True, null=True, verbose_name=u"予定完了日")
@@ -2922,7 +2925,7 @@ class Issue(BaseModel):
     solution = models.TextField(blank=True, null=True, verbose_name=u"対応方法")
 
     class Meta:
-        ordering = ['-created_date']
+        ordering = ['-id']
         verbose_name = verbose_name_plural = u"課題管理表"
 
     def __unicode__(self):
@@ -2956,6 +2959,9 @@ class Issue(BaseModel):
         # 担当者をメールリストに追加
         if self.resolve_user and self.resolve_user.email not in mail_list:
             mail_list.append(self.resolve_user.email)
+        for observer in self.observer.all():
+            if observer.email not in mail_list:
+                mail_list.append(observer.email)
         return mail_list
 
     def save(self, force_insert=False, force_update=False, using=None,

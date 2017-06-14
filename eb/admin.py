@@ -862,15 +862,24 @@ class IssueAdmin(BaseAdmin):
     list_display = ['title', 'created_user', 'status', 'created_date']
     list_filter = ['status']
 
+    filter_horizontal = ['observer']
+
     def get_form(self, request, obj=None, **kwargs):
         form = super(IssueAdmin, self).get_form(request, obj, **kwargs)
         form.base_fields['present_user'].initial = request.user
+        # スーパーユーザーは既に自動送信になっているので、観察者になる必要はない。
+        form.base_fields['observer'].queryset = User.objects.filter(is_superuser=False, is_active=True)
         return form
 
+    def save_related(self, request, form, formsets, change):
+        super(IssueAdmin, self).save_related(request, form, formsets, change)
+        if not form.instance.created_user:
+            form.instance.created_user = request.user
+        form.instance.save(updated_user=request.user)
+
     def save_model(self, request, obj, form, change):
-        if not change:
-            obj.created_user = request.user
-        obj.save(updated_user=request.user)
+        # ManyToManyFieldのobserverを先に保存するために、ここはスキップする。
+        pass
 
 
 class HistoryAdmin(BaseAdmin):
