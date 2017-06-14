@@ -2964,10 +2964,7 @@ class Issue(BaseModel):
                 mail_list.append(observer.email)
         return mail_list
 
-    def save(self, force_insert=False, force_update=False, using=None,
-             update_fields=None, updated_user=None):
-        super(Issue, self).save(force_insert, force_update, using, update_fields)
-
+    def send_mail(self, updated_user):
         # メール送信
         html = self.get_mail_body(updated_user)
         if not html:

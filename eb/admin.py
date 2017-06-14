@@ -873,13 +873,12 @@ class IssueAdmin(BaseAdmin):
 
     def save_related(self, request, form, formsets, change):
         super(IssueAdmin, self).save_related(request, form, formsets, change)
-        if not form.instance.created_user:
-            form.instance.created_user = request.user
-        form.instance.save(updated_user=request.user)
+        form.instance.send_mail(updated_user=request.user)
 
     def save_model(self, request, obj, form, change):
-        # ManyToManyFieldのobserverを先に保存するために、ここはスキップする。
-        pass
+        if not change:
+            obj.created_user = request.user
+        obj.save()
 
 
 class HistoryAdmin(BaseAdmin):
