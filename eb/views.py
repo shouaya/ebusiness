@@ -2238,7 +2238,7 @@ def password_change(request,
                     password_change_form=PasswordChangeForm,
                     extra_context=None):
     if post_change_redirect is None:
-        post_change_redirect = reverse('index')
+        post_change_redirect = reverse('home')
     else:
         post_change_redirect = resolve_url(post_change_redirect)
     if request.method == "POST":

@@ -22,7 +22,7 @@ from django.core.urlresolvers import reverse
 from django.http.response import JsonResponse
 
 from eb import models
-from utils import constants
+from utils import constants, common
 
 
 @method_decorator(login_required(login_url=constants.LOGIN_IN_URL), name='dispatch')
@@ -48,6 +48,8 @@ class HomeView(BaseView):
     def get(self, request, *args, **kwargs):
         if models.Company.objects.all().count() == 0:
             return HttpResponseRedirect(reverse('admin:eb_company_add'))
+        elif common.is_human_resources(request.user) and not request.user.is_superuser:
+            return HttpResponseRedirect(reverse('contract-index'))
         else:
             return HttpResponseRedirect(reverse('index'))
 
