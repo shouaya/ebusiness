@@ -130,12 +130,20 @@ class ContractChangeView(BaseTemplateView):
         context = self.get_context_data(**kwargs)
         member = context.get('member')
         old_contract = context.get('contract')
-        form = forms.ContractForm(request.POST)
+        form = forms.ContractForm(request.POST, instance=old_contract)
         context.update({
             'form': form,
         })
         if form.is_valid():
             contract = form.save(commit=False)
+            change_message = []
+            if form.changed_data:
+                changed_list = []
+                for field in form.changed_data:
+                    changed_list.append(u"%s(%s→%s)" % common.get_form_changed_value(form, field))
+                change_message.append(_('Changed %s.') % get_text_list(changed_list, _('and')))
+            message = ",".join(change_message) or _('No fields changed.')
+
             contract.member = member
             next_contract_no = contract.get_next_contract_no()
             if contract.contract_no == next_contract_no:
@@ -143,11 +151,21 @@ class ContractChangeView(BaseTemplateView):
                 contract.pk = contract.id = old_contract.pk
                 contract.created_date = old_contract.created_date
                 contract.save()
+                action_flg = CHANGE
             else:
                 # 契約を追加する。
                 contract.pk = None
                 contract.contract_no = next_contract_no
                 contract.save()
+                action_flg = ADDITION
+
+            LogEntry.objects.log_action(request.user.id,
+                                        ContentType.objects.get_for_model(contract).pk,
+                                        contract.pk,
+                                        unicode(contract),
+                                        action_flg,
+                                        change_message=message)
+
             return redirect(reverse("contract_change",
                                     args=(contract.member.id_from_api,)) + "?" + "ver=%s" % contract.contract_no
                             )
@@ -248,16 +266,25 @@ class MemberChangeView(BaseTemplateView):
         })
         if form.is_valid():
             member = form.save(commit=False)
-            member.save()
+            if member.pk:
+                update_fields = ['first_name', 'last_name', 'first_name_ja', 'last_name_ja',
+                                 'first_name_en', 'last_name_en', 'member_type', 'birthday',
+                                 'sex', 'join_date', 'employee_id', 'post_code', 'address1', 'address2',
+                                 'nearest_station', 'phone', 'section', 'email', 'private_email',
+                                 'is_retired', 'retired_date']
+            else:
+                update_fields = None
+            member.save(update_fields=update_fields)
 
             change_message = []
             if form.changed_data:
                 changed_list = []
                 for field in form.changed_data:
-                    changed_list.append(u"%s(%s→%s)" % common.get_form_changed_value(form, field))
+                    if update_fields is None or field in update_fields:
+                        changed_list.append(u"%s(%s→%s)" % common.get_form_changed_value(form, field))
                 change_message.append(_('Changed %s.') % get_text_list(changed_list, _('and')))
             message = ",".join(change_message) or _('No fields changed.')
-            action_flg = ADDITION if is_add else  CHANGE
+            action_flg = ADDITION if is_add else CHANGE
             LogEntry.objects.log_action(request.user.id,
                                         ContentType.objects.get_for_model(member).pk,
                                         member.pk,
