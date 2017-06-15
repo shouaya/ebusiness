@@ -2273,7 +2273,8 @@ class ProjectMember(models.Model):
                 order = BpMemberOrder.objects.get(project_member=self, year=date.year, month='%02d' % date.month)
             except (ObjectDoesNotExist, MultipleObjectsReturned):
                 order = None
-            orders.append((date.year, date.month, order))
+            days = common.get_business_days(date.year, date.month)
+            orders.append((date.year, date.month, len(days), order))
         return orders
 
     def delete(self, using=None, keep_parents=False):

@@ -40,7 +40,7 @@
                 <th>基本給</th>
                 <th>時間下限</th>
                 <th>時間上限</th>
-                <th style="width: 100px;">計算種類</th>
+                <th style="width: 110px;">計算種類</th>
                 <th style="width: 160px;">残業手当</th>
                 <th style="width: 160px;">欠勤手当</th>
                 <th>その他</th>
@@ -118,6 +118,7 @@
         <thead>
             <tr>
                 <th>案件／対象年月</th>
+                <th style="width: 60px;">営業日数</th>
                 <th>開始日／注文番号</th>
                 <th>終了日／注文書</th>
                 <th>注文請書</th>
@@ -126,7 +127,7 @@
         <tbody>
             {% for project_member in project_members %}
                 <tr class="row1">
-                    <td>
+                    <td colspan="2">
                         <a href="{% url 'project_detail' project_member.project.pk %}" title="{{ project_member.project }}">
                             {{ project_member.project }}
                         </a>
@@ -135,9 +136,10 @@
                     <td>{{ project_member.end_date }}</td>
                     <td></td>
                 </tr>
-                {% for year, month, order in project_member.get_bp_member_orders %}
+                {% for year, month, days, order in project_member.get_bp_member_orders %}
                     <tr class="row2">
                         <td>{{ year }}年{{ month|stringformat:"02d" }}月</td>
+                        <td class="num">{{ days }}</td>
                         <td class="center">
                             {% if order %}
                                 <a href="{% url 'bp_member_order' order.pk %}">{{ order.order_no }}</a>
@@ -191,6 +193,7 @@
         <tfoot>
             <tr>
                 <th>案件／対象年月</th>
+                <th>営業日数</th>
                 <th>開始日／注文番号</th>
                 <th>終了日／操作</th>
                 <th>注文請書</th>
