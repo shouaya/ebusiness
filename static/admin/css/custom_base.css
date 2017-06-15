@@ -1,0 +1,5 @@
+@CHARSET "utf-8";
+
+input[readonly=readonly] {
+    background-color: lightgray;
+}

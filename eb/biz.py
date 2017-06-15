@@ -546,11 +546,11 @@ def generate_bp_order_data(project_member, year, month, contract, user, bp_order
     if contract.allowance_base_memo:
         allowance_base_memo = contract.allowance_base_memo
     elif contract.is_hourly_pay:
-        allowance_base_memo = u"時間単価：\%s/h  (消費税を含まない)" % allowance_base
+        allowance_base_memo = u"時間単価：￥%s/h  (消費税を含まない)" % allowance_base
     elif contract.is_fixed_cost:
-        allowance_base_memo = u"月額基本料金：\%s円/月  (固定、税金抜き)" % allowance_base
+        allowance_base_memo = u"月額基本料金：￥%s円/月  (固定、税金抜き)" % allowance_base
     else:
-        allowance_base_memo = u"月額基本料金：\%s円/月  (税金抜き)" % allowance_base
+        allowance_base_memo = u"月額基本料金：￥%s円/月  (税金抜き)" % allowance_base
     data['DETAIL']['ALLOWANCE_BASE'] = allowance_base
     data['DETAIL']['ALLOWANCE_BASE_MEMO'] = allowance_base_memo
     # 固定
@@ -563,7 +563,7 @@ def generate_bp_order_data(project_member, year, month, contract, user, bp_order
         if contract.allowance_overtime_memo:
             allowance_overtime_memo = contract.allowance_overtime_memo
         else:
-            allowance_overtime_memo = u"超過単価：\%s/%sh=\%s/h" % (
+            allowance_overtime_memo = u"超過単価：￥%s/%sh=￥%s/h" % (
                 allowance_base, contract.allowance_time_max, allowance_overtime
             )
         data['DETAIL']['ALLOWANCE_OVERTIME'] = allowance_overtime
@@ -573,7 +573,7 @@ def generate_bp_order_data(project_member, year, month, contract, user, bp_order
         if contract.allowance_absenteeism_memo:
             allowance_absenteeism_memo = contract.allowance_absenteeism_memo
         else:
-            allowance_absenteeism_memo = u"不足単価：\%s/%sh=\%s/h" % (
+            allowance_absenteeism_memo = u"不足単価：￥%s/%sh=￥%s/h" % (
                 allowance_base, contract.allowance_time_min, allowance_absenteeism
             )
         data['DETAIL']['ALLOWANCE_ABSENTEEISM'] = allowance_absenteeism

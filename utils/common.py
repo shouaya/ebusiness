@@ -1026,8 +1026,13 @@ def get_bp_order_publish_date(year, month, str_date):
             return publish_date
         except ValueError:
             pass
-    from pandas.tseries.offsets import BDay
-    return datetime.date(int(year), int(month), 1) - BDay(1)
+    today = datetime.date.today()
+    if '%04d%02d' % (int(year), int(month) - 1) == today.strftime('%Y%m'):
+        # 作成しようとしている注文書はちょうど来月の場合、発行年月日は現在の日付とする。
+        return today
+    else:
+        from pandas.tseries.offsets import BDay
+        return datetime.date(int(year), int(month), 1) - BDay(1)
 
 
 if __name__ == "__main__":

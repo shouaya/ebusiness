@@ -105,11 +105,9 @@ class BpContractAdmin(BaseAdmin):
                            'end_date',
                            ('is_hourly_pay', 'is_fixed_cost', 'is_show_formula'),
                            ('allowance_base', 'allowance_base_memo'),
-                           'allowance_time_min',
+                           ('allowance_time_min', 'calculate_type', 'business_days'),
                            'allowance_time_max',
                            'allowance_time_memo',
-                           'calculate_type',
-                           'business_days',
                            ('calculate_time_min', 'calculate_time_max'),
                            ('allowance_overtime', 'allowance_overtime_memo'),
                            ('allowance_absenteeism', 'allowance_absenteeism_memo'),
@@ -118,6 +116,8 @@ class BpContractAdmin(BaseAdmin):
     )
 
     class Media:
+        css = {'all': ('/static/admin/css/custom_base.css',)
+               }
         js = ('/static/admin/js/calc_contract.js',)
 
     def get_form(self, request, obj=None, **kwargs):

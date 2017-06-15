@@ -40,6 +40,7 @@
                 <th>基本給</th>
                 <th>時間下限</th>
                 <th>時間上限</th>
+                <th style="width: 100px;">計算種類</th>
                 <th style="width: 160px;">残業手当</th>
                 <th style="width: 160px;">欠勤手当</th>
                 <th>その他</th>
@@ -64,12 +65,13 @@
                         </td>
                         <td class="num">{{ contract.allowance_base|intcomma }}</td>
                         {% if contract.is_hourly_pay %}
-                            <td colspan="4"></td>
+                            <td colspan="5"></td>
                         {% elif contract.is_fixed_cost %}
-                            <td colspan="4"></td>
+                            <td colspan="5"></td>
                         {% else %}
                             <td class="num">{{ contract.allowance_time_min|intcomma }}</td>
                             <td class="num">{{ contract.allowance_time_max|intcomma }}</td>
+                            <td>{{ contract.get_calculate_type_display }}</td>
                             <td class="num">
                                 {% if contract.allowance_overtime_memo %}
                                     {{ contract.allowance_overtime_memo|slice:'5:' }}
@@ -91,7 +93,7 @@
                 {% endfor %}
             {% else %}
                 <tr>
-                    <td colspan="11" class="red row2 center">契約情報がありません、追加してください。</td>
+                    <td colspan="12" class="red row2 center">契約情報がありません、追加してください。</td>
                 </tr>
             {% endif %}
         </tbody>
@@ -104,6 +106,7 @@
                 <th>基本給</th>
                 <th>時間下限</th>
                 <th>時間上限</th>
+                <th>計算種類</th>
                 <th>残業手当</th>
                 <th>欠勤手当</th>
                 <th>その他</th>

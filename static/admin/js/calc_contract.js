@@ -1,3 +1,20 @@
+$(document).ready(function() {
+    var calc_type = $("#id_calculate_type").val();
+    var obj_min = $("#id_allowance_time_min");
+    if (calc_type === '01') {
+        // 固定１６０時間
+        obj_min.attr('readonly', 'readonly');
+    } else if (calc_type === "02") {
+        // 営業日数 × ８
+        obj_min.attr('readonly', 'readonly');
+    } else if (calc_type === "03") {
+        // 営業日数 × ７.９
+        obj_min.attr('readonly', 'readonly');
+    } else {
+        obj_min.removeAttr('readonly', 'readonly');
+    }
+});
+
 function calculate_plus_minus(obj, name_base, name_min, name_max, name_minus, name_plus) {
     if (obj.id == "id_" + name_base) {
         price = parseFloat($("#id_" + name_base).val());
@@ -21,12 +38,12 @@ function calculate_plus_minus(obj, name_base, name_min, name_max, name_minus, na
             obj_is_fixed_cost = $("#id_is_fixed_cost")
             is_hourly_pay = false;
             is_fixed_cost = false
-            base_price_memo = "月額基本料金：\\" + toNumComma(price) + "円/月  (税金抜き)"
+            base_price_memo = "月額基本料金：￥" + toNumComma(price) + "円/月  (税金抜き)"
             // 時給の場合
             if (obj_is_hourly_pay && obj_is_hourly_pay.prop("checked") == true) {
-                base_price_memo = "時間単価：\\" + toNumComma(price) + "/h  (消費税を含まない)"
+                base_price_memo = "時間単価：￥" + toNumComma(price) + "/h  (消費税を含まない)"
             } else if (obj_is_fixed_cost && obj_is_fixed_cost.prop("checked") == true) {
-                base_price_memo = "月額基本料金：\\" + toNumComma(price) + "円/月  (固定、税金抜き)"
+                base_price_memo = "月額基本料金：￥" + toNumComma(price) + "円/月  (固定、税金抜き)"
             }
             obj_memo.val(base_price_memo);
         }
@@ -49,7 +66,7 @@ function calculate_plus_minus(obj, name_base, name_min, name_max, name_minus, na
         // 基本給メモ
         obj_memo = $("#id_" + row_id + "-allowance_base_memo");
         if (obj_memo != null) {
-            obj_memo.val("月額基本料金：\\" + toNumComma(price) + "円/月  (税金抜き)");
+            obj_memo.val("月額基本料金：￥" + toNumComma(price) + "円/月  (税金抜き)");
         }
     }
 }
@@ -72,9 +89,9 @@ function calculate_minus_from_min_hour(obj, name_base, name_min, name_max, name_
         if (obj_memo_minus != null) {
             obj_is_show_formula = $("#id_" + "is_show_formula");
             is_show_formula = false;
-            message = "不足単価：\\" + toNumComma(price) + "/" + min_hours + "h=\\" + toNumComma(minus_per_hour) + "/h"
+            message = "不足単価：￥" + toNumComma(price) + "/" + min_hours + "h=￥" + toNumComma(minus_per_hour) + "/h"
             if (obj_is_show_formula && obj_is_show_formula.prop("checked") == false) {
-                message = "不足単価：\\" + toNumComma(minus_per_hour) + "/h"
+                message = "不足単価：￥" + toNumComma(minus_per_hour) + "/h"
             }
             obj_memo_minus.val(message)
         }
@@ -110,9 +127,9 @@ function calculate_plus_from_max_hour(obj, name_base, name_min, name_max, name_m
         if (obj_memo_plus != null) {
             obj_is_show_formula = $("#id_" + "is_show_formula");
             is_show_formula = false;
-            message = "超過単価：\\" + toNumComma(price) + "/" + max_hours + "h=\\" + toNumComma(plus_per_hour) + "/h"
+            message = "超過単価：￥" + toNumComma(price) + "/" + max_hours + "h=￥" + toNumComma(plus_per_hour) + "/h"
             if (obj_is_show_formula && obj_is_show_formula.prop("checked") == false) {
-                message = "超過単価：\\" + toNumComma(plus_per_hour) + "/h"
+                message = "超過単価：￥" + toNumComma(plus_per_hour) + "/h"
             }
             obj_memo_plus.val(message)
         }
@@ -138,10 +155,10 @@ function change_hourly_pay_display(obj, name_base) {
         // 基本給メモ
         obj_memo = $("#id_" + "allowance_base_memo");
         if (obj_memo != null) {
-            base_price_memo = "月額基本料金：\\" + toNumComma(price) + "円/月  (税金抜き)"
+            base_price_memo = "月額基本料金：￥" + toNumComma(price) + "円/月  (税金抜き)"
             // 時給の場合
             if (is_hourly_pay) {
-                base_price_memo = "時間単価：\\" + toNumComma(price) + "/h  (消費税を含まない)"
+                base_price_memo = "時間単価：￥" + toNumComma(price) + "/h  (消費税を含まない)"
             }
             obj_memo.val(base_price_memo);
         }
@@ -159,10 +176,10 @@ function change_fixed_cost_display(obj, name_base) {
         // 基本給メモ
         obj_memo = $("#id_" + "allowance_base_memo");
         if (obj_memo != null && is_hourly_pay == false) {
-            base_price_memo = "月額基本料金：\\" + toNumComma(price) + "円/月  (税金抜き)"
+            base_price_memo = "月額基本料金：￥" + toNumComma(price) + "円/月  (税金抜き)"
             // 時給の場合
             if (is_fixed_cost) {
-                base_price_memo = "月額基本料金：\\" + toNumComma(price) + "円/月  (固定、税金抜き)"
+                base_price_memo = "月額基本料金：￥" + toNumComma(price) + "円/月  (固定、税金抜き)"
             }
             obj_memo.val(base_price_memo);
         }
@@ -185,18 +202,18 @@ function change_formula_display(obj, name_base, name_min, name_max, name_minus, 
         obj_is_show_formula = $("#id_" + "is_show_formula");
         is_show_formula = true;
         if (obj_memo_plus != null) {
-            message = "超過単価：\\" + toNumComma(price) + "/" + max_hours + "h=\\" + toNumComma(plus_per_hour) + "/h"
+            message = "超過単価：￥" + toNumComma(price) + "/" + max_hours + "h=￥" + toNumComma(plus_per_hour) + "/h"
             if (obj_is_show_formula && obj_is_show_formula.prop("checked") == false) {
-                message = "超過単価：\\" + toNumComma(plus_per_hour) + "/h"
+                message = "超過単価：￥" + toNumComma(plus_per_hour) + "/h"
             }
             obj_memo_plus.val(message)
         }
         // 欠勤手当メモ
         obj_memo_minus = $("#id_" + "allowance_absenteeism_memo");
         if (obj_memo_minus != null) {
-            message = "不足単価：\\" + toNumComma(price) + "/" + min_hours + "h=\\" + toNumComma(minus_per_hour) + "/h"
+            message = "不足単価：￥" + toNumComma(price) + "/" + min_hours + "h=￥" + toNumComma(minus_per_hour) + "/h"
             if (obj_is_show_formula && obj_is_show_formula.prop("checked") == false) {
-                message = "不足単価：\\" + toNumComma(minus_per_hour) + "/h"
+                message = "不足単価：￥" + toNumComma(minus_per_hour) + "/h"
             }
             obj_memo_minus.val(message)
         }
@@ -217,9 +234,9 @@ function change_allowance_overtime(obj, name_base, name_max, name_plus_memo) {
         obj_is_show_formula = $("#id_" + "is_show_formula");
         is_show_formula = true;
         if (obj_memo_plus != null) {
-            message = "超過単価：\\" + toNumComma(price) + "/" + max_hours + "h=\\" + toNumComma(plus_per_hour) + "/h"
+            message = "超過単価：￥" + toNumComma(price) + "/" + max_hours + "h=￥" + toNumComma(plus_per_hour) + "/h"
             if (obj_is_show_formula && obj_is_show_formula.prop("checked") == false) {
-                message = "超過単価：\\" + toNumComma(plus_per_hour) + "/h"
+                message = "超過単価：￥" + toNumComma(plus_per_hour) + "/h"
             }
             obj_memo_plus.val(message)
         }
@@ -240,9 +257,9 @@ function change_allowance_absenteeism(obj, name_base, name_min, name_minus_memo)
         obj_is_show_formula = $("#id_" + "is_show_formula");
         is_show_formula = true;
         if (obj_memo_minus != null) {
-            message = "不足単価：\\" + toNumComma(price) + "/" + min_hours + "h=\\" + toNumComma(minus_per_hour) + "/h"
+            message = "不足単価：￥" + toNumComma(price) + "/" + min_hours + "h=￥" + toNumComma(minus_per_hour) + "/h"
             if (obj_is_show_formula && obj_is_show_formula.prop("checked") == false) {
-                message = "不足単価：\\" + toNumComma(minus_per_hour) + "/h"
+                message = "不足単価：￥" + toNumComma(minus_per_hour) + "/h"
             }
             obj_memo_minus.val(message)
         }
@@ -305,15 +322,15 @@ function change_business_days(obj, name_base, name_min, name_max, name_minus, na
         if (calc_type === '01') {
             // 固定１６０時間
             obj_min.val(160);
-            calculate_minus_from_min_hour(obj_min[0], name_base, name_min, name_max, name_minus, name_plus);
+            //calculate_minus_from_min_hour(obj_min[0], name_base, name_min, name_max, name_minus, name_plus);
         } else if (calc_type === "02") {
             // 営業日数 × ８
             obj_min.val(days * 8);
-            calculate_minus_from_min_hour(obj_min[0], name_base, name_min, name_max, name_minus, name_plus);
+            //calculate_minus_from_min_hour(obj_min[0], name_base, name_min, name_max, name_minus, name_plus);
         } else if (calc_type === "03") {
-            // 営業日数 × ７．９
+            // 営業日数 × ７.９
             obj_min.val(parseInt(days * 7.9));
-            calculate_minus_from_min_hour(obj_min[0], name_base, name_min, name_max, name_minus, name_plus);
+            //calculate_minus_from_min_hour(obj_min[0], name_base, name_min, name_max, name_minus, name_plus);
         }
     }
 }
@@ -321,10 +338,43 @@ function change_business_days(obj, name_base, name_min, name_max, name_minus, na
 // 計算種類を変更時、営業日数も変更する。
 function change_calculate_type(obj, name_base, name_min, name_max, name_minus, name_plus, name_type, name_days) {
     if (obj.id == "id_calculate_type") {
+        calc_type = $("#id_" + name_type).val();
         obj_days = $("#id_" + name_days);
+        obj_min = $("#id_" + name_min);
 
-        if (obj_days.val() != "" && parseInt(obj_days.val()) > 0) {
-            change_business_days(obj_days[0], name_base, name_min, name_max, name_minus, name_plus, name_type, name_days);
+        days = parseInt(obj_days.val());
+        if (isNaN(days) || days <= 0) {
+            start_date = new Date($("#id_start_date").val());
+            date_list = get_business_days(start_date.getFullYear(), start_date.getMonth() + 1);
+            if (date_list.length <= 0) {
+                return
+            } else {
+                days = date_list.length
+            }
         }
+        obj_days.val(days);
+
+        if (calc_type === '01') {
+            // 固定１６０時間
+            obj_min.val(160);
+            obj_min.attr('readonly', 'readonly');
+        } else if (calc_type === "02") {
+            // 営業日数 × ８
+            obj_min.val(days * 8);
+            obj_min.attr('readonly', 'readonly');
+        } else if (calc_type === "03") {
+            // 営業日数 × ７.９
+            obj_min.val(parseInt(days * 7.9));
+            obj_min.attr('readonly', 'readonly');
+        } else {
+            obj_min.removeAttr('readonly', 'readonly');
+        }
+
+        // 基準時間メモも一緒変更する。
+        change_allowance_time_min(obj_min[0], name_max, "allowance_time_memo")
+
+        //if (obj_days.val() != "" && parseInt(obj_days.val()) > 0) {
+        //    change_business_days(obj_days[0], name_base, name_min, name_max, name_minus, name_plus, name_type, name_days);
+        //}
     }
 }

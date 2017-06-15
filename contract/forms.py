@@ -161,13 +161,13 @@ class BpContractForm(BaseForm):
         # 計算種類
         self.fields['calculate_type'].widget.attrs.update({
             'onchange': 'change_calculate_type(this, "allowance_base", '
-                        '"calculate_time_min", "calculate_time_max", '
+                        '"allowance_time_min", "allowance_time_max", '
                         '"allowance_absenteeism", "allowance_overtime", "calculate_type", "business_days")'
         })
         # 営業日数
         self.fields['business_days'].widget.attrs.update({
             'onchange': 'change_business_days(this, "allowance_base", '
-                        '"calculate_time_min", "calculate_time_max", '
+                        '"allowance_time_min", "allowance_time_max", '
                         '"allowance_absenteeism", "allowance_overtime", "calculate_type")'
         })
 
@@ -195,26 +195,3 @@ class BpContractForm(BaseForm):
                     self.add_error('start_date', u"契約期間の開始日が重複している。")
                 if end_date and common.is_cross_date(dates, end_date, i):
                     self.add_error('end_date', u"契約期間の終了日が重複している。")
-
-# class BpContractFormset(forms.BaseInlineFormSet):
-#     def clean(self):
-#         count = 0
-#         dates = []
-#         for form in self.forms:
-#             try:
-#                 if form.cleaned_data:
-#                     start_date = form.cleaned_data.get("start_date")
-#                     end_date = form.cleaned_data.get("end_date")
-#                     if start_date:
-#                         dates.append((start_date, end_date))
-#                         count += 1
-#             except AttributeError:
-#                 pass
-#         if count > 1:
-#             dates.sort(key=lambda date: date[0])
-#             for i, period in enumerate(dates):
-#                 start_date, end_date = period
-#                 if common.is_cross_date(dates, start_date, i):
-#                     raise forms.ValidationError(u"契約期間の開始日が重複している。")
-#                 if end_date and common.is_cross_date(dates, end_date, i):
-#                     raise forms.ValidationError(u"契約期間の終了日が重複している。")
