@@ -107,3 +107,9 @@ img.load-delay {
     background-repeat: no-repeat;
     background-position: 50% 50%;
 }
+
+td.fixed_cell {
+    overflow: hidden;
+    white-space: nowrap;
+    display: block;
+}

@@ -26,7 +26,7 @@ function calculate_plus_minus(obj, name_base, name_min, name_max, name_minus, na
             if (obj_is_hourly_pay && obj_is_hourly_pay.prop("checked") == true) {
                 base_price_memo = "時間単価：\\" + toNumComma(price) + "/h  (消費税を含まない)"
             } else if (obj_is_fixed_cost && obj_is_fixed_cost.prop("checked") == true) {
-                base_price_memo = "月額基本料金：\\" + toNumComma(price) + "円/月  (固定)"
+                base_price_memo = "月額基本料金：\\" + toNumComma(price) + "円/月  (固定、税金抜き)"
             }
             obj_memo.val(base_price_memo);
         }
@@ -162,7 +162,7 @@ function change_fixed_cost_display(obj, name_base) {
             base_price_memo = "月額基本料金：\\" + toNumComma(price) + "円/月  (税金抜き)"
             // 時給の場合
             if (is_fixed_cost) {
-                base_price_memo = "月額基本料金：\\" + toNumComma(price) + "円/月  (固定)"
+                base_price_memo = "月額基本料金：\\" + toNumComma(price) + "円/月  (固定、税金抜き)"
             }
             obj_memo.val(base_price_memo);
         }

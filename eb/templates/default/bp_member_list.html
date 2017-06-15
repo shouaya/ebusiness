@@ -41,44 +41,57 @@
         <thead>
             <tr>
                 <th>名前</th>
-                <th>協力会社</th>
+                <th style="width: 140px;">現在案件</th>
+                <th>案件終了日</th>
+                <th style="width: 140px;">協力会社</th>
                 <th>営業員</th>
-                <th>開始日</th>
-                <th>終了日</th>
+                <th>契約開始日</th>
+                <th>契約終了日</th>
                 <th>コスト</th>
                 <th>基準時間</th>
                 <th>超過単価</th>
                 <th>不足単価</th>
                 <th>今月</th>
                 <th>来月</th>
-                <th>状態</th>
             </tr>
         </thead>
         <tbody>
             {% for member in members %}
-            {% with contract=member.latest_contract_set|first salesperson_period=member.current_salesperson_period|first %}
-                <tr class="{% cycle 'row1' 'row2' %} {% if member.is_retired %}expired{% endif %}">
+            {% with contract=member.latest_contract_set|first salesperson_period=member.current_salesperson_period|first current_project_member=member.current_project_member|first %}
+                <tr class="{% cycle 'row1' 'row2' %}
+                {% if member.is_retired %}expired{% endif %}
+                {% ifequal current_project_member.project|default:'' '' %}expired{% endifequal %}">
                     <td><a href="{% url 'bp_member_orders' member.pk %}">{{ member }}</a></td>
-                    <td>{{ member.subcontractor }}</td>
+                    <td class="fixed_cell" style="width: 140px;">{{ current_project_member.project|default:'&nbsp;' }}</td>
+                    <td>{{ current_project_member.end_date|date:'Y-m-d'|default:'' }}</td>
+                    <td class="fixed_cell" style="width: 140px;">{{ member.subcontractor }}</td>
                     <td>{{ salesperson_period.salesperson }}</td>
-                    {% if contract %}
+                    {% if member.is_retired %}
+                        <td colspan="8" class="num">退職</td>
+                    {% elif contract %}
                         <td>{{ contract.start_date|date:'Y-m-d' }}</td>
                         <td>{{ contract.end_date|date:'Y-m-d'|default:'' }}</td>
-                        <td class="num">￥{{ contract.get_cost|intcomma }}&nbsp;
-                            {% if contract.is_hourly_pay %}
-                                円/時
-                            {% else %}
-                                円/月
-                            {% endif %}
-                        </td>
+                        <td class="num">{{ contract.get_cost|intcomma }}</td>
                         {% if contract.is_hourly_pay %}
                             <td colspan="3" class="center">時給</td>
                         {% elif contract.is_fixed_cost %}
                             <td colspan="3" class="center">固定</td>
                         {% else %}
-                            <td>{{ contract.allowance_time_min }}～{{ contract.allowance_time_max }}</td>
-                            <td class="num">{{ contract.allowance_overtime|intcomma }}</td>
-                            <td class="num">{{ contract.allowance_absenteeism|intcomma }}</td>
+                            <td>{{ contract.allowance_time_min }}-{{ contract.allowance_time_max }}</td>
+                            <td class="num">
+                                {% if contract.allowance_overtime_memo %}
+                                    {{ contract.allowance_overtime_memo|slice:'5:' }}
+                                {% else %}
+                                    \{{ contract.get_cost|intcomma }}/{{ contract.calculate_time_max }}h=\{{ contract.allowance_overtime|intcomma }}/h
+                                {% endif %}
+                            </td>
+                            <td class="num">
+                                {% if contract.allowance_absenteeism_memo %}
+                                    {{ contract.allowance_absenteeism_memo|slice:'5:' }}
+                                {% else %}
+                                    \{{ contract.get_cost|intcomma }}/{{ contract.calculate_time_min }}h=\{{ contract.allowance_absenteeism|intcomma }}/h
+                                {% endif %}
+                            </td>
                         {% endif %}
                         <td class="center">
                             {% with bp_order=member.get_current_month_bp_order|first %}
@@ -104,18 +117,13 @@
                         <td></td>
                         <td></td>
                     {% endif %}
-                    <td>
-                        {% if member.is_retired %}
-                            退職
-                        {% endif %}
-                    </td>
                 </tr>
             {% endwith %}
             {% endfor %}
         </tbody>
         <tfoot>
             <tr>
-                <td colspan="12">
+                <td colspan="13">
                     {% paging members %}
                 </td>
             </tr>

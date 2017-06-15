@@ -220,12 +220,19 @@ def get_business_partner_members():
     # 現在所属の営業員を取得
     sales_set = models.MemberSalespersonPeriod.objects.filter((Q(start_date__lte=today) & Q(end_date__isnull=True)) |
                                                               (Q(start_date__lte=today) & Q(end_date__gte=today)))
+    # 現在の案件
+    project_member_set = models.ProjectMember.objects.public_filter(
+        start_date__lte=today,
+        end_date__gte=today,
+        status=2
+    )
 
     queryset = models.Member.objects.filter(
         subcontractor__isnull=False
     ).select_related('subcontractor').order_by('subcontractor')
     return queryset.prefetch_related(
         Prefetch('membersalespersonperiod_set', queryset=sales_set, to_attr='current_salesperson_period'),
+        Prefetch('projectmember_set', queryset=project_member_set, to_attr='current_project_member'),
     )
 
 
@@ -541,7 +548,7 @@ def generate_bp_order_data(project_member, year, month, contract, user, bp_order
     elif contract.is_hourly_pay:
         allowance_base_memo = u"時間単価：\%s/h  (消費税を含まない)" % allowance_base
     elif contract.is_fixed_cost:
-        allowance_base_memo = u"月額基本料金：\%s円/月  (固定)" % allowance_base
+        allowance_base_memo = u"月額基本料金：\%s円/月  (固定、税金抜き)" % allowance_base
     else:
         allowance_base_memo = u"月額基本料金：\%s円/月  (税金抜き)" % allowance_base
     data['DETAIL']['ALLOWANCE_BASE'] = allowance_base
