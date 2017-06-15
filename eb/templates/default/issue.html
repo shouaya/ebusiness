@@ -50,4 +50,29 @@
             <td colspan="3">{{ issue.really_end_date }}</td>
         </tr>
     </table>
+    <table class="list" cellspacing="0" cellpadding="0">
+        <thead>
+            <tr>
+                <th style="width: 150px;">変更日時</th>
+                <th style="width: 100px;">変更ユーザー</th>
+                <th>変更内容</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for log_entry in log_entries %}
+            <tr class="{% cycle 'row1' 'row2' %}">
+                <td>{{ log_entry.action_time }}</td>
+                <td>{{ log_entry.user.first_name }}&nbsp;{{ log_entry.user.last_name }}</td>
+                <td>{{ log_entry.change_message }}</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+        <tfoot>
+            <tr>
+                <th style="width: 150px;">変更日時</th>
+                <th style="width: 100px;">変更ユーザー</th>
+                <th>変更内容</th>
+            </tr>
+        </tfoot>
+    </table>
 {% endblock %}

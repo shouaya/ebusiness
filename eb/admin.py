@@ -887,8 +887,8 @@ class HistoryAdmin(BaseAdmin):
 
 
 class CustomUserAdmin(UserAdmin):
-    list_display = ['username', 'email', 'first_name', 'last_name',
-                    'is_superuser', 'is_staff', 'is_active', 'date_joined']
+    list_display = ['username', 'first_name', 'last_name',
+                    'is_superuser', 'is_staff', 'is_active', 'last_login']
     list_filter = ['is_staff', 'is_superuser', 'is_active']
 
     def has_add_permission(self, request):

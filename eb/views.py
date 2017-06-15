@@ -2076,11 +2076,14 @@ class IssueDetailView(BaseTemplateView):
     def get(self, request, *args, **kwargs):
         issue_id = kwargs.get('issue_id', 0)
         issue = get_object_or_404(models.Issue, pk=issue_id)
+        log_entries = LogEntry.objects.filter(content_type_id=ContentType.objects.get_for_model(issue).pk,
+                                              object_id=issue_id)
 
         context = self.get_context_data()
         context.update({
             'title': u'課題管理票 - %s | %s' % (issue.title, constants.NAME_SYSTEM),
             'issue': issue,
+            'log_entries': log_entries,
         })
         return self.render_to_response(context)
 
