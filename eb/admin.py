@@ -439,7 +439,7 @@ class MemberAdmin(BaseAdmin):
 
     def get_form(self, request, obj=None, **kwargs):
         form = super(MemberAdmin, self).get_form(request, obj, **kwargs)
-        form.base_fields['section'].queryset = models.Section.objects.public_filter(is_on_sales=False)
+        # form.base_fields['section'].queryset = models.Section.objects.public_filter(is_on_sales=False)
         if obj is None:
             form.base_fields['employee_id'].initial = biz.get_bp_next_employee_id()
         return form

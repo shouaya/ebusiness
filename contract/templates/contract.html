@@ -26,9 +26,9 @@
                 <th>雇用形態</th>
                 <td>{{ contract.get_member_type_display }}</td>
                 <th>所属部署</th>
-                <td></td>
+                <td>{{ contract.member.section|default:'' }}</td>
                 <th>職位</th>
-                <td style="width: 200px;">{{ contract.position }}</td>
+                <td style="width: 200px;">{{ contract.position|default:'' }}</td>
             </tr>
             <tr>
                 <th>雇用日</th>
@@ -71,24 +71,24 @@
                 <td colspan="4">
                     {% if contract.move_flg == 0 %}
                         {% if contract.allowance_work %}
-                            現場手当 : ¥{{ contract.allowance_work|intcomma }}円/ 月&nbsp;{{ contract.allowance_work_memo|default:'' }}<br/>
+                            現場手当 : ¥{{ contract.allowance_work|intcomma }}円/月&nbsp;{{ contract.allowance_work_memo|default:'' }}<br/>
                         {% endif %}
                         {% if contract.allowance_director %}
-                            役職手当 : ¥{{ contract.allowance_director|intcomma }}円/ 月&nbsp;{{ contract.allowance_director_memo|default:'' }}<br/>
+                            役職手当 : ¥{{ contract.allowance_director|intcomma }}円/月&nbsp;{{ contract.allowance_director_memo|default:'' }}<br/>
                         {% endif %}
                         {% if contract.allowance_position %}
-                            職務手当 : ¥{{ contract.allowance_position|intcomma }}円/ 月&nbsp;{{ contract.allowance_position_memo|default:'' }}<br/>
+                            職務手当 : ¥{{ contract.allowance_position|intcomma }}円/月&nbsp;{{ contract.allowance_position_memo|default:'' }}<br/>
                         {% endif %}
                         {% if contract.allowance_diligence %}
-                            精勤手当 : ¥{{ contract.allowance_diligence|intcomma }}円/ 月&nbsp;{{ contract.allowance_diligence_memo|default:'' }}<br/>
+                            精勤手当 : ¥{{ contract.allowance_diligence|intcomma }}円/月&nbsp;{{ contract.allowance_diligence_memo|default:'' }}<br/>
                         {% endif %}
                         {% if contract.allowance_security %}
-                            安全手当 : ¥{{ contract.allowance_security|intcomma }}円/ 月&nbsp;{{ contract.allowance_security_memo|default:'' }}<br/>
+                            安全手当 : ¥{{ contract.allowance_security|intcomma }}円/月&nbsp;{{ contract.allowance_security_memo|default:'' }}<br/>
                         {% endif %}
                         {% if contract.allowance_qualification %}
-                            資格手当 : ¥{{ contract.allowance_qualification|intcomma }}円/ 月&nbsp;{{ contract.allowance_qualification_memo|default:'' }}<br/>
+                            資格手当 : ¥{{ contract.allowance_qualification|intcomma }}円/月&nbsp;{{ contract.allowance_qualification_memo|default:'' }}<br/>
                         {% endif %}
-                        {% if contract.allowance_traffic %}
+                        {% if contract.allowance_traffic_memo %}
                             通勤手当 : {{ contract.allowance_traffic_memo|default:'' }}<br/>
                         {% endif %}
                         {% if contract.allowance_overtime %}

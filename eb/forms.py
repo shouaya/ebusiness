@@ -662,11 +662,7 @@ class MemberSectionPeriodFormset(forms.BaseInlineFormSet):
                         count += 1
             except AttributeError:
                 pass
-        if self.instance.section:
-            # 開発メンバーでない場合部署期間設定する必要ない。
-            if count > 0:
-                raise forms.ValidationError(u'「部署」と「部署期間」は両方選択できません。')
-        elif count < 1:
+        if count < 1:
             raise forms.ValidationError(u'部署期間を少なくとも１つ追加してください。')
         elif count > 1:
             dates.sort(key=lambda date: date[0])
@@ -702,11 +698,7 @@ class MemberSalespersonPeriodFormset(forms.BaseInlineFormSet):
                     count += 1
             except AttributeError:
                 pass
-        if self.instance.section:
-            # 開発メンバーでない場合営業員期間設定する必要ない。
-            if count > 0:
-                raise forms.ValidationError(u'「部署」と「営業員期間」は両方選択できません。')
-        elif count < 1:
+        if count < 1:
             raise forms.ValidationError(u'営業員期間を少なくとも１つ追加してください。')
         elif count > 1:
             dates.sort(key=lambda date: date[0])
