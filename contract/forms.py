@@ -67,6 +67,12 @@ class ContractForm(BaseForm):
     def __init__(self, *args, **kwargs):
         super(ContractForm, self).__init__(*args, **kwargs)
         self.fields['contract_no'].widget.attrs.update({'readonly': 'readonly'})
+        self.fields['allowance_base'].widget.attrs.update({
+            'onchange': 'set_allowance_base_memo("%s", "%s")' % (
+                'id_allowance_base',
+                'id_allowance_base_memo'
+            )
+        })
         self.fields['allowance_time_max'].widget.attrs.update({
             'onchange': 'set_allowance_overtime_memo("%s", "%s", "%s")' % ('id_allowance_time_max',
                                                                            'id_allowance_overtime',
@@ -86,6 +92,9 @@ class ContractForm(BaseForm):
             'onchange': 'set_allowance_absenteeism_memo("%s", "%s", "%s")' % ('id_allowance_time_min',
                                                                               'id_allowance_absenteeism',
                                                                               'id_allowance_absenteeism_memo')
+        })
+        self.fields['endowment_insurance'].widget.attrs.update({
+            'onchange': 'change_endowment_insurance(this, "id_allowance_date_comment")'
         })
 
     contract_date = forms.DateField(widget=AdminDateWidget, label=u"契約日")

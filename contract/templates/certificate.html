@@ -1,5 +1,4 @@
 {% load humanize %}
-{% load wareki %}
 
 <html lang="en">
 <head>
@@ -53,6 +52,20 @@
                 $("#" + target_id).text(numberWithCommas(income));
             }
         }
+
+        function change_income_year(obj, target_id) {
+            income = parseInt($(obj).val());
+            if (income > 0) {
+                $("#" + target_id).text(income);
+            }
+        }
+
+        function change_position(obj, target_id) {
+            position = $(obj).val();
+            if (position != "") {
+                $("#" + target_id).text(position);
+            }
+        }
     </script>
 </head>
 <body>
@@ -67,19 +80,19 @@
             </tr>
             <tr>
                 <td class="left_side">氏　　　　　名 ： </td>
-                <td class="right_side">{{ member }}&nbsp;&nbsp;&nbsp;&nbsp;<span style="text-transform: uppercase;">{{ member.first_name_en }}&nbsp;{{ member.last_name_en }}</span></td>
+                <td class="right_side">{{ member }}&nbsp;&nbsp;&nbsp;&nbsp;<span style="text-transform: uppercase;">({{ member.first_name_en }}&nbsp;{{ member.last_name_en }})</span></td>
             </tr>
             <tr>
                 <td class="left_side">生　年　月　日 ： </td>
-                <td class="right_side">{{ member.birthday|to_wareki }}</td>
+                <td class="right_side">{{ member.birthday }}</td>
             </tr>
             <tr>
                 <td class="left_side">就 職　年 月 日 ： </td>
-                <td class="right_side">{{ member.join_date|to_wareki }}</td>
+                <td class="right_side">{{ member.join_date }}</td>
             </tr>
             <tr id="tr_position">
                 <td class="left_side">職　務　位　置 ： </td>
-                <td class="right_side">{{ contract.position|default:'' }}</td>
+                <td class="right_side"><span id="span_position">{{ contract.get_business_position|default:'' }}</span></td>
             </tr>
             <tr id="tr_member_type">
                 <td class="left_side">雇　用　形　態 ： </td>
@@ -93,7 +106,7 @@
     </div>
     <div style="height: 112px;">
         <div class="income" id="div_income_yearly">
-            {{ year }}年分年収予定額：￥<span id="span_income_yearly">{{ contract.get_cost_yearly|intcomma }}</span>円（課税前）とする。<br/>
+            <span id="span_income_year">{{ year }}</span>年分年収予定額：￥<span id="span_income_yearly">{{ contract.get_cost_yearly|intcomma }}</span>円（課税前）とする。<br/>
             交通費また時間外手当などについて、別途となります。
         </div>
         <div class="income" id="div_income_monthly" style="display: none;">
@@ -102,7 +115,7 @@
         </div>
     </div>
     <div style="margin: 50px 150px 50px 100px;">上記の者、在職していることを証明します。</div>
-    <div style="margin: 50px 150px 50px 150px; text-align: right;">{{ today|to_wareki }}</div>
+    <div style="margin: 50px 150px 50px 150px; text-align: right;">{{ today }}</div>
     <table class="bottom">
         <tr>
             <td class="left_side">住　　　所 :</td>
@@ -121,6 +134,7 @@
         <div>
             <label for="chk_position">職務位置</label>
             <input id="chk_position" type="checkbox" checked="checked"/>
+            <input type="text" style="width: 165px;" onchange="change_position(this, 'span_position')" value="{{ contract.get_business_position }}"/>
         </div>
         <div>
             <label for="chk_member_type">雇用形態</label>
@@ -130,6 +144,7 @@
             <label for="chk_income_yearly">年　　収</label>
             <input id="chk_income_yearly" type="checkbox" checked="checked"/>
             <input type="number" style="width: 100px; text-align: right;" onchange="change_income(this, 'span_income_yearly')" value="{{ contract.get_cost_yearly }}"/>
+            <input type="number" style="width: 60px; text-align: right;" onchange="change_income_year(this, 'span_income_year')" value="{{ year }}"/>
         </div>
         <div>
             <label for="chk_income_monthly">月　　収</label>

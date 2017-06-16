@@ -2,9 +2,23 @@
 {% load humanize %}
 {% load sales_templates %}
 
+{% block header %}
+    <script type="text/javascript">
+        window.onload = function() {
+            init_select("q");
+            init_select("is_retired");
+        };
+    </script>
+{% endblock %}
+
 {% block content %}
 <form method="get" action="#">
-    <input type="text" name="q" value="" style="height: 40px;width: 500px;line-height:30px;font-size:25px">
+    <input type="text" name="q" id="q" value="" style="height: 40px;width: 400px;line-height:30px;font-size:25px">
+    <select id="is_retired" name="is_retired" style="height: 30px;">
+        <option value="">すべて</option>
+        <option value="0">未退職</option>
+        <option value="1">退職</option>
+    </select>
     <input type="submit" style="height: 40px;width: 100px;line-height:30px;font-size:25px" value="確定">
     <a href="{% url 'member_add' %}" class="rbutton"><i class="fa fa-user-plus" aria-hidden="true"></i>&nbsp;社員追加</a>
 </form>
@@ -28,8 +42,8 @@
             </thead>
             <tbody>
                 {% for member in members %}
-                <tr {% if member.is_retired %}class="expired"{% endif %}>
-                    {% with contract=member.latest_contract_set|first %}
+                {% with contract=member.latest_contract_set|first %}
+                <tr class="{% if member.is_retired %}expired{% endif %} {% if contract.status == '04' %}expired{% endif %}">
                     {% if contract %}
                         <td class="center"><a href="{% url 'contract_change' member.id_from_api %}">{{ member.id_from_api|default:'' }}</a></td>
                         <td><a href="{% url 'member_change' member.pk %}">{{ member }}</a></td>
@@ -68,8 +82,8 @@
                         <td></td>
                         <td></td>
                     {% endif %}
-                    {% endwith %}
                 </tr>
+                {% endwith %}
                 {% endfor %}
             </tbody>
             <tfoot>

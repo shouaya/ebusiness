@@ -44,11 +44,11 @@ django.jQuery = $
             </tr>
             <tr>
                 <th>電話番号:</th>
-                <td colspan="3">{{ member.phone }}</td>
+                <td colspan="3">{{ member.phone|default:'' }}</td>
             </tr>
             <tr>
                 <th>住所:</th>
-                <td colspan="3">{{ member.address1 }}{{ member.address2 }}</td>
+                <td colspan="3">{{ member.address1|default:'' }}{{ member.address2|default:'' }}</td>
             </tr>
             {% if contract_set.count > 0 %}
             <tr>
@@ -159,7 +159,7 @@ django.jQuery = $
                                 <td style="text-align: right;">￥:</td>
                                 <td>{{ form.allowance_base.errors }}{{ form.allowance_base }}</td>
                                 <td style="width: 55px;" class="center">円/月</td>
-                                <td>{{ form.allowance_base_memo }}</td>
+                                <td style="width: 300px;">{{ form.allowance_base_memo }}</td>
                             </tr>
                             <tr>
                                 <td>その他:</td>

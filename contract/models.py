@@ -6,12 +6,13 @@ Created on 2017/04/24
 """
 from __future__ import unicode_literals
 import datetime
+import re
 
 from django.db import models
-from django.utils import timezone
+from django.contrib.humanize.templatetags import humanize
 
-from eb.models import Member, Config, Company, Subcontractor, BatchManage, EmailMultiAlternativesWithEncoding
-from utils import constants
+from eb.models import Member, Config, Company, Subcontractor, BatchManage
+from utils import constants, common
 
 
 class PublicManager(models.Manager):
@@ -97,7 +98,9 @@ class Contract(BaseModel):
     allowance_absenteeism_memo = models.CharField(max_length=255, blank=True, null=True, verbose_name=u"欠勤手当メモ")
     allowance_other = models.IntegerField(default=0, verbose_name=u"その他手当")
     allowance_other_memo = models.CharField(max_length=255, blank=True, null=True, verbose_name=u"その他手当メモ")
-    endowment_insurance = models.CharField(max_length=1, blank=True, null=True, verbose_name=u"社会保険加入有無",
+    endowment_insurance = models.CharField(max_length=1, null=True, default='0',
+                                           choices=constants.CHOICE_ENDOWMENT_INSURANCE,
+                                           verbose_name=u"社会保険加入有無",
                                            help_text=u"0:加入しない、1:加入する")
     allowance_ticket_comment = models.TextField(blank=True, null=True, verbose_name=u"諸手当")
     allowance_date_comment = models.TextField(blank=True, null=True, default=Config.get_allowance_date_comment(),
@@ -153,6 +156,18 @@ class Contract(BaseModel):
     def get_next_contract_no(self):
         today = datetime.date.today()
         return "EB%04d%s" % (int(self.member.id_from_api), today.strftime('%Y%m%d'))
+
+    def get_business_position(self):
+        """在職証明書の職務位置に使われる
+
+        :return:
+        """
+        business_type_name = self.get_business_type_display()
+        m = re.search(r'（([^（）]+)）', business_type_name)
+        if m and m.groups():
+            return m.groups()[0]
+        else:
+            return business_type_name
 
     def save(self, force_insert=False, force_update=False, using=None,
              update_fields=None):
@@ -262,3 +277,51 @@ class BpContract(BaseModel):
         :return:
         """
         return '0'
+
+    def get_allowance_time_min(self, year, month):
+        if self.is_hourly_pay or self.is_fixed_cost:
+            return 0
+        elif self.calculate_type == '01':
+            return 160
+        elif self.calculate_type == '02':
+            return len(common.get_business_days(year, month)) * 8
+        elif self.calculate_type == '03':
+            return int(len(common.get_business_days(year, month)) * 7.9)
+        else:
+            return self.allowance_time_min
+
+    def get_allowance_time_memo(self, year, month):
+        allowance_time_min = self.get_allowance_time_min(year, month)
+        if self.is_hourly_pay or self.is_fixed_cost:
+            allowance_time_memo = ''
+        elif self.calculate_type in ('01', '02', '03'):
+            allowance_time_memo = u"※基準時間：%s～%sh/月" % (allowance_time_min, self.allowance_time_max)
+        else:
+            if self.allowance_time_memo:
+                allowance_time_memo = self.allowance_time_memo
+            else:
+                allowance_time_memo = u"※基準時間：%s～%sh/月" % (allowance_time_min, self.allowance_time_max)
+        return allowance_time_memo
+
+    def get_allowance_absenteeism(self, year, month):
+        if self.is_hourly_pay or self.is_fixed_cost:
+            allowance_absenteeism = 0
+        elif self.calculate_type in ('01', '02', '03'):
+            allowance_time_min = self.get_allowance_time_min(year, month)
+            allowance_absenteeism = int(int(self.allowance_base) / allowance_time_min)
+        else:
+            allowance_absenteeism = self.allowance_absenteeism
+        return allowance_absenteeism
+
+    def get_allowance_absenteeism_memo(self, year, month):
+        if self.is_hourly_pay or self.is_fixed_cost:
+            allowance_absenteeism_memo = ''
+        elif self.calculate_type in ('01', '02', '03'):
+            allowance_time_min = self.get_allowance_time_min(year, month)
+            allowance_absenteeism = self.get_allowance_absenteeism(year, month)
+            allowance_absenteeism_memo = u"不足単価：￥%s/%sh=￥%s/h" % (
+                humanize.intcomma(self.allowance_base), allowance_time_min, humanize.intcomma(allowance_absenteeism)
+            )
+        else:
+            allowance_absenteeism_memo = self.allowance_absenteeism_memo
+        return allowance_absenteeism_memo

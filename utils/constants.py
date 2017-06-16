@@ -294,6 +294,8 @@ CHOICE_CALCULATE_TYPE = (('01', u'固定１６０時間'),
                          ('03', u'営業日数 × ７.９'),
                          ('99', u"その他（任意）"),
                          )
+CHOICE_ENDOWMENT_INSURANCE = (('1', u"加入する"),
+                              ('0', u"加入しない"))
 
 xlPart = 2
 xlByRows = 1

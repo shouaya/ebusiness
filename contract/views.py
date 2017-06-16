@@ -57,8 +57,11 @@ class IndexView(BaseTemplateView):
         context = super(IndexView, self).get_context_data(**kwargs)
         request = kwargs.get('request')
         q = request.GET.get('q', None)
+        params_list, params = common.get_request_params(request.GET)
 
         all_members = biz.get_members()
+        if params_list:
+            all_members = all_members.filter(**params_list)
         if q:
             orm_lookups = ['first_name__icontains', 'last_name__icontains', 'id_from_api']
             for bit in q.split():
@@ -76,6 +79,7 @@ class IndexView(BaseTemplateView):
         context.update({
             'members': members,
             'paginator': paginator,
+            'params': params,
         })
         return context
 
