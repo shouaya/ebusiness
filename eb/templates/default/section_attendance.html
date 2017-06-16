@@ -365,7 +365,7 @@
                                         <td class="num {% if project_request_detail %}project_requested{% endif %} {% if lump_project_request %}project_requested{% endif %}">{{ attendance.advances_paid_client|default:''|intcomma }}</td>
                                         <td class="num {% if project_request_detail %}project_requested{% endif %} {% if lump_project_request %}project_requested{% endif %}">{{ attendance.advances_paid|default:''|intcomma }}</td>
                                         <!--交通費-->
-                                        {% if attendance.traffic_cost %}
+                                        {% if attendance.pk %}
                                             <td class="num {% if project_request_detail %}project_requested{% endif %} {% if lump_project_request %}project_requested{% endif %}">{{ attendance.traffic_cost|default:''|intcomma }}</td>
                                         {% else %}
                                             {% if prev_attendance and prev_attendance.traffic_cost %}
