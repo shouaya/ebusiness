@@ -98,7 +98,7 @@
                             残業手当 : {{ contract.allowance_overtime_memo|default:'' }}<br/>
                         {% endif %}
                         {% if contract.allowance_absenteeism %}
-                            欠勤手当 : {{ contract.allowance_absenteeism_memo|default:'' }}<br/>
+                            欠勤控除 : {{ contract.allowance_absenteeism_memo|default:'' }}<br/>
                         {% endif %}
                         {% if contract.allowance_other_memo %}
                             その他 : {{ contract.allowance_other_memo|default:'' }}<br/>

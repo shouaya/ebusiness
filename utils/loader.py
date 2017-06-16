@@ -300,7 +300,7 @@ def load_section_attendance(file_content, year, month, use_id):
         advances_paid = advances_paid if advances_paid else None
         # 勤務交通費
         traffic_cost = values[constants.POS_ATTENDANCE_COL_TRAFFIC_COST]
-        traffic_cost = traffic_cost if traffic_cost else None
+        traffic_cost = traffic_cost if traffic_cost != '' else None
         # 手当
         allowance = values[constants.POS_ATTENDANCE_COL_ALLOWANCE]
         allowance = allowance if allowance else None
@@ -351,7 +351,7 @@ def load_section_attendance(file_content, year, month, use_id):
         changed_list = []
         if attendance:
             # 勤務交通費が空白の場合は先月のを使用する。
-            if not traffic_cost:
+            if traffic_cost is None:
                 traffic_cost = attendance.get_prev_traffic_cost()
             # 手当が空白の場合は先月のを使用する。
             if not allowance:

@@ -201,6 +201,12 @@ class Config(models.Model):
         return Config.get(constants.CONFIG_BUSINESS_TIME, default, group_name=constants.CONFIG_GROUP_CONTRACT)
 
     @staticmethod
+    def get_business_other():
+        default = u"就業の場所および業務の種類は、業務の都合により変更することがある。\n" \
+                  u"出向、転勤、配置転換等の業務命令が発令されることがある。"
+        return Config.get(constants.CONFIG_BUSINESS_OTHER, default, group_name=constants.CONFIG_GROUP_CONTRACT)
+
+    @staticmethod
     def get_allowance_date_comment():
         """給与締め切り日及び支払日のコメントを取得する。
 

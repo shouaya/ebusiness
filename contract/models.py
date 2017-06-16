@@ -67,7 +67,8 @@ class Contract(BaseModel):
     business_address = models.CharField(max_length=255, blank=True, null=True, default=Config.get_business_address(),
                                         verbose_name=u"就業の場所")
     business_type = models.CharField(max_length=2, choices=constants.CHOICE_BUSINESS_TYPE, verbose_name=u"業務の種類")
-    business_other = models.TextField(blank=True, null=True, verbose_name=u"業務その他")
+    business_other = models.TextField(blank=True, null=True, default=Config.get_business_other(),
+                                      verbose_name=u"業務その他")
     business_time = models.TextField(blank=True, null=True, default=Config.get_business_time(),
                                      verbose_name=u"就業時間")
     is_hourly_pay = models.BooleanField(default=False, verbose_name=u"時給")
@@ -94,7 +95,7 @@ class Contract(BaseModel):
     allowance_time_max = models.IntegerField(default=200, verbose_name=u"時間上限", help_text=u"超えたら残業となる")
     allowance_overtime = models.IntegerField(default=0, verbose_name=u"残業手当")
     allowance_overtime_memo = models.CharField(max_length=255, blank=True, null=True, verbose_name=u"残業手当メモ")
-    allowance_absenteeism = models.IntegerField(default=0, verbose_name=u"欠勤手当")
+    allowance_absenteeism = models.IntegerField(default=0, verbose_name=u"欠勤控除")
     allowance_absenteeism_memo = models.CharField(max_length=255, blank=True, null=True, verbose_name=u"欠勤手当メモ")
     allowance_other = models.IntegerField(default=0, verbose_name=u"その他手当")
     allowance_other_memo = models.CharField(max_length=255, blank=True, null=True, verbose_name=u"その他手当メモ")
