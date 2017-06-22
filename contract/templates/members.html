@@ -1,6 +1,7 @@
 {% extends "base_contract.html" %}
 {% load humanize %}
 {% load sales_templates %}
+{% load order_by_tag %}
 
 {% block header %}
     <script type="text/javascript">
@@ -28,15 +29,15 @@
         <table class="list">
             <thead>
                 <tr>
-                    <th>番号</th>
-                    <th>社員名前</th>
-                    <th>性別</th>
+                    <th style="width: 38px;">{% create_single_order_display "番号" "id_from_api" %}</th>
+                    <th>{% create_single_order_display "名前" "first_name" %}</th>
+                    <th style="width: 26px;">性別</th>
                     <th>生年月日</th>
-                    <th>入社時間</th>
+                    <th>{% create_single_order_display "入社時間" "join_date" %}</th>
                     <th>雇用形態</th>
                     <th>雇用日</th>
                     <th>コスト</th>
-                    <th>年金保険</th>
+                    <th style="width: 26px;">保険</th>
                     <th>状態</th>
                 </tr>
             </thead>

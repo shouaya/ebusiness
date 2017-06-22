@@ -330,3 +330,62 @@ div.dashboard-control {
     border-radius: 5px;
     padding: 15px;
 }
+
+article table th .sortoptions {
+    float: right;
+    text-align: right;
+}
+
+article table th .sortoptions a.sortremove {
+    background: url(../img/sorting-icons.gif) -4px -2px no-repeat;
+    width: 14px;
+    height: 12px;
+    display: inline-block;
+    cursor: pointer;
+    padding: 2px 0px;
+}
+
+article table th .sortoptions a.sortremove:hover {
+    background: url(../img/sorting-icons.gif) -4px -24px no-repeat;
+}
+
+article table th .sortoptions .sortpriority {
+    font-size: .8em;
+}
+
+article table th .sortoptions a.ascending {
+    background: url(../img/sorting-icons.gif) -5px -47px no-repeat;
+    display: inline-block;
+    width: 11px;
+    height: 12px;
+    cursor: pointer;
+    padding: 2px 0px;
+}
+
+article table th .sortoptions a.ascending:hover {
+    background: url(../img/sorting-icons.gif) -5px -69px no-repeat;
+}
+
+article table th .sortoptions a.descending {
+    background: url(../img/sorting-icons.gif) -5px -91px no-repeat;
+    display: inline-block;
+    width: 11px;
+    height: 12px;
+    cursor: pointer;
+}
+
+article table th .sortoptions a.descending:hover {
+    background: url(../img/sorting-icons.gif) -5px -112px no-repeat;
+}
+
+article table.list th div.text {
+    cursor: pointer;
+    height: 100%;
+}
+
+article table.list th span.title {
+}
+
+article table.list th div.text a {
+    display: block;
+}

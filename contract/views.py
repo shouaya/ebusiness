@@ -57,6 +57,7 @@ class IndexView(BaseTemplateView):
         context = super(IndexView, self).get_context_data(**kwargs)
         request = kwargs.get('request')
         q = request.GET.get('q', None)
+        o = request.GET.get('o', None)
         params_list, params = common.get_request_params(request.GET)
 
         all_members = biz.get_members()
@@ -67,6 +68,12 @@ class IndexView(BaseTemplateView):
             for bit in q.split():
                 or_queries = [Q(**{orm_lookup: bit}) for orm_lookup in orm_lookups]
                 all_members = all_members.filter(reduce(operator.or_, or_queries))
+
+        dict_order = common.get_ordering_dict(o, ['first_name', 'id_from_api', 'join_date'])
+        order_list = common.get_ordering_list(o)
+
+        if order_list:
+            all_members = all_members.order_by(*order_list)
 
         paginator = Paginator(all_members, biz_config.get_page_size())
         page = request.GET.get('page')
@@ -80,6 +87,8 @@ class IndexView(BaseTemplateView):
             'members': members,
             'paginator': paginator,
             'params': params,
+            'dict_order': dict_order,
+            'orders': "&o=%s" % (o,) if o else "",
         })
         return context
 

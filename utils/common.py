@@ -109,9 +109,9 @@ def get_request_params(query_string):
     if query_string:
         param_list = []
         for key, value in dict(query_string).items():
-            if not value or not value[0] or key in ("o", "page", "year", "month", "q"):
+            if not value or not value[0] or key in ("o", "page", "year", "month"):
                 continue
-            if key.startswith('_'):
+            if key.startswith('_') or key in ('q',):
                 param_list.append((key, value[0]))
                 continue
             if isinstance(value, list) and value[0]:
