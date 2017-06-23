@@ -64,12 +64,12 @@ class IndexView(BaseTemplateView):
         if params_list:
             all_members = all_members.filter(**params_list)
         if q:
-            orm_lookups = ['first_name__icontains', 'last_name__icontains', 'id_from_api']
+            orm_lookups = ['first_name__icontains', 'last_name__icontains', 'id_from_api', 'eboa_user_id']
             for bit in q.split():
                 or_queries = [Q(**{orm_lookup: bit}) for orm_lookup in orm_lookups]
                 all_members = all_members.filter(reduce(operator.or_, or_queries))
 
-        dict_order = common.get_ordering_dict(o, ['first_name', 'id_from_api', 'join_date'])
+        dict_order = common.get_ordering_dict(o, ['first_name', 'id_from_api', 'join_date', 'eboa_user_id'])
         order_list = common.get_ordering_list(o)
 
         if order_list:
@@ -284,7 +284,7 @@ class MemberChangeView(BaseTemplateView):
                                  'first_name_en', 'last_name_en', 'member_type', 'birthday',
                                  'sex', 'join_date', 'employee_id', 'post_code', 'address1', 'address2',
                                  'nearest_station', 'phone', 'section', 'email', 'private_email',
-                                 'is_retired', 'retired_date']
+                                 'is_retired', 'retired_date', 'eboa_user_id']
             else:
                 update_fields = None
             member.save(update_fields=update_fields)

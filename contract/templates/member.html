@@ -38,12 +38,14 @@
             <table class="detail">
                 <tr>
                     <th style="width: 150px;">{{ form.id_from_api.label_tag }}</th>
-                    <td colspan="3"><div class="inner">{{ form.id_from_api.errors }}{{ form.id_from_api }}</div></td>
+                    <td><div class="inner">{{ form.id_from_api.errors }}{{ form.id_from_api }}</div></td>
+                    <th style="width: 150px;">{{ form.eboa_user_id.label_tag }}</th>
+                    <td>{{ form.eboa_user_id.errors }}{{ form.eboa_user_id }}</td>
                 </tr>
                 <tr>
                     <th>{{ form.first_name.label_tag }}<span class="red">*</span></th>
                     <td>{{ form.first_name.errors }}{{ form.first_name }}</td>
-                    <th style="width: 150px;">{{ form.last_name.label_tag }}<span class="red">*</span></th>
+                    <th>{{ form.last_name.label_tag }}<span class="red">*</span></th>
                     <td>{{ form.last_name.errors }}{{ form.last_name }}</td>
                 </tr>
                 <tr>

@@ -25,7 +25,7 @@
 </form>
 <div>
     <div class="flowTit"></div>
-    <div class="flowBox">
+    <div class="flowBox" style="width: 975px;">
         <table class="list">
             <thead>
                 <tr>
@@ -34,6 +34,7 @@
                     <th style="width: 26px;">性別</th>
                     <th>生年月日</th>
                     <th>{% create_single_order_display "入社時間" "join_date" %}</th>
+                    <th>{% create_single_order_display "EBOA連携ID" "eboa_user_id" %}</th>
                     <th>雇用形態</th>
                     <th>雇用日</th>
                     <th>コスト</th>
@@ -51,7 +52,8 @@
                         <td>{{ member.get_sex_display|default:'' }}</td>
                         <td>{{ member.birthday|date:'Y/m/d'|default:'' }}</td>
                         <td>{{ member.join_date|date:'Y/m/d'|default:'' }}</td>
-                        <td>{{ contract.get_member_type_display }}</td>
+                        <td>{{ member.eboa_user_id|default:'' }}</td>
+                        <td><div style="width: 65px">{{ contract.get_member_type_display }}</div></td>
                         <td>{{ contract.employment_date|date:'Y/m/d' }}</td>
                         <td class="num">¥ {{ contract.get_cost|intcomma }}円/月</td>
                         <td class="center">
@@ -77,6 +79,7 @@
                         <td>{{ member.get_sex_display|default:'' }}</td>
                         <td>{{ member.birthday|date:'Y/m/d'|default:'' }}</td>
                         <td>{{ member.join_date|date:'Y/m/d'|default:'' }}</td>
+                        <td>{{ member.eboa_user_id|default:'' }}</td>
                         <td>{{ member.get_member_type_display }}</td>
                         <td></td>
                         <td></td>
@@ -96,6 +99,6 @@
             </tfoot>
         </table>
     </div>
-    <div class="flowBottom"></div>
+    <div class="flowBottom2"></div>
 </div>
 {% endblock %}

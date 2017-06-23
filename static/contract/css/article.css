@@ -8,7 +8,7 @@ article div.flowTit {
     margin-top: 20px;
     height: 39px;
     text-align: right;
-    background: url(../img/list_head.jpg) no-repeat left top;
+    background: url(../img/list_head_2.jpg) no-repeat left top;
     font-size: 14px;
 }
 
@@ -21,6 +21,15 @@ article div.flowTop {
 
 article div.flowBottom {
     background: url(../img/list_top_bt.jpg) no-repeat left bottom;
+    height: 15px;
+    line-height: 6px;
+    font-size: 0px;
+    overflow: hidden;
+    margin-bottom: 8px;
+}
+
+article div.flowBottom2 {
+    background: url(../img/list_top_bt_2.jpg) no-repeat left bottom;
     height: 15px;
     line-height: 6px;
     font-size: 0px;
@@ -55,6 +64,8 @@ article table.list tbody td {
     padding: 9px;
     border: 1px solid #bbd3eb;
     background-color: #F7FAFF;
+    white-space: nowrap;
+    overflow: hidden;
 }
 
 article table.list tr.expired td {

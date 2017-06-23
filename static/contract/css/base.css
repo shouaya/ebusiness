@@ -8,7 +8,7 @@ body {
     height: 100%;
     background-color: #eeeeee;
     font-family: 'ＭＳ Ｐゴシック';
-    min-width: 900px;
+    min-width: 1000px;
     /*font-family: YouYuan, 'Noto Sans CJK JP', 'Noto Sans', 'Source Han Sans J',
                  SourceHanSansJP, メイリオ, Meiryo, 游ゴシック, YuGothic,
                  'ヒラギノ角ゴ Pro W3', 'Hiragino Kaku Gothic Pro', sans-serif, msyh;*/
@@ -18,7 +18,7 @@ body {
 
 div.container {
 	margin: 0 auto;
-	width: 900px;
+	width: 1000px;
 }
 
 h1,h2,h3,h4,h5,h6 {
