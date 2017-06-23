@@ -76,14 +76,14 @@
                                 {% if contract.allowance_overtime_memo %}
                                     {{ contract.allowance_overtime_memo|slice:'5:' }}
                                 {% else %}
-                                    \{{ contract.get_cost|intcomma }}/{{ contract.calculate_time_max }}h=\{{ contract.allowance_overtime|intcomma }}/h
+                                    ¥{{ contract.get_cost|intcomma }}/{{ contract.calculate_time_max }}h=¥{{ contract.allowance_overtime|intcomma }}/h
                                 {% endif %}
                             </td>
                             <td class="num">
                                 {% if contract.allowance_absenteeism_memo %}
                                     {{ contract.allowance_absenteeism_memo|slice:'5:' }}
                                 {% else %}
-                                    \{{ contract.get_cost|intcomma }}/{{ contract.calculate_time_min }}h=\{{ contract.allowance_absenteeism|intcomma }}/h
+                                    ¥{{ contract.get_cost|intcomma }}/{{ contract.calculate_time_min }}h=¥{{ contract.allowance_absenteeism|intcomma }}/h
                                 {% endif %}
                             </td>
                         {% endif %}

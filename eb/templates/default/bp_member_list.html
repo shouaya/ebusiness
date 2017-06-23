@@ -41,9 +41,9 @@
         <thead>
             <tr>
                 <th>名前</th>
-                <th style="width: 140px;">現在案件</th>
+                <th style="width: 50px;">現在案件</th>
                 <th>案件終了日</th>
-                <th style="width: 140px;">協力会社</th>
+                <th style="width: 100px;">協力会社</th>
                 <th>営業員</th>
                 <th>契約開始日</th>
                 <th>契約終了日</th>
@@ -62,9 +62,10 @@
                 {% if member.is_retired %}expired{% endif %}
                 {% ifequal current_project_member.project|default:'' '' %}expired{% endifequal %}">
                     <td><a href="{% url 'bp_member_orders' member.pk %}">{{ member }}</a></td>
-                    <td class="fixed_cell" style="width: 140px;">{{ current_project_member.project|default:'&nbsp;' }}</td>
+                    <td class="fixed_cell" style="width: 50px;" title="{{ current_project_member.project }}">
+                        {{ current_project_member.project|default:'&nbsp;' }}</td>
                     <td>{{ current_project_member.end_date|date:'Y-m-d'|default:'' }}</td>
-                    <td class="fixed_cell" style="width: 140px;">{{ member.subcontractor }}</td>
+                    <td class="fixed_cell" style="width: 100px;" title="{{ member.subcontractor }}">{{ member.subcontractor }}</td>
                     <td>{{ salesperson_period.salesperson }}</td>
                     {% if member.is_retired %}
                         <td colspan="8" class="num">退職</td>
@@ -82,14 +83,14 @@
                                 {% if contract.allowance_overtime_memo %}
                                     {{ contract.allowance_overtime_memo|slice:'5:' }}
                                 {% else %}
-                                    \{{ contract.get_cost|intcomma }}/{{ contract.calculate_time_max }}h=\{{ contract.allowance_overtime|intcomma }}/h
+                                    ¥{{ contract.get_cost|intcomma }}/{{ contract.calculate_time_max }}h=¥{{ contract.allowance_overtime|intcomma }}/h
                                 {% endif %}
                             </td>
                             <td class="num">
                                 {% if contract.allowance_absenteeism_memo %}
                                     {{ contract.allowance_absenteeism_memo|slice:'5:' }}
                                 {% else %}
-                                    \{{ contract.get_cost|intcomma }}/{{ contract.calculate_time_min }}h=\{{ contract.allowance_absenteeism|intcomma }}/h
+                                    ¥{{ contract.get_cost|intcomma }}/{{ contract.calculate_time_min }}h=¥{{ contract.allowance_absenteeism|intcomma }}/h
                                 {% endif %}
                             </td>
                         {% endif %}
