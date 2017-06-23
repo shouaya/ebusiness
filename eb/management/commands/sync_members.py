@@ -5,7 +5,6 @@ Created on 2016/01/12
 @author: Yang Wanjun
 """
 import logging
-import traceback
 
 from .base_batch import BaseBatch
 from eb import biz_batch
@@ -23,7 +22,7 @@ class Command(BaseBatch):
         username = options.get('username')
 
         logger.info(u"バッチ実行開始。username: %s" % username)
-        count = biz_batch.sync_members(self.batch)
+        # count = biz_batch.sync_members(self.batch)
         biz_batch.sync_members_for_change(self.batch)
-        if count == 0:
-            logger.info(u"新入社員がいません。")
+        # if count == 0:
+        #     logger.info(u"新入社員がいません。")
