@@ -4,6 +4,7 @@ Created on 2017/04/24
 
 @author: Yang Wanjun
 """
+import datetime
 from django import forms
 from django.contrib.admin.widgets import AdminDateWidget
 from . import models
@@ -41,6 +42,9 @@ class MemberForm(BaseForm):
         cleaned_data = super(MemberForm, self).clean()
         is_retired = cleaned_data.get('is_retired', False)
         retired_date = cleaned_data.get('retired_date', False)
+        is_unofficial = cleaned_data.get('is_unofficial', False)
+        if self.instance.pk and is_unofficial and models.Contract.objects.filter(member=self.instance).count() > 0:
+            self.add_error('is_unofficial', u"既に採用済みです。")
         if self.instance and not self.instance.pk:
             cleaned_data["id_from_api"] = models.Member.get_max_api_id()
         if is_retired and not retired_date:

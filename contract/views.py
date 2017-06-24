@@ -284,7 +284,7 @@ class MemberChangeView(BaseTemplateView):
                                  'first_name_en', 'last_name_en', 'member_type', 'birthday',
                                  'sex', 'join_date', 'employee_id', 'post_code', 'address1', 'address2',
                                  'nearest_station', 'phone', 'section', 'email', 'private_email',
-                                 'is_retired', 'retired_date', 'eboa_user_id']
+                                 'is_retired', 'retired_date', 'eboa_user_id', 'is_unofficial']
             else:
                 update_fields = None
             member.save(update_fields=update_fields)

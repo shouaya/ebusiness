@@ -76,28 +76,26 @@ django.jQuery = $
             <table class="detail">
                 <tr>
                     <th style="width: 150px;">{{ form.company.label_tag }}<span class="red">*</span></th>
-                    <td>{{ form.company.errors }}{{ form.company }}</td>
+                    <td colspan="3">{{ form.company.errors }}{{ form.company }}</td>
                 </tr>
                 <tr>
                     <th>{{ form.contract_no.label_tag }}</th>
-                    <td>{{ form.contract_no.errors }}{{ form.contract_no }}
+                    <td colspan="3">{{ form.contract_no.errors }}{{ form.contract_no }}
                         <p class="red">契約変更すると、契約番号は[{{ contract.get_next_contract_no }}]に変更します。（契約当日、変更しません）</p>
                     </td>
                 </tr>
                 <tr>
                     <th>{{ form.contract_date.label_tag }}<span class="red">*</span></th>
-                    <td>{{ form.contract_date.errors }}
+                    <td colspan="3">{{ form.contract_date.errors }}
                         <table class="inner"><tr><td class="nowrap">{{ form.contract_date }}</td></tr></table>
                         <div class="help_text">{{ form.contract_date.help_text }}</div>
                     </td>
                 </tr>
                 <tr>
                     <th>{{ form.member_type.label_tag }}<span class="red">*</span></th>
-                    <td>{{ form.member_type.errors }}
+                    <td style="width: 300px;">{{ form.member_type.errors }}
                         <table class="inner"><tr><td>{{ form.member_type }}</td></tr></table>
                     </td>
-                </tr>
-                <tr>
                     <th>{{ form.is_loan.label_tag }}</th>
                     <td>{{ form.is_loan.errors }}
                         <table class="inner"><tr><td>{{ form.is_loan }}</td></tr></table>
@@ -105,14 +103,14 @@ django.jQuery = $
                 </tr>
                 <tr>
                     <th>{{ form.employment_date.label_tag }}<span class="red">*</span></th>
-                    <td>{{ form.employment_date.errors }}
+                    <td colspan="3">{{ form.employment_date.errors }}
                         <table class="inner"><tr><td>{{ form.employment_date }}</td></tr></table>
                         <div class="help_text">{{ form.employment_date.help_text }}</div>
                     </td>
                 </tr>
                 <tr>
                     <th><label>雇用期間</label></th>
-                    <td>
+                    <td colspan="3">
                         <div>
                             {{ form.start_date.errors }}
                             {{ form.end_date.errors }}
@@ -138,11 +136,11 @@ django.jQuery = $
                 </tr>
                 <tr>
                     <th>{{ form.position.label_tag }}</th>
-                    <td>{{ form.position.errors }}{{ form.position }}</td>
+                    <td colspan="3">{{ form.position.errors }}{{ form.position }}</td>
                 </tr>
                 <tr>
                     <th><label>就業の場所<br/>業務の種類</label></th>
-                    <td>
+                    <td colspan="3">
                         <div>{{ form.business_address }}</div>
                         <div><table class="inner"><tr><td>{{ form.business_type }}</td></tr></table></div>
                         <div>{{ form.business_other }}</div>
@@ -150,11 +148,11 @@ django.jQuery = $
                 </tr>
                 <tr>
                     <th>{{ form.business_time.label_tag }}</th>
-                    <td>{{ form.business_time.errors }}{{ form.business_time }}</td>
+                    <td colspan="3">{{ form.business_time.errors }}{{ form.business_time }}</td>
                 </tr>
                 <tr>
                     <th><label>基本給</label><span class="red">*</span></th>
-                    <td>
+                    <td colspan="3">
                         <table class="inner">
                             <tr>
                                 <td style="text-align: right;">￥:</td>
@@ -173,7 +171,7 @@ django.jQuery = $
                 </tr>
                 <tr>
                     <th><label>諸手当</label></th>
-                    <td>
+                    <td colspan="3">
                         <table class="inner">
                             <tr>
                                 <td style="width: 65px;">{{ form.allowance_work.label_tag }}</td>
@@ -252,23 +250,23 @@ django.jQuery = $
                 </tr>
                 <tr>
                     <th>{{ form.endowment_insurance.label_tag }}</th>
-                    <td>{{ form.endowment_insurance.errors }}{{ form.endowment_insurance }}</td>
+                    <td colspan="3">{{ form.endowment_insurance.errors }}{{ form.endowment_insurance }}</td>
                 </tr>
                 <tr>
                     <th>{{ form.allowance_date_comment.label_tag }}</th>
-                    <td>{{ form.allowance_date_comment.errors }}{{ form.allowance_date_comment }}</td>
+                    <td colspan="3">{{ form.allowance_date_comment.errors }}{{ form.allowance_date_comment }}</td>
                 </tr>
                 <tr>
                     <th>{{ form.allowance_change_comment.label_tag }}</th>
-                    <td>{{ form.allowance_change_comment.errors }}{{ form.allowance_change_comment }}</td>
+                    <td colspan="3">{{ form.allowance_change_comment.errors }}{{ form.allowance_change_comment }}</td>
                 </tr>
                 <tr>
                     <th>{{ form.bonus_comment.label_tag }}</th>
-                    <td>{{ form.bonus_comment.errors }}{{ form.bonus_comment }}</td>
+                    <td colspan="3">{{ form.bonus_comment.errors }}{{ form.bonus_comment }}</td>
                 </tr>
                 <tr>
                     <th><label>休暇</label></th>
-                    <td>
+                    <td colspan="3">
                         {{ form.holiday_comment.label_tag }}<br/>{{ form.holiday_comment }}<br/>
                         {{ form.paid_vacation_comment.label_tag }}<br/>{{ form.paid_vacation_comment }}<br/>
                         {{ form.non_paid_vacation_comment.label_tag }}<br/>{{ form.non_paid_vacation_comment }}
@@ -276,17 +274,17 @@ django.jQuery = $
                 </tr>
                 <tr>
                     <th>{{ form.retire_comment.label_tag }}</th>
-                    <td>{{ form.retire_comment.errors }}{{ form.retire_comment }}</td>
+                    <td colspan="3">{{ form.retire_comment.errors }}{{ form.retire_comment }}</td>
                 </tr>
                 <tr>
                     <th>{{ form.status.label_tag }}<span class="red">*</span></th>
-                    <td>{{ form.status.errors }}
+                    <td colspan="3">{{ form.status.errors }}
                         <table class="inner" width="200"><tr><td>{{ form.status }}</td></tr></table>
                     </td>
                 </tr>
                 <tr>
                     <th>{{ form.comment.label_tag }}</th>
-                    <td>{{ form.comment.errors }}{{ form.comment }}</td>
+                    <td colspan="3">{{ form.comment.errors }}{{ form.comment }}</td>
                 </tr>
             </table>
             <div style="margin: auto; margin-top: 30px; margin-bottom: 15px; width: 700px; display: block;">

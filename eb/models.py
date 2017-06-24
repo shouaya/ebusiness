@@ -94,7 +94,7 @@ class AbstractMember(models.Model):
     retired_date = models.DateField(blank=True, null=True, verbose_name=u"退職年月日")
     id_from_api = models.CharField(blank=True, null=True, unique=True, max_length=30,
                                    verbose_name=u"社員ID", help_text=u"データを導入するために、API側のID")
-    eboa_user_id = models.BigIntegerField(blank=True, null=True, unique=True)
+    eboa_user_id = models.CharField(blank=True, null=True, max_length=14, unique=True)
     created_date = models.DateTimeField(null=True, auto_now_add=True, editable=False, verbose_name=u"作成日時")
     updated_date = models.DateTimeField(null=True, auto_now=True, editable=False, verbose_name=u"更新日時")
 
@@ -871,6 +871,7 @@ class Member(AbstractMember):
     subcontractor = models.ForeignKey(Subcontractor, blank=True, null=True, on_delete=models.PROTECT,
                                       verbose_name=u"協力会社")
     is_on_sales = models.BooleanField(blank=False, null=False, default=True, verbose_name=u"営業対象")
+    is_unofficial = models.BooleanField(default=False, verbose_name=u"内定")
     sales_off_reason = models.ForeignKey(SalesOffReason, blank=True, null=True, on_delete=models.PROTECT,
                                          verbose_name=u"営業対象外理由")
     cost = models.IntegerField(null=False, default=0, verbose_name=u"コスト")
