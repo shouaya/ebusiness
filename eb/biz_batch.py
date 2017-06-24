@@ -187,6 +187,14 @@ def sync_members_for_change(batch):
         try:
             oa_member = eboa_models.EbEmployee.objects.get(user__userid=member.eboa_user_id)
             changed_list = []
+            # 生年月日
+            if oa_member.birthday:
+                try:
+                    birthday = datetime.datetime.strptime(oa_member.birthday, '%Y-%m-%d').date()
+                    common.get_object_changed_message(member, 'birthday', birthday, changed_list)
+                    member.birthday = birthday
+                except ValueError:
+                    pass
             zip_code = oa_member.zipcode.replace('-', '') if oa_member.zipcode else ""
             # 郵便番号
             if re.match(r'^[0-9]{7}$', zip_code) and member.post_code != zip_code:
