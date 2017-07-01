@@ -783,12 +783,12 @@ def generate_request_data(company, project, client_order, bank_info, ym, project
             # 時給の場合
             if project.is_hourly_pay:
                 # 単価（円）
-                dict_expenses['ITEM_PRICE'] = project_member.hourly_pay
+                dict_expenses['ITEM_PRICE'] = project_member.hourly_pay or 0
                 # Min/Max（H）
                 dict_expenses['ITEM_MIN_MAX'] = u""
             else:
                 # 単価（円）
-                dict_expenses['ITEM_PRICE'] = project_member.price
+                dict_expenses['ITEM_PRICE'] = project_member.price or 0
                 # Min/Max（H）
                 dict_expenses['ITEM_MIN_MAX'] = "%s/%s" % (int(project_member.min_hours), int(project_member.max_hours))
             dict_expenses.update(project_member.get_attendance_dict(first_day.year, first_day.month))

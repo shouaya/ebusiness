@@ -930,7 +930,7 @@ class Member(AbstractMember):
                                                       (Q(start_date__lte=date) & Q(end_date__gte=date)))
         if results.count() > 0:
             return results[0].section
-        return None
+        return self.section
 
     def get_salesperson(self, date=None):
         """営業員を取得する。
