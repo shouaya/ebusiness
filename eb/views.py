@@ -36,7 +36,7 @@ from django.utils.translation import ugettext as _
 from django.contrib.auth import update_session_auth_hash
 from django.views.generic import View
 from django.views.generic.base import TemplateResponseMixin, ContextMixin
-from django.db.models import Count
+from django.db.models import Count, Prefetch, Q
 
 from eb import biz, biz_turnover, biz_config, biz_plot
 from utils import constants, common, errors, loader as file_loader, file_gen
@@ -813,6 +813,16 @@ class ProjectMembersView(BaseTemplateView):
         all_project_members = project.projectmember_set.all()
         if param_dict:
             all_project_members = all_project_members.filter(**param_dict)
+
+        # 現在所属の営業員を取得
+        today = datetime.date.today()
+        salesoff_set = models.MemberSalesOffPeriod.objects.filter(
+            (Q(start_date__lte=today) & Q(end_date__isnull=True)) |
+            (Q(start_date__lte=today) & Q(end_date__gte=today)))
+
+        all_project_members = all_project_members.prefetch_related(
+            Prefetch('member__membersalesoffperiod_set', queryset=salesoff_set, to_attr='current_salesoff_period'),
+        )
         if order_list:
             all_project_members = all_project_members.order_by(*order_list)
 

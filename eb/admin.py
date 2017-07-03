@@ -475,8 +475,8 @@ class MemberAdmin(BaseAdmin):
     #     return super(MemberAdmin, self).change_view(request, object_id, form_url, extra_context)
 
     def add_view(self, request, form_url='', extra_context=None):
-        if self.fieldsets[2][1]['fields'].count('cost') == 0:
-            self.fieldsets[2][1]['fields'].insert(-2, 'cost')
+        # if self.fieldsets[2][1]['fields'].count('cost') == 0:
+        #     self.fieldsets[2][1]['fields'].insert(-2, 'cost')
         if self.fieldsets[2][1]['fields'].count('is_individual_pay') == 0:
             self.fieldsets[2][1]['fields'].insert(-3, 'is_individual_pay')
         return super(MemberAdmin, self).add_view(request, form_url, extra_context)

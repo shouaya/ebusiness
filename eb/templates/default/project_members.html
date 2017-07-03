@@ -31,6 +31,7 @@
         <tbody>
             {% if project_members %}
                 {% for project_member in project_members %}
+                {% with salesoff_period=project_member.member.current_salesoff_period|first %}
                     <tr class="{% cycle 'row1' 'row2' %}
                                {% if project_member.is_in_past %}expired{% endif %}">
                         <td><a href="{% url 'project_detail' project.pk%}">{{ project_member.project }}</a></td>
@@ -46,13 +47,14 @@
                             {% if project_member.member.is_retired %}
                                 退職
                             {% else %}
-                                {% if not project_member.member.is_on_sales %}
-                                    {{ project_member.member.sales_off_reason }}
+                                {% if salesoff_period %}
+                                    {{ salesoff_period.sales_off_reason }}
                                 {% endif %}
                             {% endif %}
                         </td>
                         <td class="center"><a href="{% url 'admin:eb_projectmember_change' project_member.id %}?from=portal&_popup=1" target="_blank">編集</a></td>
                     </tr>
+                {% endwith %}
                 {% endfor %}
             {% else %}
                 <tr class="row2">
