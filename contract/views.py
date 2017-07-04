@@ -104,7 +104,7 @@ class ContractChangeView(BaseTemplateView):
         contract_set = biz.get_latest_contract(member)
 
         ver = request.GET.get('ver', None)
-        if ver:
+        if ver and contract_set.filter(contract_no=ver).count() > 0:
             contract = contract_set.get(contract_no=ver)
         elif contract_set.count() > 0:
             contract = contract_set[0]
@@ -159,7 +159,13 @@ class ContractChangeView(BaseTemplateView):
 
             contract.member = member
             next_contract_no = contract.get_next_contract_no()
-            if contract.contract_no == next_contract_no:
+            if contract.status == '04':
+                # 破棄する場合
+                contract.pk = contract.id = old_contract.pk
+                contract.save()
+                action_flg = CHANGE
+                message = u"破棄しました。" + message
+            elif contract.contract_no == next_contract_no:
                 # 契約当日、変更しません
                 contract.pk = contract.id = old_contract.pk
                 contract.created_date = old_contract.created_date
