@@ -152,7 +152,19 @@ class Contract(BaseModel):
 
         :return:
         """
-        return self.get_cost() * 12
+        cost = self.allowance_base \
+               + self.allowance_base_other \
+               + self.allowance_work \
+               + self.allowance_director \
+               + self.allowance_position \
+               + self.allowance_diligence \
+               + self.allowance_security \
+               + self.allowance_qualification \
+               + self.allowance_other
+        if self.member_type == 1:
+            return int(cost * 14)
+        else:
+            return cost * 12
 
     def get_next_contract_no(self):
         today = datetime.date.today()
