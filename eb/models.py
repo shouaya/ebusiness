@@ -929,7 +929,7 @@ class Member(AbstractMember):
         results = self.membersectionperiod_set.filter((Q(start_date__lte=date) & Q(end_date__isnull=True)) |
                                                       (Q(start_date__lte=date) & Q(end_date__gte=date)))
         if results.count() > 0:
-            return results[0].section
+            return results[0].subsection or results[0].section or results[0].division
         return self.section
 
     def get_salesperson(self, date=None):
