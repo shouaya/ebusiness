@@ -270,7 +270,7 @@
                     <th class="bk01">所在部署</th>
                     <th class="bk01">{% create_order_display "所属" "member__subcontractor__name" %}</th>
                     <th class="bk01">社会保険<br/>加入有無</th>
-                    <th class="bk01">{% create_order_display "契約形態" "member__member_type" %}</th>
+                    <th class="bk01">{% create_order_display "契約形態" "" %}</th>
                     <!--案件情報-->
                     <th class="bk02">{% create_order_display "案件名" "project__name" %}</th>
                     <th class="bk02">{% create_order_display "顧客" "project__client__name" %}</th>
@@ -330,12 +330,13 @@
                                 {% else %}
                                     {% with attendance=project_member.current_attendance_set|first prev_attendance=project_member.prev_attendance_set|first %}
                                     {% with project_request_detail=project_member.project_request_detail_set|first lump_project_request=attendance.get_lump_project_request %}
+                                    {% with contract=attendance.get_contract %}
                                         <td class="center row_{{ forloop.counter }} col_insurance">
-                                            {% if attendance.get_contract.endowment_insurance == "1" %}
+                                            {% if contract.endowment_insurance == "1" %}
                                                 ○
                                             {% endif %}
                                         </td>
-                                        <td class="row_{{ forloop.counter }} col_member_type">{{ project_member.member.get_member_type_display }}</td>
+                                        <td class="row_{{ forloop.counter }} col_member_type">{{ contract.get_member_type_display }}</td>
                                         <!--案件情報-->
                                         <td title="{{ project_member.project }}"
                                             {% if project_member.project.is_reserve %}class="reserve_project"
@@ -532,6 +533,7 @@
                                                 <td style="color: lightblue;">******</td>
                                             {% endif %}
                                         {% endif %}
+                                    {% endwith %}
                                     {% endwith %}
                                     {% endwith %}
                                 {% endif %}
