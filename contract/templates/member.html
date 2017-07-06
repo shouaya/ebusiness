@@ -17,7 +17,27 @@
 
     function delete_member() {
         if (confirm("{{ member }}を削除してもよろしいですか？")) {
-            alert('実装されていません。');
+            var csrftoken = getCookie('csrftoken');
+
+            $.ajaxSetup({
+                beforeSend: function(xhr, settings) {
+                    if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
+                        xhr.setRequestHeader("X-CSRFToken", csrftoken);
+                    }
+                }
+            });
+
+            $.post("{% url 'member_delete' member.pk %}", function(){
+            }).done(function(data){
+                if (data.error == 1) {
+                    alert(data.msg);
+                } else {
+                    alert(data.msg);
+                    window.location = "{% url 'contract-index' %}"
+                }
+            }).fail(function(data){
+                alert('error!')
+            })
         } else {
             return;
         }
@@ -131,8 +151,8 @@
             </table>
             <div style="margin: auto; margin-top: 30px; margin-bottom: 15px; width: 700px; display: block;">
                 {% if member.pk %}
-                <input type="submit" class="update" value="" />
-                <input type="button" class="delete" onclick="delete_member()" value="" />
+                    <input type="submit" class="update" value="" />
+                    <input type="button" class="delete" onclick="delete_member()" value="" />
                 {% else %}
                     <input type="submit" class="add" value=""/>
                 {% endif %}

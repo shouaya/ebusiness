@@ -892,6 +892,19 @@ class Member(AbstractMember):
     def __unicode__(self):
         return u"%s %s" % (self.first_name, self.last_name)
 
+    def is_deletable(self):
+        # get all the related object
+        for rel in self._meta.get_fields():
+            try:
+                # check if there is a relationship with at least one related object
+                related = rel.related_model.objects.filter(**{rel.field.name: self})
+                if related.exists():
+                    # if there is return a Tuple of flag = False the related_model object
+                    return False, related
+            except AttributeError:  # an attribute error for field occurs when checking for AutoField
+                pass  # just pass as we dont need to check for AutoField
+        return True, None
+
     def get_resume_name(self):
         """履歴書の氏名を取得する。
 

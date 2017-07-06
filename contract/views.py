@@ -10,10 +10,10 @@ from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.db.models import Q
 from django.core.urlresolvers import reverse
 from django.views.decorators.csrf import csrf_protect
-from django.http import HttpResponse, HttpResponseForbidden
+from django.http import HttpResponse, HttpResponseForbidden, JsonResponse
 from django.utils.translation import ugettext as _
 from django.utils.text import get_text_list
-from django.contrib.admin.models import LogEntry, ADDITION, CHANGE
+from django.contrib.admin.models import LogEntry, ADDITION, CHANGE, DELETION
 from django.contrib.contenttypes.models import ContentType
 
 from . import biz, models, forms
@@ -314,3 +314,33 @@ class MemberChangeView(BaseTemplateView):
             return redirect(reverse("member_change", args=(member.pk,)))
         else:
             return self.render_to_response(context)
+
+
+class MemberDeleteView(BaseView):
+    def post(self, request, *args, **kwargs):
+        try:
+            member_id = kwargs.get('member_id')
+            member = sales_models.Member.objects.get(pk=member_id)
+            is_deletable, related_list = member.is_deletable()
+            if is_deletable or (related_list and len([c for c in related_list if isinstance(c, models.Contract)]) > 0):
+                member.delete()
+                message = u"削除は成功しました。"
+                if related_list:
+                    message += u'\n下記契約情報も一緒削除しました：'
+                    for contract in related_list:
+                        message += u'\n契約番号：' + contract.contract_no
+                        contract.delete()
+                message += u"\n間違って削除した場合、システム管理者にご連絡ください、データの復元できます！"
+                d = {'error': 0, 'msg': message}
+                LogEntry.objects.log_action(request.user.id,
+                                            ContentType.objects.get_for_model(member).pk,
+                                            member.pk,
+                                            unicode(member),
+                                            DELETION,
+                                            change_message=u"削除しました。")
+            else:
+                d = {'error': 1, 'msg': u"%sに関連している情報が存在しているため、削除できません。" % unicode(member)}
+        except Exception as ex:
+            d = {'error': 1, 'msg': unicode(ex)}
+        return JsonResponse(d)
+
