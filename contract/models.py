@@ -67,6 +67,7 @@ class Contract(BaseModel):
     business_address = models.CharField(max_length=255, blank=True, null=True, default=Config.get_business_address(),
                                         verbose_name=u"就業の場所")
     business_type = models.CharField(max_length=2, choices=constants.CHOICE_BUSINESS_TYPE, verbose_name=u"業務の種類")
+    business_type_other = models.CharField(blank=True, null=True, max_length=50, verbose_name=u"業務の種類その他")
     business_other = models.TextField(blank=True, null=True, default=Config.get_business_other(),
                                       verbose_name=u"業務その他")
     business_time = models.TextField(blank=True, null=True, default=Config.get_business_time(),

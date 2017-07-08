@@ -5,7 +5,7 @@
     <meta charset="utf-8"/>
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Cache-Control" content="no-cache">
-    <title>雇 用 契 約 書</title>
+    <title>雇用契約書</title>
 
     <link rel="shortcut icon" type="image/png" href="/static/favicon.ico"/>
     <link rel="stylesheet" type="text/css" href="/static/contract/css/article.css"/>
@@ -51,7 +51,15 @@
                 <th>就業の場所<br/>業務の種類</th>
                 <td colspan="5">
                     {{ contract.business_address }}<br/>
-                    {{ contract.get_business_type_display }}<br/>
+                    {% if contract.business_type == '16' %}
+                        {% if contract.business_type_other %}
+                            {{ contract.business_type_other }}<br/>
+                        {% else %}
+                            {{ contract.get_business_type_display }}<br/>
+                        {% endif %}
+                    {% else %}
+                        {{ contract.get_business_type_display }}<br/>
+                    {% endif %}
                     <pre>{{ contract.business_other }}</pre>
                 </td>
             </tr>

@@ -18,6 +18,21 @@ django.jQuery = $
     function cancel() {
         window.location = "{% url 'contract-index' %}"
     }
+    $(document).ready(function(){
+        $("#id_business_type").change(function() {
+            showBusinessTypeOther(this);
+        });
+
+        showBusinessTypeOther($("#id_business_type"));
+    });
+
+    function showBusinessTypeOther(obj) {
+        if ($(obj).val() == "16") {
+            $("#span_business_type_other").css("display", "");
+        } else {
+            $("#span_business_type_other").css("display", "none");
+        }
+    }
 </script>
 {% endblock %}
 
@@ -142,7 +157,14 @@ django.jQuery = $
                     <th><label>就業の場所<br/>業務の種類</label></th>
                     <td colspan="3">
                         <div>{{ form.business_address }}</div>
-                        <div><table class="inner"><tr><td>{{ form.business_type }}</td></tr></table></div>
+                        <div>
+                            <table class="inner" style="width: 100%;">
+                                <tr>
+                                    <td>{{ form.business_type }}</td>
+                                    <td><span id="span_business_type_other" style="display: none;">{{ form.business_type_other }}</span></td>
+                                </tr>
+                            </table>
+                        </div>
                         <div>{{ form.business_other }}</div>
                     </td>
                 </tr>

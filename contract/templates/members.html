@@ -8,6 +8,7 @@
         window.onload = function() {
             init_select("q");
             init_select("is_retired");
+            //init_select("contract__member_type");
         };
     </script>
 {% endblock %}
@@ -20,6 +21,17 @@
         <option value="0">未退職</option>
         <option value="1">退職</option>
     </select>
+    <select id="contract__member_type" name="contract__member_type" style="height: 30px; display: none;">
+        <option value="">すべて</option>
+        <option value="1">正社員</option>
+        <option value="2">契約社員</option>
+        <option value="3">個人事業者</option>
+        <option value="4">他社技術者</option>
+        <option value="5">パート</option>
+        <option value="6">アルバイト</option>
+        <option value="7">正社員（試用期間）</option>
+    </select>
+
     <input type="submit" style="height: 40px;width: 100px;line-height:30px;font-size:25px" value="確定">
     <a href="{% url 'member_add' %}" class="rbutton"><i class="fa fa-user-plus" aria-hidden="true"></i>&nbsp;社員追加</a>
 </form>
