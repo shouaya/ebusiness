@@ -15,6 +15,7 @@
         window.location = "{% url 'contract-index' %}"
     }
 
+    {% if member.pk %}
     function delete_member() {
         if (confirm("{{ member }}を削除してもよろしいですか？")) {
             var csrftoken = getCookie('csrftoken');
@@ -42,6 +43,7 @@
             return;
         }
     }
+    {% endif %}
 </script>
 <script type="text/javascript" src="https://ajaxzip3.github.io/ajaxzip3.js"></script>
 {% endblock %}
