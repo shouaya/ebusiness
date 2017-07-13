@@ -148,6 +148,22 @@ class Contract(BaseModel):
             cost = int((cost * 14) / 12)
         return cost
 
+    def get_cost_monthly(self):
+        """在職証明書、所得証明書出力時、正社員の場合でも*14/12の必要はない
+        
+        :return: 
+        """
+        cost = self.allowance_base \
+               + self.allowance_base_other \
+               + self.allowance_work \
+               + self.allowance_director \
+               + self.allowance_position \
+               + self.allowance_diligence \
+               + self.allowance_security \
+               + self.allowance_qualification \
+               + self.allowance_other
+        return cost
+
     def get_cost_yearly(self):
         """年収を取得する。
 

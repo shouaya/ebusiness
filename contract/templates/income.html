@@ -88,7 +88,7 @@
             交通費また時間外手当などについて、別途となります。
         </div>
         <div class="income" id="div_income_monthly" style="display: none;">
-            月収額：￥<span id="span_income_monthly">{{ contract.get_cost|intcomma }}</span>円/月（課税前）とする。<br/>
+            月収額：￥<span id="span_income_monthly">{{ contract.get_cost_monthly|intcomma }}</span>円/月（課税前）とする。<br/>
             交通費また時間外手当などについて、別途となります。
         </div>
     </div>
@@ -122,7 +122,7 @@
         <div>
             <label for="chk_income_monthly">月　　収</label>
             <input id="chk_income_monthly" type="radio" name="income"/>
-            <input type="number" style="width: 100px; text-align: right;" onchange="change_income(this, 'span_income_monthly')" value="{{ contract.get_cost }}"/>
+            <input type="number" style="width: 100px; text-align: right;" onchange="change_income(this, 'span_income_monthly')" value="{{ contract.get_cost_monthly }}"/>
         </div>
     </div>
 </article>
