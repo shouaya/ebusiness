@@ -1168,12 +1168,11 @@ class Member(AbstractMember):
         """
         contract = None
         last_day = common.get_last_day_by_month(date)
-        if self.member_type != 4:
-            contract_list = self.contract_set.filter(
-                employment_date__lte=last_day
-            ).exclude(status='04').order_by('-employment_date', '-contract_no')
-            if contract_list.count() > 0:
-                contract = contract_list[0]
+        contract_list = self.contract_set.filter(
+            employment_date__lte=last_day
+        ).exclude(status='04').order_by('-employment_date', '-contract_no')
+        if contract_list.count() > 0:
+            contract = contract_list[0]
         else:
             contract_list = self.bpcontract_set.filter(
                 start_date__lte=last_day,

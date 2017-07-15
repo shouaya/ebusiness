@@ -1101,7 +1101,7 @@ class TurnoverMembersMonthlyView(BaseTemplateView):
 
         sections = biz_turnover.get_turnover_sections(ym)
         all_turnover_details = biz_turnover.members_turnover_monthly(ym, param_dict, order_list)
-        if '_member_section__pk' in request.GET:
+        if '_member_section__pk' in request.GET and request.GET.get('_member_section__pk'):
             organization = get_object_or_404(models.Section, pk=request.GET.get('_member_section__pk'))
             org_list = organization.get_children()
             org_list.append(organization)
