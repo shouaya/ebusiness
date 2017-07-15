@@ -69,7 +69,13 @@ class IndexView(BaseTemplateView):
                 or_queries = [Q(**{orm_lookup: bit}) for orm_lookup in orm_lookups]
                 all_members = all_members.filter(reduce(operator.or_, or_queries))
 
-        dict_order = common.get_ordering_dict(o, ['first_name', 'id_from_api', 'join_date', 'eboa_user_id'])
+        dict_order = common.get_ordering_dict(o, ['first_name',
+                                                  'id_from_api',
+                                                  'birthday',
+                                                  'join_date',
+                                                  'eboa_user_id',
+                                                  'contract_member_type',
+                                                  'endowment_insurance'])
         order_list = common.get_ordering_list(o)
 
         if order_list:

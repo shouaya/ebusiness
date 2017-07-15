@@ -4,16 +4,33 @@ Created on 2017/04/24
 
 @author: Yang Wanjun
 """
-from django.db.models import Prefetch
+from django.db.models import Prefetch, Subquery, OuterRef, CharField
 from eb import models as sales_models
 from . import models
 
 
 def get_members():
-    queryset = sales_models.Member.objects.all()
     contract_set = models.Contract.objects.filter(
         is_deleted=False
     ).exclude(status='04').order_by('-employment_date', '-contract_no')
+    queryset = sales_models.Member.objects.all().annotate(
+        contract_member_type=Subquery(
+            models.Contract.objects.filter(
+                is_deleted=False, member=OuterRef('pk')
+            ).exclude(status='04').order_by(
+                '-employment_date', '-contract_no'
+            ).values('member_type')[:1],
+            output_field=CharField()
+        ),
+        endowment_insurance=Subquery(
+            models.Contract.objects.filter(
+                is_deleted=False, member=OuterRef('pk')
+            ).exclude(status='04').order_by(
+                '-employment_date', '-contract_no'
+            ).values('endowment_insurance')[:1],
+            output_field=CharField()
+        )
+    )
     return queryset.prefetch_related(
         Prefetch('contract_set', queryset=contract_set, to_attr='latest_contract_set')
     )

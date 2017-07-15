@@ -8,7 +8,8 @@
         window.onload = function() {
             init_select("q");
             init_select("is_retired");
-            //init_select("contract__member_type");
+            init_select("contract_member_type");
+            init_select("endowment_insurance");
         };
     </script>
 {% endblock %}
@@ -18,11 +19,11 @@
     <input type="text" name="q" id="q" value="" style="height: 40px;width: 400px;line-height:30px;font-size:25px">
     <select id="is_retired" name="is_retired" style="height: 30px;">
         <option value="">すべて</option>
-        <option value="0">未退職</option>
+        <option value="0">在職</option>
         <option value="1">退職</option>
     </select>
-    <select id="contract__member_type" name="contract__member_type" style="height: 30px; display: none;">
-        <option value="">すべて</option>
+    <select id="contract_member_type" name="contract_member_type" style="height: 30px;">
+        <option value="">===雇用形態===</option>
         <option value="1">正社員</option>
         <option value="2">契約社員</option>
         <option value="3">個人事業者</option>
@@ -31,7 +32,11 @@
         <option value="6">アルバイト</option>
         <option value="7">正社員（試用期間）</option>
     </select>
-
+    <select id="endowment_insurance" name="endowment_insurance" style="height: 30px;">
+        <option value="">===保険===</option>
+        <option value="1">あり</option>
+        <option value="0">無し</option>
+    </select>
     <input type="submit" style="height: 40px;width: 100px;line-height:30px;font-size:25px" value="確定">
     <a href="{% url 'member_add' %}" class="rbutton"><i class="fa fa-user-plus" aria-hidden="true"></i>&nbsp;社員追加</a>
 </form>
@@ -44,13 +49,13 @@
                     <th style="width: 38px;">{% create_single_order_display "番号" "id_from_api" %}</th>
                     <th>{% create_single_order_display "名前" "first_name" %}</th>
                     <th style="width: 27px;">性別</th>
-                    <th>生年月日</th>
+                    <th>{% create_single_order_display "生年月日" "birthday" %}</th>
                     <th>{% create_single_order_display "入社時間" "join_date" %}</th>
                     <th>{% create_single_order_display "EBOA連携ID" "eboa_user_id" %}</th>
-                    <th>雇用形態</th>
+                    <th>{% create_single_order_display "雇用形態" "contract_member_type" %}</th>
                     <th>雇用日</th>
                     <th>コスト</th>
-                    <th style="width: 27px;">保険</th>
+                    <th style="width: 27px;">{% create_single_order_display "保険" "" %}</th>
                     <th>状態</th>
                 </tr>
             </thead>
