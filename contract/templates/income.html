@@ -70,7 +70,11 @@
             </tr>
             <tr>
                 <td class="left_side">氏　　　　　名 ： </td>
-                <td class="right_side">{{ member }}&nbsp;&nbsp;&nbsp;&nbsp;<span style="text-transform: uppercase;">({{ member.first_name_en }}&nbsp;{{ member.last_name_en }})</span></td>
+                <td class="right_side">{{ member }}&nbsp;&nbsp;&nbsp;&nbsp;
+                    {% if member.first_name_en and member.last_name_en %}
+                        <span style="text-transform: uppercase;">({{ member.first_name_en }}&nbsp;{{ member.last_name_en }})</span>
+                    {% endif %}
+                </td>
             </tr>
             <tr id="tr_position">
                 <td class="left_side">職　務　位　置 ： </td>
