@@ -2303,6 +2303,35 @@ class ProjectMember(models.Model):
         self.save()
 
 
+class SubcontractorRequest(models.Model):
+    subcontractor = models.ForeignKey(Subcontractor, on_delete=models.PROTECT, verbose_name=u"協力会社")
+    section = models.ForeignKey(Section, on_delete=models.PROTECT, verbose_name=u"部署")
+    year = models.CharField(max_length=4, default=str(datetime.date.today().year),
+                            choices=constants.CHOICE_ATTENDANCE_YEAR, verbose_name=u"対象年")
+    month = models.CharField(max_length=2, choices=constants.CHOICE_ATTENDANCE_MONTH, verbose_name=u"対象月")
+    request_no = models.CharField(max_length=7, unique=True, verbose_name=u"請求番号")
+    request_name = models.CharField(max_length=50, blank=True, null=True, verbose_name=u"請求名称")
+    amount = models.IntegerField(default=0, verbose_name=u"請求金額（税込）")
+    turnover_amount = models.IntegerField(default=0, verbose_name=u"売上金額（基本単価＋残業料）（税抜き）")
+    tax_amount = models.IntegerField(default=0, verbose_name=u"税金")
+    expenses_amount = models.IntegerField(default=0, verbose_name=u"精算金額")
+    filename = models.CharField(max_length=255, blank=True, null=True, verbose_name=u"請求書ファイル名")
+    created_user = models.ForeignKey(User, related_name='created_subcontractor_requests', null=True,
+                                     on_delete=models.PROTECT, editable=False, verbose_name=u"作成者")
+    created_date = models.DateTimeField(null=True, auto_now_add=True, editable=False, verbose_name=u"作成日時")
+    updated_user = models.ForeignKey(User, related_name='updated_subcontractor_requests', null=True,
+                                     on_delete=models.PROTECT, editable=False, verbose_name=u"更新者")
+    updated_date = models.DateTimeField(null=True, auto_now=True, editable=False, verbose_name=u"更新日時")
+
+    class Meta:
+        ordering = ['-request_no']
+        unique_together = ('subcontractor', 'section', 'year', 'month')
+        verbose_name = verbose_name_plural = u"協力会社請求情報"
+
+    def __unicode__(self):
+        return u"%s-%s" % (self.request_no, unicode(self.subcontractor))
+
+
 # class ProjectMemberPrice(BaseModel):
 #     project_member = models.ForeignKey(ProjectMember, verbose_name=u"案件メンバー")
 #     start_date = models.DateField(verbose_name=u"開始日")

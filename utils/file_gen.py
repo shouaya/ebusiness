@@ -4,6 +4,7 @@ Created on 2015/10/29
 
 @author: Yang Wanjun
 """
+from __future__ import unicode_literals
 import os
 import re
 import datetime
@@ -1003,7 +1004,7 @@ def generate_attendance_format(user, template_path, project_members, lump_projec
 
     start_row = constants.POS_ATTENDANCE_START_ROW
     count = project_members.count() + lump_projects.count()
-    set_openpyxl_styles(sheet, 'B5:AE%s' % (start_row + count,), 5)
+    set_openpyxl_styles(sheet, 'B5:AE%s' % (start_row + count + 2,), 5)
     for i, project_member in enumerate(project_members):
         # NO
         sheet.cell(row=start_row, column=2).value = i + 1
@@ -1129,19 +1130,48 @@ def generate_attendance_format(user, template_path, project_members, lump_projec
         start_row += 1
 
     # 合計
-    sheet.cell(row=start_row, column=19).value = "=SUM(S5:S%s)" % (count + 4)
-    sheet.cell(row=start_row, column=20).value = "=SUM(T5:T%s)" % (count + 4)
-    sheet.cell(row=start_row, column=21).value = "=SUM(U5:U%s)" % (count + 4)
-    sheet.cell(row=start_row, column=22).value = "=SUM(V5:V%s)" % (count + 4)
-    sheet.cell(row=start_row, column=23).value = "=SUM(W5:W%s)" % (count + 4)
-    sheet.cell(row=start_row, column=24).value = "=SUM(X5:X%s)" % (count + 4)
-    sheet.cell(row=start_row, column=25).value = "=SUM(Y5:Y%s)" % (count + 4)
-    sheet.cell(row=start_row, column=26).value = "=SUM(Z5:Z%s)" % (count + 4)
-    sheet.cell(row=start_row, column=27).value = "=SUM(AA5:AA%s)" % (count + 4)
-    sheet.cell(row=start_row, column=28).value = "=SUM(AB5:AB%s)" % (count + 4)
-    sheet.cell(row=start_row, column=29).value = "=SUM(AC5:AC%s)" % (count + 4)
-    sheet.cell(row=start_row, column=30).value = "=SUM(AD5:AD%s)" % (count + 4)
-    sheet.cell(row=start_row, column=31).value = "=SUM(AE5:AE%s)" % (count + 4)
+    sheet.cell(row=start_row, column=18).value = "他社技術者の合計"
+    sheet.cell(row=start_row, column=19).value = '=SUMIF(I5:I{0}, "=他社技術者", S5:S{0})'.format(count + 4)
+    sheet.cell(row=start_row, column=20).value = '=SUMIF(I5:I{0}, "=他社技術者", T5:T{0})'.format(count + 4)
+    sheet.cell(row=start_row, column=21).value = '=SUMIF(I5:I{0}, "=他社技術者", U5:U{0})'.format(count + 4)
+    sheet.cell(row=start_row, column=22).value = '=SUMIF(I5:I{0}, "=他社技術者", V5:V{0})'.format(count + 4)
+    sheet.cell(row=start_row, column=23).value = '=SUMIF(I5:I{0}, "=他社技術者", W5:W{0})'.format(count + 4)
+    sheet.cell(row=start_row, column=24).value = '=SUMIF(I5:I{0}, "=他社技術者", X5:X{0})'.format(count + 4)
+    sheet.cell(row=start_row, column=25).value = '=SUMIF(I5:I{0}, "=他社技術者", Y5:Y{0})'.format(count + 4)
+    sheet.cell(row=start_row, column=26).value = '=SUMIF(I5:I{0}, "=他社技術者", Z5:Z{0})'.format(count + 4)
+    sheet.cell(row=start_row, column=27).value = '=SUMIF(I5:I{0}, "=他社技術者", AA5:AA{0})'.format(count + 4)
+    sheet.cell(row=start_row, column=28).value = '=SUMIF(I5:I{0}, "=他社技術者", AB5:AB{0})'.format(count + 4)
+    sheet.cell(row=start_row, column=29).value = '=SUMIF(I5:I{0}, "=他社技術者", AC5:AC{0})'.format(count + 4)
+    sheet.cell(row=start_row, column=30).value = '=SUMIF(I5:I{0}, "=他社技術者", AD5:AD{0})'.format(count + 4)
+    sheet.cell(row=start_row, column=31).value = '=SUMIF(I5:I{0}, "=他社技術者", AE5:AE{0})'.format(count + 4)
+    sheet.cell(row=start_row + 1, column=18).value = "自社の合計"
+    sheet.cell(row=start_row + 1, column=19).value = '=SUMIF(I5:I{0}, "<>他社技術者", S5:S{0})'.format(count + 4)
+    sheet.cell(row=start_row + 1, column=20).value = '=SUMIF(I5:I{0}, "<>他社技術者", T5:T{0})'.format(count + 4)
+    sheet.cell(row=start_row + 1, column=21).value = '=SUMIF(I5:I{0}, "<>他社技術者", U5:U{0})'.format(count + 4)
+    sheet.cell(row=start_row + 1, column=22).value = '=SUMIF(I5:I{0}, "<>他社技術者", V5:V{0})'.format(count + 4)
+    sheet.cell(row=start_row + 1, column=23).value = '=SUMIF(I5:I{0}, "<>他社技術者", W5:W{0})'.format(count + 4)
+    sheet.cell(row=start_row + 1, column=24).value = '=SUMIF(I5:I{0}, "<>他社技術者", X5:X{0})'.format(count + 4)
+    sheet.cell(row=start_row + 1, column=25).value = '=SUMIF(I5:I{0}, "<>他社技術者", Y5:Y{0})'.format(count + 4)
+    sheet.cell(row=start_row + 1, column=26).value = '=SUMIF(I5:I{0}, "<>他社技術者", Z5:Z{0})'.format(count + 4)
+    sheet.cell(row=start_row + 1, column=27).value = '=SUMIF(I5:I{0}, "<>他社技術者", AA5:AA{0})'.format(count + 4)
+    sheet.cell(row=start_row + 1, column=28).value = '=SUMIF(I5:I{0}, "<>他社技術者", AB5:AB{0})'.format(count + 4)
+    sheet.cell(row=start_row + 1, column=29).value = '=SUMIF(I5:I{0}, "<>他社技術者", AC5:AC{0})'.format(count + 4)
+    sheet.cell(row=start_row + 1, column=30).value = '=SUMIF(I5:I{0}, "<>他社技術者", AD5:AD{0})'.format(count + 4)
+    sheet.cell(row=start_row + 1, column=31).value = '=SUMIF(I5:I{0}, "<>他社技術者", AE5:AE{0})'.format(count + 4)
+    sheet.cell(row=start_row + 2, column=18).value = "全ての合計"
+    sheet.cell(row=start_row + 2, column=19).value = "=SUM(S5:S%s)" % (count + 4)
+    sheet.cell(row=start_row + 2, column=20).value = "=SUM(T5:T%s)" % (count + 4)
+    sheet.cell(row=start_row + 2, column=21).value = "=SUM(U5:U%s)" % (count + 4)
+    sheet.cell(row=start_row + 2, column=22).value = "=SUM(V5:V%s)" % (count + 4)
+    sheet.cell(row=start_row + 2, column=23).value = "=SUM(W5:W%s)" % (count + 4)
+    sheet.cell(row=start_row + 2, column=24).value = "=SUM(X5:X%s)" % (count + 4)
+    sheet.cell(row=start_row + 2, column=25).value = "=SUM(Y5:Y%s)" % (count + 4)
+    sheet.cell(row=start_row + 2, column=26).value = "=SUM(Z5:Z%s)" % (count + 4)
+    sheet.cell(row=start_row + 2, column=27).value = "=SUM(AA5:AA%s)" % (count + 4)
+    sheet.cell(row=start_row + 2, column=28).value = "=SUM(AB5:AB%s)" % (count + 4)
+    sheet.cell(row=start_row + 2, column=29).value = "=SUM(AC5:AC%s)" % (count + 4)
+    sheet.cell(row=start_row + 2, column=30).value = "=SUM(AD5:AD%s)" % (count + 4)
+    sheet.cell(row=start_row + 2, column=31).value = "=SUM(AE5:AE%s)" % (count + 4)
 
     return save_virtual_workbook(book)
 

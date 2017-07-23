@@ -72,17 +72,29 @@
     }
 
     function calculate_total(id, cls) {
-        total_obj = $("#" + id)
-        total = 0
+        total_obj = $("#" + id);
+        total_subcontractor_obj = $("#" + id + "_subcontractor");
+        total_self_obj = $("#" + id + "_self");
+        total = 0;
+        total_subcontractor = 0;
+        total_self = 0;
         $.each($("." + cls), function(i, obj) {
             text = $(obj).text();
+            member_type = $(".row_" + (i+1) + ".col_member_type").text();
             if (text.trim() != "") {
                 val = toNum(text);
                 total = total + val;
+                if (member_type == "他社技術者") {
+                    total_subcontractor = total_subcontractor + val;
+                } else {
+                    total_self = total_self + val;
+                }
             }
         });
         total_obj.text(toNumComma(total));
         total_obj.css("font-size", "12px");
+        total_subcontractor_obj.text(toNumComma(total_subcontractor));
+        total_self_obj.text(toNumComma(total_self));
     }
 
     function calculate_employment_insurance(row, cols) {
@@ -589,10 +601,43 @@
                     {% endif %}
                 </tbody>
                 <tfoot>
-                    <tr>
-                        <td colspan="16">
+                    <tr style="height: 20px; font-size: 12px;">
+                        <td colspan="10" rowspan="3">
                             {{ project_members|length }} 件
                         </td>
+                        <td colspan="6" style="text-align: right;">他社技術者の合計</td>
+                        <td class="num" id="total_col_01_subcontractor"></td>
+                        <td class="num" id="total_col_02_subcontractor"></td>
+                        <td class="num" id="total_col_03_subcontractor"></td>
+                        <td class="num" id="total_col_04_subcontractor"></td>
+                        <td class="num" id="total_col_05_subcontractor"></td>
+                        <td class="num" id="total_col_06_subcontractor"></td>
+                        <td class="num" id="total_col_07_subcontractor"></td>
+                        <td class="num" id="total_col_08_subcontractor"></td>
+                        <td class="num" id="total_col_09_subcontractor"></td>
+                        <td class="num" id="total_col_10_subcontractor"></td>
+                        <td class="num" id="total_col_11_subcontractor"></td>
+                        <td class="num" id="total_col_12_subcontractor"></td>
+                        <td class="num" id="total_col_13_subcontractor"></td>
+                    </tr>
+                    <tr style="height: 20px; font-size: 12px;">
+                        <td colspan="6" style="text-align: right;">自社の合計</td>
+                        <td class="num" id="total_col_01_self"></td>
+                        <td class="num" id="total_col_02_self"></td>
+                        <td class="num" id="total_col_03_self"></td>
+                        <td class="num" id="total_col_04_self"></td>
+                        <td class="num" id="total_col_05_self"></td>
+                        <td class="num" id="total_col_06_self"></td>
+                        <td class="num" id="total_col_07_self"></td>
+                        <td class="num" id="total_col_08_self"></td>
+                        <td class="num" id="total_col_09_self"></td>
+                        <td class="num" id="total_col_10_self"></td>
+                        <td class="num" id="total_col_11_self"></td>
+                        <td class="num" id="total_col_12_self"></td>
+                        <td class="num" id="total_col_13_self"></td>
+                    </tr>
+                    <tr style="font-size: 12px;">
+                        <td colspan="6" style="text-align: right;">すべての合計</td>
                         <td class="num" id="total_col_01"></td>
                         <td class="num" id="total_col_02"></td>
                         <td class="num" id="total_col_03"></td>

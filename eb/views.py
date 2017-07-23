@@ -1466,7 +1466,9 @@ class CostSubcontractorMembersByMonthView(BaseTemplateView):
 
         object_list = biz_turnover.cost_subcontractor_members_by_month(year, month)
 
+        subcontractor = None
         if subcontractor_id:
+            subcontractor = get_object_or_404(models.Subcontractor, pk=subcontractor_id)
             object_list = object_list.filter(project_member__member__subcontractor__pk=subcontractor_id)
         if param_dict:
             object_list = object_list.filter(**param_dict)
@@ -1483,8 +1485,12 @@ class CostSubcontractorMembersByMonthView(BaseTemplateView):
             object_list = paginator.page(paginator.num_pages)
 
         context.update({
-            'title': u"%s年%s月のＢＰメンバーコスト一覧" % (year, month),
+            'title': u"%s年%s月の%sコスト一覧" % (
+                year, month,
+                '「' + unicode(subcontractor) + '」' if subcontractor else "ＢＰメンバー"
+            ),
             'object_list': object_list,
+            'subcontractor': subcontractor,
             'paginator': paginator,
             'params': params,
             'dict_order': dict_order,

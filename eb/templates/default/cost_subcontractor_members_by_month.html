@@ -33,7 +33,6 @@
                 <th style="width: 200px;">{% create_order_display "協力会社" "project_member__member__subcontractor__name" %}</th>
                 <th style="width: 250px;">{% create_order_display "案件" "project_member__project__name" %}</th>
                 <th>基本給</th>
-                <th></th>
                 <th>基準時間</th>
                 <th>増</th>
                 <th>減</th>
@@ -60,34 +59,22 @@
                             </div>
                         </td>
                         <td class="num">{{ contract.allowance_base|intcomma }}</td>
-                        <td class="center">
-                            {% if contract.is_hourly_pay %}
-                                時給
-                            {% elif contract.is_fixed_cost %}
-                                固定
-                            {% endif %}
-                        </td>
-                        <td>
-                            {% if contract.is_hourly_pay %}
-                            {% elif contract.is_fixed_cost %}
-                            {% elif contract %}
+
+                        {% if contract.is_hourly_pay %}
+                            <td class="center" colspan="3">時給</td>
+                        {% elif contract.is_fixed_cost %}
+                            <td class="center" colspan="3">固定</td>
+                        {% else %}
+                            <td>
                                 {{ contract.allowance_time_min }}～{{ contract.allowance_time_max }}
-                            {% endif %}
-                        </td>
-                        <td class="num">
-                            {% if contract.is_hourly_pay %}
-                            {% elif contract.is_fixed_cost %}
-                            {% else %}
+                            </td>
+                            <td class="num">
                                 {{ contract.allowance_overtime|intcomma }}
-                            {% endif %}
-                        </td>
-                        <td class="num">
-                            {% if contract.is_hourly_pay %}
-                            {% elif contract.is_fixed_cost %}
-                            {% else %}
+                            </td>
+                            <td class="num">
                                 {{ contract.allowance_absenteeism|intcomma }}
-                            {% endif %}
-                        </td>
+                            </td>
+                        {% endif %}
                         <td class="num">{{ member_attendance.get_total_hours_cost|floatformat:2 }}</td>
                         <td class="num {% if member_attendance.get_overtime < 0 %}red{% endif %}">{{ member_attendance.get_overtime }}</td>
                         <td class="num">{{ member_attendance.traffic_cost|default:'0'|intcomma }}</td>
@@ -96,12 +83,12 @@
                 {% endwith %}
                 {% endfor %}
             {% else %}
-                <tr class="row1"><td class="center red" colspan="12">協力会社がありません。</td></tr>
+                <tr class="row1"><td class="center red" colspan="11">協力会社がありません。</td></tr>
             {% endif %}
         </tbody>
         <tfoot>
             <tr>
-                <td colspan="12">
+                <td colspan="11">
                     {% paging object_list %}
                 </td>
             </tr>
