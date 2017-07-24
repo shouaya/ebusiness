@@ -26,6 +26,21 @@
             <a href="{{ request.path }}">クリア</a>
         </form>
     </div>
+    <div class="dashboard">
+        <div class="dashboard-title">{{ subcontractor }}の請求書</div>
+        <form action="" method="get">
+            {% for section in sections %}
+            <div style="width: 220px; float: left; border: 1px solid lightgray; padding: 5px; border-radius: 5px; margin-right: 10px;">
+                <img src="/static/admin/img/invoice.png" width="40px;" style="float: left;">
+                <div style="padding-left: 5px; float: left; color: #ff00e7;">
+                    {{ section }}<br/>
+                    <!--<a href="#">請求書作成</a>-->
+                </div>
+            </div>
+            {% endfor %}
+            <div style="clear: both;"></div>
+        </form>
+    </div>
     <table class="list" cellpadding="0" cellspacing="0">
         <thead>
             <tr>

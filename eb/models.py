@@ -523,6 +523,16 @@ class Subcontractor(AbstractCompany):
             ret_value.append((year, month, subcontractor_order, is_finished))
         return ret_value
 
+    def get_request_sections(self, members_attendance):
+        organizations = []
+        for attendance in members_attendance:
+            member = attendance.project_member.member
+            section = member.get_section(datetime.date(int(attendance.year), int(attendance.month), 1))
+            division = section.get_root_section()
+            if division not in organizations:
+                organizations.append(division)
+        return organizations
+
     def delete(self, using=None, keep_parents=False):
         self.is_deleted = True
         self.deleted_date = datetime.datetime.now()
@@ -661,6 +671,16 @@ class Section(BaseModel):
             children.append(org)
             children.extend(list(org.get_children()))
         return children
+
+    def get_root_section(self):
+        """事業部を取得する。
+        
+        :return: 
+        """
+        if self.parent:
+            return self.parent.get_root_section()
+        else:
+            return self
 
     def get_members_period(self):
         """当該部署に所属メンバーを取得する、子部署も含む。

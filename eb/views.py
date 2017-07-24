@@ -1467,11 +1467,13 @@ class CostSubcontractorMembersByMonthView(BaseTemplateView):
         object_list = biz_turnover.cost_subcontractor_members_by_month(year, month)
 
         subcontractor = None
+        sections = []
+        if param_dict:
+            object_list = object_list.filter(**param_dict)
         if subcontractor_id:
             subcontractor = get_object_or_404(models.Subcontractor, pk=subcontractor_id)
             object_list = object_list.filter(project_member__member__subcontractor__pk=subcontractor_id)
-        if param_dict:
-            object_list = object_list.filter(**param_dict)
+            sections = subcontractor.get_request_sections(object_list)
         if order_list:
             object_list = object_list.order_by(*order_list)
 
@@ -1491,6 +1493,7 @@ class CostSubcontractorMembersByMonthView(BaseTemplateView):
             ),
             'object_list': object_list,
             'subcontractor': subcontractor,
+            'sections': sections,
             'paginator': paginator,
             'params': params,
             'dict_order': dict_order,

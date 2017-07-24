@@ -199,6 +199,10 @@ class Contract(BaseModel):
         else:
             return business_type_name
 
+    @property
+    def is_fixed_cost(self):
+        return False
+
     def save(self, force_insert=False, force_update=False, using=None,
              update_fields=None):
         super(Contract, self).save(force_insert, force_update, using, update_fields)
