@@ -18,7 +18,7 @@ from xml.etree import ElementTree
 from django.db import models, connection
 from django.contrib.auth.models import User
 from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
-from django.db.models import Max, Min, Q, Sum, Prefetch
+from django.db.models import Max, Min, Q, Sum, Prefetch, Subquery, OuterRef
 from django.utils import timezone
 from django.utils.encoding import smart_str
 from django.template import Context, Template
@@ -3261,20 +3261,36 @@ def get_all_members(date=None):
     else:
         first_day = common.get_first_day_by_month(date)
         last_day = common.get_last_day_by_month(date)
-    query_set = Member.objects.filter(Q(join_date__isnull=True) | Q(join_date__lte=last_day),
-                                      Q(membersectionperiod__division__is_on_sales=True) |
-                                      Q(membersectionperiod__section__is_on_sales=True) |
-                                      Q(membersectionperiod__subsection__is_on_sales=True),
-                                      membersectionperiod__is_deleted=False).distinct()
+    query_set = Member.objects.filter(
+        Q(join_date__isnull=True) | Q(join_date__lte=last_day),
+        Q(membersectionperiod__division__is_on_sales=True) |
+        Q(membersectionperiod__section__is_on_sales=True) |
+        Q(membersectionperiod__subsection__is_on_sales=True),
+        membersectionperiod__is_deleted=False
+    ).annotate(
+        sales_off_period_pk=Subquery(
+            MemberSalesOffPeriod.objects.filter(
+                (Q(start_date__lte=last_day) & Q(end_date__isnull=True)) |
+                (Q(start_date__lte=last_day) & Q(end_date__gte=first_day)),
+                member=OuterRef('pk')
+            ).values('pk'),
+            output_field=models.IntegerField()
+        )
+    ).distinct()
     # 現在所属の部署を取得
     section_set = MemberSectionPeriod.objects.filter((Q(start_date__lte=last_day) & Q(end_date__isnull=True)) |
                                                      (Q(start_date__lte=last_day) & Q(end_date__gte=first_day)))
     # 現在所属の営業員を取得
     salesperson_set = MemberSalespersonPeriod.objects.filter((Q(start_date__lte=last_day) & Q(end_date__isnull=True)) |
                                                              (Q(start_date__lte=last_day) & Q(end_date__gte=first_day)))
+    salesoff_set = MemberSalesOffPeriod.objects.filter(
+        (Q(start_date__lte=last_day) & Q(end_date__isnull=True)) |
+        (Q(start_date__lte=last_day) & Q(end_date__gte=first_day))
+    )
     return query_set.prefetch_related(
         Prefetch('membersectionperiod_set', queryset=section_set, to_attr='current_section_period'),
         Prefetch('membersalespersonperiod_set', queryset=salesperson_set, to_attr='current_salesperson_period'),
+        Prefetch('membersalesoffperiod_set', queryset=salesoff_set, to_attr='current_salesoff_period'),
     ).extra(select={
         'last_end_date': "select max(pm.end_date) "
                          "  from eb_projectmember pm "
@@ -3337,7 +3353,7 @@ def get_off_sales_members(date=None):
 
     :return: MemberのQueryset
     """
-    query_set = get_sales_members(date).filter(is_on_sales=False)
+    query_set = get_sales_members(date).filter(sales_off_period_pk__isnull=False)
     return query_set
 
 

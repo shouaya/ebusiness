@@ -76,6 +76,7 @@
         <tbody>
             {% if members %}
                 {% for member in members %}
+                {% with salesoff_period=member.current_salesoff_period|first %}
                     <tr class="{% cycle 'row1' 'row2' %} {% if member.is_retired %}expired{% endif %}">
                         <td>
                             <a href="{% url 'member_detail' member.employee_id %}">
@@ -115,7 +116,7 @@
                             </td>
                             <td class="center">
                                 {% if page_type == "off_sales" %}
-                                    {{ member.sales_off_reason }}
+                                    {{ salesoff_period.sales_off_reason }}
                                 {% else %}
                                     {% ifequal member.get_business_status "未提案" %}
                                         <a href="{% url 'recommended_project' member.employee_id %}">推薦された案件</a>
@@ -125,6 +126,7 @@
                         {% endif %}
                         <td class="center"><a href="{% url 'admin:eb_member_change' member.pk %}?from=portal&_popup=1" target="_blank">編集</a></td>
                     </tr>
+                {% endwith %}
                 {% endfor %}
             {% else %}
                 <tr class="row2"><td class="center red" colspan="10">該当する要員がいません。</td></tr>
