@@ -6,7 +6,7 @@
 
 {% block content %}
     <div class="dashboard">
-        <div class="dashboard-title">{{ project_request.project }}  {{ project_request.year }}年{{ project_request.month }}月 の請求書</div>
+        <div class="dashboard-title">{{ title }}</div>
         <form action="" method="get">
         </form>
         {% if request_heading %}
@@ -73,7 +73,7 @@
             </tr>
             <tr>
                 <td colspan="12"></td>
-                <td colspan="4">代表取締役　　花　   東  江</td>
+                <td colspan="4">代表取締役　　{{ request_heading.company_master }}</td>
             </tr>
             <tr>
                 <td></td>

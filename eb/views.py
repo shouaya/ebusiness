@@ -1002,6 +1002,39 @@ class ProjectRequestView(BaseTemplateView):
         return self.render_to_response(context)
 
 
+class SubcontractorRequestView(BaseTemplateView):
+    template_name = 'default/project_request.html'
+
+    def get(self, request, *args, **kwargs):
+        request_id = kwargs.get('request_id', 0)
+        subcontractor_request = get_object_or_404(models.SubcontractorRequest, pk=request_id)
+        if hasattr(subcontractor_request, 'subcontractorrequestheading'):
+            request_heading = subcontractor_request.subcontractorrequestheading
+        else:
+            request_heading = None
+        request_details = list(subcontractor_request.subcontractorrequestdetail_set.all())
+        # project_members = [detail.project_member for detail in request_details]
+        # detail_expenses, expenses_amount = biz.get_request_expenses_list(subcontractor_request.project,
+        #                                                                  subcontractor_request.year,
+        #                                                                  subcontractor_request.month,
+        #                                                                  project_members)
+        if len(request_details) < 20:
+            request_details.extend([None] * (20 - len(request_details)))
+
+        context = self.get_context_data()
+        title_args = (unicode(subcontractor_request.subcontractor),
+                      subcontractor_request.year,
+                      subcontractor_request.month)
+        context.update({
+            'title': u'請求書 | %s | %s年%s月' % title_args,
+            'project_request': subcontractor_request,
+            'request_heading': request_heading,
+            'request_details': request_details,
+            'detail_expenses': [],
+        })
+        return self.render_to_response(context)
+
+
 @method_decorator(permission_required('eb.view_turnover', raise_exception=True), name='get')
 class TurnoverCompanyYearlyView(BaseTemplateView):
     template_name = 'default/turnover_company_yearly.html'
@@ -1473,7 +1506,7 @@ class CostSubcontractorMembersByMonthView(BaseTemplateView):
         if subcontractor_id:
             subcontractor = get_object_or_404(models.Subcontractor, pk=subcontractor_id)
             object_list = object_list.filter(project_member__member__subcontractor__pk=subcontractor_id)
-            sections = subcontractor.get_request_sections(object_list)
+            sections = subcontractor.get_request_sections(year, month)
         if order_list:
             object_list = object_list.order_by(*order_list)
 
@@ -1498,6 +1531,8 @@ class CostSubcontractorMembersByMonthView(BaseTemplateView):
             'params': params,
             'dict_order': dict_order,
             'orders': "&o=%s" % (o,) if o else "",
+            'year': year,
+            'month': month,
         })
         return context
 
@@ -2015,6 +2050,58 @@ class DownloadMembersCostView(BaseView):
         output = file_gen.generate_members_cost(request.user, all_members)
         response = HttpResponse(output, content_type="application/ms-excel")
         response['Content-Disposition'] = "filename=" + urllib.quote(filename.encode('utf-8')) + ".xlsx"
+        return response
+
+
+class GenerateSubcontractorRequestView(BaseView):
+
+    def post(self, request, *args, **kwargs):
+        subcontractor_id = kwargs.get(str('subcontractor_id'))
+        org_id = kwargs.get(str('org_id'))
+        year = kwargs.get(str('year'))
+        month = kwargs.get(str('month'))
+        organization = get_object_or_404(models.Section, pk=org_id)
+        subcontractor = get_object_or_404(models.Subcontractor, pk=subcontractor_id)
+        subcontractor_request = subcontractor.get_subcontractor_request(year, month, organization)
+        data = biz.generate_subcontractor_request_data(subcontractor, year, month, subcontractor_request)
+        path = file_gen.generate_request_linux(subcontractor, data, subcontractor_request.request_no, year + month)
+        filename = os.path.basename(path)
+        subcontractor_request.filename = filename
+        subcontractor_request.created_user = request.user if not subcontractor_request.pk \
+            else subcontractor_request.created_user
+        subcontractor_request.updated_user = request.user
+        # 請求履歴を保存する。
+        action_flag = CHANGE if subcontractor_request.pk else ADDITION
+        subcontractor_request.save(other_data=data)
+        LogEntry.objects.log_action(request.user.id,
+                                    ContentType.objects.get_for_model(subcontractor_request).pk,
+                                    subcontractor_request.pk,
+                                    unicode(subcontractor_request),
+                                    action_flag,
+                                    '' if action_flag == ADDITION else u'再作成しました。')
+        return JsonResponse({
+            'pk': subcontractor_request.pk,
+            'request_no': subcontractor_request.request_no
+        })
+
+
+class DownloadSubcontractorRequestView(BaseView):
+
+    def get(self, request, *args, **kwargs):
+        subcontractor_request_id = kwargs.get('subcontractor_request_id')
+        subcontractor_request = get_object_or_404(models.SubcontractorRequest, pk=subcontractor_request_id)
+        path = os.path.join(
+            settings.GENERATED_FILES_ROOT,
+            "subcontractor_request",
+            subcontractor_request.year + subcontractor_request.month,
+            subcontractor_request.filename
+        )
+        if not os.path.exists(path):
+            # ファイルが存在しない場合、エラーとする。
+            raise errors.FileNotExistException(constants.ERROR_REQUEST_FILE_NOT_EXISTS)
+        filename = subcontractor_request.filename
+        response = HttpResponse(open(path, 'rb'), content_type="application/excel")
+        response['Content-Disposition'] = "filename=" + urllib.quote(filename.encode('UTF-8'))
         return response
 
 

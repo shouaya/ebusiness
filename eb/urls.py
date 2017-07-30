@@ -30,6 +30,12 @@ section_patterns = [
     url(r'^(?P<section_id>[0-9]+)/attendance.html$', views.section_attendance, name='section_attendance'),
 ]
 
+generate_patterns = [
+    url(r'^subcontractor_request/(?P<subcontractor_id>[0-9]+)/'
+        r'(?P<org_id>[0-9]+)/(?P<year>[0-9]{4})/(?P<month>[0-9]{2})\.html$',
+        views.GenerateSubcontractorRequestView.as_view(), name='generate_subcontractor_request'),
+]
+
 download_patterns = [
     url(r'^project_request/(?P<project_id>[0-9]+).html$', views.DownloadProjectRequestView.as_view(),
         name='download_project_request'),
@@ -48,6 +54,8 @@ download_patterns = [
         name='download_section_attendance'),
     url(r'^member/list/eboa_info.html$', eboa_views.download_eboa_members, name='download_eboa_members'),
     url(r'^member/cost_list.html$', views.DownloadMembersCostView.as_view(), name='download_members_cost'),
+    url(r'^subcontractor_request/(?P<subcontractor_request_id>[0-9]+).html$',
+        views.DownloadSubcontractorRequestView.as_view(), name='download_subcontractor_request'),
 ]
 
 image_patterns = [
@@ -101,6 +109,8 @@ subcontractor_patterns = [
     url(r'^(?P<subcontractor_id>[0-9]+)/members_cost/(?P<year>[0-9]{4})/(?P<month>[0-9]{2})\.html$',
         views.CostSubcontractorMembersByMonthView.as_view(),
         name='cost_subcontractor_members_by_month'),
+    url(r'^subcontractor_request_view/(?P<request_id>[0-9]+).html$', views.SubcontractorRequestView.as_view(),
+        name='view_subcontractor_request'),
 ]
 
 project_patterns = [
@@ -129,6 +139,7 @@ urlpatterns = [
     url(r'^release_list/(?P<ym>[0-9]{6}).html$', views.ReleaseListView.as_view(), name='release_list'),
     url(r'^subcontractor/', include(subcontractor_patterns)),
     url(r'^turnover/', include(turnover_patterns)),
+    url(r'^generate/', include(generate_patterns)),
     url(r'^download/', include(download_patterns)),
     url(r'^image/', include(image_patterns)),
     url(r'^issues.html$', views.IssueListView.as_view(), name='issues'),

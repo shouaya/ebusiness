@@ -822,6 +822,160 @@ def generate_request_data(company, project, client_order, bank_info, ym, project
     return data
 
 
+def generate_subcontractor_request_data(subcontractor, year, month, subcontractor_request):
+    company = get_company()
+    first_day = common.get_first_day_by_month(datetime.date(int(year), int(month), 1))
+    last_day = common.get_last_day_by_month(first_day)
+    data = {'DETAIL': {}, 'EXTRA': {}}
+    data['EXTRA']['YM'] = first_day.strftime('%Y%m')
+    data['EXTRA']['COMPANY'] = company
+    # お客様郵便番号
+    data['DETAIL']['CLIENT_POST_CODE'] = common.get_full_postcode(company.post_code)
+    # お客様住所
+    data['DETAIL']['CLIENT_ADDRESS'] = (company.address1 or '') + (company.address2 or '')
+    # お客様電話番号
+    data['DETAIL']['CLIENT_TEL'] = company.tel or ''
+    # お客様名称
+    data['DETAIL']['CLIENT_COMPANY_NAME'] = company.name
+    # 作業期間
+    f = u'%Y年%m月%d日'
+    period_start = first_day.strftime(f.encode('utf-8')).decode('utf-8')
+    period_end = last_day.strftime(f.encode('utf-8')).decode('utf-8')
+    data['DETAIL']['WORK_PERIOD'] = period_start + u" ～ " + period_end
+    data['EXTRA']['WORK_PERIOD_START'] = first_day
+    data['EXTRA']['WORK_PERIOD_END'] = last_day
+    # 注文番号
+    data['DETAIL']['ORDER_NO'] = u""
+    # 注文日
+    data['DETAIL']['REQUEST_DATE'] = u""
+    # 契約件名
+    data['DETAIL']['CONTRACT_NAME'] = u""
+    # 部署名称
+    data['DETAIL']['ORG_NAME'] = unicode(subcontractor_request.section)
+    # お支払い期限
+    data['DETAIL']['REMIT_DATE'] = company.get_pay_date(date=first_day).strftime('%Y/%m/%d')
+    data['EXTRA']['REMIT_DATE'] = company.get_pay_date(date=first_day)
+    # 請求番号
+    data['DETAIL']['REQUEST_NO'] = subcontractor_request.request_no
+    # 発行日（対象月の最終日）
+    data['DETAIL']['PUBLISH_DATE'] = last_day.strftime(u"%Y年%m月%d日".encode('utf-8')).decode('utf-8')
+    data['EXTRA']['PUBLISH_DATE'] = last_day
+    # 本社郵便番号
+    data['DETAIL']['POST_CODE'] = common.get_full_postcode(subcontractor.post_code)
+    # 本社住所
+    data['DETAIL']['ADDRESS'] = (subcontractor.address1 or '') + (subcontractor.address2 or '')
+    # 会社名
+    data['DETAIL']['COMPANY_NAME'] = subcontractor.name
+    # 代表取締役
+    data['DETAIL']['MASTER'] = subcontractor.president
+    # 本社電話番号
+    data['DETAIL']['TEL'] = subcontractor.tel
+    # 振込先銀行名称
+    if subcontractor.subcontractorbankinfo_set.all().count() == 0:
+        bank_info = None
+    else:
+        bank_info = subcontractor.subcontractorbankinfo_set.all()[0]
+    data['EXTRA']['BANK'] = bank_info
+    data['DETAIL']['BANK_NAME'] = bank_info.bank_name if bank_info else u""
+    # 支店番号
+    data['DETAIL']['BRANCH_NO'] = bank_info.branch_no if bank_info else u""
+    # 支店名称
+    data['DETAIL']['BRANCH_NAME'] = bank_info.branch_name if bank_info else u""
+    # 預金種類
+    data['DETAIL']['ACCOUNT_TYPE'] = bank_info.get_account_type_display() if bank_info else u""
+    # 口座番号
+    data['DETAIL']['ACCOUNT_NUMBER'] = bank_info.account_number if bank_info else u""
+    # 口座名義人
+    data['DETAIL']['BANK_ACCOUNT_HOLDER'] = bank_info.account_holder if bank_info else u""
+
+    # 全員の合計明細
+    detail_all = dict()
+    # メンバー毎の明細
+    detail_members = []
+
+    section_members = subcontractor.get_members_by_month_and_section(year, month, subcontractor_request.section)
+    members_amount = 0
+    if False:
+        members_amount = 0
+        # 番号
+        detail_all['NO'] = u"1"
+        # 項目：契約件名に設定
+        detail_all['ITEM_NAME_ATTENDANCE_TOTAL'] = data['DETAIL']['CONTRACT_NAME']
+        # 数量
+        detail_all['ITEM_COUNT'] = u"1"
+        # 単位
+        detail_all['ITEM_UNIT'] = u"一式"
+        # 金額
+        detail_all['ITEM_AMOUNT_ATTENDANCE_ALL'] = members_amount
+        # 備考
+        detail_all['ITEM_COMMENT'] = u""
+    else:
+        for i, member in enumerate(section_members):
+            member_attendance_set = models.MemberAttendance.objects.public_filter(
+                project_member__member=member,
+                year=year,
+                month=month,
+            )
+            if member_attendance_set.count() > 0:
+                member_attendance = member_attendance_set[0]
+                contract_list = member.bpcontract_set.filter(
+                    start_date__lte=last_day,
+                    is_deleted=False,
+                ).order_by('-start_date')
+                if contract_list.count() > 0:
+                    contract = contract_list[0]
+                    dict_expenses = dict()
+                    # この項目は請求書の出力ではなく、履歴データをProjectRequestDetailに保存するために使う。
+                    dict_expenses["EXTRA_PROJECT_MEMBER"] = member_attendance.project_member
+                    # 番号
+                    dict_expenses['NO'] = str(i + 1)
+                    # 項目
+                    dict_expenses['ITEM_NAME'] = unicode(member)
+                    # 時給の場合
+                    if contract.is_hourly_pay:
+                        # 単価（円）
+                        dict_expenses['ITEM_PRICE'] = contract.allowance_base or 0
+                        # Min/Max（H）
+                        dict_expenses['ITEM_MIN_MAX'] = u""
+                    else:
+                        # 単価（円）
+                        dict_expenses['ITEM_PRICE'] = contract.get_cost() or 0
+                        # Min/Max（H）
+                        dict_expenses['ITEM_MIN_MAX'] = "%s/%s" % (
+                            int(contract.allowance_time_min), int(contract.allowance_time_min)
+                        )
+                    dict_expenses.update(member_attendance.project_member.get_attendance_dict(first_day.year, first_day.month))
+                    # 金額合計
+                    members_amount += dict_expenses['ITEM_AMOUNT_TOTAL']
+                    detail_members.append(dict_expenses)
+
+    # detail_expenses, expenses_amount = get_request_expenses_list(project,
+    #                                                              first_day.year,
+    #                                                              '%02d' % (first_day.month,),
+    #                                                              project_members)
+    detail_expenses, expenses_amount = [], 0
+
+    data['detail_all'] = detail_all
+    data['MEMBERS'] = detail_members
+    data['EXPENSES'] = detail_expenses  # 清算リスト
+    data['DETAIL']['ITEM_AMOUNT_ATTENDANCE'] = members_amount
+    if company.decimal_type == '0':
+        data['DETAIL']['ITEM_AMOUNT_ATTENDANCE_TAX'] = int(round(members_amount * company.tax_rate))
+    else:
+        # 出勤のトータル金額の税金
+        data['DETAIL']['ITEM_AMOUNT_ATTENDANCE_TAX'] = int(members_amount * company.tax_rate)
+    data['DETAIL']['ITEM_AMOUNT_ATTENDANCE_ALL'] = members_amount + int(data['DETAIL']['ITEM_AMOUNT_ATTENDANCE_TAX'])
+    data['DETAIL']['ITEM_AMOUNT_ALL'] = int(data['DETAIL']['ITEM_AMOUNT_ATTENDANCE_ALL']) + expenses_amount
+    data['DETAIL']['ITEM_AMOUNT_ALL_COMMA'] = humanize.intcomma(data['DETAIL']['ITEM_AMOUNT_ALL'])
+
+    subcontractor_request.amount = data['DETAIL']['ITEM_AMOUNT_ALL']
+    subcontractor_request.turnover_amount = members_amount
+    subcontractor_request.tax_amount = data['DETAIL']['ITEM_AMOUNT_ATTENDANCE_TAX']
+    subcontractor_request.expenses_amount = expenses_amount
+
+    return data
+
+
 def get_request_expenses_list(project, year, month, project_members):
     # 清算リスト
     dict_expenses = {}

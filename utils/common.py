@@ -712,6 +712,19 @@ def get_request_file_path(request_no, client_name, ym):
     return os.path.join(path, filename).decode('UTF-8')
 
 
+def get_subcontractor_request_file_path(request_no, subcontractor_name, ym):
+    from django.conf import settings
+
+    now = datetime.datetime.now()
+    filename = "協力会社請求書_%s_%s_%s.xlsx" % (
+        str(request_no), subcontractor_name.encode('UTF-8'), now.strftime("%Y%m%d_%H%M%S%f")
+    )
+    path = os.path.join(settings.GENERATED_FILES_ROOT, "subcontractor_request", str(ym))
+    if not os.path.exists(path):
+        os.makedirs(path)
+    return os.path.join(path, filename).decode('UTF-8')
+
+
 def get_order_file_path(order_no, client_name, ym, is_request=False):
     """協力会社の注文書のパスを取得する。
 

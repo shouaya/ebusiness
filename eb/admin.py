@@ -184,6 +184,12 @@ class SubcontractorMemberInline(admin.TabularInline):
     extra = 0
 
 
+class SubcontractorBankInline(admin.TabularInline):
+    model = models.SubcontractorBankInfo
+    form = forms.SubcontractorBankInfoForm
+    extra = 0
+
+
 def get_full_name(obj):
     return "%s %s" % (obj.first_name, obj.last_name)
 get_full_name.short_description = u"名前"
@@ -671,7 +677,7 @@ class SubcontractorAdmin(BaseAdmin):
 
     list_display = ['name', 'is_deleted']
     list_filter = ['is_deleted']
-    inlines = (SubcontractorMemberInline,)
+    inlines = (SubcontractorMemberInline, SubcontractorBankInline)
 
 
 class SubcontractorMemberAdmin(BaseAdmin):

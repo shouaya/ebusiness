@@ -334,7 +334,14 @@ class BaseModel(models.Model):
 
 
 class Company(AbstractCompany):
-
+    payment_month = models.CharField(blank=True, null=True, max_length=1, default='1',
+                                     choices=constants.CHOICE_PAYMENT_MONTH, verbose_name=u"支払いサイト",)
+    payment_day = models.CharField(blank=True, null=True, max_length=2, default='99',
+                                   choices=constants.CHOICE_PAYMENT_DAY, verbose_name=u"支払日")
+    tax_rate = models.DecimalField(default=0.08, max_digits=3, decimal_places=2, choices=constants.CHOICE_TAX_RATE,
+                                   verbose_name=u"税率")
+    decimal_type = models.CharField(max_length=1, default='0', choices=constants.CHOICE_DECIMAL_TYPE,
+                                    verbose_name=u"小数の処理区分")
     quotation_file = models.FileField(blank=True, null=True, upload_to="./quotation",
                                       verbose_name=u"見積書テンプレート")
     request_file = models.FileField(blank=True, null=True, upload_to="./request", verbose_name=u"請求書テンプレート")
@@ -433,6 +440,23 @@ class Company(AbstractCompany):
         """
         return self.get_projects(5)
 
+    def get_pay_date(self, date=datetime.date.today()):
+        """支払い期限日を取得する。
+
+        :param date:
+        :return:
+        """
+        months = int(self.payment_month) if self.payment_month else 1
+        pay_month = common.add_months(date, months)
+        if self.payment_day == '99' or not self.payment_day:
+            return common.get_last_day_by_month(pay_month)
+        else:
+            pay_day = int(self.payment_day)
+            last_day = common.get_last_day_by_month(pay_month)
+            if last_day.day < pay_day:
+                return last_day
+            return datetime.date(pay_month.year, pay_month.month, pay_day)
+
 
 class BankInfo(BaseModel):
     company = models.ForeignKey(Company, on_delete=models.PROTECT, verbose_name=u"会社")
@@ -501,8 +525,10 @@ class Subcontractor(AbstractCompany):
         """
         first_day = common.get_first_day_by_month(date)
         last_day = common.get_last_day_by_month(first_day)
-        members = self.member_set.filter(projectmember__start_date__lte=last_day,
-                                         projectmember__end_date__gte=first_day)
+        members = self.member_set.filter(
+            projectmember__start_date__lte=last_day,
+            projectmember__end_date__gte=first_day
+        ).distinct()
         return members
 
     def get_year_month_order_finished(self):
@@ -523,20 +549,109 @@ class Subcontractor(AbstractCompany):
             ret_value.append((year, month, subcontractor_order, is_finished))
         return ret_value
 
-    def get_request_sections(self, members_attendance):
+    def get_request_sections(self, year, month):
+        """協力会社の請求書は事業部単位で作成されているので、指定年月の各部署を取得する
+        
+        :param year: 
+        :param month: 
+        :return: 
+        """
+        first_day = datetime.date(int(year), int(month), 1)
+        members = self.get_members_by_month(first_day)
         organizations = []
-        for attendance in members_attendance:
-            member = attendance.project_member.member
-            section = member.get_section(datetime.date(int(attendance.year), int(attendance.month), 1))
+        ret_list = []
+        for member in members:
+            section = member.get_section(first_day)
             division = section.get_root_section()
             if division not in organizations:
+                try:
+                    subcontractor_request = SubcontractorRequest.objects.get(
+                        subcontractor=self,
+                        section=division,
+                        year=year,
+                        month=month
+                    )
+                except (ObjectDoesNotExist, MultipleObjectsReturned):
+                    subcontractor_request = None
                 organizations.append(division)
-        return organizations
+                ret_list.append((division, subcontractor_request))
+        return ret_list
+
+    def get_members_by_month_and_section(self, year, month, section):
+        """協力会社の請求書を作成時に、部署単位でメンバーを取得し、作成する。
+        
+        :param year: 
+        :param month: 
+        :param section: 
+        :return: 
+        """
+        first_day = datetime.date(int(year), int(month), 1)
+        attendance_set = MemberAttendance.objects.public_filter(
+            year=year, month=month
+        )
+        members = self.get_members_by_month(first_day)
+        section_pk_list = [s.pk for s in section.get_children()]
+        section_pk_list.append(section.pk)
+        ret_list = []
+        for member in members:
+            section = member.get_section(first_day)
+            if section.pk in section_pk_list:
+                ret_list.append(member)
+        return ret_list
+
+    def get_subcontractor_request(self, year, month, organization):
+        """指定年月と事業部の請求書を取得する、存在しない場合は新規作成する。
+        
+        :param year: 
+        :param month: 
+        :param organization: 
+        :return: 
+        """
+        organizations = organization.get_children()
+        organizations.append(organization)
+        request_list = SubcontractorRequest.objects.filter(
+            subcontractor=self, year=year, month=month, section__in=organizations
+        )
+        if request_list.count() == 0:
+            # 指定年月と事業部の請求書がない場合、請求番号を発行する。
+            max_request_no = SubcontractorRequest.objects.filter(year=year, month=month).aggregate(Max('request_no'))
+            request_no = max_request_no.get('request_no__max')
+            if request_no and re.match(r"^([0-9]{7}|[0-9]{7}-[0-9]{3})$", request_no):
+                no = request_no[4:7]
+                no = "%03d" % (int(no) + 1,)
+                next_request = "%s%s%s" % (year[2:], month, no)
+            else:
+                next_request = "%s%s%s" % (year[2:], month, "001")
+            subcontractor_request = SubcontractorRequest(
+                subcontractor=self, section=organization, year=year, month=month, request_no=next_request
+            )
+            return subcontractor_request
+        else:
+            # 存在する場合、そのまま使う、再発行はしません。
+            return request_list[0]
 
     def delete(self, using=None, keep_parents=False):
         self.is_deleted = True
         self.deleted_date = datetime.datetime.now()
         self.save()
+
+
+class SubcontractorBankInfo(BaseModel):
+    subcontractor = models.ForeignKey(Subcontractor, on_delete=models.PROTECT, verbose_name=u"協力会社")
+    bank_name = models.CharField(blank=False, null=False, max_length=20, verbose_name=u"銀行名称")
+    branch_no = models.CharField(blank=False, null=False, max_length=3, verbose_name=u"支店番号")
+    branch_name = models.CharField(blank=False, null=False, max_length=20, verbose_name=u"支店名称")
+    account_type = models.CharField(blank=False, null=False, max_length=1, choices=constants.CHOICE_ACCOUNT_TYPE,
+                                    verbose_name=u"預金種類")
+    account_number = models.CharField(blank=False, null=False, max_length=7, verbose_name=u"口座番号")
+    account_holder = models.CharField(blank=True, null=True, max_length=20, verbose_name=u"口座名義")
+
+    class Meta:
+        unique_together = ('branch_no', 'account_number')
+        verbose_name = verbose_name_plural = u"協力会社銀行口座"
+
+    def __unicode__(self):
+        return self.bank_name
 
 
 class SubcontractorMember(BaseModel):
@@ -2350,6 +2465,196 @@ class SubcontractorRequest(models.Model):
 
     def __unicode__(self):
         return u"%s-%s" % (self.request_no, unicode(self.subcontractor))
+
+    def save(self, force_insert=False, force_update=False, using=None,
+             update_fields=None, other_data=None):
+        super(SubcontractorRequest, self).save(force_insert, force_update, using, update_fields)
+        # 請求書作成時、請求に関する全ての情報を履歴として保存する。
+        if other_data:
+            data = other_data
+            # 既存のデータを全部消す。
+            if hasattr(self, "subcontractorrequestheading"):
+                self.subcontractorrequestheading.delete()
+            self.subcontractorrequestdetail_set.all().delete()
+            bank = data['EXTRA']['BANK']
+            date = datetime.datetime(int(self.year), int(self.month), 1, tzinfo=common.get_tz_utc())
+            date = common.get_last_day_by_month(date)
+            company = data['EXTRA']['COMPANY']
+            heading = SubcontractorRequestHeading(
+                subcontractor_request=self,
+                is_lump=False,
+                lump_amount=0,
+                lump_comment=0,
+                is_hourly_pay=False,
+                client=company,
+                client_post_code=data['DETAIL']['CLIENT_POST_CODE'],
+                client_address=data['DETAIL']['CLIENT_ADDRESS'],
+                client_tel=data['DETAIL']['CLIENT_TEL'],
+                client_name=data['DETAIL']['CLIENT_COMPANY_NAME'],
+                tax_rate=company.tax_rate,
+                decimal_type=company.decimal_type,
+                work_period_start=data['EXTRA']['WORK_PERIOD_START'],
+                work_period_end=data['EXTRA']['WORK_PERIOD_END'],
+                remit_date=data['EXTRA']['REMIT_DATE'],
+                publish_date=data['EXTRA']['PUBLISH_DATE'],
+                company_post_code=data['DETAIL']['POST_CODE'],
+                company_address=data['DETAIL']['ADDRESS'],
+                company_name=data['DETAIL']['COMPANY_NAME'],
+                company_tel=data['DETAIL']['TEL'],
+                company_master=data['DETAIL']['MASTER'],
+                bank=data['EXTRA']['BANK'],
+                bank_name=bank.bank_name if bank else '',
+                branch_no=bank.branch_no if bank else '',
+                branch_name=bank.branch_name if bank else '',
+                account_type=bank.account_type if bank else '',
+                account_number=bank.account_number if bank else '',
+                account_holder=bank.account_holder if bank else ''
+            )
+            heading.save()
+            for i, item in enumerate(data['MEMBERS']):
+                project_member = item["EXTRA_PROJECT_MEMBER"]
+                ym = data['EXTRA']['YM']
+                contract = project_member.member.get_contract(date)
+                detail = SubcontractorRequestDetail(subcontractor_request=self)
+                detail.project_member = project_member
+                detail.member_section = project_member.member.get_section(date)
+                detail.member_type = 4
+                detail.salesperson = project_member.member.get_salesperson(date)
+                detail.subcontractor = self.subcontractor
+                detail.cost = 0
+                detail.no = str(i + 1)
+                detail.hourly_pay = contract.allowance_base if contract.is_hourly_pay else 0
+                detail.basic_price = contract.allowance_base
+                detail.min_hours = contract.allowance_time_min
+                detail.max_hours = contract.allowance_time_max
+                detail.total_hours = item['ITEM_WORK_HOURS'] if item['ITEM_WORK_HOURS'] else 0
+                detail.extra_hours = item['ITEM_EXTRA_HOURS'] if item['ITEM_EXTRA_HOURS'] else 0
+                detail.rate = item['ITEM_RATE']
+                detail.plus_per_hour = contract.allowance_overtime
+                detail.minus_per_hour = contract.allowance_absenteeism
+                detail.total_price = item['ITEM_AMOUNT_TOTAL']
+                detail.expenses_price = project_member.get_expenses_amount(ym[:4], int(ym[4:]))
+                detail.comment = item['ITEM_COMMENT']
+                # detail = SubcontractorRequestDetail(
+                #     subcontractor_request=self,
+                #     project_member=project_member,
+                #     member_section=project_member.member.get_section(date),
+                #     member_type=4,
+                #     salesperson=project_member.member.get_salesperson(date),
+                #     subcontractor=contract.company,
+                #     cost=0,
+                #     no=str(i + 1),
+                #     hourly_pay=contract.allowance_base if contract.is_hourly_pay else 0,
+                #     basic_price=contract.allowance_base,
+                #     min_hours=contract.allowance_time_min,
+                #     max_hours=contract.allowance_time_max,
+                #     total_hours=item['ITEM_WORK_HOURS'] if item['ITEM_WORK_HOURS'] else 0,
+                #     extra_hours=item['ITEM_EXTRA_HOURS'] if item['ITEM_EXTRA_HOURS'] else 0,
+                #     rate=item['ITEM_RATE'],
+                #     plus_per_hour=contract.allowance_overtime,
+                #     minus_per_hour=contract.allowance_absenteeism,
+                #     total_price=item['ITEM_AMOUNT_TOTAL'],
+                #     expenses_price=project_member.get_expenses_amount(ym[:4], int(ym[4:])),
+                #     comment=item['ITEM_COMMENT']
+                # )
+                detail.save()
+
+
+class SubcontractorRequestHeading(models.Model):
+    subcontractor_request = models.OneToOneField(SubcontractorRequest, verbose_name=u"請求書")
+    is_lump = models.BooleanField(default=False, verbose_name=u"一括フラグ")
+    lump_amount = models.BigIntegerField(default=0, blank=True, null=True, verbose_name=u"一括金額")
+    lump_comment = models.CharField(blank=True, null=True, max_length=200, verbose_name=u"一括の備考")
+    is_hourly_pay = models.BooleanField(default=False, verbose_name=u"時給")
+    client = models.ForeignKey(Company, null=True, on_delete=models.PROTECT, verbose_name=u"関連会社")
+    client_post_code = models.CharField(blank=True, null=True, max_length=8, verbose_name=u"お客様郵便番号")
+    client_address = models.CharField(blank=True, null=True, max_length=200, verbose_name=u"お客様住所１")
+    client_tel = models.CharField(blank=True, null=True, max_length=15, verbose_name=u"お客様電話番号")
+    client_name = models.CharField(blank=True, null=True, max_length=30, verbose_name=u"お客様会社名")
+    tax_rate = models.DecimalField(blank=True, null=True, max_digits=3, decimal_places=2, verbose_name=u"税率")
+    decimal_type = models.CharField(blank=True, null=True, max_length=1, choices=constants.CHOICE_DECIMAL_TYPE,
+                                    verbose_name=u"小数の処理区分")
+    work_period_start = models.DateField(blank=True, null=True, verbose_name=u"作業期間＿開始")
+    work_period_end = models.DateField(blank=True, null=True, verbose_name=u"作業期間＿終了")
+    remit_date = models.DateField(blank=True, null=True, verbose_name=u"お支払い期限")
+    publish_date = models.DateField(blank=True, null=True, verbose_name=u"発行日")
+    company_post_code = models.CharField(blank=True, null=True, max_length=8, verbose_name=u"本社郵便番号")
+    company_address = models.CharField(blank=True, null=True, max_length=200, verbose_name=u"本社住所")
+    company_name = models.CharField(blank=True, null=True, max_length=30, verbose_name=u"会社名")
+    company_tel = models.CharField(blank=True, null=True, max_length=15, verbose_name=u"お客様電話番号")
+    company_master = models.CharField(blank=True, null=True, max_length=30, verbose_name=u"代表取締役")
+    bank = models.ForeignKey(SubcontractorBankInfo, blank=True, null=True, on_delete=models.PROTECT, verbose_name=u"口座")
+    bank_name = models.CharField(blank=True, null=True, max_length=20, verbose_name=u"銀行名称")
+    branch_no = models.CharField(blank=True, null=True, max_length=3, verbose_name=u"支店番号")
+    branch_name = models.CharField(blank=True, null=True, max_length=20, verbose_name=u"支店名称")
+    account_type = models.CharField(blank=True, null=True, max_length=1, choices=constants.CHOICE_ACCOUNT_TYPE,
+                                    verbose_name=u"預金種類")
+    account_number = models.CharField(blank=True, null=True, max_length=7, verbose_name=u"口座番号")
+    account_holder = models.CharField(blank=True, null=True, max_length=20, verbose_name=u"口座名義")
+
+    class Meta:
+        ordering = ['-subcontractor_request__request_no']
+        verbose_name = verbose_name_plural = u"協力会社請求見出し"
+
+
+class SubcontractorRequestDetail(models.Model):
+    subcontractor_request = models.ForeignKey(SubcontractorRequest, on_delete=models.PROTECT, verbose_name=u"請求書")
+    project_member = models.ForeignKey('ProjectMember', on_delete=models.PROTECT, verbose_name=u"メンバー")
+    member_section = models.ForeignKey(Section, verbose_name=u"部署")
+    member_type = models.IntegerField(default=4, choices=constants.CHOICE_MEMBER_TYPE, verbose_name=u"社員区分")
+    salesperson = models.ForeignKey(Salesperson, blank=True, null=True, on_delete=models.PROTECT,
+                                    verbose_name=u"営業員")
+    subcontractor = models.ForeignKey(Subcontractor, blank=True, null=True, on_delete=models.PROTECT,
+                                      verbose_name=u"協力会社")
+    salary = models.IntegerField(default=0, verbose_name=u"給料")
+    cost = models.IntegerField(default=0, verbose_name=u"コスト")
+    no = models.IntegerField(verbose_name=u"番号")
+    hourly_pay = models.IntegerField(default=0, verbose_name=u"時給")
+    basic_price = models.IntegerField(default=0, verbose_name=u"単価")
+    min_hours = models.DecimalField(max_digits=5, decimal_places=2, default=0, verbose_name=u"基準時間")
+    max_hours = models.DecimalField(max_digits=5, decimal_places=2, default=0, verbose_name=u"最大時間")
+    total_hours = models.DecimalField(max_digits=5, decimal_places=2, default=0, verbose_name=u"合計時間")
+    extra_hours = models.DecimalField(max_digits=5, decimal_places=2, default=0, verbose_name=u"残業時間")
+    rate = models.DecimalField(max_digits=3, decimal_places=2, default=1, verbose_name=u"率")
+    plus_per_hour = models.IntegerField(default=0, editable=False, verbose_name=u"増（円）")
+    minus_per_hour = models.IntegerField(default=0, editable=False, verbose_name=u"減（円）")
+    total_price = models.IntegerField(default=0, verbose_name=u"売上（基本単価＋残業料）（税抜き）")
+    expenses_price = models.IntegerField(default=0, verbose_name=u"精算金額")
+    comment = models.CharField(blank=True, null=True, max_length=50, verbose_name=u"備考")
+
+    class Meta:
+        ordering = ['-subcontractor_request__request_no', 'no']
+        unique_together = ('subcontractor_request', 'no')
+        verbose_name = verbose_name_plural = u"協力会社請求明細"
+
+    def __unicode__(self):
+        f = u"%s %s%sの請求明細"
+        return f % (self.project_member,
+                    self.subcontractor_request.get_year_display(),
+                    self.subcontractor_request.get_month_display())
+
+    def get_tax_price(self):
+        """税金を計算する。
+        """
+        if not hasattr(self.subcontractor_request, 'subcontractorrequestheading'):
+            return 0
+
+        tax_rate = self.subcontractor_request.subcontractorrequestheading.tax_rate
+        # decimal_type = self.project_request.subcontractorrequestheading.decimal_type
+        if tax_rate is None:
+            return 0
+        # if decimal_type == '0':
+        #     # 四捨五入
+        #     return int(round(self.total_price * tax_rate))
+        # else:
+        #     # 切り捨て
+        #     return int(self.total_price * tax_rate)
+        return round(self.total_price * tax_rate, 1)
+
+    def get_all_price(self):
+        """合計を計算する（税込、精算含む）
+        """
+        return int(self.total_price) + self.get_tax_price() + int(self.expenses_price)
 
 
 # class ProjectMemberPrice(BaseModel):

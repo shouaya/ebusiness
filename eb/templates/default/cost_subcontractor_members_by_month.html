@@ -11,6 +11,21 @@
             init_select("project_member__member__subcontractor__name__icontains");
             init_select("project_member__project__name__icontains");
         };
+
+        function generate_request(obj, url) {
+            ajax_post(url, {}, function(data) {callback_fn(obj, data)});
+        }
+
+        function callback_fn (obj, data) {
+            if ($(obj).text() == "新規作成") {
+                $(obj).text("再作成");
+                download_link = "/eb/download/subcontractor_request/" + data.pk + ".html";
+                $(obj).parent().append('|&nbsp;<a href="' + download_link + '" target="_blank" style="font-size: 11px;">Download</a>');
+                view_link = "/eb/subcontractor/subcontractor_request_view/" + data.pk + ".html";
+                $(obj).parent().append('|&nbsp;<a href="' + view_link + '" target="_blank" style="font-size: 11px;">' + data.request_no + '</a>');
+            }
+            alert("作成完了しました！");
+        }
     </script>
 {% endblock %}
 
@@ -26,21 +41,28 @@
             <a href="{{ request.path }}">クリア</a>
         </form>
     </div>
+    {% if subcontractor %}
     <div class="dashboard">
         <div class="dashboard-title">{{ subcontractor }}の請求書</div>
         <form action="" method="get">
-            {% for section in sections %}
+            {% for section, subcontractor_request in sections %}
             <div style="width: 220px; float: left; border: 1px solid lightgray; padding: 5px; border-radius: 5px; margin-right: 10px;">
                 <img src="/static/admin/img/invoice.png" width="40px;" style="float: left;">
                 <div style="padding-left: 5px; float: left; color: #ff00e7;">
                     {{ section }}<br/>
-                    <!--<a href="#">請求書作成</a>-->
+                    <a onclick="generate_request(this, '{% url 'generate_subcontractor_request' subcontractor.pk section.pk year month %}')"
+                       style="font-size: 11px;" href="javascript:void(0)">{% if subcontractor_request %}再作成{% else %}新規作成{% endif %}</a>
+                    {% if subcontractor_request %}
+                        |&nbsp;<a href="{% url 'download_subcontractor_request' subcontractor_request.pk %}" target="_blank" style="font-size: 11px;">Download</a>
+                        |&nbsp;<a href="{% url 'view_subcontractor_request' subcontractor_request.pk %}" target="_blank" style="font-size: 11px;">{{ subcontractor_request.request_no }}</a>
+                    {% endif %}
                 </div>
             </div>
             {% endfor %}
             <div style="clear: both;"></div>
         </form>
     </div>
+    {% endif %}
     <table class="list" cellpadding="0" cellspacing="0">
         <thead>
             <tr>

@@ -508,7 +508,12 @@ def generate_quotation(project, user, company):
 
 
 def generate_request_linux(project, data, request_no, ym):
-    path = common.get_request_file_path(request_no, project.client.name, ym)
+    if isinstance(project, models.Project):
+        path = common.get_request_file_path(request_no, project.client.name, ym)
+        is_lump = project.is_lump
+    else:
+        path = common.get_subcontractor_request_file_path(request_no, unicode(project), ym)
+        is_lump = False
     book = xlsxwriter.Workbook(path)
     sheet = book.add_worksheet()
 
@@ -551,7 +556,7 @@ def generate_request_linux(project, data, request_no, ym):
     sheet.write_string('M10', u"〒" + data['DETAIL']['POST_CODE'])
     sheet.write_string('M11', data['DETAIL']['ADDRESS'])
     sheet.write_string('M12', data['DETAIL']['COMPANY_NAME'])
-    sheet.write_string('M13', u"代表取締役　　花　   東  江")
+    sheet.write_string('M13', u"代表取締役　　" + data['DETAIL']['MASTER'])
     sheet.write_string('M14', u"TEL：" + data['DETAIL']['TEL'])
     sheet.insert_textbox('M15', '', {'width': 90,
                                      'height': 90,
@@ -595,11 +600,11 @@ def generate_request_linux(project, data, request_no, ym):
     float_format = book.add_format({'num_format': '#,###.00', 'border': 1})
     start_row = 24
 
-    def border_row(row_index, is_lump=False):
+    def border_row(row_index, is_lump_temp=False):
         sheet.write_string(row_index, 1, '', cell_format)
         sheet.write_string(row_index, 14, '', cell_format)
         sheet.write_string(row_index, 15, '', cell_format)
-        if is_lump:
+        if is_lump_temp:
             sheet.write_string(row_index, 2, '', range1_format)
             sheet.write_string(row_index, 3, '', range2_format)
             sheet.write_string(row_index, 4, '', range2_format)
@@ -669,12 +674,12 @@ def generate_request_linux(project, data, request_no, ym):
         start_row += 1
     if start_row < 44:
         for i in range(start_row, 44):
-            border_row(i, project.is_lump)
+            border_row(i, is_lump)
         start_row = 44
     else:
         start_row += 1
     for i in range(start_row, start_row + 5):
-        border_row(i, project.is_lump)
+        border_row(i, is_lump)
     sheet.merge_range(start_row + 0, 3, start_row + 0, 5, u"（小計）", range2_format)
     sheet.write_number(start_row + 0, 14, data['DETAIL']['ITEM_AMOUNT_ATTENDANCE'], num_format)
     sheet.merge_range(start_row + 1, 3, start_row + 1, 5, u"(消費税）", range2_format)
@@ -686,7 +691,7 @@ def generate_request_linux(project, data, request_no, ym):
     start_row += 5
     if data['EXPENSES']:
         for i, item in enumerate(data['EXPENSES']):
-            border_row(start_row, project.is_lump)
+            border_row(start_row, is_lump)
             if i == 0:
                 sheet.write_string(start_row, 1, u"追加", cell_format)
             # sheet.write_string(start_row, 3, item['ITEM_EXPENSES_CATEGORY_SUMMARY'], range2_format)
@@ -694,10 +699,10 @@ def generate_request_linux(project, data, request_no, ym):
             sheet.write_number(start_row, 14, item['ITEM_EXPENSES_CATEGORY_AMOUNT'], num_format)
             start_row += 1
     else:
-        border_row(start_row, project.is_lump)
+        border_row(start_row, is_lump)
         sheet.write_string(start_row, 1, u"追加", cell_format)
         start_row += 1
-    border_row(start_row, project.is_lump)
+    border_row(start_row, is_lump)
     sheet.merge_range(start_row, 3, start_row, 4, u"(総計）", range2_format)
     sheet.write_number(start_row, 14, data['DETAIL']['ITEM_AMOUNT_ALL'], num_format)
     sheet.write_string(start_row + 1, 1, u"お振込銀行口座")
