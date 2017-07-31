@@ -1306,13 +1306,13 @@ class Member(AbstractMember):
         contract_list = self.contract_set.filter(
             employment_date__lte=last_day
         ).exclude(status='04').order_by('-employment_date', '-contract_no')
-        if contract_list.count() > 0:
-            contract = contract_list[0]
+        bp_contract_list = self.bpcontract_set.filter(
+            start_date__lte=last_day,
+            is_deleted=False,
+        ).order_by('-start_date')
+        if bp_contract_list.count() > 0:
+            contract = bp_contract_list[0]
         else:
-            contract_list = self.bpcontract_set.filter(
-                start_date__lte=last_day,
-                is_deleted=False,
-            ).order_by('-start_date')
             if contract_list.count() > 0:
                 contract = contract_list[0]
         return contract
