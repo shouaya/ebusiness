@@ -629,7 +629,7 @@ def generate_order_data(company, subcontractor, user, ym):
     data['DETAIL']['TEL'] = company.tel
     # 代表取締役
     member = get_master()
-    data['DETAIL']['MASTER'] = u"%s %s" % (member.first_name, member.last_name) if member else ""
+    data['DETAIL']['MASTER'] = company.president
     # 本社住所
     data['DETAIL']['ADDRESS1'] = company.address1
     data['DETAIL']['ADDRESS2'] = company.address2
@@ -733,7 +733,7 @@ def generate_request_data(company, project, client_order, bank_info, ym, project
     data['DETAIL']['COMPANY_NAME'] = company.name
     # 代表取締役
     member = get_master()
-    data['DETAIL']['MASTER'] = u"%s %s" % (member.first_name, member.last_name) if member else ""
+    data['DETAIL']['MASTER'] = company.president
     # 本社電話番号
     data['DETAIL']['TEL'] = company.tel
     # 振込先銀行名称
